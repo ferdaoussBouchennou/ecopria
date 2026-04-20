@@ -1,10 +1,10 @@
 # =============================================================
 #  Ecopria — CI/CD
-#  Se déclenche sur toutes les branches
-#  Teste uniquement le service qui a été modifié
+#  Sur toutes les branches  → compiler + tester
+#  Sur main seulement       → compiler + tester + Docker Hub
 # =============================================================
 
-name: Ecopria CI
+name: Ecopria CI/CD
 
 on:
   push:
@@ -63,6 +63,24 @@ jobs:
         working-directory: ${{ matrix.service }}
         run: mvn clean package -DskipTests=false
 
+      # ── Docker Hub : uniquement sur main ──────────────────
+      - name: Login Docker Hub
+        if: steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build et Push image Docker
+        if: steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.service }}
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/ecopria-${{ matrix.service }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/ecopria-${{ matrix.service }}:${{ github.sha }}
+
       - name: Afficher le résultat
         if: steps.changes.outputs.changed == 'false'
         run: echo "${{ matrix.service }} — aucune modification détectée, build ignoré"
@@ -104,6 +122,24 @@ jobs:
         if: steps.changes.outputs.changed == 'true'
         working-directory: frontend
         run: npm run build -- --configuration=production
+
+      # ── Docker Hub : uniquement sur main ──────────────────
+      - name: Login Docker Hub
+        if: steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build et Push image Docker Frontend
+        if: steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/ecopria-frontend:latest
+            ${{ secrets.DOCKER_USERNAME }}/ecopria-frontend:${{ github.sha }}
 
       - name: Afficher le résultat
         if: steps.changes.outputs.changed == 'false'
