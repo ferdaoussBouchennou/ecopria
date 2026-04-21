@@ -267,16 +267,4 @@ services:
       retries: 10
       start_period: 20s
 
-  service-action-backend:
-    build: ./service-action/backend
-    container_name: service-action-backend
-    networks:
-      - ecopria-network
-    ports:
-      - "9090:9090"
-    environment:
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    restart: on-failure
-    depends_on:
-      mysql-action:
-        condition: service_healthy
+  
