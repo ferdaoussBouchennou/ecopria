@@ -1,40 +1,24 @@
-# ================================================
-# ÉTAPE 1 — Choisir l'environnement Java
-# ================================================
-FROM eclipse-temurin:21-jdk
-# FROM = depuis quelle image de base on part
-# openjdk:21 = Java 21 officiel
-# jdk = Java Development Kit (nécessaire pour lancer un .jar)
-# slim = version légère (moins de taille)
+# ── ÉTAPE 1 : image minimale JRE (pas JDK complet) ──────────
+FROM eclipse-temurin:21-jre
 
-# ================================================
-# ÉTAPE 2 — Définir le dossier de travail
-# ================================================
+# ── ÉTAPE 2 : dossier de travail ────────────────────────────
 WORKDIR /app
-# WORKDIR = le dossier dans lequel on travaille à l'intérieur du container
-# /app = on crée un dossier "app" dans le container
-# tout ce qui suit se passe dans ce dossier
 
-# ================================================
-# ÉTAPE 3 — Copier le fichier compilé
-# ================================================
+# ── ÉTAPE 3 : créer un utilisateur non-root ─────────────────
+RUN addgroup --system appgroup && \
+    adduser --system --ingroup appgroup appuser
+
+# ── ÉTAPE 4 : copier le JAR ─────────────────────────────────
 COPY target/*.jar app.jar
-# COPY = copier un fichier depuis ta machine vers le container
-# target/*.jar = le fichier .jar que Maven crée quand tu fais "mvn package"
-# app.jar = le nom qu'on lui donne dans le container
 
-# ================================================
-# ÉTAPE 4 — Ouvrir le port
-# ================================================
+# ── ÉTAPE 5 : donner les droits à l'utilisateur ─────────────
+RUN chown appuser:appgroup app.jar
+
+# ── ÉTAPE 6 : basculer sur l'utilisateur non-root ───────────
+USER appuser
+
+# ── ÉTAPE 7 : port ──────────────────────────────────────────
 EXPOSE 9090
-# EXPOSE = dire que le service écoute sur ce port
-# 8080 = port par défaut de Spring Boot
-# c'est juste une information, pas une règle obligatoire
 
-# ================================================
-# ÉTAPE 5 — Lancer le service
-# ================================================
-ENTRYPOINT ["java", "-jar", "app.jar"]
-# ENTRYPOINT = la commande qui se lance quand le container démarre
-# java -jar app.jar = commande pour lancer un fichier .jar Java
-# c'est exactement comme si tu faisais ça dans ton terminal
+# ── ÉTAPE 8 : lancer avec des limites mémoire JVM ───────────
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
