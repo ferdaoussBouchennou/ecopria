@@ -32,8 +32,8 @@ services:
     networks:
       - ecopria-network
     ports:
-      - "9092:9092"     # accès depuis les services Spring Boot (conteneur)
-      - "29092:29092"   # accès depuis la machine hôte (dev local)
+      - "9092:9092"
+      - "29092:29092"
     environment:
       CLUSTER_ID: "ecopria-kafka-cluster-001"
       KAFKA_NODE_ID: 1
@@ -62,7 +62,7 @@ services:
       start_period: 30s
 
   # ─────────────────────────────────────────────────────────
-  #  KAFKA UI — interface web pour visualiser les topics
+  #  KAFKA UI
   #  Accessible sur http://localhost:8090
   # ─────────────────────────────────────────────────────────
   kafka-ui:
@@ -81,9 +81,24 @@ services:
         condition: service_healthy
 
   # ─────────────────────────────────────────────────────────
+  #  PHPMYADMIN — interface web pour les bases MySQL
+  #  Accessible sur http://localhost:8888
+  # ─────────────────────────────────────────────────────────
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin
+    networks:
+      - ecopria-network
+    ports:
+      - "8888:80"
+    environment:
+      PMA_HOSTS: mysql-auth,mysql-utilisateur,mysql-action,mysql-inscription,mysql-presence,mysql-recompense,mysql-admin,mysql-notification
+      PMA_USER: ecopria
+      PMA_PASSWORD: ${MYSQL_PASSWORD}
+
+  # ─────────────────────────────────────────────────────────
   #  BASES DE DONNÉES MySQL — une par microservice
   # ─────────────────────────────────────────────────────────
-
   mysql-auth:
     image: mysql:8.0
     container_name: mysql-auth
@@ -252,4 +267,16 @@ services:
       retries: 10
       start_period: 20s
 
-  
+  service-action-backend:
+    build: ./service-action/backend
+    container_name: service-action-backend
+    networks:
+      - ecopria-network
+    ports:
+      - "9090:9090"
+    environment:
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    restart: on-failure
+    depends_on:
+      mysql-action:
+        condition: service_healthy
