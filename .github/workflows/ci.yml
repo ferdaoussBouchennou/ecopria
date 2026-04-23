@@ -1,9 +1,3 @@
-# =============================================================
-#  Ecopria — CI/CD
-#  Sur toutes les branches  → compiler + tester
-#  Sur main seulement       → compiler + tester + Docker Hub
-# =============================================================
-
 name: Ecopria CI/CD
 
 on:
@@ -17,7 +11,7 @@ on:
 jobs:
 
   # ─────────────────────────────────────────────────────────
-  #  BACKEND — Spring Boot de chaque microservice
+  #  BACKEND — un job par microservice
   # ─────────────────────────────────────────────────────────
   build-backend:
     name: Backend ${{ matrix.service }}
@@ -43,10 +37,10 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Vérifier si le backend a été modifié
+      - name: Vérifier si ce service a été modifié
         id: changes
         run: |
-          git diff --name-only HEAD~1 HEAD | grep "^${{ matrix.service }}/backend/" \
+          git diff --name-only HEAD~1 HEAD | grep "^backend/${{ matrix.service }}/" \
           && echo "changed=true" >> $GITHUB_OUTPUT \
           || echo "changed=false" >> $GITHUB_OUTPUT
 
@@ -60,10 +54,9 @@ jobs:
 
       - name: Compiler et tester
         if: steps.changes.outputs.changed == 'true'
-        working-directory: ${{ matrix.service }}/backend
+        working-directory: backend/${{ matrix.service }}
         run: mvn clean package -DskipTests=false
 
-      # ── Docker Hub : uniquement sur main ──────────────────
       - name: Login Docker Hub
         if: steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: docker/login-action@v3
@@ -75,35 +68,22 @@ jobs:
         if: steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: docker/build-push-action@v5
         with:
-          context: ./${{ matrix.service }}/backend
+          context: ./backend/${{ matrix.service }}
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/ecopria-${{ matrix.service }}-backend:latest
-            ${{ secrets.DOCKER_USERNAME }}/ecopria-${{ matrix.service }}-backend:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/ecopria-${{ matrix.service }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/ecopria-${{ matrix.service }}:${{ github.sha }}
 
       - name: Afficher le résultat
         if: steps.changes.outputs.changed == 'false'
-        run: echo "${{ matrix.service }} backend — aucune modification détectée, build ignoré"
+        run: echo "${{ matrix.service }} — aucune modification, ignoré"
 
   # ─────────────────────────────────────────────────────────
-  #  FRONTEND — Angular de chaque microservice
+  #  FRONTEND — un seul projet Angular partagé
   # ─────────────────────────────────────────────────────────
   build-frontend:
-    name: Frontend ${{ matrix.service }}
+    name: Frontend Angular
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        service:
-          - service-auth
-          - service-utilisateur
-          - service-action
-          - service-inscription
-          - service-presence
-          - service-recompense
-          - service-admin
-          - service-notification
 
     steps:
       - name: Télécharger le code
@@ -114,7 +94,7 @@ jobs:
       - name: Vérifier si le frontend a été modifié
         id: changes
         run: |
-          git diff --name-only HEAD~1 HEAD | grep "^${{ matrix.service }}/frontend/" \
+          git diff --name-only HEAD~1 HEAD | grep "^frontend/" \
           && echo "changed=true" >> $GITHUB_OUTPUT \
           || echo "changed=false" >> $GITHUB_OUTPUT
 
@@ -124,19 +104,18 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: ${{ matrix.service }}/frontend/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Installer les dépendances
         if: steps.changes.outputs.changed == 'true'
-        working-directory: ${{ matrix.service }}/frontend
+        working-directory: frontend
         run: npm ci
 
       - name: Compiler Angular
         if: steps.changes.outputs.changed == 'true'
-        working-directory: ${{ matrix.service }}/frontend
+        working-directory: frontend
         run: npm run build -- --configuration=production
 
-      # ── Docker Hub : uniquement sur main ──────────────────
       - name: Login Docker Hub
         if: steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: docker/login-action@v3
@@ -148,12 +127,12 @@ jobs:
         if: steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: docker/build-push-action@v5
         with:
-          context: ./${{ matrix.service }}/frontend
+          context: ./frontend
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/ecopria-${{ matrix.service }}-frontend:latest
-            ${{ secrets.DOCKER_USERNAME }}/ecopria-${{ matrix.service }}-frontend:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/ecopria-frontend:latest
+            ${{ secrets.DOCKER_USERNAME }}/ecopria-frontend:${{ github.sha }}
 
       - name: Afficher le résultat
         if: steps.changes.outputs.changed == 'false'
-        run: echo "${{ matrix.service }} frontend — aucune modification détectée, build ignoré"
+        run: echo "Frontend — aucune modification, ignoré"
