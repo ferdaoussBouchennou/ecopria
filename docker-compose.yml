@@ -267,6 +267,14 @@ services:
       retries: 10
       start_period: 20s
 
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    networks:
+    - ecopria-network
+    ports:
+    - "4200:80"
+
   service-action-backend:
     build: ./backend/service-action
     container_name: service-action-backend
