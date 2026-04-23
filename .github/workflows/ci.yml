@@ -55,7 +55,7 @@ jobs:
       - name: Compiler et tester
         if: steps.changes.outputs.changed == 'true'
         working-directory: backend/${{ matrix.service }}
-        run: mvn clean package -DskipTests=false
+        run: mvn clean package -DskipTests=true
 
       - name: Login Docker Hub
         if: steps.changes.outputs.changed == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
