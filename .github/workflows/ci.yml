@@ -30,20 +30,22 @@ jobs:
           --health-timeout=5s
           --health-retries=10
 
+      zookeeper:
+        image: confluentinc/cp-zookeeper:7.4.0
+        env:
+          ZOOKEEPER_CLIENT_PORT: 2181
+          ZOOKEEPER_TICK_TIME: 2000
+        ports:
+          - 2181:2181
+
       kafka:
-        image: confluentinc/cp-kafka:7.6.0
+        image: confluentinc/cp-kafka:7.4.0
         ports:
           - 9092:9092
         env:
-          CLUSTER_ID: "ci-kafka-cluster-001"
-          KAFKA_NODE_ID: 1
-          KAFKA_PROCESS_ROLES: "broker,controller"
-          KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
-          KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
-          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
-          KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
-          KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-          KAFKA_CONTROLLER_QUORUM_VOTERS: "1@localhost:9093"
+          KAFKA_BROKER_ID: 1
+          KAFKA_ZOOKEEPER_CONNECT: localhost:2181
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
           KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
           KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
         options: >-
@@ -51,7 +53,7 @@ jobs:
           --health-interval=15s
           --health-timeout=10s
           --health-retries=10
-          --health-start-period=30s
+          --health-start-period=40s
 
     strategy:
       fail-fast: false
