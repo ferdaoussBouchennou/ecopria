@@ -279,12 +279,17 @@ services:
     build: ./backend/service-action
     container_name: service-action-backend
     networks:
-      - ecopria-network
+    - ecopria-network
     ports:
-      - "9090:9090"
+    - "9090:9090"
     environment:
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+     SPRING_DATASOURCE_URL: jdbc:mysql://mysql-action:3306/db_action
+     SPRING_DATASOURCE_USERNAME: ecopria
+     SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+     SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     restart: on-failure
     depends_on:
-      mysql-action:
-        condition: service_healthy
+     mysql-action:
+      condition: service_healthy
+     kafka:
+      condition: service_healthy
