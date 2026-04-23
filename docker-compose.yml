@@ -268,7 +268,7 @@ services:
       start_period: 20s
 
   frontend:
-    build: ./frontend
+    image: ferdaoussbo/ecopria-frontend:latest
     container_name: frontend
     networks:
     - ecopria-network
