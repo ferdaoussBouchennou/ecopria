@@ -30,31 +30,6 @@ jobs:
           --health-timeout=5s
           --health-retries=10
 
-      zookeeper:
-        image: confluentinc/cp-zookeeper:7.4.0
-        env:
-          ZOOKEEPER_CLIENT_PORT: 2181
-          ZOOKEEPER_TICK_TIME: 2000
-        ports:
-          - 2181:2181
-
-      kafka:
-        image: confluentinc/cp-kafka:7.4.0
-        ports:
-          - 9092:9092
-        env:
-          KAFKA_BROKER_ID: 1
-          KAFKA_ZOOKEEPER_CONNECT: localhost:2181
-          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-          KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-        options: >-
-          --health-cmd="kafka-broker-api-versions --bootstrap-server localhost:9092"
-          --health-interval=15s
-          --health-timeout=10s
-          --health-retries=10
-          --health-start-period=40s
-
     strategy:
       fail-fast: false
       matrix:
@@ -109,9 +84,7 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/db_test
           SPRING_DATASOURCE_USERNAME: ecopria
           SPRING_DATASOURCE_PASSWORD: ecopria_test
-          SPRING_KAFKA_BOOTSTRAP_SERVERS: localhost:9092
-          JWT_SECRET: test_secret_key_minimum_32_characters_long
-          QR_HMAC_SECRET: test_hmac_secret_minimum_32_characters
+          SPRING_PROFILES_ACTIVE: test
 
       - name: Login Docker Hub
         if: steps.changes.outputs.changed == 'true' && steps.exists.outputs.exists == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -132,7 +105,7 @@ jobs:
 
       - name: Afficher le résultat
         if: steps.changes.outputs.changed == 'false' || steps.exists.outputs.exists == 'false'
-        run: echo " ${{ matrix.service }} — ignoré"
+        run: echo "${{ matrix.service }} — ignoré"
 
   build-frontend:
     name: Frontend Angular
@@ -192,4 +165,4 @@ jobs:
 
       - name: Afficher le résultat
         if: steps.changes.outputs.changed == 'false'
-        run: echo " Frontend — aucune modification, ignoré"
+        run: echo "Frontend — aucune modification, ignoré"
