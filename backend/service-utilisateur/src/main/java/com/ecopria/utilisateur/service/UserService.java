@@ -1,23 +1,17 @@
 package com.ecopria.utilisateur.service;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ecopria.utilisateur.dto.PointsDTO;
-import com.ecopria.utilisateur.model.Badge;
-import com.ecopria.utilisateur.model.UserBadge;
-import com.ecopria.utilisateur.model.PointHistory;
-import com.ecopria.utilisateur.model.Profile;
-import com.ecopria.utilisateur.repository.BadgeRepository;
-import com.ecopria.utilisateur.repository.UserBadgeRepository;
-import com.ecopria.utilisateur.repository.PointHistoryRepository;
-import com.ecopria.utilisateur.repository.ProfileRepository;
+import com.ecopria.utilisateur.dto.*;
+import com.ecopria.utilisateur.model.*;
+import com.ecopria.utilisateur.repository.*;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,27 +23,28 @@ public class UserService {
     private final PointHistoryRepository pointHistoryRepository;
     private final BadgeRepository badgeRepository;
     private final UserBadgeRepository userBadgeRepository;
+    private final NotificationPreferenceRepository notificationPreferenceRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    // Méthode pour le POST depuis le contrôleur
     @Transactional
     public Profile createProfile(Profile newProfile) {
         if (newProfile.getUserId() == null) {
             throw new IllegalArgumentException("L'identifiant utilisateur (userId) est obligatoire.");
         }
 
-        // Vérifier si un profil existe déjà
         if (profileRepository.findByUserId(newProfile.getUserId()).isPresent()) {
-            throw new IllegalStateException("Un utilisateur avec cet ID existe déjà (userId: " + newProfile.getUserId() + ").");
+            throw new IllegalStateException("Un utilisateur avec cet ID existe d�j� (userId: " + newProfile.getUserId() + ").");
         }
 
-        // Sauvegarder le nouveau profil
         Profile savedProfile = profileRepository.save(newProfile);
 
-        // Publier un événement sur Kafka (de manière asynchrone pour ne pas bloquer le contrôleur)
+        NotificationPreference pref = new NotificationPreference();
+        pref.setProfile(savedProfile);
+        notificationPreferenceRepository.save(pref);
+
         try {
             Map<String, Object> event = new HashMap<>();
-            event.put("id", savedProfile.getUserId());
+            event.put("userId", savedProfile.getUserId());
             event.put("lastName", savedProfile.getLastName());
             event.put("firstName", savedProfile.getFirstName());
             kafkaTemplate.send("user.inscrit", event);
@@ -60,7 +55,6 @@ public class UserService {
         return savedProfile;
     }
 
-    // Créer profil quand user.inscrit reçu depuis Kafka
     @Transactional
     public void createProfile(Long userId, String lastName, String firstName) {
         if (profileRepository.findByUserId(userId).isPresent()) return;
@@ -69,32 +63,42 @@ public class UserService {
         profile.setUserId(userId);
         profile.setLastName(lastName);
         profile.setFirstName(firstName);
-        profileRepository.save(profile);
+        Profile saved = profileRepository.save(profile);
+
+        NotificationPreference pref = new NotificationPreference();
+        pref.setProfile(saved);
+        notificationPreferenceRepository.save(pref);
     }
 
-    // Créditer les points quand presence.validee reçu depuis Kafka
+    @Transactional
+    public Profile updateProfile(Long userId, UpdateProfilDTO dto) {
+        Profile profile = getProfile(userId);
+        if (dto.getFirstName() != null && !dto.getFirstName().isBlank())
+            profile.setFirstName(dto.getFirstName());
+        if (dto.getLastName() != null && !dto.getLastName().isBlank())
+            profile.setLastName(dto.getLastName());
+        if (dto.getCity() != null)
+            profile.setCity(dto.getCity());
+        return profileRepository.save(profile);
+    }
+
     @Transactional
     public void awardPoints(PointsDTO dto) {
         Profile profile = profileRepository.findByUserId(dto.getUserId())
-                .orElseThrow(() -> new RuntimeException("Profil non trouvé"));
+                .orElseThrow(() -> new RuntimeException("Profil non trouv�"));
 
-        // Mettre à jour les points
         profile.setTotalPoints(profile.getTotalPoints() + dto.getPoints());
-
-        // Mettre à jour le niveau (1 niveau par 500 points)
         profile.setLevel(1 + profile.getTotalPoints() / 500);
         profileRepository.save(profile);
 
-        // Enregistrer dans historique
         PointHistory h = new PointHistory();
         h.setProfile(profile);
         h.setAmount(dto.getPoints());
         h.setType(PointHistory.TransactionType.CREDIT);
         h.setSource("action-" + dto.getActionId());
-        h.setDescription("Points gagnés pour participation");
+        h.setDescription("Points gagn�s pour participation");
         pointHistoryRepository.save(h);
 
-        // Publier sur Kafka : points.credites
         Map<String, Object> event = new HashMap<>();
         event.put("userId", dto.getUserId());
         event.put("pointsAdded", dto.getPoints());
@@ -102,15 +106,13 @@ public class UserService {
         event.put("actionId", dto.getActionId());
         kafkaTemplate.send("points.credites", event);
 
-        // Vérifier et débloquer les badges
         checkBadges(profile);
     }
 
-    // Débiter les points quand recompense.echangee reçu depuis Kafka
     @Transactional
     public void deductPoints(Long userId, Integer points) {
         Profile profile = profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Profil non trouvé"));
+                .orElseThrow(() -> new RuntimeException("Profil non trouv�"));
 
         if (points == null || points <= 0) {
             throw new IllegalArgumentException("Le nombre de points a debiter doit etre positif");
@@ -129,11 +131,10 @@ public class UserService {
         h.setAmount(points);
         h.setType(PointHistory.TransactionType.DEBIT);
         h.setSource("recompense");
-        h.setDescription("Points dépensés pour une récompense");
+        h.setDescription("Points d�pens�s pour une r�compense");
         pointHistoryRepository.save(h);
     }
 
-    // Vérifier et débloquer les badges automatiquement
     private void checkBadges(Profile profile) {
         List<Badge> availableBadges = badgeRepository
                 .findByRequiredPointsLessThanEqual(profile.getTotalPoints());
@@ -148,7 +149,6 @@ public class UserService {
                 ub.setBadge(badge);
                 userBadgeRepository.save(ub);
 
-                // Publier sur Kafka : badge.debloque
                 Map<String, Object> event = new HashMap<>();
                 event.put("userId", profile.getUserId());
                 event.put("badge", badge.getName());
@@ -158,15 +158,26 @@ public class UserService {
         }
     }
 
-    // Récupérer le profil
     public Profile getProfile(Long userId) {
         return profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Profil non trouvé"));
+                .orElseThrow(() -> new RuntimeException("Profil non trouv�"));
     }
 
-    // Classement
-    public List<Profile> getLeaderboard() {
-        return profileRepository.findTop10ByOrderByTotalPointsDesc();
+    public List<LeaderboardEntryDTO> getLeaderboard(Long currentUserId) {
+        List<Profile> top10 = profileRepository.findTop10ByOrderByTotalPointsDesc();
+        List<LeaderboardEntryDTO> result = new ArrayList<>();
+        for (int i = 0; i < top10.size(); i++) {
+            Profile p = top10.get(i);
+            LeaderboardEntryDTO dto = new LeaderboardEntryDTO();
+            dto.setRank(i + 1);
+            dto.setLastName(p.getLastName());
+            dto.setFirstName(p.getFirstName());
+            dto.setCity(p.getCity() != null ? p.getCity() : "�");
+            dto.setTotalPoints(p.getTotalPoints());
+            dto.setMe(p.getUserId().equals(currentUserId));
+            result.add(dto);
+        }
+        return result;
     }
 
     public List<PointHistory> getHistory(Long userId) {
@@ -177,5 +188,32 @@ public class UserService {
     public List<UserBadge> getBadges(Long userId) {
         Profile profile = getProfile(userId);
         return userBadgeRepository.findByProfileId(profile.getId());
+    }
+
+    public NotificationPreference getPreferences(Long userId) {
+        Profile profile = getProfile(userId);
+        return notificationPreferenceRepository.findByProfileId(profile.getId())
+            .orElseGet(() -> {
+                NotificationPreference pref = new NotificationPreference();
+                pref.setProfile(profile);
+                return notificationPreferenceRepository.save(pref);
+            });
+    }
+
+    @Transactional
+    public void updatePreferences(Long userId, UpdatePreferencesDTO dto) {
+        Profile profile = getProfile(userId);
+        NotificationPreference pref = notificationPreferenceRepository
+            .findByProfileId(profile.getId())
+            .orElseGet(() -> {
+                NotificationPreference p = new NotificationPreference();
+                p.setProfile(profile);
+                return p;
+            });
+        if (dto.getNearbyActions() != null) pref.setNearbyActions(dto.getNearbyActions());
+        if (dto.getReminders() != null) pref.setReminders(dto.getReminders());
+        if (dto.getCatalogNews() != null) pref.setCatalogNews(dto.getCatalogNews());
+        if (dto.getNewsletter() != null) pref.setNewsletter(dto.getNewsletter());
+        notificationPreferenceRepository.save(pref);
     }
 }
