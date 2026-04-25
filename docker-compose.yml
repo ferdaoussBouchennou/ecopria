@@ -294,6 +294,27 @@ services:
      kafka:
       condition: service_healthy
 
+  service-notification-backend:
+    build: ./backend/service-notification
+    container_name: service-notification-backend
+    networks:
+      - ecopria-network
+    ports:
+      - "8085:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-notification:3306/db_notification
+      SPRING_DATASOURCE_USERNAME: ecopria
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EMAIL_USERNAME: ${EMAIL_USERNAME}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+    restart: on-failure
+    depends_on:
+      mysql-notification:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
   service-utilisateur-backend:
     build: ./backend/service-utilisateur
     container_name: service-utilisateur-backend
