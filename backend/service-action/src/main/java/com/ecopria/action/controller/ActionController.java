@@ -110,4 +110,19 @@ public class ActionController {
     public ResponseEntity<List<ActionSummaryDTO>> getAllForAdmin() {
         return ResponseEntity.ok(actionService.getAllForAdmin());
     }
+
+    // ── ENDPOINTS DE TEST KAFKA — à supprimer après ──────────
+    // POST /api/actions/test/decrementer/{actionId}
+    @PostMapping("/test/decrementer/{actionId}")
+    public ResponseEntity<String> testDecrement(@PathVariable Long actionId) {
+        actionService.decrementPlace(actionId);
+        return ResponseEntity.ok("Place décrémentée — vérifier Kafka UI");
+    }
+
+    // POST /api/actions/test/liberer/{actionId}
+    @PostMapping("/test/liberer/{actionId}")
+    public ResponseEntity<String> testRelease(@PathVariable Long actionId) {
+        actionService.releasePlace(actionId);
+        return ResponseEntity.ok("Place libérée — vérifier Kafka UI");
+    }
 }

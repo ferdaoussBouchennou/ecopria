@@ -19,13 +19,25 @@ public class CategorieController {
     public ResponseEntity<List<CategorieDTO>> getAll() {
         List<CategorieDTO> categories = categorieRepository.findAll()
                 .stream()
-                .map(c -> CategorieDTO.builder()
-                        .id(c.getId())
-                        .name(c.getName())
-                        .description(c.getDescription())
-                        .imageUrl(c.getImageUrl())
-                        .build())
+                .map(this::mapToDTO)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(categories);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CategorieDTO> getById(@PathVariable Long id) {
+        return categorieRepository.findById(id)
+                .map(this::mapToDTO)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    private CategorieDTO mapToDTO(com.ecopria.action.model.Categorie c) {
+        return CategorieDTO.builder()
+                .id(c.getId())
+                .name(c.getName())
+                .description(c.getDescription())
+                .imageUrl(c.getImageUrl())
+                .build();
     }
 }
