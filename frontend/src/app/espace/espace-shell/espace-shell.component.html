@@ -1,0 +1,90 @@
+<div class="page-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <img src="assets/logo.png" alt="ecopria logo" style="height: 80px; width: auto;">
+        </div>
+
+        <div class="user-sidebar-info" *ngIf="profile">
+            <div class="nav-section" style="margin-bottom: 0.5rem;">
+                <p>ESPACE PERSONNEL</p>
+            </div>
+            <h3>{{ profile.firstName }} {{ profile.lastName }}</h3>
+        </div>
+
+        <nav class="nav-section">
+            <a routerLink="/espace" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"
+                class="nav-item">Tableau de bord</a>
+            <a href="#" class="nav-item">Mes actions</a>
+            <a href="#" class="nav-item">Mes QR codes</a>
+            <a href="#" class="nav-item">Mes récompenses</a>
+            <a routerLink="/espace/classement" routerLinkActive="active" class="nav-item">Classement</a>
+            <a routerLink="/espace/parametres" routerLinkActive="active" class="nav-item">Paramètres</a>
+        </nav>
+
+        <div style="margin-top: auto;">
+            <a href="#" class="nav-item" style="font-size: 0.8rem; color: var(--muted-foreground);">← Retour au site</a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <header class="top-bar">
+            <!-- TWO-LEVEL HEADER -->
+            <div class="header-left">
+                <p class="eyebrow">{{ pageEyebrow }}</p>
+                <h1 class="header-title">{{ pageTitle }}</h1>
+            </div>
+
+            <div class="top-actions" *ngIf="profile">
+                <div class="notif-wrapper">
+                    <button class="notif-btn" (click)="toggleNotifs()">
+                        <span class="icon">🔔</span>
+                        <span class="badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+                    </button>
+
+                    <!-- Notifications Dropdown -->
+                    <div class="notif-dropdown card-soft" *ngIf="showNotifs">
+                        <div class="notif-header">
+                            <h4>Notifications</h4>
+                            <button *ngIf="unreadCount > 0 && notifTab === 'recent'" class="mark-all-btn"
+                                (click)="markAllRead()">Tout marquer lu</button>
+                        </div>
+
+                        <div class="notif-tabs">
+                            <button [class.active]="notifTab === 'recent'" (click)="notifTab = 'recent'">Récentes ({{
+                                unreadCount }})</button>
+                            <button [class.active]="notifTab === 'history'"
+                                (click)="notifTab = 'history'">Historique</button>
+                        </div>
+
+                        <div class="notif-list">
+                            <div class="notif-item" *ngFor="let n of filteredNotifs" [class.unread]="!n.isRead">
+                                <div style="display: flex; justify-content: space-between; gap: 1rem;">
+                                    <p class="notif-text">{{ n.message }}</p>
+                                    <button *ngIf="!n.isRead" class="mark-one-btn" (click)="markAsRead(n.id)"
+                                        title="Transférer vers l'historique">✓</button>
+                                </div>
+                                <span class="notif-time">{{ n.createdAt | date:'HH:mm' }}</span>
+                            </div>
+                            <div class="notif-empty" *ngIf="filteredNotifs.length === 0">
+                                {{ notifTab === 'recent' ? 'Aucune nouvelle notification.' : 'Historique vide.' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <a routerLink="/espace/parametres" class="user-pill" style="text-decoration: none; color: inherit;">
+                    <span>{{ profile.firstName }} {{ profile.lastName }}</span>
+                    <img *ngIf="profile.photo" [src]="profile.photo" class="avatar" alt="Avatar">
+                    <div *ngIf="!profile.photo" class="avatar">{{ profile.firstName.charAt(0) }}{{
+                        profile.lastName.charAt(0) }}</div>
+                </a>
+            </div>
+        </header>
+
+        <div class="content-body">
+            <router-outlet></router-outlet>
+        </div>
+    </main>
+</div>
