@@ -10,7 +10,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let entry of leaderboard" [class.highlighted]="entry.isMe">
+      <tr *ngFor="let entry of pagedLeaderboard" [class.highlighted]="entry.isMe">
         <td class="num">{{ entry.rank }}</td>
         <td>{{ entry.isMe ? 'Vous' : entry.firstName + ' ' + entry.lastName }}</td>
         <td>{{ entry.city }}</td>
@@ -23,4 +23,10 @@
       </tr>
     </tbody>
   </table>
+</div>
+
+<div class="pagination" *ngIf="totalPages > 1" style="margin-top: 1rem;">
+  <button class="pagination__btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">Précédent</button>
+  <span class="pagination__info">Page <strong>{{ currentPage }}</strong> / {{ totalPages }}</span>
+  <button class="pagination__btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">Suivant</button>
 </div>
