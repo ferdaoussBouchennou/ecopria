@@ -33,7 +33,7 @@ public class UserService {
         }
 
         if (profileRepository.findByUserId(newProfile.getUserId()).isPresent()) {
-            throw new IllegalStateException("Un utilisateur avec cet ID existe déjà (userId: " + newProfile.getUserId() + ").");
+            throw new IllegalStateException("Un utilisateur avec cet ID existe dï¿½jï¿½ (userId: " + newProfile.getUserId() + ").");
         }
 
         Profile savedProfile = profileRepository.save(newProfile);
@@ -85,7 +85,7 @@ public class UserService {
     @Transactional
     public void awardPoints(PointsDTO dto) {
         Profile profile = profileRepository.findByUserId(dto.getUserId())
-                .orElseThrow(() -> new RuntimeException("Profil non trouvé"));
+                .orElseThrow(() -> new RuntimeException("Profil non trouvï¿½"));
 
         profile.setTotalPoints(profile.getTotalPoints() + dto.getPoints());
         profile.setLevel(1 + profile.getTotalPoints() / 500);
@@ -96,7 +96,7 @@ public class UserService {
         h.setAmount(dto.getPoints());
         h.setType(PointHistory.TransactionType.CREDIT);
         h.setSource("action-" + dto.getActionId());
-        h.setDescription("Points gagnés pour participation");
+        h.setDescription("Points gagnï¿½s pour participation");
         pointHistoryRepository.save(h);
 
         Map<String, Object> event = new HashMap<>();
@@ -112,7 +112,7 @@ public class UserService {
     @Transactional
     public void deductPoints(Long userId, Integer points) {
         Profile profile = profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Profil non trouvé"));
+                .orElseThrow(() -> new RuntimeException("Profil non trouvï¿½"));
 
         if (points == null || points <= 0) {
             throw new IllegalArgumentException("Le nombre de points a debiter doit etre positif");
@@ -131,7 +131,7 @@ public class UserService {
         h.setAmount(points);
         h.setType(PointHistory.TransactionType.DEBIT);
         h.setSource("recompense");
-        h.setDescription("Points dépensés pour une récompense");
+        h.setDescription("Points dï¿½pensï¿½s pour une rï¿½compense");
         pointHistoryRepository.save(h);
     }
 
@@ -160,7 +160,7 @@ public class UserService {
 
     public Profile getProfile(Long userId) {
         return profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Profil non trouvé"));
+                .orElseThrow(() -> new RuntimeException("Profil non trouvï¿½"));
     }
 
     public List<LeaderboardEntryDTO> getLeaderboard(Long currentUserId) {
@@ -172,7 +172,7 @@ public class UserService {
             dto.setRank(i + 1);
             dto.setLastName(p.getLastName());
             dto.setFirstName(p.getFirstName());
-            dto.setCity(p.getCity() != null ? p.getCity() : "—");
+            dto.setCity(p.getCity() != null ? p.getCity() : "-");
             dto.setTotalPoints(p.getTotalPoints());
             dto.setMe(p.getUserId().equals(currentUserId));
             result.add(dto);
