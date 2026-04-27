@@ -8,6 +8,16 @@ export const routes: Routes = [
     loadComponent: () => import('./espace/espace-shell/espace-shell.component').then(m => m.EspaceShellComponent),
     children: [
       {
+        path: 'actions',
+        loadComponent: () => import('./espace/actions/actions.component')
+          .then(m => m.ActionsComponent)
+      },
+      {
+        path: 'recompenses',
+        loadComponent: () => import('./espace/recompenses/recompenses.component')
+          .then(m => m.RecompensesComponent)
+      },
+      {
         path: '',
         loadComponent: () => import('./espace/dashboard/dashboard.component')
           .then(m => m.DashboardComponent)
