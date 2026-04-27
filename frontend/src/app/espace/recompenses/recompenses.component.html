@@ -1,0 +1,186 @@
+<section class="space-page">
+  <div class="hero-card hero-card--rewards">
+    <div class="hero-copy">
+      <span class="eyebrow-pill">Mes avantages</span>
+      <h2>Vos coupons et récompenses disponibles.</h2>
+      <p>
+        Consultez vos coupons, suivez leur expiration et échangez vos points contre des offres utiles.
+      </p>
+
+      <div class="hero-stats hero-stats--rewards">
+        <article>
+          <strong>{{ availablePoints }}</strong>
+          <span>Points disponibles</span>
+        </article>
+        <article>
+          <strong>{{ allCoupons.length }}</strong>
+          <span>Coupons reçus</span>
+        </article>
+        <article>
+          <strong>{{ expiringSoon }}</strong>
+          <span>À expirer</span>
+        </article>
+      </div>
+    </div>
+
+    <div class="hero-focus hero-focus--rewards">
+      <p class="hero-focus__label">Statut du compte</p>
+      <h3>{{ profile?.firstName || '—' }} {{ profile?.lastName || '' }}</h3>
+      <p>Votre espace récompenses centralise le catalogue public et vos coupons obtenus.</p>
+      <div class="hero-focus__meta">
+        <span>Niveau {{ profile?.level ?? '—' }}</span>
+        <span>{{ profile?.city || '—' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="message-banner" *ngIf="message">{{ message }}</p>
+  <p class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <section class="panel-card">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow-mini">Coupons</span>
+        <h3>Mes coupons obtenus</h3>
+      </div>
+      <div class="section-filters" *ngIf="!loading">
+        <input
+          [ngModel]="couponSearch"
+          (ngModelChange)="couponSearch = $event; onCouponFiltersChanged()"
+          placeholder="Rechercher (titre, partenaire, code...)"
+        />
+        <select
+          [ngModel]="couponStatus"
+          (ngModelChange)="couponStatus = $event; onCouponFiltersChanged()"
+        >
+          <option value="ALL">Tous</option>
+          <option value="DISTRIBUE">Disponible</option>
+          <option value="UTILISE">Utilisé</option>
+          <option value="EXPIRE">Expiré</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="coupon-stack" *ngIf="!loading; else loadingState">
+      <article class="coupon-card" *ngFor="let coupon of coupons">
+        <img class="coupon-card__image" [src]="coupon.recompenseImageUrl || 'assets/logo.png'" [alt]="coupon.recompenseTitle">
+        
+        <div class="coupon-card__body">
+          <div class="coupon-card__header">
+            <span class="coupon-card__partner">{{ coupon.partenaireName }}</span>
+            <span class="status-chip" [ngClass]="statusClass(coupon.status)">{{ statusLabel(coupon.status) }}</span>
+          </div>
+          
+          <h4 class="coupon-card__title">{{ coupon.recompenseTitle }}</h4>
+          
+          <div class="coupon-card__code-box">
+            <span class="coupon-card__code-label">CODE COUPON</span>
+            <strong class="coupon-card__code-value">{{ coupon.code }}</strong>
+          </div>
+
+          <div class="coupon-card__qr" *ngIf="coupon.qrCodeUrl">
+            <img [src]="coupon.qrCodeUrl" alt="QR Code" title="Scanner pour vérifier">
+            <p class="coupon-card__qr-hint">Scanner pour valider</p>
+          </div>
+
+          <div class="coupon-card__actions">
+            <button class="btn-coupon btn-coupon--primary" (click)="downloadPdf(coupon)">
+              Télécharger PDF
+            </button>
+            <button class="btn-coupon btn-coupon--outline" (click)="sendEmail(coupon)">
+              Renvoyer par email
+            </button>
+          </div>
+
+          <div class="coupon-card__footer">
+            <span class="coupon-card__expiry">Expire le {{ expiryLabel(coupon.expireLe) }}</span>
+            <strong class="coupon-card__pts">-{{ coupon.pointsUtilises }} pts</strong>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="pagination" *ngIf="!loading && totalPagesCoupons > 1">
+      <button class="pagination__btn" [disabled]="currentPageCoupons === 1" (click)="changePageCoupons(currentPageCoupons - 1)">
+        <i class="icon-chevron-left"></i> Précédent
+      </button>
+      <span class="pagination__info">Page <strong>{{ currentPageCoupons }}</strong> / {{ totalPagesCoupons }}</span>
+      <button class="pagination__btn" [disabled]="currentPageCoupons === totalPagesCoupons" (click)="changePageCoupons(currentPageCoupons + 1)">
+        Suivant <i class="icon-chevron-right"></i>
+      </button>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && filteredCoupons.length === 0">
+      Aucun coupon obtenu pour le moment.
+    </div>
+  </section>
+
+  <aside class="panel-card panel-card--soft">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow-mini">Catalogue</span>
+        <h3>Récompenses échangeables</h3>
+      </div>
+      <div class="section-filters" *ngIf="!loading">
+        <input
+          [ngModel]="catalogueSearch"
+          (ngModelChange)="catalogueSearch = $event; onCatalogueFiltersChanged()"
+          placeholder="Rechercher (titre, partenaire...)"
+        />
+        <select
+          [ngModel]="catalogueType"
+          (ngModelChange)="catalogueType = $event; onCatalogueFiltersChanged()"
+        >
+          <option value="ALL">Tous</option>
+          <option value="STOCK">Stock</option>
+          <option value="REDUCTION">Réduction</option>
+          <option value="SERVICE">Service</option>
+          <option value="EXPERIENCE">Expérience</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="catalog-grid" *ngIf="!loading; else loadingState">
+      <article class="reward-card" *ngFor="let reward of catalogue">
+        <img class="reward-card__image" [src]="reward.imageUrl || 'assets/logo.png'" [alt]="reward.title">
+        <div class="reward-card__body">
+          <div class="reward-card__topline">
+            <span class="tag">{{ reward.type }}</span>
+            <span class="cost-badge">{{ reward.pointsNecessaires }} pts</span>
+          </div>
+          <h4>{{ reward.title }}</h4>
+          <p>{{ reward.description }}</p>
+          <div class="reward-card__footer">
+            <span>{{ reward.partenaireName }}</span>
+            <button
+              class="exchange-btn"
+              [disabled]="!reward.isAvailable || availablePoints < reward.pointsNecessaires || exchangingId === reward.id"
+              (click)="exchange(reward)">
+              {{ exchangingId === reward.id ? 'Échange...' : 'Échanger' }}
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="pagination" *ngIf="!loading && totalPagesCatalogue > 1">
+      <button class="pagination__btn" [disabled]="currentPageCatalogue === 1" (click)="changePageCatalogue(currentPageCatalogue - 1)">
+        Précédent
+      </button>
+      <span class="pagination__info">Page <strong>{{ currentPageCatalogue }}</strong> / {{ totalPagesCatalogue }}</span>
+      <button class="pagination__btn" [disabled]="currentPageCatalogue === totalPagesCatalogue" (click)="changePageCatalogue(currentPageCatalogue + 1)">
+        Suivant
+      </button>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && filteredCatalogue.length === 0">
+      Aucun élément disponible dans le catalogue pour le moment.
+    </div>
+  </aside>
+</section>
+
+<ng-template #loadingState>
+  <div class="skeleton-list">
+    <div class="skeleton-card" *ngFor="let _ of [1, 2, 3]"></div>
+  </div>
+</ng-template>
