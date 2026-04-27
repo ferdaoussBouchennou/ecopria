@@ -18,7 +18,7 @@ export class SettingsComponent implements OnInit {
   firstName = '';
   lastName = '';
   city = '';
-  email = 'camille@exemple.com'; 
+  email = '';
   photo?: string;
   isEditingPhoto = false;
 
@@ -47,10 +47,10 @@ export class SettingsComponent implements OnInit {
         this.photo = profile.photo;
       },
       error: () => {
-        this.firstName = 'Camille';
-        this.lastName = 'Renard';
-        this.city = 'Paris';
-        this.photo = 'https://i.pravatar.cc/150?u=camille';
+        this.firstName = '';
+        this.lastName = '';
+        this.city = '';
+        this.photo = undefined;
       }
     });
 
