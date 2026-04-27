@@ -14,6 +14,7 @@ import { AppNotification } from '../../core/models/notification.model';
   templateUrl: './espace-shell.component.html'
 })
 export class EspaceShellComponent implements OnInit {
+  readonly userId = 1;
   profile?: Profile;
   notifications: AppNotification[] = [];
   unreadCount = 0;
@@ -29,20 +30,19 @@ export class EspaceShellComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.userSvc.getProfile(1).subscribe({
-      next: (p) => this.profile = p,
+    this.userSvc.getProfile(this.userId).subscribe({
+      next: (p) => {
+        this.profile = p;
+        this.refreshNotifs();
+        this.notifSvc.loadUnreadCount(this.userId);
+      },
       error: () => {
-        this.profile = {
-          id: 1, userId: 1, firstName: 'Camille', lastName: 'Renard',
-          totalPoints: 1240, level: 4, createdAt: '', city: 'Paris',
-          photo: 'assets/upload/user/profil/1.jpg'
-        };
+        this.profile = undefined;
       }
     });
 
     this.notifSvc.unreadCount$.subscribe(count => this.unreadCount = count);
-    this.notifSvc.loadUnreadCount(1);
-    this.refreshNotifs();
+    // refreshNotifs/loadUnreadCount are triggered once profile is available
 
     // Sync Header
     this.uiSvc.currentTitle$.subscribe(title => this.pageTitle = title);
@@ -50,7 +50,10 @@ export class EspaceShellComponent implements OnInit {
   }
 
   refreshNotifs() {
-    this.notifSvc.getAll(1).subscribe((n: AppNotification[]) => this.notifications = n);
+    this.notifSvc.getAll(this.userId).subscribe((n: AppNotification[]) => {
+      // Safety: if backend returns more than requested, keep only current user
+      this.notifications = n.filter(item => item.userId === this.userId);
+    });
   }
 
   toggleNotifs() {
@@ -62,7 +65,7 @@ export class EspaceShellComponent implements OnInit {
   }
 
   markAllRead() {
-    this.notifSvc.markAllAsRead(1).subscribe(() => this.refreshNotifs());
+    this.notifSvc.markAllAsRead(this.userId).subscribe(() => this.refreshNotifs());
   }
 
   get filteredNotifs(): AppNotification[] {
