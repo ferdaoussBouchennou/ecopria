@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { AppNotification } from '../models/notification.model';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  private readonly baseUrl = 'http://localhost:8085/api/notifications';
+  private readonly baseUrl = `${environment.api.notification}/api/notifications`;
   private readonly unreadCountSubject = new BehaviorSubject<number>(0);
   readonly unreadCount$ = this.unreadCountSubject.asObservable();
 
