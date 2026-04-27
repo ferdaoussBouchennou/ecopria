@@ -24,7 +24,7 @@
     <section>
       <div class="section-title-wrap">
         <h2>Mes actions à venir</h2>
-        <a href="#" class="view-all">Toutes →</a>
+        <a *ngIf="totalUpcomingActions > 3" routerLink="/espace/actions" class="view-all">Toutes →</a>
       </div>
       
       <div class="action-list">
@@ -48,7 +48,10 @@
       </div>
 
       <!-- Real History -->
-      <h2 style="margin: 3rem 0 1.5rem;">Historique des points</h2>
+      <div class="section-title-wrap" style="margin: 3rem 0 1.5rem;">
+        <h2>Historique des points</h2>
+        <a *ngIf="totalPointHistory > 3" routerLink="/espace/actions" class="view-all">Toutes →</a>
+      </div>
       <div class="table-card">
         <table class="data-table">
           <thead>
@@ -66,7 +69,7 @@
                 {{ h.type === 'CREDIT' ? '+' : '−' }}{{ h.amount }}
               </td>
             </tr>
-            <tr *ngIf="history.length === 0">
+            <tr *ngIf="totalPointHistory === 0">
               <td colspan="3" class="muted" style="text-align: center; padding: 2rem;">Aucun historique récent.</td>
             </tr>
           </tbody>
