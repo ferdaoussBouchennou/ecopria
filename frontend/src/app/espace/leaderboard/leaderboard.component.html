@@ -1,0 +1,32 @@
+
+<div class="table-card">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Rang</th>
+        <th>Nom</th>
+        <th>Ville</th>
+        <th style="text-align: right;">Points</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let entry of pagedLeaderboard" [class.highlighted]="entry.isMe">
+        <td class="num">{{ entry.rank }}</td>
+        <td>{{ entry.isMe ? 'Vous' : entry.firstName + ' ' + entry.lastName }}</td>
+        <td>{{ entry.city }}</td>
+        <td style="text-align: right; font-weight: 700;">{{ entry.totalPoints }}</td>
+      </tr>
+      <tr *ngIf="leaderboard.length === 0">
+        <td colspan="4" style="text-align: center; padding: 2rem; color: var(--muted-foreground);">
+          Aucun résultat disponible pour le moment.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="pagination" *ngIf="totalPages > 1" style="margin-top: 1rem;">
+  <button class="pagination__btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">Précédent</button>
+  <span class="pagination__info">Page <strong>{{ currentPage }}</strong> / {{ totalPages }}</span>
+  <button class="pagination__btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">Suivant</button>
+</div>

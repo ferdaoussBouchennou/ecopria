@@ -1,0 +1,97 @@
+<div *ngIf="profile">
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-val">{{ profile.totalPoints }}</span>
+      <span class="stat-lbl">Points actuels</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-val">{{ history.length }}</span>
+      <span class="stat-lbl">Actions validées</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-val">{{ badges.length }}</span>
+      <span class="stat-lbl">Badges débloqués</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-val">#{{ getMyRank() || '—' }}</span>
+      <span class="stat-lbl">Classement</span>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <section>
+      <div class="section-title-wrap">
+        <h2>Mes actions à venir</h2>
+        <a *ngIf="totalUpcomingActions > 3" routerLink="/espace/actions" class="view-all">Toutes →</a>
+      </div>
+      
+      <div class="action-list">
+        <!-- Dynamic Actions Loop -->
+        <div class="action-card" *ngFor="let action of upcomingActions">
+          <img [src]="action.imageUrl" class="action-img" [alt]="action.title">
+          <div class="action-info">
+            <p class="action-meta">{{ action.location }} · {{ action.category }}</p>
+            <h4>{{ action.title }}</h4>
+            <p class="action-date">{{ action.date }} · {{ action.startTime }} — {{ action.endTime }}</p>
+          </div>
+          <div class="action-points">
+            <p class="pts-val">+{{ action.points }}</p>
+            <a href="#" class="qr-link">QR code</a>
+          </div>
+        </div>
+
+        <p *ngIf="upcomingActions.length === 0" class="muted" style="padding: 2rem; text-align: center;">
+          Aucune action prévue pour le moment.
+        </p>
+      </div>
+
+      <!-- Real History -->
+      <div class="section-title-wrap" style="margin: 3rem 0 1.5rem;">
+        <h2>Historique des points</h2>
+        <a *ngIf="totalPointHistory > 3" routerLink="/espace/actions" class="view-all">Toutes →</a>
+      </div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Action</th>
+              <th style="text-align: right;">Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let h of history">
+              <td class="muted">{{ h.createdAt | date:'dd MMM yyyy' }}</td>
+              <td>{{ h.description }}</td>
+              <td style="text-align: right; font-weight: 700;" [style.color]="h.type === 'CREDIT' ? 'var(--primary)' : '#e67e22'">
+                {{ h.type === 'CREDIT' ? '+' : '−' }}{{ h.amount }}
+              </td>
+            </tr>
+            <tr *ngIf="totalPointHistory === 0">
+              <td colspan="3" class="muted" style="text-align: center; padding: 2rem;">Aucun historique récent.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <aside>
+      <div class="section-title-wrap">
+        <h2>Mes badges</h2>
+      </div>
+      <div class="badges-grid">
+        <div *ngFor="let ub of badges" class="badge-item">
+          <div class="badge-icon-circle">{{ ub.badge.icon }}</div>
+          <h5>{{ ub.badge.name }}</h5>
+          <p>{{ ub.badge.description }}</p>
+        </div>
+        
+        <p *ngIf="badges.length === 0" class="muted" style="grid-column: span 2; text-align: center; padding: 2rem;">
+          Aucun badge obtenu pour le moment.
+        </p>
+      </div>
+    </aside>
+  </div>
+</div>
