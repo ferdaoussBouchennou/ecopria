@@ -54,3 +54,4 @@ public class CreateRecompenseDTO {
     // La somme des probabilités doit égaler 100
     @Valid
     private List<MystereBoxItemDTO> mystereBoxItems;
+}
