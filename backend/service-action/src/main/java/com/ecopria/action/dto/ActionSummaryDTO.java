@@ -23,7 +23,4 @@ public class ActionSummaryDTO {
     private Integer registeredCount; // calculé
     private Boolean isFixed;
     private ActionStatus status;
-    private Double latitude;
-    private Double longitude;
-    private String associationName;
 }

@@ -253,9 +253,8 @@ public class ActionService {
         Categorie category = categorieRepository.findByName(categoryName)
                 .orElseThrow(() -> new RuntimeException("Catégorie non trouvée: " + categoryName));
 
-        Long actionFixeId = event.containsKey("actionFixeId") ? 
-            Long.valueOf(event.get("actionFixeId").toString()) : 
-            (event.containsKey("id") ? Long.valueOf(event.get("id").toString()) : null);
+        Long actionFixeId = event.containsKey("actionFixeId") ? Long.valueOf(event.get("actionFixeId").toString())
+                : (event.containsKey("id") ? Long.valueOf(event.get("id").toString()) : null);
 
         Action action = Action.builder()
                 .title(event.get("titre").toString())
@@ -277,9 +276,8 @@ public class ActionService {
 
     @Transactional
     public void updateFixedAction(Map<String, Object> event) {
-        Long actionFixeId = event.containsKey("actionFixeId") ? 
-            Long.valueOf(event.get("actionFixeId").toString()) : 
-            (event.containsKey("id") ? Long.valueOf(event.get("id").toString()) : null);
+        Long actionFixeId = event.containsKey("actionFixeId") ? Long.valueOf(event.get("actionFixeId").toString())
+                : (event.containsKey("id") ? Long.valueOf(event.get("id").toString()) : null);
 
         if (actionFixeId == null) {
             log.warn("Impossible de mettre à jour l'action fixe, ID manquant: {}", event);
@@ -287,11 +285,16 @@ public class ActionService {
         }
 
         actionRepository.findByActionFixeId(actionFixeId).ifPresent(action -> {
-            if (event.containsKey("titre")) action.setTitle(event.get("titre").toString());
-            if (event.containsKey("lieu")) action.setCity(event.get("lieu").toString());
-            if (event.containsKey("latitude")) action.setLatitude(Double.valueOf(event.get("latitude").toString()));
-            if (event.containsKey("longitude")) action.setLongitude(Double.valueOf(event.get("longitude").toString()));
-            if (event.containsKey("points")) action.setPoints(Integer.valueOf(event.get("points").toString()));
+            if (event.containsKey("titre"))
+                action.setTitle(event.get("titre").toString());
+            if (event.containsKey("lieu"))
+                action.setCity(event.get("lieu").toString());
+            if (event.containsKey("latitude"))
+                action.setLatitude(Double.valueOf(event.get("latitude").toString()));
+            if (event.containsKey("longitude"))
+                action.setLongitude(Double.valueOf(event.get("longitude").toString()));
+            if (event.containsKey("points"))
+                action.setPoints(Integer.valueOf(event.get("points").toString()));
             if (event.containsKey("placesTotal")) {
                 Integer newMax = Integer.valueOf(event.get("placesTotal").toString());
                 int diff = newMax - action.getMaxParticipants();
@@ -305,9 +308,8 @@ public class ActionService {
 
     @Transactional
     public void deactivateFixedAction(Map<String, Object> event) {
-        Long actionFixeId = event.containsKey("actionFixeId") ? 
-            Long.valueOf(event.get("actionFixeId").toString()) : 
-            (event.containsKey("id") ? Long.valueOf(event.get("id").toString()) : null);
+        Long actionFixeId = event.containsKey("actionFixeId") ? Long.valueOf(event.get("actionFixeId").toString())
+                : (event.containsKey("id") ? Long.valueOf(event.get("id").toString()) : null);
 
         if (actionFixeId == null) {
             log.warn("Impossible de désactiver l'action fixe, ID manquant: {}", event);
@@ -337,7 +339,6 @@ public class ActionService {
                 .map(this::toSummaryDTO)
                 .collect(Collectors.toList());
     }
-
 
     // ─── CRON — terminer les actions passées ──────────────────
 
@@ -389,9 +390,6 @@ public class ActionService {
                 .registeredCount(action.getRegisteredCount())
                 .isFixed(action.getIsFixed())
                 .status(action.getStatus())
-                .latitude(action.getLatitude())
-                .longitude(action.getLongitude())
-                .associationName(action.getAssociation() != null ? action.getAssociation().getName() : null)
                 .build();
     }
 
