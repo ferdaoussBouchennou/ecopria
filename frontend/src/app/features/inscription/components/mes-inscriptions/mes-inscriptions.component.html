@@ -1,0 +1,152 @@
+<!-- ================================================================
+     CHARGEMENT
+================================================================ -->
+<div *ngIf="loading" class="page-loading">
+  <div class="spinner"></div>
+  <p>Chargement de vos inscriptions...</p>
+</div>
+
+<!-- ================================================================
+     ERREUR
+================================================================ -->
+<div *ngIf="!loading && erreurMessage" class="error-state">
+  <div class="error-icon">⚠</div>
+  <p>{{ erreurMessage }}</p>
+  <button class="btn btn--primary" (click)="charger()">Reessayer</button>
+</div>
+
+<!-- ================================================================
+     CONTENU PRINCIPAL
+================================================================ -->
+<div *ngIf="!loading && !erreurMessage" class="mes-inscriptions-page">
+
+  <!-- En-tete -->
+  <header class="page-header">
+    <div class="header-top">
+      <div>
+        <h1 class="page-title">Mes inscriptions</h1>
+        <p class="page-sub">Gerez vos participations aux actions Ecopria</p>
+      </div>
+      <a routerLink="/actions" class="btn btn--primary">+ Decouvrir des actions</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value">{{ actives.length }}</div>
+        <div class="stat-label">Active(s)</div>
+      </div>
+      <div class="stat-card stat-card--green">
+        <div class="stat-value">+{{ totalPoints }}</div>
+        <div class="stat-label">Points gagnes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ annulees.length }}</div>
+        <div class="stat-label">Annulee(s)</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Liste vide ──────────────────────────────────────────── -->
+  <div *ngIf="inscriptions.length === 0" class="empty-state">
+    <div class="empty-icon">🌿</div>
+    <h2>Aucune inscription pour le moment</h2>
+    <p>Rejoignez une action ecologique pres de chez vous !</p>
+    <a routerLink="/actions" class="btn btn--primary">Voir les actions</a>
+  </div>
+
+  <!-- ── Inscriptions actives ────────────────────────────────── -->
+  <section *ngIf="actives.length > 0">
+    <h2 class="section-heading">Participations actives</h2>
+
+    <div class="inscriptions-list">
+      <div
+        *ngFor="let insc of actives"
+        class="insc-card"
+        [class.insc-card--attente]="insc.statut === 'EN_ATTENTE'">
+
+        <!-- Header carte -->
+        <div class="card-header">
+          <span
+            class="badge"
+            [class.badge--green]="insc.statut === 'CONFIRMEE'"
+            [class.badge--warning]="insc.statut === 'EN_ATTENTE'">
+            {{ statutLabel(insc.statut) }}
+          </span>
+          <span class="card-date">Inscrit le {{ formatDate(insc.dateInscription) }}</span>
+        </div>
+
+        <!-- Corps carte -->
+        <div class="card-body">
+          <div class="card-infos">
+            <div class="card-info-item">
+              <span class="info-label">Action</span>
+              <span class="info-value">#{{ insc.actionId }}</span>
+            </div>
+            <div class="card-info-item">
+              <span class="info-label">Dossier</span>
+              <span class="info-value">#{{ insc.id }}</span>
+            </div>
+            <div class="card-info-item">
+              <span class="info-label">Points</span>
+              <span class="badge badge--green">+{{ insc.pointsAction }} pts</span>
+            </div>
+          </div>
+
+          <!-- QR Code si CONFIRMEE -->
+          <div class="qr-block" *ngIf="insc.statut === 'CONFIRMEE'">
+            <span class="qr-label">Code d'acces (presente le jour J)</span>
+            <span class="qr-code">{{ insc.qrCode }}</span>
+          </div>
+
+          <!-- Message si EN_ATTENTE -->
+          <div class="attente-msg" *ngIf="insc.statut === 'EN_ATTENTE'">
+            ⏳ Vous serez notifie par email si une place se libere.
+            La liste d'attente est geree automatiquement.
+          </div>
+        </div>
+
+        <!-- Footer carte : bouton annuler -->
+        <div class="card-footer">
+          <button
+            class="btn btn--danger btn--sm"
+            (click)="annuler(insc)"
+            [disabled]="annulationEnCours === insc.id">
+            <span *ngIf="annulationEnCours !== insc.id">Annuler l'inscription</span>
+            <span *ngIf="annulationEnCours === insc.id" class="btn-loading">
+              <span class="spinner spinner--sm"></span> Annulation...
+            </span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Inscriptions annulees ───────────────────────────────── -->
+  <section *ngIf="annulees.length > 0" class="section-annulees">
+    <h2 class="section-heading section-heading--muted">Inscriptions annulees</h2>
+
+    <div class="inscriptions-list">
+      <div *ngFor="let insc of annulees" class="insc-card insc-card--annulee">
+        <div class="card-header">
+          <span class="badge badge--gray">Annulee</span>
+          <span class="card-date">{{ formatDate(insc.dateInscription) }}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-infos">
+            <div class="card-info-item">
+              <span class="info-label">Action</span>
+              <span class="info-value">#{{ insc.actionId }}</span>
+            </div>
+            <div class="card-info-item">
+              <span class="info-label">Dossier</span>
+              <span class="info-value">#{{ insc.id }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
