@@ -37,8 +37,10 @@ public class ActionController {
     // ── DÉTAIL ──────────────────────────────────────────────
     // GET /api/actions/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<ActionDetailDTO> getDetail(@PathVariable Long id) {
-        return ResponseEntity.ok(actionService.getDetail(id));
+    public ResponseEntity<ActionDetailDTO> getDetail(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        return ResponseEntity.ok(actionService.getDetail(id, userId));
     }
 
     // ── DISPONIBILITÉ — appelé par service-inscription ──────

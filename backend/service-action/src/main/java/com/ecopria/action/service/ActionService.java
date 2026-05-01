@@ -42,9 +42,17 @@ public class ActionService {
     // ─── DÉTAIL ───────────────────────────────────────────────
 
     @Transactional(readOnly = true)
-    public ActionDetailDTO getDetail(Long actionId) {
+    public ActionDetailDTO getDetail(Long actionId, Long userId) {
         Action action = actionRepository.findById(actionId)
                 .orElseThrow(() -> new RuntimeException("Action non trouvée"));
+
+        // Sécurité : Un brouillon ne peut être vu que par l'association qui l'a créé
+        if (action.getStatus() == Action.ActionStatus.DRAFT) {
+            if (userId == null || action.getAssociation() == null || !action.getAssociation().getUserId().equals(userId)) {
+                throw new RuntimeException("Accès interdit : Cette action n'est pas encore publiée.");
+            }
+        }
+
         return toDetailDTO(action);
     }
 
