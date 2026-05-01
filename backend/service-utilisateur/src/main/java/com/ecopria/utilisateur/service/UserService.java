@@ -226,6 +226,11 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Citoyen non trouvé"));
     }
 
+    public Integer getTotalPoints(Long authId) {
+        Citizen citizen = getCitizen(authId);
+        return citizen.getTotalPoints() != null ? citizen.getTotalPoints() : 0;
+    }
+
     public Association getAssociation(Long authId) {
         return associationRepository.findByAuthId(authId)
                 .orElseThrow(() -> new RuntimeException("Association non trouvée"));
