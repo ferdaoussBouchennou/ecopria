@@ -33,7 +33,6 @@ public class AssociationService {
                 .name(event.get("nom") != null ? event.get("nom").toString() : "")
                 .logoUrl(event.get("logoUrl") != null ? event.get("logoUrl").toString() : null)
                 .city(event.get("ville") != null ? event.get("ville").toString() : null)
-                .isValidated(true)
                 .build();
 
         associationRepository.save(association);

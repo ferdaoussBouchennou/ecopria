@@ -26,8 +26,6 @@ public class Association {
     @Column(name = "logo_url")
     private String logoUrl;
 
-
-
     // ville affichée sur la page profil association
     @Column(length = 100)
     private String city;
@@ -35,11 +33,6 @@ public class Association {
     // reçu via Kafka user.inscrit depuis service-auth
     @Column(name = "user_id", nullable = false, unique = true)
     private Long userId;
-
-    // mis à true via Kafka compte.valide depuis service-admin
-    @Column(name = "is_validated", nullable = false)
-    @Builder.Default
-    private Boolean isValidated = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

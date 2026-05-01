@@ -84,10 +84,6 @@ public class ActionService {
         Association association = associationRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Association non trouvée"));
 
-        if (!association.getIsValidated()) {
-            throw new RuntimeException("Votre association n'est pas encore validée");
-        }
-
         Categorie category = categorieRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"));
 
