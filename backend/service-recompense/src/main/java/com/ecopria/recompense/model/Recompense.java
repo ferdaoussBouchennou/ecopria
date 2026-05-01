@@ -3,6 +3,8 @@ package com.ecopria.recompense.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "recompenses")
@@ -59,6 +61,21 @@ public class Recompense {
     // Date limite de validité de l'offre (optionnelle)
     @Column(name = "date_expiration")
     private LocalDateTime dateExpiration;
+
+    // ── BOÎTE MYSTÈRE (optionnelle) ──────────────────────────
+    // Si true, le citoyen peut choisir entre l'offre normale OU la boîte mystère
+    @Column(name = "has_mystere_box", nullable = false)
+    @Builder.Default
+    private Boolean hasMystereBox = false;
+
+    // Coût en points de la boîte mystère (souvent moins cher que l'offre normale)
+    @Column(name = "mystere_box_points")
+    private Integer mystereBoxPoints;
+
+    // Les options cachées dans la boîte mystère
+    @OneToMany(mappedBy = "recompense", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<MystereBoxItem> mystereBoxItems = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
