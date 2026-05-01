@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.ecopria.utilisateur.model.NotificationPreference;
 
 public interface NotificationPreferenceRepository extends JpaRepository<NotificationPreference, Long> {
-    Optional<NotificationPreference> findByProfileId(Long profileId);
+    Optional<NotificationPreference> findByAuthId(Long authId);
 }

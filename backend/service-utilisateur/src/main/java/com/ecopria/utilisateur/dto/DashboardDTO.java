@@ -6,15 +6,22 @@ import lombok.Data;
 
 @Data
 public class DashboardDTO {
-    private String lastName;
+    private String userType; // "CITIZEN", "ASSOCIATION", "PARTNER"
+    private String name;     // Nom pour Asso/Partner ou Prénom + Nom pour Citoyen
     private String firstName;
+    private String lastName;
     private String photo;
+    private String city;
+    
+    // Specifique Citoyen
     private Integer totalPoints;
     private Integer level;
-    private Integer rank;              // sa position dans le leaderboard
-    private Integer validatedActions;         // nombre d'actions avec présence validée
+    private Integer rank;
     private List<BadgeInfo> badges;
     private List<PointsMovementInfo> pointHistory;
+    
+    // Specifique Asso / Partner (si besoin d'infos de base ici)
+    private String description;
 
     @Data
     public static class BadgeInfo {

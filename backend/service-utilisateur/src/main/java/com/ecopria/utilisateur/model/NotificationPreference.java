@@ -17,9 +17,8 @@ public class NotificationPreference {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "profile_id", nullable = false, unique = true)
-    private Profile profile;
+    @Column(name = "auth_id", unique = true, nullable = false)
+    private Long authId;
 
     @Column(name = "nearby_actions")
     private Boolean nearbyActions = true;     // "Nouvelles actions près de chez moi"
