@@ -34,4 +34,10 @@ public class AuthController {
         authService.logout(token);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/admin/verification-response")
+    public ResponseEntity<Void> handleAdminVerificationResponse(@Valid @RequestBody AdminVerificationDecisionRequest request) {
+        authService.handleAdminVerificationResponse(request);
+        return ResponseEntity.noContent().build();
+    }
 }

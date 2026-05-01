@@ -25,3 +25,6 @@ jwt:
   secret: EcopriaProject2026SecretKeyForJwtTokenSigning
   expiration: 86400000
   refresh-expiration: 604800000
+
+admin:
+  verification-url: http://localhost:8088/api/admin/verifications
