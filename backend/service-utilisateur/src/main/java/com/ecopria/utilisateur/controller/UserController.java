@@ -1,6 +1,7 @@
 package com.ecopria.utilisateur.controller;
 
 import java.util.List;
+import java.util.Map;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +12,7 @@ import com.ecopria.utilisateur.service.UserService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping({ "/api/users", "/api/utilisateurs" })
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class UserController {
@@ -31,6 +32,12 @@ public class UserController {
     @GetMapping("/{id}/profile")
     public ResponseEntity<Citizen> getProfile(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getCitizen(id));
+    }
+
+    @GetMapping("/{id}/points")
+    public ResponseEntity<Map<String, Integer>> getPoints(@PathVariable Long id) {
+        Integer totalPoints = userService.getTotalPoints(id);
+        return ResponseEntity.ok(Map.of("totalPoints", totalPoints));
     }
 
     @GetMapping("/association/{authId}")
