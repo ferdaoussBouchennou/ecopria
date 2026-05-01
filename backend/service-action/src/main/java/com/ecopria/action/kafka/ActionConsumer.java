@@ -16,25 +16,11 @@ public class ActionConsumer {
     private final ActionService actionService;
     private final AssociationService associationService;
 
-    // ── écoute user.inscrit pour créer l'association ──────────
-    @KafkaListener(topics = "user.inscrit", groupId = "service-action")
-    public void onUserRegistered(Map<String, Object> event) {
-        String role = (String) event.get("role");
-        if ("ASSOCIATION".equals(role)) {
-            log.info("Nouvelle association reçue userId: {}", event.get("userId"));
-            associationService.createFromKafkaEvent(event);
-        }
-    }
-
-    // ── écoute compte.valide pour valider l'association ───────
-    @KafkaListener(topics = "compte.valide", groupId = "service-action")
-    public void onAccountValidated(Map<String, Object> event) {
-        String type = (String) event.get("type");
-        if ("ASSOCIATION".equals(type)) {
-            Long userId = Long.valueOf(event.get("userId").toString());
-            log.info("Validation association userId: {}", userId);
-            associationService.validateByUserId(userId);
-        }
+    // ── écoute asso.validee pour créer l'association directement validée ──
+    @KafkaListener(topics = "asso.validee", groupId = "service-action")
+    public void onAssociationValidated(Map<String, Object> event) {
+        log.info("Association validée reçue depuis admin, userId: {}", event.get("userId"));
+        associationService.createValidatedFromKafkaEvent(event);
     }
 
     // ── écoute inscription.annulee pour libérer une place ─────

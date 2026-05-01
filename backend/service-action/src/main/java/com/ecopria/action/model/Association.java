@@ -26,11 +26,7 @@ public class Association {
     @Column(name = "logo_url")
     private String logoUrl;
 
-    @Column(length = 14)
-    private String siret;
 
-    @Column(length = 255)
-    private String address;
 
     // ville affichée sur la page profil association
     @Column(length = 100)

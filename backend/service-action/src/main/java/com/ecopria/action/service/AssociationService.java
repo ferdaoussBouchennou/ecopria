@@ -18,9 +18,9 @@ public class AssociationService {
     private final AssociationRepository associationRepository;
     private final ActionRepository actionRepository;
 
-    // appelé par le consumer Kafka quand user.inscrit avec role ASSOCIATION
+    // appelé par le consumer Kafka quand asso.validee
     @Transactional
-    public void createFromKafkaEvent(Map<String, Object> event) {
+    public void createValidatedFromKafkaEvent(Map<String, Object> event) {
         Long userId = Long.valueOf(event.get("userId").toString());
 
         if (associationRepository.existsByUserId(userId)) {
@@ -31,21 +31,13 @@ public class AssociationService {
         Association association = Association.builder()
                 .userId(userId)
                 .name(event.get("nom") != null ? event.get("nom").toString() : "")
-                .isValidated(false)
+                .logoUrl(event.get("logoUrl") != null ? event.get("logoUrl").toString() : null)
+                .city(event.get("ville") != null ? event.get("ville").toString() : null)
+                .isValidated(true)
                 .build();
 
         associationRepository.save(association);
-        log.info("Association créée pour userId: {}", userId);
-    }
-
-    // appelé par le consumer Kafka quand compte.valide
-    @Transactional
-    public void validateByUserId(Long userId) {
-        associationRepository.findByUserId(userId).ifPresent(association -> {
-            association.setIsValidated(true);
-            associationRepository.save(association);
-            log.info("Association validée pour userId: {}", userId);
-        });
+        log.info("Association validée créée pour userId: {}", userId);
     }
 
     // page profil public de l'association
