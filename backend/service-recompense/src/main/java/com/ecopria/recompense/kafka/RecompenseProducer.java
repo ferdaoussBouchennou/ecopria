@@ -1,6 +1,8 @@
 package com.ecopria.recompense.kafka;
 
+import com.ecopria.recompense.kafka.event.CouponUtiliseEvent;
 import com.ecopria.recompense.kafka.event.RecompenseEchangeeEvent;
+import com.ecopria.recompense.kafka.event.RecompenseEpuiseeEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,5 +23,17 @@ public class RecompenseProducer {
         log.info("Publication recompense.echangee pour userId: {}", event.getUserId());
         kafkaTemplate.send(recompenseEchangeeTopic,
                 String.valueOf(event.getUserId()), event);
+    }
+
+    public void publishCouponUtilise(CouponUtiliseEvent event) {
+        log.info("Publication coupon.utilise pour userId: {}", event.getUserId());
+        kafkaTemplate.send("coupon.utilise",
+                String.valueOf(event.getUserId()), event);
+    }
+
+    public void publishRecompenseEpuisee(RecompenseEpuiseeEvent event) {
+        log.info("Publication recompense.epuisee pour partenaire userId: {}", event.getPartenaireUserId());
+        kafkaTemplate.send("recompense.epuisee",
+                String.valueOf(event.getPartenaireUserId()), event);
     }
 }

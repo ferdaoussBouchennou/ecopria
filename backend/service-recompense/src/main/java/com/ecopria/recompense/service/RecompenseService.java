@@ -3,7 +3,9 @@ package com.ecopria.recompense.service;
 import com.ecopria.recompense.client.UtilisateurClient;
 import com.ecopria.recompense.dto.*;
 import com.ecopria.recompense.kafka.RecompenseProducer;
+import com.ecopria.recompense.kafka.event.CouponUtiliseEvent;
 import com.ecopria.recompense.kafka.event.RecompenseEchangeeEvent;
+import com.ecopria.recompense.kafka.event.RecompenseEpuiseeEvent;
 import com.ecopria.recompense.model.*;
 import com.ecopria.recompense.model.Recompense.RecompenseType;
 import com.ecopria.recompense.repository.*;
@@ -78,6 +80,16 @@ public class RecompenseService {
             if (recompense.getStock() != null) {
                 recompense.setStock(recompense.getStock() - 1);
                 recompenseRepository.save(recompense);
+
+                if (recompense.getStock() == 0) {
+                    recompenseProducer.publishRecompenseEpuisee(
+                            RecompenseEpuiseeEvent.builder()
+                                    .partenaireUserId(recompense.getPartenaire().getUserId())
+                                    .recompenseId(recompense.getId())
+                                    .recompenseTitle(recompense.getTitle())
+                                    .partenaireName(recompense.getPartenaire().getName())
+                                    .build());
+                }
             }
         }
 
@@ -318,6 +330,16 @@ public class RecompenseService {
         coupon.setStatus(Coupon.CouponStatus.UTILISE);
         coupon.setValideLe(java.time.LocalDateTime.now());
         couponRepository.save(coupon);
+
+        // publier l'événement d'utilisation
+        recompenseProducer.publishCouponUtilise(
+                CouponUtiliseEvent.builder()
+                        .userId(coupon.getUserId())
+                        .codeCoupon(coupon.getCode())
+                        .recompenseTitle(coupon.getRecompense().getTitle())
+                        .partenaireName(partenaire.getName())
+                        .valideLe(coupon.getValideLe())
+                        .build());
 
         // calculer et enregistrer la commission
         // Calcul de la commission selon la logique métier unifiée :
