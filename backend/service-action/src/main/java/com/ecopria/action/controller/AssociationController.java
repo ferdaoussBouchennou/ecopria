@@ -16,12 +16,6 @@ public class AssociationController {
     private final AssociationService associationService;
     private final ActionService actionService;
 
-    // ── PROFIL PUBLIC ────────────────────────────────────────
-    // GET /api/associations/{id}
-    @GetMapping("/{id}")
-    public ResponseEntity<AssociationPublicDTO> getPublicProfile(@PathVariable Long id) {
-        return ResponseEntity.ok(associationService.getPublicProfile(id));
-    }
 
     // ── ACTIONS PUBLIQUES D'UNE ASSOCIATION ──────────────────
     // GET /api/associations/{id}/actions
