@@ -1,5 +1,7 @@
 package com.ecopria.action.kafka;
 
+import com.ecopria.action.model.Categorie;
+import com.ecopria.action.repository.CategorieRepository;
 import com.ecopria.action.service.ActionService;
 import com.ecopria.action.service.AssociationService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ public class ActionConsumer {
 
     private final ActionService actionService;
     private final AssociationService associationService;
+    private final CategorieRepository categorieRepository;
 
     // ── écoute user.inscrit pour créer l'association ──────────
     @KafkaListener(topics = "user.inscrit", groupId = "service-action")
@@ -72,5 +75,41 @@ public class ActionConsumer {
     public void onFixedActionDeactivated(Map<String, Object> event) {
         log.info("Désactivation action fixe: {}", event);
         actionService.deactivateFixedAction(event);
+    }
+
+    // ── SYNCHRONISATION CATÉGORIES ───────────────────────────
+
+    @KafkaListener(topics = "categorie.creee", groupId = "service-action")
+    public void onCategorieCreated(Map<String, Object> event) {
+        log.info("Nouvelle catégorie reçue : {}", event.get("nom"));
+
+        Categorie cat = Categorie.builder()
+                .name(event.get("nom").toString())
+                .description(event.get("description") != null ? event.get("description").toString() : null)
+                .imageUrl(event.get("imageUrl") != null ? event.get("imageUrl").toString() : null)
+                .build();
+
+        categorieRepository.save(cat);
+    }
+
+    @KafkaListener(topics = "categorie.modifiee", groupId = "service-action")
+    public void onCategorieUpdated(Map<String, Object> event) {
+        String name = event.get("nom").toString();
+        log.info("Modification catégorie : {}", name);
+
+        categorieRepository.findByName(name).ifPresent(cat -> {
+            if (event.containsKey("description"))
+                cat.setDescription(event.get("description").toString());
+            if (event.containsKey("imageUrl"))
+                cat.setImageUrl(event.get("imageUrl").toString());
+            categorieRepository.save(cat);
+        });
+    }
+
+    @KafkaListener(topics = "categorie.desactivee", groupId = "service-action")
+    public void onCategorieDeleted(Map<String, Object> event) {
+        String name = event.get("nom").toString();
+        log.info("Desactivation catégorie : {}", name);
+        categorieRepository.findByName(name).ifPresent(categorieRepository::delete);
     }
 }

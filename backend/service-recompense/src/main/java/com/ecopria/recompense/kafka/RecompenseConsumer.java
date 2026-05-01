@@ -15,43 +15,24 @@ public class RecompenseConsumer {
 
     private final PartenaireRepository partenaireRepository;
 
-    // ── écoute user.inscrit pour créer le partenaire ──────────
-    @KafkaListener(topics = "user.inscrit", groupId = "service-recompense")
-    public void onUserRegistered(Map<String, Object> event) {
-        String role = (String) event.get("role");
-        if ("PARTENAIRE".equals(role)) {
-            Long userId = Long.valueOf(event.get("userId").toString());
-            log.info("Nouveau partenaire reçu userId: {}", userId);
+    // ── écoute partenaire.validee pour créer le partenaire ──────────
+    @KafkaListener(topics = "partenaire.validee", groupId = "service-recompense")
+    public void onPartenaireValidated(Map<String, Object> event) {
+        Long userId = Long.valueOf(event.get("userId").toString());
+        log.info("Partenaire validé reçu depuis admin, userId: {}", userId);
 
-            if (partenaireRepository.existsByUserId(userId)) {
-                log.warn("Partenaire déjà existant pour userId: {}", userId);
-                return;
-            }
-
-            Partenaire partenaire = Partenaire.builder()
-                    .userId(userId)
-                    .name(event.get("nom") != null ? event.get("nom").toString() : "")
-                    .isValidated(false)
-                    .build();
-
-            partenaireRepository.save(partenaire);
-            log.info("Partenaire créé pour userId: {}", userId);
+        if (partenaireRepository.existsByUserId(userId)) {
+            log.warn("Partenaire déjà existant pour userId: {}", userId);
+            return;
         }
-    }
 
-    // ── écoute compte.valide pour valider le partenaire ───────
-    @KafkaListener(topics = "compte.valide", groupId = "service-recompense")
-    public void onAccountValidated(Map<String, Object> event) {
-        String type = (String) event.get("type");
-        if ("PARTENAIRE".equals(type)) {
-            Long userId = Long.valueOf(event.get("userId").toString());
-            log.info("Validation partenaire userId: {}", userId);
+        Partenaire partenaire = Partenaire.builder()
+                .userId(userId)
+                .name(event.get("nom") != null ? event.get("nom").toString() : "")
+                .category(event.get("categorie") != null ? event.get("categorie").toString() : null)
+                .build();
 
-            partenaireRepository.findByUserId(userId).ifPresent(partenaire -> {
-                partenaire.setIsValidated(true);
-                partenaireRepository.save(partenaire);
-                log.info("Partenaire validé userId: {}", userId);
-            });
-        }
+        partenaireRepository.save(partenaire);
+        log.info("Partenaire créé localement pour userId: {}", userId);
     }
 }

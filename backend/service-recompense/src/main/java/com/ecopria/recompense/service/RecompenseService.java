@@ -174,10 +174,6 @@ public class RecompenseService {
     public RecompenseDTO creerOffre(CreateRecompenseDTO dto, Long userId) {
         Partenaire partenaire = getPartenaireByUserId(userId);
 
-        if (!partenaire.getIsValidated()) {
-            throw new RuntimeException("Votre compte partenaire n'est pas encore validé");
-        }
-
         // Validation commune : si on met une réduction %, il faut obligatoirement la valeur en DH pour la commission
         if (dto.getDiscountPercentage() != null && dto.getValeurDh() == null) {
             throw new RuntimeException("La valeurDh est obligatoire si vous spécifiez un pourcentage de réduction");
