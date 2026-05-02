@@ -3,6 +3,7 @@ package com.ecopria.recompense.dto;
 import com.ecopria.recompense.model.Recompense.RecompenseType;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class RecompenseDTO {
@@ -21,4 +22,8 @@ public class RecompenseDTO {
     private LocalDateTime dateExpiration; // Date limite de validité de l'offre
     private Boolean isAvailable;        // calculé dynamiquement
     private Boolean isActive;
+    // ── BOÎTE MYSTÈRE ───────────────────────────────────────
+    private Boolean hasMystereBox;      // l'offre a-t-elle une boîte mystère ?
+    private Integer mystereBoxPoints;   // coût de la boîte en points
+    private List<MystereBoxItemDTO> mystereBoxItems; // les options cachées
 }

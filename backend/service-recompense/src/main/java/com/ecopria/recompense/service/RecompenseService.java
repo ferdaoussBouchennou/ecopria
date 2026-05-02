@@ -3,7 +3,9 @@ package com.ecopria.recompense.service;
 import com.ecopria.recompense.client.UtilisateurClient;
 import com.ecopria.recompense.dto.*;
 import com.ecopria.recompense.kafka.RecompenseProducer;
+import com.ecopria.recompense.kafka.event.CouponUtiliseEvent;
 import com.ecopria.recompense.kafka.event.RecompenseEchangeeEvent;
+import com.ecopria.recompense.kafka.event.RecompenseEpuiseeEvent;
 import com.ecopria.recompense.model.*;
 import com.ecopria.recompense.model.Recompense.RecompenseType;
 import com.ecopria.recompense.repository.*;
@@ -11,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,6 +27,7 @@ public class RecompenseService {
     private final PartenaireRepository partenaireRepository;
     private final CouponRepository couponRepository;
     private final CommissionRepository commissionRepository;
+    private final MystereBoxItemRepository mystereBoxItemRepository;
     private final UtilisateurClient utilisateurClient;
     private final RecompenseProducer recompenseProducer;
     private final CodeCouponGenerator codeGenerator;
@@ -75,6 +80,16 @@ public class RecompenseService {
             if (recompense.getStock() != null) {
                 recompense.setStock(recompense.getStock() - 1);
                 recompenseRepository.save(recompense);
+
+                if (recompense.getStock() == 0) {
+                    recompenseProducer.publishRecompenseEpuisee(
+                            RecompenseEpuiseeEvent.builder()
+                                    .partenaireUserId(recompense.getPartenaire().getUserId())
+                                    .recompenseId(recompense.getId())
+                                    .recompenseTitle(recompense.getTitle())
+                                    .partenaireName(recompense.getPartenaire().getName())
+                                    .build());
+                }
             }
         }
 
@@ -174,10 +189,6 @@ public class RecompenseService {
     public RecompenseDTO creerOffre(CreateRecompenseDTO dto, Long userId) {
         Partenaire partenaire = getPartenaireByUserId(userId);
 
-        if (!partenaire.getIsValidated()) {
-            throw new RuntimeException("Votre compte partenaire n'est pas encore validé");
-        }
-
         // Validation commune : si on met une réduction %, il faut obligatoirement la valeur en DH pour la commission
         if (dto.getDiscountPercentage() != null && dto.getValeurDh() == null) {
             throw new RuntimeException("La valeurDh est obligatoire si vous spécifiez un pourcentage de réduction");
@@ -214,6 +225,30 @@ public class RecompenseService {
                 .dateExpiration(dto.getDateExpiration())
                 .isActive(true)
                 .build();
+
+        // Gestion de la boîte mystère
+        if (Boolean.TRUE.equals(dto.getHasMystereBox())) {
+            if (dto.getMystereBoxPoints() == null)
+                throw new RuntimeException("Le coût en points de la boîte mystère est obligatoire");
+            if (dto.getMystereBoxItems() == null || dto.getMystereBoxItems().size() < 2)
+                throw new RuntimeException("La boîte mystère doit contenir au moins 2 options");
+            int totalProba = dto.getMystereBoxItems().stream().mapToInt(MystereBoxItemDTO::getProbabilite).sum();
+            if (totalProba != 100)
+                throw new RuntimeException("La somme des probabilités doit égaler 100 (actuel: " + totalProba + ")");
+
+            recompense.setHasMystereBox(true);
+            recompense.setMystereBoxPoints(dto.getMystereBoxPoints());
+
+            List<MystereBoxItem> items = dto.getMystereBoxItems().stream()
+                    .map(i -> MystereBoxItem.builder()
+                            .recompense(recompense)
+                            .titre(i.getTitre())
+                            .description(i.getDescription())
+                            .probabilite(i.getProbabilite())
+                            .build())
+                    .collect(Collectors.toList());
+            recompense.getMystereBoxItems().addAll(items);
+        }
 
         return toDTO(recompenseRepository.save(recompense));
     }
@@ -296,6 +331,16 @@ public class RecompenseService {
         coupon.setValideLe(java.time.LocalDateTime.now());
         couponRepository.save(coupon);
 
+        // publier l'événement d'utilisation
+        recompenseProducer.publishCouponUtilise(
+                CouponUtiliseEvent.builder()
+                        .userId(coupon.getUserId())
+                        .codeCoupon(coupon.getCode())
+                        .recompenseTitle(coupon.getRecompense().getTitle())
+                        .partenaireName(partenaire.getName())
+                        .valideLe(coupon.getValideLe())
+                        .build());
+
         // calculer et enregistrer la commission
         // Calcul de la commission selon la logique métier unifiée :
         // - Si l'offre a un pourcentage de réduction (% > 0) ET une valeurDh -> on commissionne la remise.
@@ -355,7 +400,74 @@ public class RecompenseService {
                 .collect(Collectors.toList());
     }
 
-    // ─── MÉTHODES PRIVÉES ─────────────────────────────────────
+    // ─── OUVRIR LA BOÎTE MYSTÈRE ────────────────────────────────
+
+    @Transactional
+    public ResultatMystereBoxDTO ouvrirMystereBox(Long recompenseId, Long userId) {
+        Recompense recompense = recompenseRepository.findById(recompenseId)
+                .orElseThrow(() -> new RuntimeException("Récompense non trouvée"));
+
+        if (!Boolean.TRUE.equals(recompense.getHasMystereBox()))
+            throw new RuntimeException("Cette offre n'a pas de boîte mystère");
+
+        List<MystereBoxItem> items = recompense.getMystereBoxItems();
+        if (items.isEmpty())
+            throw new RuntimeException("La boîte mystère est vide");
+
+        // Vérifier le solde de points
+        Integer solde = utilisateurClient.getPoints(userId);
+        if (solde < recompense.getMystereBoxPoints())
+            throw new RuntimeException("Points insuffisants. Solde: " + solde +
+                    " — Requis: " + recompense.getMystereBoxPoints());
+
+        // ── Tirage aléatoire pondéré ──
+        int tirage = new Random().nextInt(100); // nombre entre 0 et 99
+        int cumul = 0;
+        MystereBoxItem itemGagne = items.get(items.size() - 1); // fallback = dernier item
+        for (MystereBoxItem item : items) {
+            cumul += item.getProbabilite();
+            if (tirage < cumul) {
+                itemGagne = item;
+                break;
+            }
+        }
+
+        // Générer un coupon pour le prix gagné
+        String code = codeGenerator.generate();
+        Coupon coupon = Coupon.builder()
+                .userId(userId)
+                .recompense(recompense)
+                .code(code)
+                .pointsUtilises(recompense.getMystereBoxPoints())
+                .status(Coupon.CouponStatus.DISTRIBUE)
+                .expireLe(java.time.LocalDateTime.now().plusDays(30))
+                .build();
+        Coupon saved = couponRepository.save(coupon);
+
+        // Publier sur Kafka pour déduire les points
+        recompenseProducer.publishRecompenseEchangee(
+                RecompenseEchangeeEvent.builder()
+                        .userId(userId)
+                        .recompenseId(recompenseId)
+                        .codeCoupon(code)
+                        .pointsUtilises(recompense.getMystereBoxPoints())
+                        .pointsRestants(solde - recompense.getMystereBoxPoints())
+                        .recompenseTitle("[MYSTÈRE] " + itemGagne.getTitre())
+                        .partenaireName(recompense.getPartenaire().getName())
+                        .build());
+
+        log.info("Boîte mystère ouverte par userId: {} — Prix: {} (probabilité: {}%)",
+                userId, itemGagne.getTitre(), itemGagne.getProbabilite());
+
+        return ResultatMystereBoxDTO.builder()
+                .titrePrix(itemGagne.getTitre())
+                .descriptionPrix(itemGagne.getDescription())
+                .probabilite(itemGagne.getProbabilite())
+                .coupon(toCouponDTO(saved))
+                .build();
+    }
+
+    // ─── MÉTHODES PRIVÉES ────────────────────────────────────────
 
     private Partenaire getPartenaireByUserId(Long userId) {
         return partenaireRepository.findByUserId(userId)
@@ -370,6 +482,15 @@ public class RecompenseService {
     }
 
     private RecompenseDTO toDTO(Recompense r) {
+        List<MystereBoxItemDTO> boxItems = r.getMystereBoxItems().stream()
+                .map(i -> MystereBoxItemDTO.builder()
+                        .id(i.getId())
+                        .titre(i.getTitre())
+                        .description(i.getDescription())
+                        .probabilite(i.getProbabilite())
+                        .build())
+                .collect(Collectors.toList());
+
         return RecompenseDTO.builder()
                 .id(r.getId())
                 .partenaireId(r.getPartenaire().getId())
@@ -386,6 +507,9 @@ public class RecompenseService {
                 .dateExpiration(r.getDateExpiration())
                 .isAvailable(r.isAvailable())
                 .isActive(r.getIsActive())
+                .hasMystereBox(r.getHasMystereBox())
+                .mystereBoxPoints(r.getMystereBoxPoints())
+                .mystereBoxItems(boxItems)
                 .build();
     }
 

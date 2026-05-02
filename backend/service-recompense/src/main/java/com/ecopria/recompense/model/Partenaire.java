@@ -24,18 +24,6 @@ public class Partenaire {
     @Column(nullable = false, length = 150)
     private String name;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
-    @Column(name = "logo_url")
-    private String logoUrl;
-
-    @Column(length = 100)
-    private String city;
-
-    @Column(length = 255)
-    private String address;
-
     // catégorie du partenaire ex: Restauration, Mode, Mobilité
     @Column(length = 100)
     private String category;
@@ -44,11 +32,6 @@ public class Partenaire {
     @Column(nullable = false)
     @Builder.Default
     private Double commissionRate = 10.0;
-
-    // mis à true via Kafka compte.valide depuis service-admin
-    @Column(name = "is_validated", nullable = false)
-    @Builder.Default
-    private Boolean isValidated = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
