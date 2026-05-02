@@ -1,10 +1,16 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: api-gateway
 
   cloud:
     gateway:
-      # URIs surchargées en local (ex. GATEWAY_UTILISATEUR_URI=http://localhost:8081)
+      # Timeouts proxy → microservices (évite les requêtes bloquées indéfiniment)
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 30s
       globalcors:
         add-to-simple-url-handler-mapping: true
         cors-configurations:
@@ -20,7 +26,6 @@ spring:
               - DELETE
               - PATCH
               - OPTIONS
-            # * interdit avec allowCredentials: true (navigateurs) — liste explicite
             allowedHeaders:
               - Authorization
               - Content-Type
@@ -28,8 +33,10 @@ spring:
               - Origin
               - X-Requested-With
               - Cache-Control
+              - X-User-Id
             allowCredentials: true
             maxAge: 3600
+      # Surcharge locale : GATEWAY_UTILISATEUR_URI=http://localhost:8081
       routes:
         - id: service-utilisateur
           uri: ${GATEWAY_UTILISATEUR_URI:http://service-utilisateur-backend:8080}
@@ -68,7 +75,6 @@ spring:
           predicates:
             - Path=/api/inscriptions/**
           filters:
-            # $\{segment} : échapper pour que Spring ne traite pas ${segment} comme placeholder
             - RewritePath=/api/inscriptions/(?<segment>.*), /inscriptions/$\{segment}
 
         - id: service-presence
@@ -97,7 +103,9 @@ management:
         include: health,info,gateway
   endpoint:
     health:
-      show-details: always
+      show-details: when_authorized
+      probes:
+        enabled: true
 
 logging:
   level:
