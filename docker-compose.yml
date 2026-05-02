@@ -366,3 +366,22 @@ services:
       condition: service_healthy
      kafka:
       condition: service_healthy
+
+  service-inscription-backend:
+    build:
+      context: ./backend/service-inscription
+      dockerfile: Dockerfile
+    container_name: service-inscription-backend
+    networks:
+      - ecopria-network
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+    restart: on-failure
+    depends_on:
+      mysql-inscription:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
