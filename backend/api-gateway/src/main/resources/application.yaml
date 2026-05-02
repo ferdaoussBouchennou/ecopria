@@ -4,12 +4,14 @@ spring:
 
   cloud:
     gateway:
+      # URIs surchargées en local (ex. GATEWAY_UTILISATEUR_URI=http://localhost:8081)
       globalcors:
         add-to-simple-url-handler-mapping: true
         cors-configurations:
           '[/**]':
             allowedOrigins:
               - 'http://localhost:4200'
+              - 'http://127.0.0.1:4200'
               - 'http://frontend:80'
             allowedMethods:
               - GET
@@ -18,29 +20,75 @@ spring:
               - DELETE
               - PATCH
               - OPTIONS
-            allowedHeaders: '*'
+            # * interdit avec allowCredentials: true (navigateurs) — liste explicite
+            allowedHeaders:
+              - Authorization
+              - Content-Type
+              - Accept
+              - Origin
+              - X-Requested-With
+              - Cache-Control
             allowCredentials: true
             maxAge: 3600
       routes:
         - id: service-utilisateur
-          uri: http://service-utilisateur-backend:8080
+          uri: ${GATEWAY_UTILISATEUR_URI:http://service-utilisateur-backend:8080}
           predicates:
             - Path=/api/users/**,/api/utilisateurs/**
 
         - id: service-notification
-          uri: http://service-notification-backend:8080
+          uri: ${GATEWAY_NOTIFICATION_URI:http://service-notification-backend:8080}
           predicates:
             - Path=/api/notifications/**
 
         - id: service-action
-          uri: http://service-action-backend:9090
+          uri: ${GATEWAY_ACTION_URI:http://service-action-backend:9090}
           predicates:
             - Path=/api/actions/**,/api/categories/**,/api/associations/**
 
         - id: service-recompense
-          uri: http://service-recompense-backend:9093
+          uri: ${GATEWAY_RECOMPENSE_URI:http://service-recompense-backend:9093}
           predicates:
             - Path=/api/recompenses/**,/api/partenaire/**
+
+        - id: service-inscription
+          uri: ${GATEWAY_INSCRIPTION_URI:http://service-inscription-backend:8084}
+          predicates:
+            - Path=/inscriptions/**
+
+        - id: service-inscription-api-root
+          uri: ${GATEWAY_INSCRIPTION_URI:http://service-inscription-backend:8084}
+          predicates:
+            - Path=/api/inscriptions
+          filters:
+            - SetPath=/inscriptions
+
+        - id: service-inscription-api
+          uri: ${GATEWAY_INSCRIPTION_URI:http://service-inscription-backend:8084}
+          predicates:
+            - Path=/api/inscriptions/**
+          filters:
+            # $\{segment} : échapper pour que Spring ne traite pas ${segment} comme placeholder
+            - RewritePath=/api/inscriptions/(?<segment>.*), /inscriptions/$\{segment}
+
+        - id: service-presence
+          uri: ${GATEWAY_PRESENCE_URI:http://service-presence-backend:8085}
+          predicates:
+            - Path=/presences/**
+
+        - id: service-presence-api-root
+          uri: ${GATEWAY_PRESENCE_URI:http://service-presence-backend:8085}
+          predicates:
+            - Path=/api/presences
+          filters:
+            - SetPath=/presences
+
+        - id: service-presence-api
+          uri: ${GATEWAY_PRESENCE_URI:http://service-presence-backend:8085}
+          predicates:
+            - Path=/api/presences/**
+          filters:
+            - RewritePath=/api/presences/(?<segment>.*), /presences/$\{segment}
 
 management:
   endpoints:
