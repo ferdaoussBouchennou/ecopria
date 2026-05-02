@@ -426,10 +426,27 @@ public class ActionService {
                         .collect(Collectors.toList()))
                 .associationId(action.getAssociation() != null ? action.getAssociation().getId() : null)
                 .associationName(action.getAssociation() != null ? action.getAssociation().getName() : null)
-                .associationDescription(
-                        action.getAssociation() != null ? action.getAssociation().getDescription() : null)
-                .associationLogoUrl(action.getAssociation() != null ? action.getAssociation().getLogoUrl() : null)
                 .associationCity(action.getAssociation() != null ? action.getAssociation().getCity() : null)
                 .build();
+    }
+
+    // ─── SYNCHRONISATION CATÉGORIES ───────────────────────────
+
+    @Transactional
+    public void saveCategorie(Categorie categorie) {
+        categorieRepository.save(categorie);
+        log.info("Catégorie sauvegardée en local: {}", categorie.getName());
+    }
+
+    @Transactional
+    public void updateCategorie(String name, Map<String, Object> event) {
+        categorieRepository.findByName(name).ifPresent(cat -> {
+            if (event.containsKey("description"))
+                cat.setDescription(event.get("description").toString());
+            if (event.containsKey("imageUrl"))
+                cat.setImageUrl(event.get("imageUrl").toString());
+            categorieRepository.save(cat);
+            log.info("Catégorie mise à jour en local: {}", name);
+        });
     }
 }

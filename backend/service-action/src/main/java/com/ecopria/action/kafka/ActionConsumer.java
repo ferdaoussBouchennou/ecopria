@@ -59,4 +59,27 @@ public class ActionConsumer {
         log.info("Désactivation action fixe: {}", event);
         actionService.deactivateFixedAction(event);
     }
+
+    // ── SYNCHRONISATION CATÉGORIES ───────────────────────────
+
+    @KafkaListener(topics = "categorie.creee", groupId = "service-action")
+    public void onCategorieCreated(Map<String, Object> event) {
+        log.info("Nouvelle catégorie reçue : {}", event.get("nom"));
+
+        com.ecopria.action.model.Categorie cat = com.ecopria.action.model.Categorie.builder()
+                .name(event.get("nom").toString())
+                .description(event.get("description") != null ? event.get("description").toString() : null)
+                .imageUrl(event.get("imageUrl") != null ? event.get("imageUrl").toString() : null)
+                .build();
+
+        actionService.saveCategorie(cat);
+    }
+
+    @KafkaListener(topics = "categorie.modifiee", groupId = "service-action")
+    public void onCategorieUpdated(Map<String, Object> event) {
+        String name = event.get("nom").toString();
+        log.info("Modification catégorie : {}", name);
+
+        actionService.updateCategorie(name, event);
+    }
 }
