@@ -288,6 +288,8 @@ services:
       - service-notification-backend
       - service-action-backend
       - service-recompense-backend
+      - service-inscription-backend
+      - service-presence-backend
 
   service-action-backend:
     build: ./backend/service-action
@@ -333,7 +335,7 @@ services:
     networks:
       - ecopria-network
     ports:
-      - "8085:8080"
+      - "8086:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-notification:3306/db_notification
       SPRING_DATASOURCE_USERNAME: ecopria
