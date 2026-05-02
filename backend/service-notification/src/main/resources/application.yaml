@@ -1,6 +1,23 @@
 server:
   port: 8080
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+
+# Clients HTTP internes (docker-compose : SERVICE_UTILISATEUR_URL, SERVICE_INSCRIPTION_URL)
+ecopria:
+  internal:
+    utilisateur-base-url: ${SERVICE_UTILISATEUR_URL:http://service-utilisateur-backend:8080}
+    inscription-base-url: ${SERVICE_INSCRIPTION_URL:http://service-inscription-backend:8084}
+
 spring:
   application:
     name: service-notification
@@ -14,7 +31,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -37,8 +54,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${EMAIL_USERNAME}
-    password: ${EMAIL_PASSWORD}
+    username: ${EMAIL_USERNAME:}
+    password: ${EMAIL_PASSWORD:}
     properties:
       mail:
         smtp:
