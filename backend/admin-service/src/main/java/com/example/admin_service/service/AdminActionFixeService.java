@@ -38,6 +38,7 @@ public class AdminActionFixeService {
                 .titre(request.getTitre())
                 .description(request.getDescription())
                 .categorie(request.getCategorie())
+                .estFixe(true)
                 .lieu(request.getLieu())
                 .latitude(request.getLatitude())
                 .longitude(request.getLongitude())
@@ -58,6 +59,7 @@ public class AdminActionFixeService {
         actionFixe.setTitre(request.getTitre());
         actionFixe.setDescription(request.getDescription());
         actionFixe.setCategorie(request.getCategorie());
+        actionFixe.setEstFixe(true);
         actionFixe.setLieu(request.getLieu());
         actionFixe.setLatitude(request.getLatitude());
         actionFixe.setLongitude(request.getLongitude());
@@ -104,6 +106,9 @@ public class AdminActionFixeService {
                 .titre(actionFixe.getTitre())
                 .description(actionFixe.getDescription())
                 .categorie(actionFixe.getCategorie())
+                .estFixe(actionFixe.getEstFixe())
+                .associationId(actionFixe.getAssociationId())
+                .associationName(actionFixe.getAssociationName())
                 .lieu(actionFixe.getLieu())
                 .latitude(actionFixe.getLatitude())
                 .longitude(actionFixe.getLongitude())

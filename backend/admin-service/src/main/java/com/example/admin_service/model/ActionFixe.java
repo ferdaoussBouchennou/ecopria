@@ -26,13 +26,22 @@ public class ActionFixe {
     @Column(nullable = false, length = 120)
     private String categorie;
 
+    @Column(name = "est_fixe", nullable = false)
+    private Boolean estFixe;
+
+    @Column(name = "association_id")
+    private Long associationId;
+
+    @Column(name = "association_name", length = 200)
+    private String associationName;
+
     @Column(length = 255)
     private String lieu;
 
-    @Column(nullable = false)
+    @Column
     private Double latitude;
 
-    @Column(nullable = false)
+    @Column
     private Double longitude;
 
     @Column(nullable = false)

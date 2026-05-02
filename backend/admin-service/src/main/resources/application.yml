@@ -25,6 +25,7 @@ spring:
 jwt:
   secret: EcopriaProject2026SecretKeyForJwtTokenSigning
   expiration: 86400000
+  refresh-expiration: 604800000
 
 services:
   auth-url: ${AUTH_SERVICE_URL:http://localhost:8081}

@@ -16,6 +16,9 @@ public class ActionFixeResponse {
     private String titre;
     private String description;
     private String categorie;
+    private Boolean estFixe;
+    private Long associationId;
+    private String associationName;
     private String lieu;
     private Double latitude;
     private Double longitude;

@@ -1,6 +1,7 @@
 package com.example.admin_service.controller;
 
 import com.example.admin_service.dto.request.StatutChangeRequest;
+import com.example.admin_service.dto.request.ActionAssociationRequest;
 import com.example.admin_service.service.AdminActionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/admin/actions")
@@ -31,7 +31,7 @@ public class AdminActionController {
 
     @PostMapping
     public ResponseEntity<Object> create(
-            @RequestBody Map<String, Object> request,
+            @RequestBody ActionAssociationRequest request,
             @RequestHeader("X-User-Id") Long adminId
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request, adminId));
@@ -40,7 +40,7 @@ public class AdminActionController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> update(
             @PathVariable Long id,
-            @RequestBody Map<String, Object> request,
+            @RequestBody ActionAssociationRequest request,
             @RequestHeader("X-User-Id") Long adminId
     ) {
         service.update(id, request, adminId);

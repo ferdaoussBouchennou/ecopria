@@ -10,8 +10,8 @@ public class ActionFixeRequest {
     private String description;
     @NotBlank private String categorie;
     private String lieu;
-    @NotNull private Double latitude;
-    @NotNull private Double longitude;
+    private Double latitude;
+    private Double longitude;
     @NotNull private Integer points;
     private Integer placesTotal;
     private String frequence;
