@@ -2,6 +2,7 @@ package com.ecopria.utilisateur.controller;
 
 import java.util.List;
 import java.util.Map;
+import com.ecopria.utilisateur.dto.CitizenContactDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -103,5 +104,20 @@ public class UserController {
     @GetMapping("/{id}/dashboard")
     public ResponseEntity<DashboardDTO> getDashboard(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getDashboard(id));
+    }
+
+    /** Usage interne (service-notification) : e-mail pour authId. */
+    @GetMapping("/internal/contact/{authId}/email")
+    public ResponseEntity<Map<String, String>> internalEmailForNotifications(@PathVariable Long authId) {
+        return userService.findEmailForAuthId(authId)
+                .map(e -> ResponseEntity.ok(Map.of("email", e)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /** Citoyens d'une ville avec coordonnées de contact (notifications de masse par ville). */
+    @GetMapping("/internal/citizens/contacts")
+    public ResponseEntity<List<CitizenContactDTO>> internalCitizenContactsByCity(
+            @RequestParam String city) {
+        return ResponseEntity.ok(userService.findCitizenContactsByCity(city));
     }
 }

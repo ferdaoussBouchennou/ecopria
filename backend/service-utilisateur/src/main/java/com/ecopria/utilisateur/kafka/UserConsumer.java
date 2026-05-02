@@ -11,6 +11,10 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import java.util.Map;
 
+/**
+ * Consommateurs Kafka du service profils / points.
+ * Table des topics : fichier {@code docs/KAFKA_TOPICS.md} (racine du dépôt).
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -18,32 +22,32 @@ public class UserConsumer {
 
     private final UserService userService;
 
-    // Écoute topic citoyen.inscrit → créer le profil citoyen
-    @KafkaListener(topics = "citoyen.inscrit", groupId = "utilisateur-group")
+    /**
+     * Création profil citoyen — topics {@code citoyen.inscrit} et {@code user.inscrit} (alias côté auth).
+     * Schéma : {@code userId} ou {@code auth_id}, prénom/nom en snake_case ou camelCase.
+     */
+    @KafkaListener(topics = { "citoyen.inscrit", "user.inscrit" }, groupId = "utilisateur-group")
     public void onCitoyenInscrit(Map<String, Object> event) {
-        log.info("[Kafka] citoyen.inscrit reçu : {}", event);
+        log.info("[Kafka] citoyen/user.inscrit reçu : {}", event);
         try {
-            // Payload minimal attendu depuis auth: auth_id + first_name/last_name (+ email optionnel)
             CitizenDTO dto = new CitizenDTO();
-            dto.setAuthId(readLong(event, "auth_id"));
-            dto.setLastName(readRequiredString(event, "last_name"));
-            dto.setFirstName(readRequiredString(event, "first_name"));
-            // Les infos de profil (phone/address/city/photo) sont renseignées plus tard dans l'espace profil.
+            dto.setAuthId(readLong(event, "auth_id", "userId"));
+            dto.setLastName(readRequiredString(event, "last_name", "lastName"));
+            dto.setFirstName(readRequiredString(event, "first_name", "firstName"));
             dto.setEmail(readOptionalString(event, "email"));
-            userService.createCitizen(dto);
+            userService.syncCitizenFromKafka(dto);
         } catch (Exception e) {
             log.error("Erreur conversion CitizenDTO : {}", e.getMessage());
         }
     }
 
-    // Écoute topic asso.validee → créer le profil association
     @KafkaListener(topics = "asso.validee", groupId = "utilisateur-group")
     public void onAssoValidee(Map<String, Object> event) {
         log.info("[Kafka] asso.validee reçu : {}", event);
         try {
             AssociationDTO dto = new AssociationDTO();
-            dto.setAuthId(readLong(event, "auth_id"));
-            dto.setName(readRequiredString(event, "name"));
+            dto.setAuthId(readLong(event, "auth_id", "userId"));
+            dto.setName(readRequiredString(event, "name", "nom"));
             dto.setEmail(readOptionalString(event, "email"));
             userService.createAssociation(dto);
         } catch (Exception e) {
@@ -51,29 +55,29 @@ public class UserConsumer {
         }
     }
 
-    // Écoute topic partenaire.validee → créer le profil partenaire
     @KafkaListener(topics = "partenaire.validee", groupId = "utilisateur-group")
     public void onPartenaireValidee(Map<String, Object> event) {
         log.info("[Kafka] partenaire.validee reçu : {}", event);
         try {
             PartnerDTO dto = new PartnerDTO();
-            dto.setAuthId(readLong(event, "auth_id"));
-            dto.setName(readRequiredString(event, "name"));
+            dto.setAuthId(readLong(event, "auth_id", "userId"));
+            dto.setName(readRequiredString(event, "name", "nom"));
             dto.setEmail(readOptionalString(event, "email"));
+            dto.setCategory(readOptionalString(event, "categorie", "category"));
             userService.createPartner(dto);
         } catch (Exception e) {
             log.error("Erreur conversion PartnerDTO : {}", e.getMessage());
         }
     }
 
-    // Écoute topic 4 : presence.validee → créditer les points
+    /** Événement émis par service-presence ({@link com.ecopria.presence.kafka.PresenceValideeEvent}) : userId, actionId, points. */
     @KafkaListener(topics = "presence.validee", groupId = "utilisateur-group")
     public void onPresenceValidee(Map<String, Object> event) {
         log.info("[Kafka] presence.validee reçu : {}", event);
         try {
-            Long authId = readLong(event, "auth_id");
+            Long authId = readLong(event, "userId", "auth_id");
             Integer points = readInt(event, "points");
-            Long actionId = readLong(event, "action_id");
+            Long actionId = readLong(event, "actionId", "action_id");
 
             PointsDTO dto = new PointsDTO();
             dto.setAuthId(authId);
@@ -86,13 +90,13 @@ public class UserConsumer {
         }
     }
 
-    // Écoute topic 11 : recompense.echangee → débiter les points
+    /** Événement {@code RecompenseEchangeeEvent} : userId, pointsUtilises. */
     @KafkaListener(topics = "recompense.echangee", groupId = "utilisateur-group")
     public void onRecompenseEchangee(Map<String, Object> event) {
         log.info("[Kafka] recompense.echangee reçu : {}", event);
         try {
-            Long authId = readLong(event, "auth_id");
-            Integer points = readInt(event, "points_used");
+            Long authId = readLong(event, "userId", "auth_id");
+            Integer points = readInt(event, "pointsUtilises", "points_used");
             userService.deductPoints(authId, points);
         } catch (Exception e) {
             log.error("Erreur conversion debit points (recompense.echangee) : {}", e.getMessage());

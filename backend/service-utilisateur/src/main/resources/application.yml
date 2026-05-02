@@ -3,6 +3,17 @@
 server:
   port: 8080
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+
 spring:
   application:
     name: service-utilisateur
@@ -16,7 +27,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update        # crée les tables automatiquement
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true

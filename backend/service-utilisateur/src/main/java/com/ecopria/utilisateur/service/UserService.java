@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -40,12 +42,32 @@ public class UserService {
             throw new IllegalStateException("Un citoyen avec cet ID existe déjà (authId: " + citizenDTO.getAuthId() + ").");
         }
 
+        return persistNewCitizen(citizenDTO);
+    }
+
+    /**
+     * Idempotent : utilisé par Kafka ({@code citoyen.inscrit} / {@code user.inscrit}) pour tolérer
+     * rejouer le message ou deux topics équivalents sans erreur.
+     */
+    @Transactional
+    public Citizen syncCitizenFromKafka(CitizenDTO citizenDTO) {
+        if (citizenDTO.getAuthId() == null) {
+            throw new IllegalArgumentException("L'identifiant auth (authId) est obligatoire.");
+        }
+        Optional<Citizen> existing = citizenRepository.findByAuthId(citizenDTO.getAuthId());
+        if (existing.isPresent()) {
+            getOrCreatePreferences(citizenDTO.getAuthId());
+            return existing.get();
+        }
+        return persistNewCitizen(citizenDTO);
+    }
+
+    private Citizen persistNewCitizen(CitizenDTO citizenDTO) {
         Citizen citizen = userMapper.toEntity(citizenDTO);
         Citizen savedCitizen = citizenRepository.save(citizen);
-
-        NotificationPreference pref = new NotificationPreference();
-        pref.setAuthId(savedCitizen.getAuthId());
-        notificationPreferenceRepository.save(pref);
+        // Kafka peut être rejoué / l'ordre peut varier: les préférences peuvent déjà exister.
+        // On garantit qu'elles existent sans violer la contrainte UNIQUE(auth_id).
+        getOrCreatePreferences(savedCitizen.getAuthId());
 
         return savedCitizen;
     }
@@ -152,7 +174,8 @@ public class UserService {
         Citizen citizen = citizenRepository.findByAuthId(dto.getAuthId())
                 .orElseThrow(() -> new RuntimeException("Citoyen non trouvé"));
 
-        citizen.setTotalPoints(citizen.getTotalPoints() + dto.getPoints());
+        int current = citizen.getTotalPoints() != null ? citizen.getTotalPoints() : 0;
+        citizen.setTotalPoints(current + dto.getPoints());
         citizenRepository.save(citizen);
 
         PointHistory h = new PointHistory();
@@ -165,10 +188,16 @@ public class UserService {
 
         Map<String, Object> event = new HashMap<>();
         event.put("auth_id", dto.getAuthId());
+        event.put("userId", dto.getAuthId());
         event.put("points_added", dto.getPoints());
         event.put("total_points", citizen.getTotalPoints());
+        event.put("totalPoints", citizen.getTotalPoints());
         event.put("action_id", dto.getActionId());
-        kafkaTemplate.send("points.credites", event);
+        event.put("actionId", dto.getActionId());
+        if (citizen.getEmail() != null && !citizen.getEmail().isBlank()) {
+            event.put("email", citizen.getEmail());
+        }
+        kafkaTemplate.send("points.credites", String.valueOf(dto.getAuthId()), event);
 
         checkBadges(citizen);
     }
@@ -182,11 +211,12 @@ public class UserService {
             throw new IllegalArgumentException("Le nombre de points a debiter doit etre positif");
         }
 
-        if (citizen.getTotalPoints() < points) {
+        int balance = citizen.getTotalPoints() != null ? citizen.getTotalPoints() : 0;
+        if (balance < points) {
             throw new IllegalArgumentException("Points insuffisants pour effectuer cette operation");
         }
 
-        citizen.setTotalPoints(citizen.getTotalPoints() - points);
+        citizen.setTotalPoints(balance - points);
         citizenRepository.save(citizen);
 
         PointHistory h = new PointHistory();
@@ -214,9 +244,14 @@ public class UserService {
 
                 Map<String, Object> event = new HashMap<>();
                 event.put("auth_id", citizen.getAuthId());
+                event.put("userId", citizen.getAuthId());
                 event.put("badge_name", badge.getName());
+                event.put("badge", badge.getName());
                 event.put("description", badge.getDescription());
-                kafkaTemplate.send("badge.debloque", event);
+                if (citizen.getEmail() != null && !citizen.getEmail().isBlank()) {
+                    event.put("email", citizen.getEmail());
+                }
+                kafkaTemplate.send("badge.debloque", String.valueOf(citizen.getAuthId()), event);
             }
         }
     }
@@ -335,5 +370,34 @@ public class UserService {
         }
         
         throw new RuntimeException("Utilisateur non trouvé");
+    }
+
+    /** Résout l'e-mail pour notification (citoyen, association ou partenaire). */
+    public Optional<String> findEmailForAuthId(Long authId) {
+        Optional<String> fromCitizen = citizenRepository.findByAuthId(authId)
+                .map(Citizen::getEmail)
+                .filter(e -> e != null && !e.isBlank());
+        if (fromCitizen.isPresent()) {
+            return fromCitizen;
+        }
+        Optional<String> fromAsso = associationRepository.findByAuthId(authId)
+                .map(Association::getEmail)
+                .filter(e -> e != null && !e.isBlank());
+        if (fromAsso.isPresent()) {
+            return fromAsso;
+        }
+        return partnerRepository.findByAuthId(authId)
+                .map(Partner::getEmail)
+                .filter(e -> e != null && !e.isBlank());
+    }
+
+    /** Citoyens d'une ville (notifications ciblées action.creee, etc.). */
+    public List<CitizenContactDTO> findCitizenContactsByCity(String city) {
+        if (city == null || city.isBlank()) {
+            return List.of();
+        }
+        return citizenRepository.findByCityIgnoreCase(city.trim()).stream()
+                .map(c -> new CitizenContactDTO(c.getAuthId(), c.getEmail(), c.getFirstName()))
+                .collect(Collectors.toList());
     }
 }

@@ -10,4 +10,6 @@ import com.ecopria.utilisateur.model.Citizen;
 public interface CitizenRepository extends JpaRepository<Citizen, Long> {
     Optional<Citizen> findByAuthId(Long authId);
     List<Citizen> findTop10ByOrderByTotalPointsDesc();  // classement top 10
+
+    List<Citizen> findByCityIgnoreCase(String city);
 }
