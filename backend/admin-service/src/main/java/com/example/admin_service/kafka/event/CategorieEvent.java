@@ -7,9 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CategorieEvent {
-    private Long categorieId;
-    private String name;
+    private String nom;
     private String description;
     private String imageUrl;
-    private String action; // CREEE or MODIFIEE
 }

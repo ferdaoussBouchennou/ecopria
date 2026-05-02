@@ -2,15 +2,16 @@ package com.example.admin_service.service;
 
 
 import com.example.admin_service.dto.request.CategorieRequest;
+import com.example.admin_service.dto.response.CategorieResponse;
 import com.example.admin_service.kafka.event.CategorieEvent;
 import com.example.admin_service.kafka.producer.AdminKafkaProducer;
+import com.example.admin_service.model.Categorie;
 import com.example.admin_service.model.LogAdmin;
+import com.example.admin_service.repository.CategorieRepository;
 import com.example.admin_service.repository.LogAdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,39 +23,60 @@ public class AdminCategorieService {
 
     private final AdminKafkaProducer kafkaProducer;
     private final LogAdminRepository logAdminRepository;
-    private final RestTemplate restTemplate;
+    private final CategorieRepository categorieRepository;
 
-    @Value("${services.action-url}")
-    private String actionServiceUrl;
-
-    public List<?> getAll() {
-        return restTemplate.getForObject(
-                actionServiceUrl + "/internal/categories",
-                List.class
-        );
+    public List<CategorieResponse> getAll() {
+        return categorieRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     public void create(CategorieRequest request, Long adminId) {
-        kafkaProducer.publishCategorieEvent(CategorieEvent.builder()
-                .name(request.getName())
+        LocalDateTime now = LocalDateTime.now();
+        Categorie categorie = categorieRepository.save(Categorie.builder()
+                .nom(request.getNom())
                 .description(request.getDescription())
                 .imageUrl(request.getImageUrl())
-                .action("CREEE")
+                .createdAt(now)
+                .updatedAt(now)
                 .build());
 
-        saveLog(adminId, "CREER_CATEGORIE", 0L, "CATEGORIE");
+        kafkaProducer.publishCategorieCreee(CategorieEvent.builder()
+                .nom(categorie.getNom())
+                .description(request.getDescription())
+                .imageUrl(request.getImageUrl())
+                .build());
+
+        saveLog(adminId, "CREER_CATEGORIE", categorie.getId(), "CATEGORIE");
     }
 
     public void update(Long id, CategorieRequest request, Long adminId) {
-        kafkaProducer.publishCategorieEvent(CategorieEvent.builder()
-                .categorieId(id)
-                .name(request.getName())
+        Categorie categorie = categorieRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Categorie not found: " + id));
+        categorie.setNom(request.getNom());
+        categorie.setDescription(request.getDescription());
+        categorie.setImageUrl(request.getImageUrl());
+        categorie.setUpdatedAt(LocalDateTime.now());
+        categorie = categorieRepository.save(categorie);
+
+        kafkaProducer.publishCategorieModifiee(CategorieEvent.builder()
+                .nom(categorie.getNom())
                 .description(request.getDescription())
                 .imageUrl(request.getImageUrl())
-                .action("MODIFIEE")
                 .build());
 
         saveLog(adminId, "MODIFIER_CATEGORIE", id, "CATEGORIE");
+    }
+
+    private CategorieResponse toResponse(Categorie categorie) {
+        return CategorieResponse.builder()
+                .id(categorie.getId())
+                .nom(categorie.getNom())
+                .description(categorie.getDescription())
+                .imageUrl(categorie.getImageUrl())
+                .updatedAt(categorie.getUpdatedAt())
+                .build();
     }
 
     private void saveLog(Long adminId, String action,

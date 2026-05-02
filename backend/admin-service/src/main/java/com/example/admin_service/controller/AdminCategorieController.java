@@ -2,6 +2,7 @@ package com.example.admin_service.controller;
 
 
 import com.example.admin_service.dto.request.CategorieRequest;
+import com.example.admin_service.dto.response.CategorieResponse;
 import com.example.admin_service.service.AdminCategorieService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class AdminCategorieController {
     private final AdminCategorieService service;
 
     @GetMapping
-    public ResponseEntity<List<?>> getAll() {
+    public ResponseEntity<List<CategorieResponse>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
 

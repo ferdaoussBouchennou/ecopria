@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,36 +25,36 @@ public class AdminPartenaireService {
     private final LogAdminRepository logAdminRepository;
     private final RestTemplate restTemplate;
 
-    @Value("${services.recompense-url}")
-    private String recompenseServiceUrl;
+    @Value("${services.utilisateur-url}")
+    private String utilisateurServiceUrl;
 
     @Value("${services.auth-url}")
     private String authServiceUrl;
 
     public List<?> getAll() {
         return restTemplate.getForObject(
-                recompenseServiceUrl + "/internal/partenaires",
+                utilisateurServiceUrl + "/internal/partenaires",
                 List.class
         );
     }
 
     public List<?> getPending() {
         return restTemplate.getForObject(
-                recompenseServiceUrl + "/internal/partenaires?status=PENDING",
+                utilisateurServiceUrl + "/internal/partenaires?status=PENDING",
                 List.class
         );
     }
 
     public void approve(Long partenaireId, Long adminId) {
         Map partenaire = restTemplate.getForObject(
-                recompenseServiceUrl + "/internal/partenaires/" + partenaireId,
+                utilisateurServiceUrl + "/internal/partenaires/" + partenaireId,
                 Map.class
         );
-        Long userId = Long.valueOf(partenaire.get("userId").toString());
+        Long userId = extractUserId(partenaire);
         String email = getEmail(userId);
 
         restTemplate.put(
-                recompenseServiceUrl + "/internal/partenaires/"
+                utilisateurServiceUrl + "/internal/partenaires/"
                         + partenaireId + "/activate",
                 null
         );
@@ -66,19 +67,25 @@ public class AdminPartenaireService {
                 .type("PARTENAIRE")
                 .build());
 
+        Map<String, Object> partenaireValideeEvent = new HashMap<>();
+        partenaireValideeEvent.put("userId", userId);
+        partenaireValideeEvent.put("nom", extractString(partenaire, "nom", "name"));
+        partenaireValideeEvent.put("categorie", extractString(partenaire, "categorie", "category"));
+        kafkaProducer.publishPartenaireValidee(partenaireValideeEvent, String.valueOf(userId));
+
         saveLog(adminId, "VALIDER_PARTENAIRE", partenaireId, "PARTENAIRE");
     }
 
     public void reject(Long partenaireId, StatutChangeRequest request, Long adminId) {
         Map partenaire = restTemplate.getForObject(
-                recompenseServiceUrl + "/internal/partenaires/" + partenaireId,
+                utilisateurServiceUrl + "/internal/partenaires/" + partenaireId,
                 Map.class
         );
-        Long userId = Long.valueOf(partenaire.get("userId").toString());
+        Long userId = extractUserId(partenaire);
         String email = getEmail(userId);
 
         restTemplate.put(
-                recompenseServiceUrl + "/internal/partenaires/"
+                utilisateurServiceUrl + "/internal/partenaires/"
                         + partenaireId + "/deactivate",
                 null
         );
@@ -96,14 +103,14 @@ public class AdminPartenaireService {
 
     public void deactivate(Long partenaireId, StatutChangeRequest request, Long adminId) {
         Map partenaire = restTemplate.getForObject(
-                recompenseServiceUrl + "/internal/partenaires/" + partenaireId,
+                utilisateurServiceUrl + "/internal/partenaires/" + partenaireId,
                 Map.class
         );
-        Long userId = Long.valueOf(partenaire.get("userId").toString());
+        Long userId = extractUserId(partenaire);
         String email = getEmail(userId);
 
         restTemplate.put(
-                recompenseServiceUrl + "/internal/partenaires/"
+                utilisateurServiceUrl + "/internal/partenaires/"
                         + partenaireId + "/deactivate",
                 null
         );
@@ -125,6 +132,28 @@ public class AdminPartenaireService {
                 Map.class
         );
         return (String) response.get("email");
+    }
+
+    private Long extractUserId(Map partenairePayload) {
+        if (partenairePayload == null) {
+            throw new RuntimeException("Partenaire not found");
+        }
+        Object rawUserId = partenairePayload.get("userId");
+        if (rawUserId == null) {
+            rawUserId = partenairePayload.get("utilisateurId");
+        }
+        if (rawUserId == null) {
+            throw new RuntimeException("Partenaire payload missing userId");
+        }
+        return Long.valueOf(rawUserId.toString());
+    }
+
+    private String extractString(Map payload, String primaryKey, String fallbackKey) {
+        Object value = payload.get(primaryKey);
+        if (value == null) {
+            value = payload.get(fallbackKey);
+        }
+        return value == null ? "" : value.toString();
     }
 
     private void saveLog(Long adminId, String action,

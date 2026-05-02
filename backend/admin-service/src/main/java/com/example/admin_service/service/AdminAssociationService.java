@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,35 +29,33 @@ public class AdminAssociationService {
     @Value("${services.auth-url}")
     private String authServiceUrl;
 
-    @Value("${services.action-url}")
-    private String actionServiceUrl;
+    @Value("${services.utilisateur-url}")
+    private String utilisateurServiceUrl;
 
     public List<?> getAll() {
         return restTemplate.getForObject(
-                actionServiceUrl + "/internal/associations",
+                utilisateurServiceUrl + "/internal/associations",
                 List.class
         );
     }
 
     public List<?> getPending() {
         return restTemplate.getForObject(
-                actionServiceUrl + "/internal/associations?status=PENDING",
+                utilisateurServiceUrl + "/internal/associations?status=PENDING",
                 List.class
         );
     }
 
     public void approve(Long associationId, Long adminId) {
-        // Get userId from service-action
         Map assoc = restTemplate.getForObject(
-                actionServiceUrl + "/internal/associations/" + associationId,
+                utilisateurServiceUrl + "/internal/associations/" + associationId,
                 Map.class
         );
-        Long userId = Long.valueOf(assoc.get("userId").toString());
+        Long userId = extractUserId(assoc);
         String email = getEmail(userId);
 
-        // Update isActive in service-action
         restTemplate.put(
-                actionServiceUrl + "/internal/associations/"
+                utilisateurServiceUrl + "/internal/associations/"
                         + associationId + "/activate",
                 null
         );
@@ -68,6 +67,7 @@ public class AdminAssociationService {
                 .raison(null)
                 .type("ASSOCIATION")
                 .build());
+        kafkaProducer.publishAssoValidee(buildAssoValideePayload(assoc, userId), String.valueOf(userId));
 
         saveLog(adminId, "VALIDER_ASSOCIATION", associationId, "ASSOCIATION");
     }
@@ -76,14 +76,14 @@ public class AdminAssociationService {
                        StatutChangeRequest request,
                        Long adminId) {
         Map assoc = restTemplate.getForObject(
-                actionServiceUrl + "/internal/associations/" + associationId,
+                utilisateurServiceUrl + "/internal/associations/" + associationId,
                 Map.class
         );
-        Long userId = Long.valueOf(assoc.get("userId").toString());
+        Long userId = extractUserId(assoc);
         String email = getEmail(userId);
 
         restTemplate.put(
-                actionServiceUrl + "/internal/associations/"
+                utilisateurServiceUrl + "/internal/associations/"
                         + associationId + "/deactivate",
                 null
         );
@@ -103,14 +103,14 @@ public class AdminAssociationService {
                            StatutChangeRequest request,
                            Long adminId) {
         Map assoc = restTemplate.getForObject(
-                actionServiceUrl + "/internal/associations/" + associationId,
+                utilisateurServiceUrl + "/internal/associations/" + associationId,
                 Map.class
         );
-        Long userId = Long.valueOf(assoc.get("userId").toString());
+        Long userId = extractUserId(assoc);
         String email = getEmail(userId);
 
         restTemplate.put(
-                actionServiceUrl + "/internal/associations/"
+                utilisateurServiceUrl + "/internal/associations/"
                         + associationId + "/deactivate",
                 null
         );
@@ -132,6 +132,38 @@ public class AdminAssociationService {
                 Map.class
         );
         return (String) response.get("email");
+    }
+
+    private Long extractUserId(Map associationPayload) {
+        if (associationPayload == null) {
+            throw new RuntimeException("Association not found");
+        }
+        Object rawUserId = associationPayload.get("userId");
+        if (rawUserId == null) {
+            rawUserId = associationPayload.get("utilisateurId");
+        }
+        if (rawUserId == null) {
+            throw new RuntimeException("Association payload missing userId");
+        }
+        return Long.valueOf(rawUserId.toString());
+    }
+
+    private Map<String, Object> buildAssoValideePayload(Map associationPayload, Long userId) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("userId", userId);
+        payload.put("nom", extractString(associationPayload, "nom", "name"));
+        payload.put("description", extractString(associationPayload, "description", "description"));
+        payload.put("lieu", extractString(associationPayload, "lieu", "ville"));
+        payload.put("logoUrl", extractString(associationPayload, "logoUrl", "logo"));
+        return payload;
+    }
+
+    private String extractString(Map payload, String primaryKey, String fallbackKey) {
+        Object value = payload.get(primaryKey);
+        if (value == null) {
+            value = payload.get(fallbackKey);
+        }
+        return value == null ? "" : value.toString();
     }
 
     private void saveLog(Long adminId, String action,

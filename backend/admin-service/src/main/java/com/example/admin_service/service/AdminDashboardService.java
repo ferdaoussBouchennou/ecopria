@@ -22,23 +22,17 @@ public class AdminDashboardService {
     @Value("${services.auth-url}")
     private String authServiceUrl;
 
-    @Value("${services.action-url}")
-    private String actionServiceUrl;
-
-    @Value("${services.inscription-url}")
-    private String inscriptionServiceUrl;
-
-    @Value("${services.recompense-url}")
-    private String recompenseServiceUrl;
+    @Value("${services.utilisateur-url}")
+    private String utilisateurServiceUrl;
 
     public AdminDashboardResponse getDashboard() {
         long totalUsers = extractCount(authServiceUrl + "/internal/users/stats", "totalUsers");
         long newUsersThisWeek = extractCount(authServiceUrl + "/internal/users/stats", "newUsersThisWeek");
-        long totalActions = extractCount(actionServiceUrl + "/internal/dashboard/stats", "totalActions");
-        long activeActions = extractCount(actionServiceUrl + "/internal/dashboard/stats", "activeActions");
-        long pendingAssociations = extractCount(actionServiceUrl + "/internal/dashboard/stats", "pendingAssociations");
-        long totalInscriptions = extractCount(inscriptionServiceUrl + "/internal/dashboard/stats", "totalInscriptions");
-        long totalRewardsExchanged = extractCount(recompenseServiceUrl + "/internal/dashboard/stats", "totalRewardsExchanged");
+        long pendingAssociations = extractCount(utilisateurServiceUrl + "/internal/associations/stats", "pendingAssociations");
+        long totalActions = 0L;
+        long activeActions = 0L;
+        long totalInscriptions = 0L;
+        long totalRewardsExchanged = 0L;
 
         List<LogAdminResponse> recentLogs = adminLogService.getRecentLogs(10);
 

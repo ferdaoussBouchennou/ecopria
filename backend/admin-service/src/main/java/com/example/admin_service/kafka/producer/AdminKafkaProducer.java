@@ -29,12 +29,12 @@ public class AdminKafkaProducer {
                 String.valueOf(event.getActionFixeId()), event);
     }
 
-    public void publishCategorieEvent(CategorieEvent event) {
-        String topic = event.getAction().equals("CREEE")
-                ? "categorie.creee"
-                : "categorie.modifiee";
-        kafkaTemplate.send(topic,
-                String.valueOf(event.getCategorieId()), event);
+    public void publishCategorieCreee(CategorieEvent event) {
+        kafkaTemplate.send("categorie.creee", event.getNom(), event);
+    }
+
+    public void publishCategorieModifiee(CategorieEvent event) {
+        kafkaTemplate.send("categorie.modifiee", event.getNom(), event);
     }
 
     public void publishStatutChange(StatutChangeEvent event) {
@@ -45,5 +45,17 @@ public class AdminKafkaProducer {
             default -> throw new RuntimeException("Unknown type: " + event.getType());
         };
         kafkaTemplate.send(topic, String.valueOf(event.getUserId()), event);
+    }
+
+    public void publishPartenaireValidee(Object eventPayload, String key) {
+        kafkaTemplate.send("partenaire.validee", key, eventPayload);
+    }
+
+    public void publishAssoValidee(Object eventPayload, String key) {
+        kafkaTemplate.send("asso.validee", key, eventPayload);
+    }
+
+    public void publishActionAdminEvent(String topic, String key, Object eventPayload) {
+        kafkaTemplate.send(topic, key, eventPayload);
     }
 }

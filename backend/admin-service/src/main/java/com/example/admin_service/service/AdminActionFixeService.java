@@ -2,19 +2,19 @@ package com.example.admin_service.service;
 
 
 import com.example.admin_service.dto.request.ActionFixeRequest;
+import com.example.admin_service.dto.response.ActionFixeResponse;
 import com.example.admin_service.kafka.event.ActionFixeEvent;
 import com.example.admin_service.kafka.producer.AdminKafkaProducer;
+import com.example.admin_service.model.ActionFixe;
 import com.example.admin_service.model.LogAdmin;
+import com.example.admin_service.repository.ActionFixeRepository;
 import com.example.admin_service.repository.LogAdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -23,62 +23,95 @@ public class AdminActionFixeService {
 
     private final AdminKafkaProducer kafkaProducer;
     private final LogAdminRepository logAdminRepository;
-    private final RestTemplate restTemplate;
+    private final ActionFixeRepository actionFixeRepository;
 
-    @Value("${services.action-url}")
-    private String actionServiceUrl;
-
-    // Get all fixed actions from service-action
-    public List<?> getAll() {
-        return restTemplate.getForObject(
-                actionServiceUrl + "/internal/actions-fixes",
-                List.class
-        );
+    public List<ActionFixeResponse> getAll() {
+        return actionFixeRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    // Create → publish Kafka, service-action saves it
     public void create(ActionFixeRequest request, Long adminId) {
-        kafkaProducer.publishActionFixeCreee(ActionFixeEvent.builder()
+        LocalDateTime now = LocalDateTime.now();
+        ActionFixe actionFixe = actionFixeRepository.save(ActionFixe.builder()
                 .titre(request.getTitre())
+                .description(request.getDescription())
                 .categorie(request.getCategorie())
                 .lieu(request.getLieu())
                 .latitude(request.getLatitude())
                 .longitude(request.getLongitude())
                 .points(request.getPoints())
                 .placesTotal(request.getPlacesTotal())
-                .frequence(request.getFrequence())
-                .isActive(true)
+                .active(true)
+                .createdAt(now)
+                .updatedAt(now)
                 .build());
 
-        saveLog(adminId, "CREER_ACTION_FIXE", 0L, "ACTION_FIXE");
+        kafkaProducer.publishActionFixeCreee(toEvent(actionFixe));
+        saveLog(adminId, "CREER_ACTION_FIXE", actionFixe.getId(), "ACTION_FIXE");
     }
 
-    // Update → publish Kafka, service-action updates it
     public void update(Long id, ActionFixeRequest request, Long adminId) {
-        kafkaProducer.publishActionFixeModifiee(ActionFixeEvent.builder()
-                .actionFixeId(id)
-                .titre(request.getTitre())
-                .categorie(request.getCategorie())
-                .lieu(request.getLieu())
-                .latitude(request.getLatitude())
-                .longitude(request.getLongitude())
-                .points(request.getPoints())
-                .placesTotal(request.getPlacesTotal())
-                .frequence(request.getFrequence())
-                .isActive(true)
-                .build());
+        ActionFixe actionFixe = actionFixeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Action fixe not found: " + id));
+        actionFixe.setTitre(request.getTitre());
+        actionFixe.setDescription(request.getDescription());
+        actionFixe.setCategorie(request.getCategorie());
+        actionFixe.setLieu(request.getLieu());
+        actionFixe.setLatitude(request.getLatitude());
+        actionFixe.setLongitude(request.getLongitude());
+        actionFixe.setPoints(request.getPoints());
+        actionFixe.setPlacesTotal(request.getPlacesTotal());
+        actionFixe.setUpdatedAt(LocalDateTime.now());
+        actionFixe = actionFixeRepository.save(actionFixe);
+
+        kafkaProducer.publishActionFixeModifiee(toEvent(actionFixe));
 
         saveLog(adminId, "MODIFIER_ACTION_FIXE", id, "ACTION_FIXE");
     }
 
-    // Deactivate → publish Kafka, service-action sets isActive=false
     public void deactivate(Long id, Long adminId) {
+        ActionFixe actionFixe = actionFixeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Action fixe not found: " + id));
+        actionFixe.setActive(false);
+        actionFixe.setUpdatedAt(LocalDateTime.now());
+        actionFixeRepository.save(actionFixe);
+
         kafkaProducer.publishActionFixeDesactivee(ActionFixeEvent.builder()
                 .actionFixeId(id)
-                .isActive(false)
                 .build());
 
         saveLog(adminId, "DESACTIVER_ACTION_FIXE", id, "ACTION_FIXE");
+    }
+
+    private ActionFixeEvent toEvent(ActionFixe actionFixe) {
+        return ActionFixeEvent.builder()
+                .actionFixeId(actionFixe.getId())
+                .titre(actionFixe.getTitre())
+                .categorie(actionFixe.getCategorie())
+                .lieu(actionFixe.getLieu())
+                .latitude(actionFixe.getLatitude())
+                .longitude(actionFixe.getLongitude())
+                .points(actionFixe.getPoints())
+                .placesTotal(actionFixe.getPlacesTotal())
+                .build();
+    }
+
+    private ActionFixeResponse toResponse(ActionFixe actionFixe) {
+        return ActionFixeResponse.builder()
+                .id(actionFixe.getId())
+                .titre(actionFixe.getTitre())
+                .description(actionFixe.getDescription())
+                .categorie(actionFixe.getCategorie())
+                .lieu(actionFixe.getLieu())
+                .latitude(actionFixe.getLatitude())
+                .longitude(actionFixe.getLongitude())
+                .points(actionFixe.getPoints())
+                .placesTotal(actionFixe.getPlacesTotal())
+                .active(actionFixe.getActive())
+                .updatedAt(actionFixe.getUpdatedAt())
+                .build();
     }
 
     private void saveLog(Long adminId, String action,

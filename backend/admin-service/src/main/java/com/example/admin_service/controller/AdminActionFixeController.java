@@ -2,6 +2,7 @@ package com.example.admin_service.controller;
 
 
 import com.example.admin_service.dto.request.ActionFixeRequest;
+import com.example.admin_service.dto.response.ActionFixeResponse;
 import com.example.admin_service.service.AdminActionFixeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class AdminActionFixeController {
     private final AdminActionFixeService service;
 
     @GetMapping
-    public ResponseEntity<List<?>> getAll() {
+    public ResponseEntity<List<ActionFixeResponse>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
 

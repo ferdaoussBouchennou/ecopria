@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 public class CategorieRequest {
-    @NotBlank private String name;
+    @NotBlank private String nom;
     private String description;
     private String imageUrl;
 }
