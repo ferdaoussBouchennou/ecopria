@@ -16,25 +16,11 @@ public class ActionConsumer {
     private final ActionService actionService;
     private final AssociationService associationService;
 
-    // ── écoute user.inscrit pour créer l'association ──────────
-    @KafkaListener(topics = "user.inscrit", groupId = "service-action")
-    public void onUserRegistered(Map<String, Object> event) {
-        String role = (String) event.get("role");
-        if ("ASSOCIATION".equals(role)) {
-            log.info("Nouvelle association reçue userId: {}", event.get("userId"));
-            associationService.createFromKafkaEvent(event);
-        }
-    }
-
-    // ── écoute compte.valide pour valider l'association ───────
-    @KafkaListener(topics = "compte.valide", groupId = "service-action")
-    public void onAccountValidated(Map<String, Object> event) {
-        String type = (String) event.get("type");
-        if ("ASSOCIATION".equals(type)) {
-            Long userId = Long.valueOf(event.get("userId").toString());
-            log.info("Validation association userId: {}", userId);
-            associationService.validateByUserId(userId);
-        }
+    // ── écoute asso.validee pour créer l'association directement validée ──
+    @KafkaListener(topics = "asso.validee", groupId = "service-action")
+    public void onAssociationValidated(Map<String, Object> event) {
+        log.info("Association validée reçue depuis admin, userId: {}", event.get("userId"));
+        associationService.createValidatedFromKafkaEvent(event);
     }
 
     // ── écoute inscription.annulee pour libérer une place ─────
@@ -72,5 +58,28 @@ public class ActionConsumer {
     public void onFixedActionDeactivated(Map<String, Object> event) {
         log.info("Désactivation action fixe: {}", event);
         actionService.deactivateFixedAction(event);
+    }
+
+    // ── SYNCHRONISATION CATÉGORIES ───────────────────────────
+
+    @KafkaListener(topics = "categorie.creee", groupId = "service-action")
+    public void onCategorieCreated(Map<String, Object> event) {
+        log.info("Nouvelle catégorie reçue : {}", event.get("nom"));
+
+        com.ecopria.action.model.Categorie cat = com.ecopria.action.model.Categorie.builder()
+                .name(event.get("nom").toString())
+                .description(event.get("description") != null ? event.get("description").toString() : null)
+                .imageUrl(event.get("imageUrl") != null ? event.get("imageUrl").toString() : null)
+                .build();
+
+        actionService.saveCategorie(cat);
+    }
+
+    @KafkaListener(topics = "categorie.modifiee", groupId = "service-action")
+    public void onCategorieUpdated(Map<String, Object> event) {
+        String name = event.get("nom").toString();
+        log.info("Modification catégorie : {}", name);
+
+        actionService.updateCategorie(name, event);
     }
 }
