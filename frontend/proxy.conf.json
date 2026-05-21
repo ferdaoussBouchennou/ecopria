@@ -1,0 +1,12 @@
+{
+  "/api/inscriptions": {
+    "target": "http://localhost:8084",
+    "changeOrigin": true,
+    "pathRewrite": { "^/api/inscriptions": "/inscriptions" }
+  },
+  "/api/actions": {
+    "target": "http://localhost:8083",
+    "changeOrigin": true,
+    "pathRewrite": { "^/api/actions": "/actions" }
+  }
+}

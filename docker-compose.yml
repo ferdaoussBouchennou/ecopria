@@ -269,9 +269,9 @@ services:
     image: ferdaoussbo/ecopria-frontend:latest
     container_name: frontend
     networks:
-    - ecopria-network
+      - ecopria-network
     ports:
-    - "4200:80"
+      - "4200:80"
 
   api-gateway:
     build: ./backend/api-gateway
@@ -316,17 +316,67 @@ services:
     build: ./backend/service-utilisateur
     container_name: service-utilisateur-backend
     networks:
-    - ecopria-network
+      - ecopria-network
     ports:
-    - "8081:8080"
+      - "8081:8080"
     environment:
-     SPRING_DATASOURCE_URL: jdbc:mysql://mysql-utilisateur:3306/db_utilisateur
-     SPRING_DATASOURCE_USERNAME: ecopria
-     SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
-     SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-utilisateur:3306/db_utilisateur
+      SPRING_DATASOURCE_USERNAME: ecopria
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     restart: on-failure
     depends_on:
-     mysql-utilisateur:
-      condition: service_healthy
-     kafka:
-      condition: service_healthy
+      mysql-utilisateur:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  # ─────────────────────────────────────────────────────────
+  #  SERVICE INSCRIPTION  ← AJOUTÉ
+  # ─────────────────────────────────────────────────────────
+  service-inscription-backend:
+    build:
+      context: ./backend/service-inscription
+      dockerfile: Dockerfile
+    container_name: service-inscription-backend
+    networks:
+      - ecopria-network
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+    restart: on-failure
+    depends_on:
+      mysql-inscription:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+
+
+  # ─────────────────────────────────────────────────────────
+  #  SERVICE PRESENCE
+  # ─────────────────────────────────────────────────────────
+  service-presence-backend:
+    build:
+      context: ./backend/service-presence
+      dockerfile: Dockerfile
+    container_name: service-presence-backend
+    networks:
+      - ecopria-network
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-presence:3306/db_presence
+      SPRING_DATASOURCE_USERNAME: ecopria
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICE_ACTION_URL: http://service-action-backend:9090
+    restart: on-failure
+    depends_on:
+      mysql-presence:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
