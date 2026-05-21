@@ -1,0 +1,237 @@
+:host {
+  --green-dark:   #2D5A3D;
+  --green-mid:    #4A7C59;
+  --green-light:  #E8F0E9;
+  --green-bg:     #F0F4F0;
+  --text-dark:    #1C3B28;
+  --text-mid:     #4A5E52;
+  --text-light:   #8A9E90;
+  --border:       #D4DDD6;
+  --white:        #FFFFFF;
+  --error:        #C0392B;
+  --error-bg:     #FDF0EE;
+}
+
+/* Chargement */
+.page-loading {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 50vh; gap: 16px;
+  color: var(--text-mid); font-size: 14px;
+}
+
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--green-dark);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+.spinner--sm {
+  width: 14px; height: 14px;
+  border-width: 2px; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Erreur */
+.error-state {
+  text-align: center; padding: 60px 24px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 16px;
+}
+.error-icon { font-size: 40px; }
+
+/* Page principale */
+.mes-inscriptions-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+  background: var(--green-bg);
+  min-height: 100vh;
+}
+
+/* En-tete */
+.page-header { margin-bottom: 36px; }
+
+.header-top {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 16px;
+  margin-bottom: 28px; flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 28px; font-weight: 700;
+  color: var(--text-dark); margin: 0 0 4px;
+}
+.page-sub { font-size: 14px; color: var(--text-mid); margin: 0; }
+
+/* Stats */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  text-align: center;
+}
+.stat-card--green {
+  background: var(--green-light);
+  border-color: var(--green-dark);
+}
+.stat-value {
+  font-size: 28px; font-weight: 700;
+  color: var(--text-dark); line-height: 1;
+}
+.stat-card--green .stat-value { color: var(--green-dark); }
+.stat-label {
+  font-size: 12px; color: var(--text-light);
+  margin-top: 4px; text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Sections */
+.section-heading {
+  font-size: 16px; font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.section-heading--muted { color: var(--text-light); }
+
+.section-annulees { margin-top: 48px; }
+
+/* Liste */
+.inscriptions-list {
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+/* Carte */
+.insc-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  transition: box-shadow 0.15s;
+}
+.insc-card:hover { box-shadow: 0 4px 20px rgba(45,90,61,0.08); }
+.insc-card--attente { border-left: 4px solid #D4A017; }
+.insc-card--annulee { background: var(--green-bg); opacity: 0.75; }
+
+.card-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--green-bg);
+  border-bottom: 1px solid var(--border);
+}
+.card-date { font-size: 12px; color: var(--text-light); }
+
+.card-body {
+  padding: 20px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.card-infos {
+  display: flex; gap: 32px; flex-wrap: wrap;
+}
+.card-info-item {
+  display: flex; flex-direction: column; gap: 3px;
+}
+.info-label {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-light);
+}
+.info-value {
+  font-size: 14px; font-weight: 500; color: var(--text-dark);
+}
+
+/* QR Code dans carte */
+.qr-block {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--green-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  flex-wrap: wrap;
+}
+.qr-label {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-light);
+  white-space: nowrap;
+}
+.qr-code {
+  font-family: 'Courier New', monospace;
+  font-size: 14px; font-weight: 700;
+  color: var(--green-dark); letter-spacing: 0.04em;
+}
+
+/* Message attente */
+.attente-msg {
+  font-size: 13px; color: #92400E;
+  background: #FEF3C7;
+  border-radius: 8px; padding: 10px 14px;
+  line-height: 1.5;
+}
+
+/* Footer carte */
+.card-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end;
+  background: var(--green-bg);
+}
+
+/* Badges */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 12px; font-weight: 500;
+}
+.badge--green   { background: var(--green-light); color: var(--green-dark); }
+.badge--warning { background: #FEF3C7; color: #92400E; }
+.badge--gray    { background: #F1F0EE; color: #6B7280; }
+
+/* Boutons */
+.btn {
+  display: inline-flex; align-items: center;
+  justify-content: center; gap: 8px;
+  padding: 11px 22px; border-radius: 8px;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer; border: none;
+  text-decoration: none;
+  transition: background 0.15s, opacity 0.15s;
+}
+.btn--primary { background: var(--green-dark); color: #fff; }
+.btn--primary:hover { background: var(--green-mid); }
+
+.btn--danger {
+  background: transparent; color: var(--error);
+  border: 1.5px solid var(--error);
+}
+.btn--danger:hover:not(:disabled) { background: var(--error-bg); }
+.btn--danger:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn--sm { padding: 7px 16px; font-size: 13px; }
+
+.btn-loading { display: flex; align-items: center; gap: 8px; }
+
+/* Etat vide */
+.empty-state {
+  text-align: center; padding: 80px 24px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 16px;
+}
+.empty-icon { font-size: 52px; }
+.empty-state h2 {
+  font-size: 20px; font-weight: 600;
+  color: var(--text-dark); margin: 0;
+}
+.empty-state p { color: var(--text-mid); font-size: 14px; margin: 0; }
+
+@media (max-width: 600px) {
+  .stats-row { grid-template-columns: 1fr; }
+  .header-top { flex-direction: column; }
+}
