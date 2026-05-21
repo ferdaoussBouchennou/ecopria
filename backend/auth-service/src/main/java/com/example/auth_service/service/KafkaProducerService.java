@@ -14,7 +14,17 @@ public class KafkaProducerService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public void publishUserRegistered(UserRegisteredEvent event) {
-        kafkaTemplate.send("user.inscrit", String.valueOf(event.getUserId()), event);
-        log.info("Published user.inscrit for userId: {}", event.getUserId());
+        kafkaTemplate.send("citoyen.inscrit", String.valueOf(event.getUserId()), event);
+        log.info("Published citoyen.inscrit for userId: {}", event.getUserId());
+    }
+
+    public void publishAssociationPending(UserRegisteredEvent event) {
+        kafkaTemplate.send("asso.en_attente", String.valueOf(event.getUserId()), event);
+        log.info("Published asso.en_attente for userId: {}", event.getUserId());
+    }
+
+    public void publishAssociationValidated(UserRegisteredEvent event) {
+        kafkaTemplate.send("asso.valide", String.valueOf(event.getUserId()), event);
+        log.info("Published asso.valide for userId: {}", event.getUserId());
     }
 }

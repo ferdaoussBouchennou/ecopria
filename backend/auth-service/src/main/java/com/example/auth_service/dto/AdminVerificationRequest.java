@@ -9,11 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserRegisteredEvent {
+public class AdminVerificationRequest {
     private Long userId;
-    private String firstName;
-    private String lastName;
+    private String role;
     private String nom;
     private String document;
-    private String role;
 }
