@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: service-presence
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql-presence:3306/db_presence?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
     username: ${SPRING_DATASOURCE_USERNAME:ecopria}
