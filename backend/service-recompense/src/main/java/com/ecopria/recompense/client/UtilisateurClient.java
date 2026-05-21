@@ -14,7 +14,7 @@ public class UtilisateurClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${services.utilisateur.url:http://service-utilisateur:8082}")
+    @Value("${services.utilisateur.url:http://service-utilisateur-backend:8080}")
     private String utilisateurServiceUrl;
 
     // vérifier le solde de points avant l'échange

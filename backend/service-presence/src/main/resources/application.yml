@@ -1,15 +1,15 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3310/db_presence
-    username: ecopria
-    password: ecopria123
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql-presence:3306/db_presence?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:ecopria}
+    password: ${SPRING_DATASOURCE_PASSWORD:ecopria_pass_2026}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
   kafka:
-    bootstrap-servers: localhost:29092
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
     consumer:
       group-id: service-presence
       auto-offset-reset: earliest
@@ -27,4 +27,4 @@ server:
 
 service:
   action:
-    url: http://localhost:9090
+    url: ${SERVICE_ACTION_URL:http://service-action-backend:9090}

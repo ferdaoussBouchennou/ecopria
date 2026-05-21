@@ -24,7 +24,7 @@ public class KafkaProducerService {
     }
 
     public void publishAssociationValidated(UserRegisteredEvent event) {
-        kafkaTemplate.send("asso.valide", String.valueOf(event.getUserId()), event);
-        log.info("Published asso.valide for userId: {}", event.getUserId());
+        kafkaTemplate.send("asso.validee", String.valueOf(event.getUserId()), event);
+        log.info("Published asso.validee for userId: {}", event.getUserId());
     }
 }
