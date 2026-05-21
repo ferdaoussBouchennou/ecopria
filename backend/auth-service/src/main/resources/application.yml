@@ -1,0 +1,30 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: service-auth
+  datasource:
+    url: jdbc:mysql://localhost:3316/db_auth?useSSL=false&allowPublicKeyRetrieval=true
+    username: ecopria
+    password: ecopria123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+jwt:
+  secret: EcopriaProject2026SecretKeyForJwtTokenSigning
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+admin:
+  verification-url: http://localhost:8088/api/admin/verifications

@@ -1,0 +1,246 @@
+<!-- ================================================================
+     ETAT : Chargement de l'action
+================================================================ -->
+<div *ngIf="statut === 'loading_action'" class="page-loading">
+  <div class="spinner"></div>
+  <p>Chargement de l'action...</p>
+</div>
+
+<!-- ================================================================
+     ETAT : Inscription CONFIRMEE
+================================================================ -->
+<div *ngIf="statut === 'confirmee'" class="result-page">
+  <a routerLink="/actions" class="back-link">← Retour aux actions</a>
+
+  <div class="result-card result-card--success">
+    <div class="result-icon">✓</div>
+    <h2>Inscription confirmee !</h2>
+    <p class="result-sub">
+      Vous etes inscrit a <strong>{{ action?.titre }}</strong>.<br>
+      Un email avec votre QR Code vous a ete envoye par Sanae (service-notification).
+    </p>
+
+    <div class="qr-block" *ngIf="inscription">
+      <span class="qr-label">Votre code d'acces</span>
+      <span class="qr-code">{{ inscription.qrCode }}</span>
+      <span class="qr-hint">Presentez ce code le jour de l'evenement</span>
+    </div>
+
+    <div class="badge badge--green" *ngIf="inscription">
+      +{{ inscription.pointsAction }} points Ecopria gagnes
+    </div>
+
+    <a routerLink="/mes-inscriptions" class="btn btn--secondary">
+      Voir mes inscriptions
+    </a>
+  </div>
+</div>
+
+<!-- ================================================================
+     ETAT : EN ATTENTE (liste d'attente automatique)
+================================================================ -->
+<div *ngIf="statut === 'en_attente'" class="result-page">
+  <a routerLink="/actions" class="back-link">← Retour aux actions</a>
+
+  <div class="result-card result-card--warning">
+    <div class="result-icon result-icon--warning">⏳</div>
+    <h2>Vous etes en liste d'attente</h2>
+    <p class="result-sub">
+      Toutes les places pour <strong>{{ action?.titre }}</strong> sont prises.<br>
+      Si quelqu'un se desincrit, vous serez automatiquement confirme
+      et vous recevrez votre QR Code par email.
+    </p>
+
+    <div class="info-box" *ngIf="inscription">
+      <span class="info-label">Numero de dossier</span>
+      <span class="info-value">#{{ inscription.id }}</span>
+    </div>
+
+    <a routerLink="/mes-inscriptions" class="btn btn--secondary">
+      Voir mes inscriptions
+    </a>
+  </div>
+</div>
+
+<!-- ================================================================
+     ETAT : ERREUR
+================================================================ -->
+<div *ngIf="statut === 'erreur'" class="result-page">
+  <a routerLink="/actions" class="back-link">← Retour aux actions</a>
+
+  <div class="result-card result-card--error">
+    <div class="result-icon result-icon--error">✕</div>
+    <h2>Une erreur est survenue</h2>
+    <p class="result-sub">{{ erreurMessage }}</p>
+    <button class="btn btn--primary" (click)="recommencer()">Reessayer</button>
+  </div>
+</div>
+
+<!-- ================================================================
+     ETAT : FORMULAIRE (idle + submitting)
+     Reproduit la maquette : formulaire a gauche, recap a droite
+================================================================ -->
+<div *ngIf="statut === 'idle' || statut === 'submitting'" class="inscription-page">
+
+  <!-- En-tete de page -->
+  <header class="page-header">
+    <div class="breadcrumb">
+      <a routerLink="/actions" class="back-link">← Retour a l'action</a>
+      <span class="sep">——</span>
+      <span>Formulaire de participation</span>
+    </div>
+    <h1 class="page-title">{{ action?.titre }}</h1>
+    <div class="page-meta" *ngIf="action">
+      <span>{{ action.categorie }}</span>
+      <span class="dot">·</span>
+      <span>{{ action.lieu }}</span>
+      <span class="dot">·</span>
+      <span>{{ actionDate }}</span>
+      <span class="dot">·</span>
+      <span>{{ action.heureDebut }} — {{ action.heureFin }}</span>
+    </div>
+  </header>
+
+  <!-- Alerte places -->
+  <div class="alert alert--warning"
+       *ngIf="action && placesRestantes > 0 && placesRestantes <= 5">
+    ⚠ Plus que {{ placesRestantes }} place(s) disponible(s) !
+  </div>
+  <div class="alert alert--info"
+       *ngIf="action && placesRestantes === 0">
+    ℹ Aucune place disponible. Vous serez mis en liste d'attente.
+  </div>
+
+  <!-- Layout : formulaire + recap -->
+  <div class="form-layout">
+
+    <!-- ── Formulaire ──────────────────────────────────── -->
+    <main class="form-main">
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+        <section class="form-section">
+          <h2 class="section-title">Identite</h2>
+          <p class="section-sub">Vos informations personnelles</p>
+
+          <div class="form-grid">
+
+            <!-- Prenom -->
+            <div class="form-field" [class.form-field--error]="isInvalid('prenom')">
+              <label for="prenom">PRENOM *</label>
+              <input id="prenom" type="text" formControlName="prenom" autocomplete="given-name" />
+              <span class="field-error" *ngIf="hasError('prenom', 'required')">Le prenom est requis.</span>
+              <span class="field-error" *ngIf="hasError('prenom', 'minlength')">Minimum 2 caracteres.</span>
+            </div>
+
+            <!-- Nom -->
+            <div class="form-field" [class.form-field--error]="isInvalid('nom')">
+              <label for="nom">NOM *</label>
+              <input id="nom" type="text" formControlName="nom" autocomplete="family-name" />
+              <span class="field-error" *ngIf="hasError('nom', 'required')">Le nom est requis.</span>
+              <span class="field-error" *ngIf="hasError('nom', 'minlength')">Minimum 2 caracteres.</span>
+            </div>
+
+            <!-- Email -->
+            <div class="form-field" [class.form-field--error]="isInvalid('email')">
+              <label for="email">EMAIL *</label>
+              <input id="email" type="email" formControlName="email" autocomplete="email" />
+              <span class="field-error" *ngIf="hasError('email', 'required')">L'email est requis.</span>
+              <span class="field-error" *ngIf="hasError('email', 'email')">Format d'email invalide.</span>
+            </div>
+
+            <!-- Telephone -->
+            <div class="form-field" [class.form-field--error]="isInvalid('telephone')">
+              <label for="telephone">TELEPHONE *</label>
+              <input id="telephone" type="tel" formControlName="telephone" autocomplete="tel" />
+              <span class="field-error" *ngIf="hasError('telephone', 'required')">Le telephone est requis.</span>
+              <span class="field-error" *ngIf="hasError('telephone', 'pattern')">Format invalide (ex: 0600000000).</span>
+            </div>
+
+            <!-- Age -->
+            <div class="form-field" [class.form-field--error]="isInvalid('age')">
+              <label for="age">AGE *</label>
+              <input id="age" type="number" formControlName="age" min="16" max="99" />
+              <span class="field-error" *ngIf="hasError('age', 'required')">L'age est requis.</span>
+              <span class="field-error" *ngIf="hasError('age', 'min')">Vous devez avoir au moins 16 ans.</span>
+            </div>
+
+            <!-- Accompagnants -->
+            <div class="form-field">
+              <label for="accompagnants">ACCOMPAGNANTS</label>
+              <select id="accompagnants" formControlName="accompagnants">
+                <option *ngFor="let n of accompagnantsOptions" [value]="n">{{ n }}</option>
+              </select>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Bouton envoi -->
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn btn--primary btn--full"
+            [disabled]="statut === 'submitting'">
+            <span *ngIf="statut !== 'submitting'">
+              {{ placesRestantes === 0 ? "Rejoindre la liste d'attente" : "Confirmer ma participation" }}
+            </span>
+            <span *ngIf="statut === 'submitting'" class="btn-loading">
+              <span class="spinner spinner--sm"></span> Envoi en cours...
+            </span>
+          </button>
+          <p class="form-legal">
+            En vous inscrivant, vous acceptez que vos informations soient
+            utilisees dans le cadre de cet evenement Ecopria.
+          </p>
+        </div>
+
+      </form>
+    </main>
+
+    <!-- ── Recapitulatif (colonne droite) ─────────────── -->
+    <aside class="form-aside" *ngIf="action">
+      <div class="recap-card">
+
+        <div class="recap-image" *ngIf="action.imageUrl">
+          <img [src]="action.imageUrl" [alt]="action.titre" />
+        </div>
+        <div class="recap-image recap-image--placeholder" *ngIf="!action.imageUrl">
+          🌿
+        </div>
+
+        <div class="recap-body">
+          <h3 class="recap-title">RECAPITULATIF</h3>
+
+          <div class="recap-item">
+            <span class="recap-label">Action</span>
+            <span class="recap-value">{{ action.titre }}</span>
+          </div>
+          <div class="recap-item">
+            <span class="recap-label">Date</span>
+            <span class="recap-value">{{ actionDate }}</span>
+          </div>
+          <div class="recap-item">
+            <span class="recap-label">Horaire</span>
+            <span class="recap-value">{{ action.heureDebut }} — {{ action.heureFin }}</span>
+          </div>
+          <div class="recap-item">
+            <span class="recap-label">Lieu</span>
+            <span class="recap-value">{{ action.lieu }}</span>
+          </div>
+          <div class="recap-item">
+            <span class="recap-label">Places</span>
+            <span class="recap-value"
+                  [style.color]="placesRestantes === 0 ? '#C0392B' : '#2D5A3D'">
+              {{ placesRestantes === 0 ? 'Complet' : placesRestantes + ' / ' + action.placesTotal }}
+            </span>
+          </div>
+          <div class="recap-item recap-item--points">
+            <span class="recap-label">Points gagnes</span>
+            <span class="badge badge--green">+{{ action.points }} pts</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
