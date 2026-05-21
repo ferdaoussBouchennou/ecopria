@@ -53,4 +53,15 @@ public class RecompenseController {
             @RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(recompenseService.getMesCoupons(userId));
     }
+
+    // ── BOÎTE MYSTÈRE ────────────────────────────────────────
+    // POST /api/recompenses/{id}/mystere-box
+    // Le citoyen choisit d'ouvrir la boîte mystère plutôt que de prendre l'offre normale
+    @PostMapping("/{id}/mystere-box")
+    public ResponseEntity<ResultatMystereBoxDTO> ouvrirMystereBox(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(recompenseService.ouvrirMystereBox(id, userId));
+    }
 }

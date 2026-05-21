@@ -18,7 +18,7 @@ RUN chown appuser:appgroup app.jar
 USER appuser
 
 # ── ÉTAPE 7 : port ──────────────────────────────────────────
-EXPOSE 9090
+EXPOSE 9093
 
 # ── ÉTAPE 8 : lancer avec des limites mémoire JVM ───────────
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]

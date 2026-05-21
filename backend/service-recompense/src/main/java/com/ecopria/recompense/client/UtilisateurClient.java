@@ -19,6 +19,11 @@ public class UtilisateurClient {
 
     // vérifier le solde de points avant l'échange
     public Integer getPoints(Long userId) {
+        // --- MODE MOCK POUR TEST ---
+        log.info("[MOCK] Simulation de 1000 points pour l'utilisateur {}", userId);
+        return 1000;
+
+        /* Code original commenté pour le test
         try {
             String url = utilisateurServiceUrl + "/api/utilisateurs/" + userId + "/points";
             Map response = restTemplate.getForObject(url, Map.class);
@@ -27,5 +32,6 @@ public class UtilisateurClient {
             log.error("Erreur appel service-utilisateur pour userId: {}", userId, e);
             throw new RuntimeException("Impossible de vérifier le solde de points");
         }
+        */
     }
 }
