@@ -293,3 +293,22 @@ services:
       condition: service_healthy
      kafka:
       condition: service_healthy
+
+  service-recompense-backend:
+    build: ./backend/service-recompense
+    container_name: service-recompense-backend
+    networks:
+    - ecopria-network
+    ports:
+    - "9093:9093"
+    environment:
+     SPRING_DATASOURCE_URL: jdbc:mysql://mysql-recompense:3306/db_recompense
+     SPRING_DATASOURCE_USERNAME: ecopria
+     SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+     SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    restart: on-failure
+    depends_on:
+      mysql-recompense:
+       condition: service_healthy
+      kafka:
+       condition: service_healthy
