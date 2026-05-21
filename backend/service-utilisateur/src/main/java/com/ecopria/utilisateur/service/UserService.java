@@ -1,0 +1,403 @@
+package com.ecopria.utilisateur.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ecopria.utilisateur.dto.*;
+import com.ecopria.utilisateur.model.*;
+import com.ecopria.utilisateur.repository.*;
+import com.ecopria.utilisateur.mapper.UserMapper;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class UserService {
+
+    private final CitizenRepository citizenRepository;
+    private final AssociationRepository associationRepository;
+    private final PartnerRepository partnerRepository;
+    private final PointHistoryRepository pointHistoryRepository;
+    private final BadgeRepository badgeRepository;
+    private final UserBadgeRepository userBadgeRepository;
+    private final NotificationPreferenceRepository notificationPreferenceRepository;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final UserMapper userMapper;
+
+    @Transactional
+    public Citizen createCitizen(CitizenDTO citizenDTO) {
+        if (citizenDTO.getAuthId() == null) {
+            throw new IllegalArgumentException("L'identifiant auth (authId) est obligatoire.");
+        }
+
+        if (citizenRepository.findByAuthId(citizenDTO.getAuthId()).isPresent()) {
+            throw new IllegalStateException("Un citoyen avec cet ID existe déjà (authId: " + citizenDTO.getAuthId() + ").");
+        }
+
+        return persistNewCitizen(citizenDTO);
+    }
+
+    /**
+     * Idempotent : utilisé par Kafka ({@code citoyen.inscrit} / {@code user.inscrit}) pour tolérer
+     * rejouer le message ou deux topics équivalents sans erreur.
+     */
+    @Transactional
+    public Citizen syncCitizenFromKafka(CitizenDTO citizenDTO) {
+        if (citizenDTO.getAuthId() == null) {
+            throw new IllegalArgumentException("L'identifiant auth (authId) est obligatoire.");
+        }
+        Optional<Citizen> existing = citizenRepository.findByAuthId(citizenDTO.getAuthId());
+        if (existing.isPresent()) {
+            getOrCreatePreferences(citizenDTO.getAuthId());
+            return existing.get();
+        }
+        return persistNewCitizen(citizenDTO);
+    }
+
+    private Citizen persistNewCitizen(CitizenDTO citizenDTO) {
+        Citizen citizen = userMapper.toEntity(citizenDTO);
+        Citizen savedCitizen = citizenRepository.save(citizen);
+        // Kafka peut être rejoué / l'ordre peut varier: les préférences peuvent déjà exister.
+        // On garantit qu'elles existent sans violer la contrainte UNIQUE(auth_id).
+        getOrCreatePreferences(savedCitizen.getAuthId());
+
+        return savedCitizen;
+    }
+
+    @Transactional
+    public void createAssociation(AssociationDTO associationDTO) {
+        if (associationDTO.getAuthId() == null) {
+            throw new IllegalArgumentException("L'identifiant auth (authId) est obligatoire.");
+        }
+
+        // Idempotence Kafka: si l'event est rejoué, ne pas créer un doublon (auth_id est UNIQUE)
+        if (associationRepository.findByAuthId(associationDTO.getAuthId()).isPresent()) {
+            return;
+        }
+
+        Association asso = userMapper.toEntity(associationDTO);
+        associationRepository.save(asso);
+        
+        getOrCreatePreferences(asso.getAuthId());
+    }
+
+    @Transactional
+    public void createPartner(PartnerDTO partnerDTO) {
+        if (partnerDTO.getAuthId() == null) {
+            throw new IllegalArgumentException("L'identifiant auth (authId) est obligatoire.");
+        }
+
+        // Idempotence Kafka: si l'event est rejoué, ne pas créer un doublon (auth_id est UNIQUE)
+        if (partnerRepository.findByAuthId(partnerDTO.getAuthId()).isPresent()) {
+            return;
+        }
+
+        Partner partner = userMapper.toEntity(partnerDTO);
+        partnerRepository.save(partner);
+        
+        getOrCreatePreferences(partner.getAuthId());
+    }
+
+    @Transactional
+    public Citizen updateProfile(Long authId, CitizenDTO dto) {
+        Citizen citizen = getCitizen(authId);
+        if (dto.getFirstName() != null && !dto.getFirstName().isBlank())
+            citizen.setFirstName(dto.getFirstName());
+        if (dto.getLastName() != null && !dto.getLastName().isBlank())
+            citizen.setLastName(dto.getLastName());
+        if (dto.getEmail() != null && !dto.getEmail().isBlank())
+            citizen.setEmail(dto.getEmail());
+        if (dto.getPhone() != null && !dto.getPhone().isBlank())
+            citizen.setPhone(dto.getPhone());
+        if (dto.getAddress() != null)
+            citizen.setAddress(dto.getAddress());
+        if (dto.getCity() != null)
+            citizen.setCity(dto.getCity());
+        if (dto.getPhoto() != null)
+            citizen.setPhoto(dto.getPhoto());
+            
+        return citizenRepository.save(citizen);
+    }
+
+    @Transactional
+    public Association updateAssociationProfile(Long authId, AssociationDTO dto) {
+        Association association = getAssociation(authId);
+        if (dto.getName() != null && !dto.getName().isBlank())
+            association.setName(dto.getName());
+        if (dto.getEmail() != null && !dto.getEmail().isBlank())
+            association.setEmail(dto.getEmail());
+        if (dto.getPhone() != null && !dto.getPhone().isBlank())
+            association.setPhone(dto.getPhone());
+        if (dto.getAddress() != null)
+            association.setAddress(dto.getAddress());
+        if (dto.getCity() != null)
+            association.setCity(dto.getCity());
+        if (dto.getDescription() != null)
+            association.setDescription(dto.getDescription());
+        if (dto.getLogo() != null)
+            association.setLogo(dto.getLogo());
+        return associationRepository.save(association);
+    }
+
+    @Transactional
+    public Partner updatePartnerProfile(Long authId, PartnerDTO dto) {
+        Partner partner = getPartner(authId);
+        if (dto.getName() != null && !dto.getName().isBlank())
+            partner.setName(dto.getName());
+        if (dto.getEmail() != null && !dto.getEmail().isBlank())
+            partner.setEmail(dto.getEmail());
+        if (dto.getPhone() != null && !dto.getPhone().isBlank())
+            partner.setPhone(dto.getPhone());
+        if (dto.getAddress() != null)
+            partner.setAddress(dto.getAddress());
+        if (dto.getCity() != null)
+            partner.setCity(dto.getCity());
+        if (dto.getCategory() != null)
+            partner.setCategory(dto.getCategory());
+        if (dto.getDescription() != null)
+            partner.setDescription(dto.getDescription());
+        if (dto.getLogo() != null)
+            partner.setLogo(dto.getLogo());
+        return partnerRepository.save(partner);
+    }
+
+    @Transactional
+    public void awardPoints(PointsDTO dto) {
+        Citizen citizen = citizenRepository.findByAuthId(dto.getAuthId())
+                .orElseThrow(() -> new RuntimeException("Citoyen non trouvé"));
+
+        int current = citizen.getTotalPoints() != null ? citizen.getTotalPoints() : 0;
+        citizen.setTotalPoints(current + dto.getPoints());
+        citizenRepository.save(citizen);
+
+        PointHistory h = new PointHistory();
+        h.setProfile(citizen);
+        h.setAmount(dto.getPoints());
+        h.setType(PointHistory.TransactionType.CREDIT);
+        h.setSource("action-" + dto.getActionId());
+        h.setDescription("Points gagnés pour participation");
+        pointHistoryRepository.save(h);
+
+        Map<String, Object> event = new HashMap<>();
+        event.put("auth_id", dto.getAuthId());
+        event.put("userId", dto.getAuthId());
+        event.put("points_added", dto.getPoints());
+        event.put("total_points", citizen.getTotalPoints());
+        event.put("totalPoints", citizen.getTotalPoints());
+        event.put("action_id", dto.getActionId());
+        event.put("actionId", dto.getActionId());
+        if (citizen.getEmail() != null && !citizen.getEmail().isBlank()) {
+            event.put("email", citizen.getEmail());
+        }
+        kafkaTemplate.send("points.credites", String.valueOf(dto.getAuthId()), event);
+
+        checkBadges(citizen);
+    }
+
+    @Transactional
+    public void deductPoints(Long authId, Integer points) {
+        Citizen citizen = citizenRepository.findByAuthId(authId)
+                .orElseThrow(() -> new RuntimeException("Citoyen non trouvé"));
+
+        if (points == null || points <= 0) {
+            throw new IllegalArgumentException("Le nombre de points a debiter doit etre positif");
+        }
+
+        int balance = citizen.getTotalPoints() != null ? citizen.getTotalPoints() : 0;
+        if (balance < points) {
+            throw new IllegalArgumentException("Points insuffisants pour effectuer cette operation");
+        }
+
+        citizen.setTotalPoints(balance - points);
+        citizenRepository.save(citizen);
+
+        PointHistory h = new PointHistory();
+        h.setProfile(citizen);
+        h.setAmount(points);
+        h.setType(PointHistory.TransactionType.DEBIT);
+        h.setSource("recompense");
+        h.setDescription("Points dépensés pour une récompense");
+        pointHistoryRepository.save(h);
+    }
+
+    private void checkBadges(Citizen citizen) {
+        List<Badge> availableBadges = badgeRepository
+                .findByRequiredPointsLessThanEqual(citizen.getTotalPoints());
+
+        for (Badge badge : availableBadges) {
+            boolean alreadyObtained = userBadgeRepository
+                    .existsByProfileIdAndBadgeId(citizen.getId(), badge.getId());
+
+            if (!alreadyObtained) {
+                UserBadge ub = new UserBadge();
+                ub.setProfile(citizen);
+                ub.setBadge(badge);
+                userBadgeRepository.save(ub);
+
+                Map<String, Object> event = new HashMap<>();
+                event.put("auth_id", citizen.getAuthId());
+                event.put("userId", citizen.getAuthId());
+                event.put("badge_name", badge.getName());
+                event.put("badge", badge.getName());
+                event.put("description", badge.getDescription());
+                if (citizen.getEmail() != null && !citizen.getEmail().isBlank()) {
+                    event.put("email", citizen.getEmail());
+                }
+                kafkaTemplate.send("badge.debloque", String.valueOf(citizen.getAuthId()), event);
+            }
+        }
+    }
+
+    public Citizen getCitizen(Long authId) {
+        return citizenRepository.findByAuthId(authId)
+                .orElseThrow(() -> new RuntimeException("Citoyen non trouvé"));
+    }
+
+    public Integer getTotalPoints(Long authId) {
+        Citizen citizen = getCitizen(authId);
+        return citizen.getTotalPoints() != null ? citizen.getTotalPoints() : 0;
+    }
+
+    public Association getAssociation(Long authId) {
+        return associationRepository.findByAuthId(authId)
+                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+    }
+
+    public Partner getPartner(Long authId) {
+        return partnerRepository.findByAuthId(authId)
+                .orElseThrow(() -> new RuntimeException("Partenaire non trouvé"));
+    }
+
+    public List<LeaderboardEntryDTO> getLeaderboard(Long currentAuthId) {
+        List<Citizen> top10 = citizenRepository.findTop10ByOrderByTotalPointsDesc();
+        List<LeaderboardEntryDTO> result = new ArrayList<>();
+        for (int i = 0; i < top10.size(); i++) {
+            Citizen c = top10.get(i);
+            LeaderboardEntryDTO dto = new LeaderboardEntryDTO();
+            dto.setRank(i + 1);
+            dto.setLastName(c.getLastName());
+            dto.setFirstName(c.getFirstName());
+            dto.setCity(c.getCity() != null ? c.getCity() : "-");
+            dto.setTotalPoints(c.getTotalPoints());
+            dto.setMe(c.getAuthId().equals(currentAuthId));
+            result.add(dto);
+        }
+        return result;
+    }
+
+    public List<PointHistory> getHistory(Long authId) {
+        Citizen citizen = getCitizen(authId);
+        return pointHistoryRepository.findByProfileIdOrderByCreatedAtDesc(citizen.getId());
+    }
+
+    public List<UserBadge> getBadges(Long authId) {
+        Citizen citizen = getCitizen(authId);
+        return userBadgeRepository.findByProfileId(citizen.getId());
+    }
+
+    public NotificationPreference getPreferences(Long authId) {
+        return getOrCreatePreferences(authId);
+    }
+
+    @Transactional
+    public void updatePreferences(Long authId, UpdatePreferencesDTO dto) {
+        NotificationPreference pref = getOrCreatePreferences(authId);
+        if (dto.getNearbyActions() != null) pref.setNearbyActions(dto.getNearbyActions());
+        if (dto.getReminders() != null) pref.setReminders(dto.getReminders());
+        if (dto.getCatalogNews() != null) pref.setCatalogNews(dto.getCatalogNews());
+        if (dto.getNewsletter() != null) pref.setNewsletter(dto.getNewsletter());
+        notificationPreferenceRepository.save(pref);
+    }
+
+    private NotificationPreference getOrCreatePreferences(Long authId) {
+        return notificationPreferenceRepository.findByAuthId(authId)
+                .orElseGet(() -> {
+                    NotificationPreference pref = new NotificationPreference();
+                    pref.setAuthId(authId);
+                    return notificationPreferenceRepository.save(pref);
+                });
+    }
+
+    public DashboardDTO getDashboard(Long authId) {
+        DashboardDTO dash = new DashboardDTO();
+        
+        // Tester Citoyen
+        java.util.Optional<Citizen> citizenOpt = citizenRepository.findByAuthId(authId);
+        if (citizenOpt.isPresent()) {
+            Citizen c = citizenOpt.get();
+            dash.setUserType("CITIZEN");
+            dash.setFirstName(c.getFirstName());
+            dash.setLastName(c.getLastName());
+            dash.setName(c.getFirstName() + " " + c.getLastName());
+            dash.setPhoto(c.getPhoto());
+            dash.setCity(c.getCity());
+            dash.setTotalPoints(c.getTotalPoints());
+            dash.setLevel(c.getLevel());
+            // ... autres infos citoyen (badges, etc)
+            return dash;
+        }
+        
+        // Tester Association
+        java.util.Optional<Association> assoOpt = associationRepository.findByAuthId(authId);
+        if (assoOpt.isPresent()) {
+            Association a = assoOpt.get();
+            dash.setUserType("ASSOCIATION");
+            dash.setName(a.getName());
+            dash.setPhoto(a.getLogo());
+            dash.setCity(a.getCity());
+            dash.setDescription(a.getDescription());
+            return dash;
+        }
+        
+        // Tester Partenaire
+        java.util.Optional<Partner> partOpt = partnerRepository.findByAuthId(authId);
+        if (partOpt.isPresent()) {
+            Partner p = partOpt.get();
+            dash.setUserType("PARTNER");
+            dash.setName(p.getName());
+            dash.setPhoto(p.getLogo());
+            dash.setCity(p.getCity());
+            dash.setDescription(p.getDescription());
+            return dash;
+        }
+        
+        throw new RuntimeException("Utilisateur non trouvé");
+    }
+
+    /** Résout l'e-mail pour notification (citoyen, association ou partenaire). */
+    public Optional<String> findEmailForAuthId(Long authId) {
+        Optional<String> fromCitizen = citizenRepository.findByAuthId(authId)
+                .map(Citizen::getEmail)
+                .filter(e -> e != null && !e.isBlank());
+        if (fromCitizen.isPresent()) {
+            return fromCitizen;
+        }
+        Optional<String> fromAsso = associationRepository.findByAuthId(authId)
+                .map(Association::getEmail)
+                .filter(e -> e != null && !e.isBlank());
+        if (fromAsso.isPresent()) {
+            return fromAsso;
+        }
+        return partnerRepository.findByAuthId(authId)
+                .map(Partner::getEmail)
+                .filter(e -> e != null && !e.isBlank());
+    }
+
+    /** Citoyens d'une ville (notifications ciblées action.creee, etc.). */
+    public List<CitizenContactDTO> findCitizenContactsByCity(String city) {
+        if (city == null || city.isBlank()) {
+            return List.of();
+        }
+        return citizenRepository.findByCityIgnoreCase(city.trim()).stream()
+                .map(c -> new CitizenContactDTO(c.getAuthId(), c.getEmail(), c.getFirstName()))
+                .collect(Collectors.toList());
+    }
+}
