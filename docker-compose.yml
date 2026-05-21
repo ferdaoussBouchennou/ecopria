@@ -361,12 +361,6 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
-
-  service-utilisateur-backend:
-        condition: service_started
-      # `service-inscription-backend` n'est pas défini dans ce dépôt.
-      # Si vous l'ajoutez plus tard, vous pouvez réactiver ce depends_on.
-
   service-utilisateur-backend:
     build: ./backend/service-utilisateur
     container_name: service-utilisateur-backend
