@@ -11,9 +11,9 @@ COPY .mvn .mvn
 COPY pom.xml .
 COPY src src
 
-# Exécuter le build Maven pour créer le JAR
+# Rendre le script mvnw exécutable et exécuter le build Maven pour créer le JAR
 # Les tests sont désactivés pour accélérer la construction de l'image
-RUN ./mvnw clean install -DskipTests
+RUN chmod +x mvnw && ./mvnw clean install -DskipTests
 
 # =================================================================
 #  ÉTAPE 2 : FINALE - Exécution avec JRE seulement
