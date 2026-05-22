@@ -34,13 +34,13 @@ jobs:
       fail-fast: false
       matrix:
         service:
-          - service-auth
+          - auth-service
           - service-utilisateur
           - service-action
           - service-inscription
           - service-presence
           - service-recompense
-          - service-admin
+          - admin-service
           - service-notification
           - api-gateway
 
