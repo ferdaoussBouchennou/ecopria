@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:mysql://mysql-admin:3306/db_admin
     username: ecopria
-    password: ecopria123
+    password: ${SPRING_DATASOURCE_PASSWORD:ecopria123}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:

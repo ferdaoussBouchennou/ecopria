@@ -197,8 +197,10 @@ jobs:
 
       - name: Build images sequentially
         run: |
+          set -euxo pipefail
           for svc in api-gateway service-utilisateur-backend service-notification-backend service-action-backend service-inscription-backend service-presence-backend service-recompense-backend admin-service-backend service-auth-backend frontend; do
-            docker compose build $svc
+            echo "=== Building $svc ==="
+            docker compose build --progress=plain "$svc"
           done
 
       - name: Start containers

@@ -13,7 +13,8 @@ COPY src src
 
 # Rendre le script mvnw exécutable et exécuter le build Maven pour créer le JAR
 # Les tests sont désactivés pour accélérer la construction de l'image
-RUN chmod +x mvnw && ./mvnw clean install -DskipTests
+RUN chmod +x mvnw && ./mvnw clean install -DskipTests && \
+    cp target/*-SNAPSHOT.jar /build/app.jar
 
 # =================================================================
 #  ÉTAPE 2 : FINALE - Exécution avec JRE seulement
@@ -27,7 +28,7 @@ RUN addgroup --system appgroup && \
     adduser --system --ingroup appgroup appuser
 
 # Copier le JAR depuis l'étape de build
-COPY --from=builder /build/target/*.jar app.jar
+COPY --from=builder /build/app.jar app.jar
 
 # Donner les permissions à l'utilisateur non-root
 RUN chown appuser:appgroup app.jar

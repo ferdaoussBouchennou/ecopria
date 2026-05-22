@@ -8,7 +8,8 @@ COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 COPY src src
-RUN chmod +x mvnw && ./mvnw clean package -DskipTests
+RUN chmod +x mvnw && ./mvnw clean package -DskipTests && \
+    cp target/*-SNAPSHOT.jar /build/app.jar
 
 # =================================================================
 #  ÉTAPE 2 : FINALE - Exécution avec JRE seulement
@@ -17,7 +18,7 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 RUN addgroup --system appgroup && \
     adduser --system --ingroup appgroup appuser
-COPY --from=builder /build/target/*.jar app.jar
+COPY --from=builder /build/app.jar app.jar
 RUN chown appuser:appgroup app.jar
 USER appuser
 EXPOSE 8081

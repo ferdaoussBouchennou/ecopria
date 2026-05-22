@@ -15,7 +15,8 @@ COPY src src
 RUN chmod +x mvnw
 
 # Exécuter le build Maven pour créer le JAR
-RUN ./mvnw clean install -DskipTests
+RUN ./mvnw clean install -DskipTests && \
+    cp target/*-SNAPSHOT.jar /build/app.jar
 
 # =================================================================
 #  ÉTAPE 2 : FINALE - Exécution avec JRE seulement
@@ -25,7 +26,7 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Copier le JAR généré lors de l'étape de build
-COPY --from=builder /build/target/*.jar app.jar
+COPY --from=builder /build/app.jar app.jar
 
 # Port exposé par le service
 EXPOSE 8080

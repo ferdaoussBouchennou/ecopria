@@ -9,12 +9,13 @@ COPY mvnw .
 COPY pom.xml .
 COPY src ./src
 
-RUN chmod +x mvnw && ./mvnw clean package -DskipTests
+RUN chmod +x mvnw && ./mvnw clean package -DskipTests && \
+    cp target/*-SNAPSHOT.jar /app/app.jar
 
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/app.jar app.jar
 
 EXPOSE 8080
 
