@@ -53,13 +53,16 @@ jobs:
       - name: Vérifier si ce service a été modifié
         id: changes
         run: |
-          if git rev-parse HEAD~1 > /dev/null 2>&1; then
-            git diff --name-only HEAD~1 HEAD | grep "^backend/${{ matrix.service }}/" \
-            && echo "changed=true" >> $GITHUB_OUTPUT \
-            || echo "changed=false" >> $GITHUB_OUTPUT
-          else
+          if ! git rev-parse HEAD~1 > /dev/null 2>&1; then
             echo "changed=true" >> $GITHUB_OUTPUT
+            exit 0
           fi
+          CHANGED=$(git diff --name-only HEAD~1 HEAD)
+          echo "$CHANGED" | grep -q "^backend/${{ matrix.service }}/" && echo "changed=true" >> $GITHUB_OUTPUT && exit 0
+          if [ "${{ matrix.service }}" = "auth-service" ] || [ "${{ matrix.service }}" = "admin-service" ]; then
+            echo "$CHANGED" | grep -q "^\.github/workflows/ci\.yml$" && echo "changed=true" >> $GITHUB_OUTPUT && exit 0
+          fi
+          echo "changed=false" >> $GITHUB_OUTPUT
 
       - name: Vérifier si le dossier existe
         id: exists

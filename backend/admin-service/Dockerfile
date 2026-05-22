@@ -1,3 +1,4 @@
+# ecopria-admin-service — port 8087 (CI: ferdaoussbo/ecopria-admin-service)
 # =================================================================
 #  ÉTAPE 1 : BUILDER - Compilation avec Maven et JDK
 # =================================================================

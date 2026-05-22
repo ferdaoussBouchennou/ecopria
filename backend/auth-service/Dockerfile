@@ -1,3 +1,4 @@
+# ecopria-auth-service — port 8081 (CI: ferdaoussbo/ecopria-auth-service)
 # =================================================================
 #  ÉTAPE 1 : BUILDER - Compilation avec Maven et JDK
 # =================================================================
