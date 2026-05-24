@@ -11,6 +11,9 @@ management:
       show-details: always
       probes:
         enabled: true
+  health:
+    kafka:
+      enabled: false
 
 # Clients HTTP internes (docker-compose : SERVICE_UTILISATEUR_URL, SERVICE_INSCRIPTION_URL)
 ecopria:
