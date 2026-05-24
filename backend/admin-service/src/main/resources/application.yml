@@ -43,4 +43,4 @@ services:
   action-url: ${ACTION_SERVICE_URL:http://service-action-backend:9090}
   inscription-url: ${INSCRIPTION_SERVICE_URL:http://service-inscription-backend:8084}
   recompense-url: ${RECOMPENSE_SERVICE_URL:http://service-recompense-backend:9093}
-  utilisateur-url: ${UTILISATEUR_SERVICE_URL:http://service-utilisateur-backend:8080}
+  utilisateur-url: ${UTILISATEUR_SERVICE_URL:http://service-utilisateur-backend:8082}

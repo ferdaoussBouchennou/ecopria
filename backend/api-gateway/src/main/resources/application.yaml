@@ -39,12 +39,12 @@ spring:
       # Surcharge locale : GATEWAY_UTILISATEUR_URI=http://localhost:8081
       routes:
         - id: service-utilisateur
-          uri: ${GATEWAY_UTILISATEUR_URI:http://service-utilisateur-backend:8080}
+          uri: ${GATEWAY_UTILISATEUR_URI:http://service-utilisateur-backend:8082}
           predicates:
             - Path=/api/users/**,/api/utilisateurs/**
 
         - id: service-notification
-          uri: ${GATEWAY_NOTIFICATION_URI:http://service-notification-backend:8080}
+          uri: ${GATEWAY_NOTIFICATION_URI:http://service-notification-backend:8086}
           predicates:
             - Path=/api/notifications/**
 
