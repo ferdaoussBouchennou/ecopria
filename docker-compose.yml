@@ -294,15 +294,29 @@ services:
       GATEWAY_INSCRIPTION_URI: http://service-inscription-backend:8084
       GATEWAY_PRESENCE_URI: http://service-presence-backend:8085
     restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     depends_on:
-      - service-utilisateur-backend
-      - service-notification-backend
-      - service-action-backend
-      - service-recompense-backend
-      - service-inscription-backend
-      - service-presence-backend
-      - service-auth-backend
-      - admin-service-backend
+      service-utilisateur-backend:
+        condition: service_started
+      service-notification-backend:
+        condition: service_started
+      service-action-backend:
+        condition: service_started
+      service-recompense-backend:
+        condition: service_started
+      service-inscription-backend:
+        condition: service_started
+      service-presence-backend:
+        condition: service_started
+      service-auth-backend:
+        condition: service_started
+      admin-service-backend:
+        condition: service_started
 
   # ─────────────────────────────────────────────────────────
   #  SERVICE AUTH  → port 8081
@@ -320,6 +334,12 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     depends_on:
       mysql-auth:
         condition: service_healthy
@@ -342,6 +362,12 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     depends_on:
       mysql-utilisateur:
         condition: service_healthy
@@ -374,7 +400,7 @@ services:
       kafka:
         condition: service_healthy
       service-utilisateur-backend:
-        condition: service_started
+        condition: service_healthy    # service_started → service_healthy : garantit que l'API est prête
 
   # ─────────────────────────────────────────────────────────
   #  SERVICE INSCRIPTION  → port 8084
@@ -507,6 +533,6 @@ services:
       kafka:
         condition: service_healthy
       service-auth-backend:
-        condition: service_started
+        condition: service_healthy    # service_started → service_healthy
       service-utilisateur-backend:
-        condition: service_started
+        condition: service_healthy    # service_started → service_healthy

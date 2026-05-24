@@ -88,6 +88,10 @@ jobs:
           SPRING_DATASOURCE_USERNAME: ecopria
           SPRING_DATASOURCE_PASSWORD: ecopria_test
           SPRING_PROFILES_ACTIVE: test
+          # Empêche service-notification de crasher si EMAIL_USERNAME est vide
+          MAIL_ENFORCE: "false"
+          # Kafka non disponible en CI : les services qui écoutent doivent être en mode test
+          SPRING_KAFKA_BOOTSTRAP_SERVERS: localhost:9092
 
       - name: Login Docker Hub
         if: steps.changes.outputs.changed == 'true' && steps.exists.outputs.exists == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'

@@ -14,8 +14,10 @@ RUN chmod +x mvnw && ./mvnw clean package -DskipTests && \
 # =================================================================
 #  ÉTAPE 2 : FINALE - Exécution avec JRE seulement
 # =================================================================
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
+# curl requis pour le healthcheck docker-compose
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 RUN addgroup --system appgroup && \
     adduser --system --ingroup appgroup appuser
 COPY --from=builder /build/app.jar app.jar

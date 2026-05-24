@@ -19,9 +19,12 @@ RUN chmod +x mvnw && ./mvnw clean install -DskipTests && \
 # =================================================================
 #  ÉTAPE 2 : FINALE - Exécution avec JRE seulement
 # =================================================================
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
+
+# curl requis pour le healthcheck docker-compose
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
 # Créer un utilisateur non-root pour la sécurité
 RUN addgroup --system appgroup && \
@@ -36,8 +39,8 @@ RUN chown appuser:appgroup app.jar
 # Basculer vers l'utilisateur non-root
 USER appuser
 
-# Exposer le port sur lequel l'application s'exécute à l'intérieur du conteneur
-EXPOSE 8080
+# Port sur lequel l'application s'exécute (server.port: 8082)
+EXPOSE 8082
 
 # Commande pour démarrer l'application
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]

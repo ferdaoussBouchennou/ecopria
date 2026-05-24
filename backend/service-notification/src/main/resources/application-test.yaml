@@ -1,0 +1,51 @@
+# =============================================================
+#  Profil TEST — utilisé par le CI (SPRING_PROFILES_ACTIVE=test)
+#  Pointe sur le MySQL du runner GitHub Actions (localhost:3306)
+#  Kafka et Mail désactivés pour ne pas bloquer le build
+# =============================================================
+
+server:
+  port: 8086
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/db_test?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: ecopria
+    password: ecopria_test
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+  # Désactiver l'auto-configuration Kafka en mode test
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+  mail:
+    host: localhost
+    port: 1025
+    username: test@ecopria.com
+    password: test_password
+
+ecopria:
+  mail:
+    # Désactivé en test : EMAIL_USERNAME vide ne doit pas crasher l'app
+    enforce: false
+  internal:
+    utilisateur-base-url: http://localhost:8082
+    inscription-base-url: http://localhost:8084
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+  health:
+    kafka:
+      enabled: false

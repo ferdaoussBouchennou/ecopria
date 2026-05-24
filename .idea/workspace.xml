@@ -6,23 +6,22 @@
   <component name="ChangeListManager">
     <list default="true" id="c693b60b-5826-43ee-948c-0a9d2aca6a30" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.github/workflows/ci.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/ci.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/admin-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/backend/admin-service/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/admin-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/admin-service/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/admin-service/src/test/java/com/example/admin_service/AdminServiceApplicationTests.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/api-gateway/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/backend/api-gateway/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/auth-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/backend/auth-service/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/auth-service/src/test/java/com/example/auth_service/AuthServiceApplicationTests.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/service-action/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-action/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/service-inscription/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-inscription/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/service-notification/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-notification/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/service-presence/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-presence/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/service-recompense/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-recompense/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/service-notification/src/main/java/com/ecopria/notification/client/UtilisateurContactClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-notification/src/main/java/com/ecopria/notification/client/UtilisateurContactClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/service-notification/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-notification/src/main/resources/application.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/service-utilisateur/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-utilisateur/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/wait-for-services.sh" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/wait-for-services.sh" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerSettings">
+    <execution />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
@@ -38,12 +37,17 @@
     &quot;assignee&quot;: &quot;zohriHafsa&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/ferdaoussBouchennou/ecopria.git&quot;,
-    &quot;accountId&quot;: &quot;d8d96709-8be2-4dc2-9051-bfdd1f314c81&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/ferdaoussBouchennou/ecopria.git",
+    "accountId": "24a8beef-104f-454c-879a-45767b911941"
   }
-}</component>
+}]]></component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="$PROJECT_DIR$/../../../../xampp/php/php.exe" />
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -52,41 +56,30 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/PE/Documents/java/ecopria&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/user/Desktop/ecopria",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
-  <component name="RunManager">
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="ecopria" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="ecopria" />
-      <option name="filePath" />
-      <method v="2" />
-    </configuration>
-  </component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.27397.103" />
-        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-IU-252.27397.103" />
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.31033.145" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.31033.145" />
       </set>
     </attachedChunks>
   </component>
@@ -102,6 +95,7 @@
       <workItem from="1777534039250" duration="12494000" />
       <workItem from="1777708000028" duration="12824000" />
       <workItem from="1779397657930" duration="1968000" />
+      <workItem from="1779629269275" duration="1134000" />
     </task>
     <servers />
   </component>

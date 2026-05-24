@@ -21,15 +21,18 @@ RUN ./mvnw clean install -DskipTests && \
 # =================================================================
 #  ÉTAPE 2 : FINALE - Exécution avec JRE seulement
 # =================================================================
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
+
+# curl requis pour le healthcheck docker-compose
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
 # Copier le JAR généré lors de l'étape de build
 COPY --from=builder /build/app.jar app.jar
 
-# Port exposé par le service
-EXPOSE 8080
+# Port exposé par le service (défini dans application.yaml → server.port: 8086)
+EXPOSE 8086
 
 # Commande de démarrage
 ENTRYPOINT ["java", "-jar", "app.jar"]

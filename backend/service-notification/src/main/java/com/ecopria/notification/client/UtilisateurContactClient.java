@@ -22,7 +22,7 @@ public class UtilisateurContactClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${ecopria.internal.utilisateur-base-url:http://service-utilisateur-backend:8080}")
+    @Value("${ecopria.internal.utilisateur-base-url:http://service-utilisateur-backend:8082}")
     private String utilisateurBaseUrl;
 
     public Optional<String> getEmail(Long authId) {
