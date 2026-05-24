@@ -394,13 +394,19 @@ services:
       SERVICE_UTILISATEUR_URL: http://service-utilisateur-backend:8082
       SERVICE_INSCRIPTION_URL: http://service-inscription-backend:8084
     restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     depends_on:
       mysql-notification:
         condition: service_healthy
       kafka:
         condition: service_healthy
       service-utilisateur-backend:
-        condition: service_healthy    # service_started → service_healthy : garantit que l'API est prête
+        condition: service_healthy    # garantit que l'API est prête
 
   # ─────────────────────────────────────────────────────────
   #  SERVICE INSCRIPTION  → port 8084
