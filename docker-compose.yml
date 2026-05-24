@@ -53,11 +53,11 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
       interval: 15s
       timeout: 10s
-      retries: 10
-      start_period: 30s
+      retries: 15
+      start_period: 45s
 
   # ─────────────────────────────────────────────────────────
   #  KAFKA UI  → http://localhost:8090

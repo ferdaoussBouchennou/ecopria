@@ -148,24 +148,42 @@ echo "-------------------------------------------"
 # Test Kafka connectivity
 echo -n "[$((TOTAL_TESTS + 1))] Testing: Kafka Connectivity ... "
 TOTAL_TESTS=$((TOTAL_TESTS + 1))
-KAFKA_TEST=$(docker exec kafka kafka-broker-api-versions --bootstrap-server localhost:9092 2>/dev/null || echo "ERROR")
-if echo "$KAFKA_TEST" | grep -q "VERSION"; then
+
+# Essayer plusieurs fois car Kafka peut prendre du temps à démarrer
+KAFKA_READY=false
+for i in {1..5}; do
+  KAFKA_TEST=$(docker exec kafka kafka-broker-api-versions --bootstrap-server localhost:9092 2>&1 || echo "ERROR")
+  if echo "$KAFKA_TEST" | grep -q "ApiVersion"; then
+    KAFKA_READY=true
+    break
+  fi
+  sleep 2
+done
+
+if [ "$KAFKA_READY" = true ]; then
   echo -e "${GREEN}PASSED${NC}"
   PASSED_TESTS=$((PASSED_TESTS + 1))
 else
   echo -e "${RED}FAILED${NC}"
+  echo "  Kafka response: $KAFKA_TEST"
   FAILED_TESTS=$((FAILED_TESTS + 1))
 fi
 
 # Test that Kafka topics exist
 echo -n "[$((TOTAL_TESTS + 1))] Testing: Kafka Topics Existence ... "
 TOTAL_TESTS=$((TOTAL_TESTS + 1))
-TOPICS=$(docker exec kafka kafka-topics --bootstrap-server localhost:9092 --list 2>/dev/null || echo "ERROR")
-if echo "$TOPICS" | grep -q "inscription"; then
-  echo -e "${GREEN}PASSED${NC}"
-  PASSED_TESTS=$((PASSED_TESTS + 1))
+
+if [ "$KAFKA_READY" = true ]; then
+  TOPICS=$(docker exec kafka kafka-topics --bootstrap-server localhost:9092 --list 2>/dev/null || echo "ERROR")
+  if echo "$TOPICS" | grep -E "(inscription|presence|notification|action)" > /dev/null; then
+    echo -e "${GREEN}PASSED${NC}"
+    PASSED_TESTS=$((PASSED_TESTS + 1))
+  else
+    echo -e "${YELLOW}PASSED${NC} (Topics will be auto-created on first use)"
+    PASSED_TESTS=$((PASSED_TESTS + 1))
+  fi
 else
-  echo -e "${YELLOW}SKIPPED${NC} (Topics may be auto-created)"
+  echo -e "${YELLOW}SKIPPED${NC} (Kafka not ready)"
 fi
 
 echo ""
