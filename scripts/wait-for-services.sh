@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-# Timeout after 300 seconds (5 minutes)
-TIMEOUT=300
+# Timeout after 600 seconds (10 minutes)
+TIMEOUT=600
 ELAPSED=0
 INTERVAL=5
 
