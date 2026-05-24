@@ -19,6 +19,7 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
   private map!: L.Map;
   private markerClusterGroup!: L.MarkerClusterGroup;
   private userMarker?: L.Marker;
+  private tileLayer?: L.TileLayer;
 
   actions: ActionSummary[] = [];
   filteredActions: ActionSummary[] = [];
@@ -28,6 +29,7 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
   isLoadingLocation = false;
   searchAddress = '';
   isSearching = false;
+  mapLoaded = false;
 
   constructor(
     private actionService: ActionService,
@@ -36,54 +38,153 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCategories();
-    this.loadActions();
+    // Ne pas charger les actions ici, attendre que la carte soit initialisée
   }
 
   ngAfterViewInit(): void {
-    this.initMap();
+    // Configurer les icônes par défaut de Leaflet
+    const iconRetinaUrl = 'leaflet/marker-icon-2x.png';
+    const iconUrl = 'leaflet/marker-icon.png';
+    const shadowUrl = 'leaflet/marker-shadow.png';
+    const iconDefault = L.icon({
+      iconRetinaUrl,
+      iconUrl,
+      shadowUrl,
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      tooltipAnchor: [16, -28],
+      shadowSize: [41, 41]
+    });
+    L.Marker.prototype.options.icon = iconDefault;
+
+    // Attendre que le DOM soit complètement rendu
+    setTimeout(() => {
+      this.initMap();
+      
+      // Vérifier que les tuiles sont visibles après initialisation
+      setTimeout(() => {
+        if (this.map) {
+          this.map.invalidateSize();
+          
+          // Vérifier les tuiles dans le DOM
+          const tiles = document.querySelectorAll('.leaflet-tile');
+          console.log(`📊 Nombre de tuiles dans le DOM: ${tiles.length}`);
+          
+          if (tiles.length > 0) {
+            const firstTile = tiles[0] as HTMLImageElement;
+            console.log('🖼️ Première tuile:', {
+              src: firstTile.src,
+              opacity: window.getComputedStyle(firstTile).opacity,
+              visibility: window.getComputedStyle(firstTile).visibility,
+              display: window.getComputedStyle(firstTile).display
+            });
+          }
+        }
+      }, 500);
+    }, 100);
   }
 
   ngOnDestroy(): void {
+    if (this.tileLayer) {
+      this.tileLayer.remove();
+    }
+    if (this.markerClusterGroup) {
+      this.markerClusterGroup.clearLayers();
+    }
     if (this.map) {
       this.map.remove();
     }
   }
 
   private initMap(): void {
-    // Centrer sur Tétouan par défaut
-    this.map = L.map('map', {
-      center: [35.5889, -5.3626],
-      zoom: 12,
-      zoomControl: true
-    });
-
-    // Utiliser un style de carte plus neutre
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap',
-      maxZoom: 18
-    }).addTo(this.map);
-
-    // Initialiser le cluster group
-    this.markerClusterGroup = L.markerClusterGroup({
-      maxClusterRadius: 50,
-      spiderfyOnMaxZoom: true,
-      showCoverageOnHover: false,
-      zoomToBoundsOnClick: true,
-      iconCreateFunction: (cluster) => {
-        const count = cluster.getChildCount();
-        let size = 'small';
-        if (count > 10) size = 'large';
-        else if (count > 5) size = 'medium';
-
-        return L.divIcon({
-          html: `<div class="cluster-icon cluster-${size}">${count}</div>`,
-          className: 'custom-cluster',
-          iconSize: L.point(40, 40)
-        });
+    try {
+      // S'assurer que le conteneur existe
+      const mapContainer = document.getElementById('map');
+      if (!mapContainer) {
+        console.error('❌ Conteneur de carte non trouvé');
+        return;
       }
-    });
 
-    this.map.addLayer(this.markerClusterGroup);
+      // Centrer sur Tétouan par défaut
+      this.map = L.map('map', {
+        center: [35.5889, -5.3626],
+        zoom: 13,
+        zoomControl: true,
+        preferCanvas: false,
+        attributionControl: false,
+        fadeAnimation: true,
+        zoomAnimation: true,
+        markerZoomAnimation: true
+      });
+
+      // Utiliser les tuiles OpenStreetMap avec options optimisées
+      this.tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18,
+        minZoom: 3,
+        tileSize: 256,
+        zoomOffset: 0,
+        detectRetina: false,
+        crossOrigin: true,
+        keepBuffer: 4,
+        updateWhenIdle: true,
+        updateWhenZooming: false,
+        updateInterval: 200
+      });
+      
+      this.tileLayer.addTo(this.map);
+
+      // Événements de débogage
+      this.tileLayer.on('load', () => {
+        console.log('✅ Toutes les tuiles chargées avec succès');
+        this.mapLoaded = true;
+      });
+
+      this.tileLayer.on('tileerror', (error: any) => {
+        console.error('❌ Erreur de chargement de tuile:', error);
+      });
+
+      this.tileLayer.on('loading', () => {
+        console.log('⏳ Chargement des tuiles en cours...');
+      });
+
+      // Forcer le rafraîchissement de la carte
+      setTimeout(() => {
+        if (this.map) {
+          this.map.invalidateSize();
+          this.map.setView([35.5889, -5.3626], 13);
+          console.log('🗺️ Carte initialisée et redimensionnée');
+        }
+      }, 300);
+
+      // Initialiser le cluster group
+      this.markerClusterGroup = L.markerClusterGroup({
+        maxClusterRadius: 50,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        iconCreateFunction: (cluster) => {
+          const count = cluster.getChildCount();
+          let size = 'small';
+          if (count > 10) size = 'large';
+          else if (count > 5) size = 'medium';
+
+          return L.divIcon({
+            html: `<div class="cluster-icon cluster-${size}">${count}</div>`,
+            className: 'custom-cluster',
+            iconSize: L.point(40, 40)
+          });
+        }
+      });
+
+      this.map.addLayer(this.markerClusterGroup);
+
+      // Charger les actions maintenant que la carte est prête
+      this.loadActions();
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'initialisation de la carte:', error);
+    }
   }
 
   private loadCategories(): void {
@@ -112,6 +213,12 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private updateMarkers(): void {
+    // Vérifier que le cluster group existe
+    if (!this.markerClusterGroup) {
+      console.warn('⚠️ Cluster group non initialisé, attente...');
+      return;
+    }
+
     // Vider le cluster
     this.markerClusterGroup.clearLayers();
 
@@ -123,12 +230,15 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    // Ajuster la vue pour afficher tous les marqueurs
-    if (this.filteredActions.length > 0) {
-      const bounds = this.markerClusterGroup.getBounds();
-      if (bounds.isValid()) {
-        this.map.fitBounds(bounds.pad(0.1));
-      }
+    // Ajuster la vue pour afficher tous les marqueurs SEULEMENT si on n'a pas de position utilisateur
+    // et qu'il y a des actions à afficher
+    if (!this.userLocation && this.filteredActions.length > 0) {
+      setTimeout(() => {
+        const bounds = this.markerClusterGroup.getBounds();
+        if (bounds.isValid()) {
+          this.map.fitBounds(bounds.pad(0.1));
+        }
+      }, 200);
     }
   }
 
@@ -204,6 +314,8 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
           lng: position.coords.longitude
         };
 
+        console.log('📍 Position utilisateur:', this.userLocation);
+
         if (this.userMarker) {
           this.userMarker.remove();
         }
@@ -226,16 +338,26 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
         }).addTo(this.map);
 
         this.userMarker.bindPopup('Vous êtes ici');
-        this.map.setView([this.userLocation.lat, this.userLocation.lng], 13);
+        
+        // Centrer la carte sur la position de l'utilisateur avec animation douce
+        this.map.flyTo([this.userLocation.lat, this.userLocation.lng], 13, {
+          duration: 1.5
+        });
 
-        // Recalculer les distances
-        this.updateMarkers();
+        // Mettre à jour seulement les distances dans la liste, sans refaire fitBounds
+        this.filteredActions = [...this.filteredActions];
+        
         this.isLoadingLocation = false;
       },
       (error) => {
         console.error('Erreur de géolocalisation:', error);
         alert('Impossible d\'obtenir votre position');
         this.isLoadingLocation = false;
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
       }
     );
   }
@@ -252,6 +374,8 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
         if (data && data.length > 0) {
           const lat = parseFloat(data[0].lat);
           const lon = parseFloat(data[0].lon);
+          
+          console.log('🔍 Adresse trouvée:', { lat, lon, name: data[0].display_name });
           
           this.map.setView([lat, lon], 14);
           

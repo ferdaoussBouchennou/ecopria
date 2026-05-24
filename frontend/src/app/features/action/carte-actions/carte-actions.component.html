@@ -90,6 +90,11 @@
       <div class="map-attribution">
         © OpenStreetMap
       </div>
+      <!-- Indicateur de chargement -->
+      <div class="map-loading" *ngIf="!mapLoaded">
+        <div class="loading-spinner"></div>
+        <p>Chargement de la carte...</p>
+      </div>
     </main>
 
     <!-- Sidebar droite avec liste des actions -->

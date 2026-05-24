@@ -237,12 +237,14 @@
 .map-main {
   flex: 1;
   position: relative;
-  background: var(--ec-cream);
+  background: #e8e4dc;
+  min-height: 500px;
 }
 
 .map-container {
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
 .map-attribution {
@@ -254,6 +256,41 @@
   font-size: 0.75rem;
   color: var(--ec-text-soft);
   z-index: 1000;
+}
+
+.map-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 2000;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rem 3rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+
+  p {
+    margin: 1rem 0 0 0;
+    color: var(--ec-text-soft);
+    font-size: 0.875rem;
+  }
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  border: 4px solid var(--ec-mint);
+  border-top-color: var(--ec-sage);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -371,6 +408,51 @@
 // ═══════════════════════════════════════════════════════════
 
 :host ::ng-deep {
+  // Fix pour l'affichage des tuiles Leaflet
+  .leaflet-container {
+    background: #e8e4dc !important;
+  }
+
+  .leaflet-tile-container {
+    opacity: 1 !important;
+    z-index: 200 !important;
+  }
+
+  .leaflet-tile {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+  }
+
+  .leaflet-pane {
+    z-index: auto;
+  }
+
+  .leaflet-tile-pane {
+    z-index: 200 !important;
+    opacity: 1 !important;
+  }
+
+  .leaflet-overlay-pane {
+    z-index: 400;
+  }
+
+  .leaflet-shadow-pane {
+    z-index: 500;
+  }
+
+  .leaflet-marker-pane {
+    z-index: 600;
+  }
+
+  .leaflet-tooltip-pane {
+    z-index: 650;
+  }
+
+  .leaflet-popup-pane {
+    z-index: 700;
+  }
+
   .custom-marker {
     background: none;
     border: none;

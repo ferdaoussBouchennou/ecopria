@@ -52,6 +52,51 @@ img {
   display: block;
 }
 
+/* Exception pour les tuiles Leaflet */
+.leaflet-tile-container img,
+img.leaflet-tile {
+  max-width: none !important;
+  width: 256px !important;
+  height: 256px !important;
+}
+
 button {
   font-family: inherit;
+}
+
+/* Fix pour Leaflet - s'assurer que les images des tuiles se chargent correctement */
+.leaflet-container {
+  background: #e8e4dc !important;
+  font-family: var(--ec-font-sans);
+}
+
+.leaflet-tile-container {
+  opacity: 1 !important;
+}
+
+.leaflet-tile-container img {
+  max-width: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.leaflet-tile {
+  filter: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.leaflet-tile-pane {
+  opacity: 1 !important;
+}
+
+/* S'assurer que les images Leaflet sont visibles */
+.leaflet-default-icon-path {
+  background-image: url('/leaflet/marker-icon.png');
+}
+
+/* Empêcher les images de se cacher */
+img.leaflet-tile {
+  opacity: 1 !important;
+  display: block !important;
 }
