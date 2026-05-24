@@ -7,6 +7,9 @@ import { getCategoryMeta } from '../constants/category-meta';
 import {
   formatActionDate,
   formatTimeRange,
+  formatInscritsLabel,
+  formatLieu,
+  formatPlacesLabel,
   isActionFull,
 } from '../utils/action-format.utils';
 
@@ -97,4 +100,7 @@ export class DetailActionComponent implements OnInit {
 
   formatDate = formatActionDate;
   formatTime = formatTimeRange;
+  formatLieu = formatLieu;
+  formatPlacesLabel = formatPlacesLabel;
+  formatInscrits = formatInscritsLabel;
 }

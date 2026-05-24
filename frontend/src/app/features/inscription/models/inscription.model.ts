@@ -9,27 +9,33 @@ export interface InscriptionResponse {
   id: number;
   userId: number;
   actionId: number;
-  dateInscription: string;        // LocalDateTime serialise en ISO string
-  qrCode: string;                 // ex: INS-1-42-A3F9B2C1
+  dateInscription: string;
+  qrCode: string;
   statut: 'CONFIRMEE' | 'EN_ATTENTE' | 'ANNULEE';
   pointsAction: number;
 }
 
-// Correspond a ActionDTO.java du service-action (port 8083)
+/** Mappé depuis ActionDetailDTO (service-action) */
 export interface ActionDTO {
   id: number;
   titre: string;
   description: string;
-  lieu: string;
-  dateAction: string;
-  heureDebut: string;
-  heureFin: string;
   categorie: string;
-  placesDisponibles: number;
-  placesTotal: number;
   points: number;
   imageUrl?: string;
-  associationName?: string;
-  /** Action fixe Ecopria — pas de date/lieu/horaire/places/association */
   isFixed: boolean;
+  /** Champs association uniquement */
+  lieu?: string;
+  ville?: string;
+  dateAction?: string;
+  heureDebut?: string;
+  heureFin?: string;
+  placesDisponibles?: number;
+  placesTotal?: number;
+  inscrits?: number;
+  associationId?: number;
+  associationName?: string;
+  associationCity?: string;
+  associationLogoUrl?: string;
+  practicalInfos?: string[];
 }

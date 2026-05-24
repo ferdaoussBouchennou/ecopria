@@ -175,6 +175,11 @@
   color: var(--ec-sage-dark);
 }
 
+.badge-places.badge-complet {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 .card-body {
   padding: 1rem 1.1rem 1.15rem;
 }

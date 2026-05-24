@@ -253,11 +253,24 @@
   margin: 0 0 0.75rem;
 }
 
+.org-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-bottom: 0.75rem;
+}
+
 .org-link {
   font-size: 0.8rem;
   color: var(--ec-sage-dark);
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.meta-complet {
+  color: #b91c1c;
+  font-weight: 600;
 }
 
 .state-box {

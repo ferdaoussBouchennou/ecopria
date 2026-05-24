@@ -14,6 +14,7 @@ import { getCategoryMeta, CategoryMeta } from '../constants/category-meta';
 import {
   formatActionDate,
   formatTimeRange,
+  formatPlacesLabel,
   isActionFull,
 } from '../utils/action-format.utils';
 
@@ -165,4 +166,5 @@ export class ListeActionsComponent implements OnInit {
   isFull = isActionFull;
   formatDate = formatActionDate;
   formatTime = formatTimeRange;
+  formatPlaces = formatPlacesLabel;
 }

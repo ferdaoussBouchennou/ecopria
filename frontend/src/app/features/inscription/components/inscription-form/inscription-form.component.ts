@@ -126,8 +126,14 @@ export class InscriptionFormComponent implements OnInit {
     return this.action?.placesDisponibles ?? 0;
   }
 
+  get lieuComplet(): string {
+    if (!this.action?.lieu && !this.action?.ville) return '';
+    const parts = [this.action.lieu, this.action.ville].filter(Boolean);
+    return parts.join(', ');
+  }
+
   get actionDate(): string {
-    if (!this.action) return '';
+    if (!this.action?.dateAction) return '';
     return new Date(this.action.dateAction).toLocaleDateString('fr-FR', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });

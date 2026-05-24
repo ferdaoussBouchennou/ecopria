@@ -35,10 +35,10 @@
 
         @if (action.isFixed) {
           <p class="fixed-notice">
-            Action proposée par Ecopria : organisez-la à la date de votre choix, avec votre groupe.
-            Aucun horaire, lieu, place limitée ni association organisatrice.
+            Action Ecopria à organiser librement avec votre groupe. Les créneaux, le lieu et
+            l'organisateur local sont à votre initiative.
           </p>
-          <dl class="meta-list meta-list--fixed">
+          <dl class="meta-list">
             <div class="meta-row">
               <dt>Format</dt>
               <dd>Programmable — à définir avec votre groupe</dd>
@@ -60,11 +60,23 @@
             </div>
             <div class="meta-row">
               <dt>Lieu</dt>
-              <dd>{{ action.address || action.city }}</dd>
+              <dd>{{ formatLieu(action.address, action.city) }}</dd>
             </div>
             <div class="meta-row">
               <dt>Organisateur</dt>
               <dd>{{ action.associationName }}</dd>
+            </div>
+            @if (action.associationCity) {
+              <div class="meta-row">
+                <dt>Ville de l'asso</dt>
+                <dd>{{ action.associationCity }}</dd>
+              </div>
+            }
+            <div class="meta-row">
+              <dt>Places</dt>
+              <dd [class.meta-complet]="isFull()">
+                {{ formatPlacesLabel(action.availablePlaces, action.maxParticipants) }}
+              </dd>
             </div>
             <div class="meta-row">
               <dt>Points gagnables</dt>
@@ -75,8 +87,8 @@
           @if (action.maxParticipants > 0) {
             <div class="registration-bar">
               <div class="reg-labels">
-                <span>{{ action.registeredCount }} / {{ action.maxParticipants }} inscrits</span>
-                <span>{{ action.availablePlaces }} places restantes</span>
+                <span>{{ formatInscrits(action.registeredCount, action.maxParticipants) }}</span>
+                <span>{{ formatPlacesLabel(action.availablePlaces) }}</span>
               </div>
               <div class="reg-track">
                 <div class="reg-fill" [style.width.%]="getRegistrationPercent()"></div>
@@ -125,11 +137,18 @@
         <div class="bottom-col org-col">
           <h2><span class="col-line"></span> L'organisateur</h2>
           <div class="org-card">
+            @if (action.associationLogoUrl) {
+              <img [src]="action.associationLogoUrl" [alt]="action.associationName" class="org-logo" />
+            }
             <h3>{{ action.associationName }}</h3>
             @if (action.associationDescription) {
               <p>{{ action.associationDescription }}</p>
+            } @else if (action.associationCity) {
+              <p class="org-city">{{ action.associationCity }}</p>
             }
-            <a routerLink="/actions" class="org-link">Voir le profil</a>
+            @if (action.associationId) {
+              <a [routerLink]="['/actions']" class="org-link">Voir le profil</a>
+            }
           </div>
         </div>
       </section>

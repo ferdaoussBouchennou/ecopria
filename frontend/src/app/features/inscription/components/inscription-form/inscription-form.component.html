@@ -100,7 +100,7 @@
       </ng-container>
       <ng-container *ngIf="!isFixedAction">
         <span class="dot">·</span>
-        <span>{{ action.lieu }}</span>
+        <span>{{ lieuComplet }}</span>
         <span class="dot">·</span>
         <span>{{ actionDate }}</span>
         <span class="dot">·</span>
@@ -238,20 +238,32 @@
             </div>
             <div class="recap-item">
               <span class="recap-label">Lieu</span>
-              <span class="recap-value">{{ action.lieu }}</span>
+              <span class="recap-value">{{ lieuComplet }}</span>
+            </div>
+            <div class="recap-item" *ngIf="action.inscrits != null && action.placesTotal">
+              <span class="recap-label">Inscrits</span>
+              <span class="recap-value">{{ action.inscrits }} / {{ action.placesTotal }}</span>
+            </div>
+            <div class="recap-item">
+              <span class="recap-label">Places</span>
+              <span class="recap-value"
+                    [style.color]="placesRestantes === 0 ? '#C0392B' : '#2D5A3D'">
+                {{
+                  placesRestantes === 0
+                    ? 'Complet'
+                    : placesRestantes + ' places'
+                }}
+              </span>
+            </div>
+            <div class="recap-item" *ngIf="action.associationName">
+              <span class="recap-label">Organisateur</span>
+              <span class="recap-value">{{ action.associationName }}</span>
+            </div>
+            <div class="recap-item" *ngIf="action.associationCity">
+              <span class="recap-label">Ville asso</span>
+              <span class="recap-value">{{ action.associationCity }}</span>
             </div>
           </ng-container>
-          <div class="recap-item" *ngIf="!isFixedAction">
-            <span class="recap-label">Places</span>
-            <span class="recap-value"
-                  [style.color]="placesRestantes === 0 ? '#C0392B' : '#2D5A3D'">
-              {{ placesRestantes === 0 ? 'Complet' : placesRestantes + ' / ' + action.placesTotal }}
-            </span>
-          </div>
-          <div class="recap-item" *ngIf="!isFixedAction && action.associationName">
-            <span class="recap-label">Organisateur</span>
-            <span class="recap-value">{{ action.associationName }}</span>
-          </div>
           <div class="recap-item recap-item--points">
             <span class="recap-label">Points gagnes</span>
             <span class="badge badge--green">+{{ action.points }} pts</span>

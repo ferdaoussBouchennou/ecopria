@@ -68,21 +68,35 @@ export class InscriptionService {
     const end = new Date(detail.dateEnd);
     const timeOpts: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
 
-    return {
+    const base: ActionDTO = {
       id: detail.id,
       titre: detail.title,
       description: detail.description,
-      lieu: detail.isFixed ? '' : detail.address || detail.city,
-      dateAction: detail.dateStart,
-      heureDebut: detail.isFixed ? '' : start.toLocaleTimeString('fr-FR', timeOpts),
-      heureFin: detail.isFixed ? '' : end.toLocaleTimeString('fr-FR', timeOpts),
       categorie: detail.categoryName,
-      placesDisponibles: detail.availablePlaces,
-      placesTotal: detail.maxParticipants,
       points: detail.points,
       imageUrl: detail.photoUrls?.[0] || detail.categoryImageUrl,
-      associationName: detail.associationName,
       isFixed: detail.isFixed,
+      practicalInfos: detail.practicalInfos ?? [],
+    };
+
+    if (detail.isFixed) {
+      return base;
+    }
+
+    return {
+      ...base,
+      lieu: detail.address,
+      ville: detail.city,
+      dateAction: detail.dateStart,
+      heureDebut: start.toLocaleTimeString('fr-FR', timeOpts),
+      heureFin: end.toLocaleTimeString('fr-FR', timeOpts),
+      placesDisponibles: detail.availablePlaces,
+      placesTotal: detail.maxParticipants,
+      inscrits: detail.registeredCount,
+      associationId: detail.associationId,
+      associationName: detail.associationName,
+      associationCity: detail.associationCity,
+      associationLogoUrl: detail.associationLogoUrl,
     };
   }
 

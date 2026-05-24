@@ -64,7 +64,9 @@
                 <span class="badge badge-fixed">Action fixe</span>
               } @else {
                 <span class="badge badge-cat">{{ action.categoryName | uppercase }}</span>
-                <span class="badge badge-places">{{ action.availablePlaces }} places</span>
+                <span class="badge badge-places" [class.badge-complet]="isFull(action)">
+                  {{ formatPlaces(action.availablePlaces, action.maxParticipants) }}
+                </span>
               }
             </div>
             <div class="card-body">
