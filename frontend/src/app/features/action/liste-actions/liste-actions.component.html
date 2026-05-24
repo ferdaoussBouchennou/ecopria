@@ -68,7 +68,9 @@
               }
             </div>
             <div class="card-body">
-              <p class="card-city">{{ action.city }}</p>
+              @if (!action.isFixed) {
+                <p class="card-city">{{ action.city }}</p>
+              }
               <h3 class="card-title">{{ action.title }}</h3>
               <div class="card-footer">
                 @if (!action.isFixed) {

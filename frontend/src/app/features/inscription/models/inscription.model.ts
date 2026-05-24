@@ -29,4 +29,7 @@ export interface ActionDTO {
   placesTotal: number;
   points: number;
   imageUrl?: string;
+  associationName?: string;
+  /** Action fixe Ecopria — pas de date/lieu/horaire/places/association */
+  isFixed: boolean;
 }

@@ -14,20 +14,42 @@
   }
 
   @if (!loading && !error && action) {
-    <div class="detail-layout">
+    <div class="detail-layout" [class.detail-layout--fixed]="action.isFixed">
       <div class="detail-visual">
         <img [src]="getHeroImage()" [alt]="action.title" class="hero-img" />
+        @if (action.isFixed) {
+          <span class="visual-badge">Action fixe</span>
+        }
       </div>
 
       <div class="detail-main">
         <p class="detail-tag">
-          {{ action.categoryName | uppercase }} · {{ action.city | uppercase }}
+          @if (action.isFixed) {
+            Action fixe · {{ action.categoryName | uppercase }}
+          } @else {
+            {{ action.categoryName | uppercase }} · {{ action.city | uppercase }}
+          }
         </p>
         <h1>{{ action.title }}</h1>
         <p class="detail-desc">{{ action.description }}</p>
 
-        <dl class="meta-list">
-          @if (!action.isFixed) {
+        @if (action.isFixed) {
+          <p class="fixed-notice">
+            Action proposée par Ecopria : organisez-la à la date de votre choix, avec votre groupe.
+            Aucun horaire, lieu, place limitée ni association organisatrice.
+          </p>
+          <dl class="meta-list meta-list--fixed">
+            <div class="meta-row">
+              <dt>Format</dt>
+              <dd>Programmable — à définir avec votre groupe</dd>
+            </div>
+            <div class="meta-row">
+              <dt>Points gagnables</dt>
+              <dd class="meta-points">{{ action.points }}</dd>
+            </div>
+          </dl>
+        } @else {
+          <dl class="meta-list">
             <div class="meta-row">
               <dt>Date</dt>
               <dd>{{ formatDate(action.dateStart) }}</dd>
@@ -36,59 +58,83 @@
               <dt>Horaire</dt>
               <dd>{{ formatTime(action.dateStart, action.dateEnd) }}</dd>
             </div>
-          }
-          <div class="meta-row">
-            <dt>Lieu</dt>
-            <dd>{{ action.address || action.city }}</dd>
-          </div>
-          <div class="meta-row">
-            <dt>Organisateur</dt>
-            <dd>{{ action.associationName }}</dd>
-          </div>
-          <div class="meta-row">
-            <dt>Points gagnables</dt>
-            <dd class="meta-points">{{ action.points }}</dd>
-          </div>
-        </dl>
+            <div class="meta-row">
+              <dt>Lieu</dt>
+              <dd>{{ action.address || action.city }}</dd>
+            </div>
+            <div class="meta-row">
+              <dt>Organisateur</dt>
+              <dd>{{ action.associationName }}</dd>
+            </div>
+            <div class="meta-row">
+              <dt>Points gagnables</dt>
+              <dd class="meta-points">{{ action.points }}</dd>
+            </div>
+          </dl>
 
-        @if (!action.isFixed && action.maxParticipants > 0) {
-          <div class="registration-bar">
-            <div class="reg-labels">
-              <span>{{ action.registeredCount }} / {{ action.maxParticipants }} inscrits</span>
-              <span>{{ action.availablePlaces }} places restantes</span>
+          @if (action.maxParticipants > 0) {
+            <div class="registration-bar">
+              <div class="reg-labels">
+                <span>{{ action.registeredCount }} / {{ action.maxParticipants }} inscrits</span>
+                <span>{{ action.availablePlaces }} places restantes</span>
+              </div>
+              <div class="reg-track">
+                <div class="reg-fill" [style.width.%]="getRegistrationPercent()"></div>
+              </div>
             </div>
-            <div class="reg-track">
-              <div class="reg-fill" [style.width.%]="getRegistrationPercent()"></div>
-            </div>
-          </div>
+          }
         }
 
         <div class="detail-actions">
           <button
             type="button"
             class="btn-primary"
-            [disabled]="isFull()"
+            [disabled]="!action.isFixed && isFull()"
             (click)="participate()">
-            {{ isFull() ? 'Complet' : 'Participer' }}
+            {{ !action.isFixed && isFull() ? 'Complet' : 'Participer' }}
           </button>
           <button type="button" class="btn-outline">Partager</button>
         </div>
       </div>
     </div>
 
-    <section class="detail-bottom">
-      @if (action.program.length) {
-        <div class="bottom-col">
-          <h2><span class="col-line"></span> Programme</h2>
-          <ul>
-            @for (step of action.program; track step) {
-              <li>{{ step }}</li>
-            }
-          </ul>
-        </div>
-      }
+    @if (!action.isFixed) {
+      <section class="detail-bottom">
+        @if (action.program.length) {
+          <div class="bottom-col">
+            <h2><span class="col-line"></span> Programme</h2>
+            <ul>
+              @for (step of action.program; track step) {
+                <li>{{ step }}</li>
+              }
+            </ul>
+          </div>
+        }
 
-      @if (action.practicalInfos.length) {
+        @if (action.practicalInfos.length) {
+          <div class="bottom-col">
+            <h2><span class="col-line"></span> Bon à savoir</h2>
+            <ul>
+              @for (info of action.practicalInfos; track info) {
+                <li>{{ info }}</li>
+              }
+            </ul>
+          </div>
+        }
+
+        <div class="bottom-col org-col">
+          <h2><span class="col-line"></span> L'organisateur</h2>
+          <div class="org-card">
+            <h3>{{ action.associationName }}</h3>
+            @if (action.associationDescription) {
+              <p>{{ action.associationDescription }}</p>
+            }
+            <a routerLink="/actions" class="org-link">Voir le profil</a>
+          </div>
+        </div>
+      </section>
+    } @else if (action.practicalInfos.length) {
+      <section class="detail-bottom detail-bottom--fixed">
         <div class="bottom-col">
           <h2><span class="col-line"></span> Bon à savoir</h2>
           <ul>
@@ -97,18 +143,7 @@
             }
           </ul>
         </div>
-      }
-
-      <div class="bottom-col org-col">
-        <h2><span class="col-line"></span> L'organisateur</h2>
-        <div class="org-card">
-          <h3>{{ action.associationName }}</h3>
-          @if (action.associationDescription) {
-            <p>{{ action.associationDescription }}</p>
-          }
-          <a routerLink="/actions" class="org-link">Voir le profil</a>
-        </div>
-      </div>
-    </section>
+      </section>
+    }
   }
 </div>

@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import {
   InscriptionRequest,
   InscriptionResponse,
   ActionDTO
 } from '../models/inscription.model';
+import { ActionDetail } from '../../action/models/action.model';
 
 // proxy.conf.json redirige :
 //   /api/inscriptions  →  http://localhost:8084/inscriptions
@@ -56,9 +57,33 @@ export class InscriptionService {
   // ─── GET /actions/{id} ──────────────────────────────────────────────
   // Appelle service-action (port 8083) pour afficher les infos de l'action
   getAction(actionId: number): Observable<ActionDTO> {
-    return this.http
-      .get<ActionDTO>(`${API_ACTION}/${actionId}`)
-      .pipe(catchError(this.handleError));
+    return this.http.get<ActionDetail>(`${API_ACTION}/${actionId}`).pipe(
+      map((detail) => this.mapToActionDTO(detail)),
+      catchError(this.handleError)
+    );
+  }
+
+  private mapToActionDTO(detail: ActionDetail): ActionDTO {
+    const start = new Date(detail.dateStart);
+    const end = new Date(detail.dateEnd);
+    const timeOpts: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
+
+    return {
+      id: detail.id,
+      titre: detail.title,
+      description: detail.description,
+      lieu: detail.isFixed ? '' : detail.address || detail.city,
+      dateAction: detail.dateStart,
+      heureDebut: detail.isFixed ? '' : start.toLocaleTimeString('fr-FR', timeOpts),
+      heureFin: detail.isFixed ? '' : end.toLocaleTimeString('fr-FR', timeOpts),
+      categorie: detail.categoryName,
+      placesDisponibles: detail.availablePlaces,
+      placesTotal: detail.maxParticipants,
+      points: detail.points,
+      imageUrl: detail.photoUrls?.[0] || detail.categoryImageUrl,
+      associationName: detail.associationName,
+      isFixed: detail.isFixed,
+    };
   }
 
   // ─── Gestion d'erreurs ───────────────────────────────────────────────

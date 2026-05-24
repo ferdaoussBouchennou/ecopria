@@ -12,11 +12,55 @@
   margin-bottom: 3.5rem;
 }
 
+.detail-visual {
+  position: relative;
+}
+
 .detail-visual .hero-img {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
   border-radius: 14px;
+}
+
+.visual-badge {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--ec-text);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-radius: 999px;
+}
+
+.fixed-notice {
+  font-size: 0.9rem;
+  color: var(--ec-sage-dark);
+  background: var(--ec-mint);
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  line-height: 1.55;
+  margin: 0 0 1.25rem;
+}
+
+.fixed-places {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ec-sage-dark);
+  margin: 0 0 1.25rem;
+}
+
+.detail-bottom--fixed {
+  grid-template-columns: 1fr;
+  max-width: 480px;
+}
+
+.meta-list--fixed {
+  margin-top: 0;
 }
 
 .detail-tag {

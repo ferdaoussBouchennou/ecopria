@@ -136,4 +136,8 @@ export class InscriptionFormComponent implements OnInit {
   get accompagnantsOptions(): number[] {
     return [0, 1, 2, 3, 4, 5];
   }
+
+  get isFixedAction(): boolean {
+    return this.action?.isFixed ?? false;
+  }
 }

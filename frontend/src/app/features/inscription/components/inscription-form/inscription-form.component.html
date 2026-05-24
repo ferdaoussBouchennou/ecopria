@@ -92,22 +92,30 @@
     <h1 class="page-title">{{ action?.titre }}</h1>
     <div class="page-meta" *ngIf="action">
       <span>{{ action.categorie }}</span>
-      <span class="dot">·</span>
-      <span>{{ action.lieu }}</span>
-      <span class="dot">·</span>
-      <span>{{ actionDate }}</span>
-      <span class="dot">·</span>
-      <span>{{ action.heureDebut }} — {{ action.heureFin }}</span>
+      <ng-container *ngIf="isFixedAction">
+        <span class="dot">·</span>
+        <span>Action fixe Ecopria</span>
+        <span class="dot">·</span>
+        <span class="meta-programmable">Programmable — sans lieu ni horaire imposé</span>
+      </ng-container>
+      <ng-container *ngIf="!isFixedAction">
+        <span class="dot">·</span>
+        <span>{{ action.lieu }}</span>
+        <span class="dot">·</span>
+        <span>{{ actionDate }}</span>
+        <span class="dot">·</span>
+        <span>{{ action.heureDebut }} — {{ action.heureFin }}</span>
+      </ng-container>
     </div>
   </header>
 
-  <!-- Alerte places -->
+  <!-- Alerte places — uniquement actions association -->
   <div class="alert alert--warning"
-       *ngIf="action && placesRestantes > 0 && placesRestantes <= 5">
+       *ngIf="action && !isFixedAction && placesRestantes > 0 && placesRestantes <= 5">
     ⚠ Plus que {{ placesRestantes }} place(s) disponible(s) !
   </div>
   <div class="alert alert--info"
-       *ngIf="action && placesRestantes === 0">
+       *ngIf="action && !isFixedAction && placesRestantes === 0">
     ℹ Aucune place disponible. Vous serez mis en liste d'attente.
   </div>
 
@@ -182,7 +190,7 @@
             class="btn btn--primary btn--full"
             [disabled]="statut === 'submitting'">
             <span *ngIf="statut !== 'submitting'">
-              {{ placesRestantes === 0 ? "Rejoindre la liste d'attente" : "Confirmer ma participation" }}
+              {{ !isFixedAction && placesRestantes === 0 ? "Rejoindre la liste d'attente" : "Confirmer ma participation" }}
             </span>
             <span *ngIf="statut === 'submitting'" class="btn-loading">
               <span class="spinner spinner--sm"></span> Envoi en cours...
@@ -215,24 +223,34 @@
             <span class="recap-label">Action</span>
             <span class="recap-value">{{ action.titre }}</span>
           </div>
-          <div class="recap-item">
-            <span class="recap-label">Date</span>
-            <span class="recap-value">{{ actionDate }}</span>
+          <div class="recap-item" *ngIf="isFixedAction">
+            <span class="recap-label">Format</span>
+            <span class="recap-value">Programmable — à définir avec votre groupe</span>
           </div>
-          <div class="recap-item">
-            <span class="recap-label">Horaire</span>
-            <span class="recap-value">{{ action.heureDebut }} — {{ action.heureFin }}</span>
-          </div>
-          <div class="recap-item">
-            <span class="recap-label">Lieu</span>
-            <span class="recap-value">{{ action.lieu }}</span>
-          </div>
-          <div class="recap-item">
+          <ng-container *ngIf="!isFixedAction">
+            <div class="recap-item">
+              <span class="recap-label">Date</span>
+              <span class="recap-value">{{ actionDate }}</span>
+            </div>
+            <div class="recap-item">
+              <span class="recap-label">Horaire</span>
+              <span class="recap-value">{{ action.heureDebut }} — {{ action.heureFin }}</span>
+            </div>
+            <div class="recap-item">
+              <span class="recap-label">Lieu</span>
+              <span class="recap-value">{{ action.lieu }}</span>
+            </div>
+          </ng-container>
+          <div class="recap-item" *ngIf="!isFixedAction">
             <span class="recap-label">Places</span>
             <span class="recap-value"
                   [style.color]="placesRestantes === 0 ? '#C0392B' : '#2D5A3D'">
               {{ placesRestantes === 0 ? 'Complet' : placesRestantes + ' / ' + action.placesTotal }}
             </span>
+          </div>
+          <div class="recap-item" *ngIf="!isFixedAction && action.associationName">
+            <span class="recap-label">Organisateur</span>
+            <span class="recap-value">{{ action.associationName }}</span>
           </div>
           <div class="recap-item recap-item--points">
             <span class="recap-label">Points gagnes</span>
