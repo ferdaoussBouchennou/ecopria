@@ -1,0 +1,129 @@
+<div class="carte-page">
+  <!-- Header avec titre -->
+  <header class="page-header">
+    <div class="header-content">
+      <p class="header-label">CARTE INTERACTIVE</p>
+      <h1 class="header-title">Trouvez une action autour de vous.</h1>
+    </div>
+  </header>
+
+  <!-- Contenu principal : sidebar + carte -->
+  <div class="page-content">
+    <!-- Sidebar gauche -->
+    <aside class="sidebar">
+      <!-- Filtres par catégorie -->
+      <section class="filters-section">
+        <h2 class="section-title">CATÉGORIE</h2>
+        <div class="category-filters">
+          <button 
+            class="category-btn"
+            [class.active]="selectedCategoryId === null"
+            (click)="selectCategory(null)">
+            Toutes
+          </button>
+          <button 
+            *ngFor="let category of categories"
+            class="category-btn"
+            [class.active]="selectedCategoryId === category.id"
+            (click)="selectCategory(category.id)">
+            {{ category.name }}
+          </button>
+        </div>
+      </section>
+
+      <!-- Recherche par adresse -->
+      <section class="search-section">
+        <div class="search-box">
+          <input 
+            type="text" 
+            class="search-input"
+            [(ngModel)]="searchAddress"
+            (keyup.enter)="searchByAddress()"
+            placeholder="Rechercher une adresse..."
+            [disabled]="isSearching">
+          <button 
+            class="search-btn"
+            (click)="searchByAddress()"
+            [disabled]="isSearching || !searchAddress.trim()">
+            {{ isSearching ? 'Recherche...' : 'Chercher' }}
+          </button>
+        </div>
+      </section>
+
+      <!-- Bouton géolocalisation -->
+      <section class="location-section">
+        <button 
+          class="locate-btn"
+          (click)="locateUser()"
+          [disabled]="isLoadingLocation">
+          {{ isLoadingLocation ? 'Localisation...' : 'Autour de moi' }}
+        </button>
+      </section>
+
+      <!-- Légende -->
+      <section class="legend-section">
+        <h2 class="section-title">LÉGENDE</h2>
+        <div class="legend-items">
+          <div class="legend-item">
+            <span class="legend-dot disponible"></span>
+            <span class="legend-label">Places disponibles</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot bientot-complet"></span>
+            <span class="legend-label">Bientôt complet</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot complet"></span>
+            <span class="legend-label">Complet</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot vous"></span>
+            <span class="legend-label">Vous</span>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Carte au centre -->
+    <main class="map-main">
+      <div id="map" class="map-container"></div>
+      <div class="map-attribution">
+        © OpenStreetMap
+      </div>
+    </main>
+
+    <!-- Sidebar droite avec liste des actions -->
+    <aside class="actions-sidebar">
+      <div 
+        *ngFor="let action of filteredActions"
+        class="action-card"
+        [class]="getAvailabilityClass(action)"
+        (click)="navigateToAction(action.id)">
+        
+        <div class="action-header">
+          <span class="action-category">
+            {{ action.categoryName.toUpperCase() }}
+          </span>
+          <span class="action-city">{{ action.city }}</span>
+        </div>
+
+        <h3 class="action-title">{{ action.title }}</h3>
+
+        <div class="action-meta">
+          <div class="action-info">
+            <div class="action-date">{{ formatDate(action.dateStart) }}</div>
+            <div class="action-places">{{ action.availablePlaces }} places</div>
+            <div class="action-distance" *ngIf="getDistance(action)">
+              {{ getDistance(action) }}
+            </div>
+          </div>
+          <div class="action-points">{{ action.points }} pts</div>
+        </div>
+      </div>
+
+      <div *ngIf="filteredActions.length === 0" class="no-actions">
+        <p>Aucune action trouvée.</p>
+      </div>
+    </aside>
+  </div>
+</div>

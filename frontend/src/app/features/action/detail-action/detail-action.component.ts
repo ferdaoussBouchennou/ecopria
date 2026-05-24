@@ -63,10 +63,6 @@ export class DetailActionComponent implements OnInit {
       : '#2D6A4F';
   }
 
-  getCategoryIcon(): string {
-    return this.action ? getCategoryMeta(this.action.categoryName).icon : '🌱';
-  }
-
   getHeroImage(): string {
     if (!this.action) return '';
     return (

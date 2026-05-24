@@ -4,6 +4,7 @@ import { InscriptionFormComponent } from './features/inscription/components/insc
 import { MesInscriptionsComponent } from './features/inscription/components/mes-inscriptions/mes-inscriptions.component';
 import { ListeActionsComponent } from './features/action/liste-actions/liste-actions.component';
 import { DetailActionComponent } from './features/action/detail-action/detail-action.component';
+import { CarteActionsComponent } from './features/action/carte-actions/carte-actions.component';
 
 export const routes: Routes = [
   {
@@ -12,6 +13,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'actions', pathMatch: 'full' },
       { path: 'actions', component: ListeActionsComponent },
+      { path: 'carte', component: CarteActionsComponent },
       { path: 'action/:id', component: DetailActionComponent },
       { path: 'inscription/:actionId', component: InscriptionFormComponent },
       { path: 'mes-inscriptions', component: MesInscriptionsComponent },

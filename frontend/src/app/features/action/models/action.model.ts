@@ -15,6 +15,8 @@ export interface ActionSummary {
   registeredCount: number;
   isFixed: boolean;
   status: ActionStatus;
+  latitude?: number;
+  longitude?: number;
 }
 
 /** Réponse GET /api/actions/{id} — ActionDetailDTO */

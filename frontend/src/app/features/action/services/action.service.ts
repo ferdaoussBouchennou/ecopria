@@ -38,6 +38,19 @@ export class ActionService {
       );
   }
 
+  getActionsForMap(categoryId?: number): Observable<ActionSummary[]> {
+    let params = new HttpParams();
+    if (categoryId != null) {
+      params = params.set('categoryId', categoryId);
+    }
+
+    return this.http
+      .get<ActionSummary[]>(`${this.apiUrl}/actions/carte`, { params })
+      .pipe(
+        catchError(() => of(MOCK_ACTIONS))
+      );
+  }
+
   getActionById(id: number): Observable<ActionDetail> {
     return this.http.get<ActionDetail>(`${this.apiUrl}/actions/${id}`).pipe(
       catchError(() => {

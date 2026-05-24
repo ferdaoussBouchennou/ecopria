@@ -15,6 +15,8 @@ public class ActionSummaryDTO {
     private String categoryName;
     private String categoryImageUrl;
     private String city;
+    private Double latitude;
+    private Double longitude;
     private LocalDateTime dateStart;
     private LocalDateTime dateEnd;
     private Integer points;

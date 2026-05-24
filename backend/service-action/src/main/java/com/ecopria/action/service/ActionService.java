@@ -390,6 +390,8 @@ public class ActionService {
                 .categoryName(action.getCategory().getName())
                 .categoryImageUrl(action.getCategory().getImageUrl())
                 .city(action.getCity())
+                .latitude(action.getLatitude())
+                .longitude(action.getLongitude())
                 .dateStart(action.getDateStart())
                 .dateEnd(action.getDateEnd())
                 .points(action.getPoints())
