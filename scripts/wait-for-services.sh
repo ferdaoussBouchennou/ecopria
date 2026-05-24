@@ -53,10 +53,14 @@ done
 # Syntax: URL|NAME
 HTTP_SERVICES=(
   "http://localhost:8080/actuator/health|api-gateway"
+  "http://localhost:8081/actuator/health|service-auth"
   "http://localhost:8082/actuator/health|service-utilisateur"
   "http://localhost:8086/actuator/health|service-notification"
   "http://localhost:8084/inscriptions/health|service-inscription"
   "http://localhost:8085/presences/health|service-presence"
+  "http://localhost:9090/actuator/health|service-action"
+  "http://localhost:9093/actuator/health|service-recompense"
+  "http://localhost:8087/actuator/health|admin-service"
 )
 
 wait_for_http() {

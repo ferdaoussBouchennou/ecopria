@@ -441,6 +441,7 @@ services:
     ports:
       - "9090:9090"
     environment:
+      SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-action:3306/db_action?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: ecopria
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}

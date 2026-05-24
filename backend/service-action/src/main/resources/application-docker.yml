@@ -1,0 +1,21 @@
+server:
+  port: 9090
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+
+spring:
+  datasource:
+    url: jdbc:mysql://mysql-action:3306/db_action
+    username: ecopria
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  kafka:
+    bootstrap-servers: kafka:9092
