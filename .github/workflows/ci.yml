@@ -212,10 +212,15 @@ jobs:
           chmod +x ./scripts/wait-for-services.sh
           ./scripts/wait-for-services.sh
 
-      - name: Exécuter les tests d'intégration
+      - name: Exécuter les tests d'intégration basiques
         run: |
           chmod +x ./scripts/test-integration.sh
           ./scripts/test-integration.sh
+
+      - name: Exécuter les tests d'intégration complets
+        run: |
+          chmod +x ./scripts/test-integration-full.sh
+          ./scripts/test-integration-full.sh
 
       - name: Récupérer les logs des conteneurs en cas d'échec
         if: failure()
