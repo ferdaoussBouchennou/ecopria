@@ -1,12 +1,14 @@
+# Copier vers application.yml (fichier gitignoré) et adapter si besoin.
 server:
-  port: 8084
+  port: 9090
 
 spring:
   application:
-    name: service-inscription
+    name: service-action
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3309/db_inscription?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
+    # Local : MySQL exposé par docker-compose sur le port 3308
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3308/db_action?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
     username: ${SPRING_DATASOURCE_USERNAME:ecopria}
     password: ${SPRING_DATASOURCE_PASSWORD:ecopria_pass_2026}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -14,31 +16,40 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.MySQLDialect
 
   kafka:
+    # Local : Kafka exposé sur localhost:29092 (voir docker-compose.yml)
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
     listener:
       auto-startup: false
     admin:
       fail-fast: false
-
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-
-    # ← NOUVEAU : config consumer pour écouter action.places.mises.a.jour
     consumer:
-      group-id: service-inscription
+      group-id: service-action
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "*"
 
-service:
-  action:
-    url: ${SERVICE_ACTION_URL:http://localhost:9090}
+kafka:
+  topics:
+    action-created: action.creee
+    action-cancelled: action.annulee
+    action-places-updated: action.places.mises.a.jour
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

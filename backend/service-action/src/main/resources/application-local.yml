@@ -1,0 +1,17 @@
+# Profil pour développement local (mvn spring-boot:run -Dspring-boot.run.profiles=local)
+# Prérequis : docker compose up mysql-action kafka -d
+server:
+  port: 9090
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3308/db_action?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: ecopria
+    password: ecopria_pass_2026
+
+  kafka:
+    bootstrap-servers: localhost:29092
+    listener:
+      auto-startup: false
+    admin:
+      fail-fast: false

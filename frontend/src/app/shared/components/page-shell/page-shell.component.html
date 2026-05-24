@@ -1,0 +1,56 @@
+<div class="ecopria-shell">
+  <header class="site-header">
+    <a routerLink="/actions" class="brand" aria-label="Ecopria — accueil">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span class="brand-mark">ecopria</span>
+    </a>
+
+    <nav class="site-nav" aria-label="Navigation principale">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Accueil</a>
+      <a routerLink="/actions" class="nav-soon">Carte</a>
+      <a routerLink="/actions" routerLinkActive="active">Actions</a>
+      <a routerLink="/actions" class="nav-soon">Partenaires</a>
+      <a routerLink="/actions" class="nav-soon">Associations</a>
+      <a routerLink="/actions" class="nav-soon">Récompenses</a>
+      <a routerLink="/actions" class="nav-soon">Comment ça marche</a>
+    </nav>
+  </header>
+
+  <main class="site-main">
+    <router-outlet />
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a routerLink="/actions" class="brand footer-brand-link">
+          <span class="brand-dot" aria-hidden="true"></span>
+          <span class="brand-mark">ecopria</span>
+        </a>
+        <p>
+          Ecopria relie celles et ceux qui veulent agir pour le vivant. Une plateforme pensée comme un
+          atelier : discrète, durable, profondément humaine.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Explorer</h4>
+        <ul>
+          <li><a routerLink="/actions" class="nav-soon">Carte interactive</a></li>
+          <li><a routerLink="/actions">Actions</a></li>
+          <li><a routerLink="/actions" class="nav-soon">Récompenses</a></li>
+          <li><a routerLink="/actions" class="nav-soon">Comment ça marche</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Espaces</h4>
+        <ul>
+          <li><a routerLink="/mes-inscriptions">Mon espace</a></li>
+          <li><a routerLink="/actions" class="nav-soon">Associations</a></li>
+          <li><a routerLink="/actions" class="nav-soon">Partenaires</a></li>
+          <li><a routerLink="/actions" class="nav-soon">Administration</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="footer-copy">© 2026 Ecopria — Cultivé avec soin.</p>
+  </footer>
+</div>

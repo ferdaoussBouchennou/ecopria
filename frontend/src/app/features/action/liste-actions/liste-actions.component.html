@@ -1,0 +1,101 @@
+<div class="actions-page">
+  <header class="page-hero">
+    <p class="eyebrow">— Toutes les actions</p>
+    <h1>Trouvez le geste qui vous ressemble.</h1>
+    <p class="lead">
+      Filtrez par catégorie et par origine — proposées par les associations ou actions fixes Ecopria.
+    </p>
+  </header>
+
+  <div class="filters-row">
+    <div class="category-pills" role="group" aria-label="Catégories">
+      <button
+        type="button"
+        class="pill"
+        [class.active]="selectedCategoryId === null"
+        (click)="selectCategory(null)">
+        Toutes
+      </button>
+      @for (category of categories; track category.id) {
+        <button
+          type="button"
+          class="pill"
+          [class.active]="selectedCategoryId === category.id"
+          (click)="selectCategory(category.id)">
+          {{ category.name }}
+        </button>
+      }
+    </div>
+
+    <div class="sort-wrap">
+      <label for="sort-select">Trier par</label>
+      <select id="sort-select" [ngModel]="sortBy" (ngModelChange)="setSort($event)">
+        <option value="date">Date</option>
+        <option value="points">Points</option>
+        <option value="places">Places disponibles</option>
+      </select>
+    </div>
+  </div>
+
+  <p class="results-count">{{ actions.length }} actions trouvées</p>
+
+  @if (loading) {
+    <div class="state-box">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Chargement des actions…</p>
+    </div>
+  }
+
+  @if (error) {
+    <div class="state-box state-error">
+      <p>{{ error }}</p>
+      <button type="button" class="btn-primary" (click)="loadActions()">Réessayer</button>
+    </div>
+  }
+
+  @if (!loading && !error) {
+    <div class="actions-grid">
+      @for (action of actions; track action.id) {
+        <article class="action-card">
+          <a [routerLink]="['/action', action.id]" class="card-link">
+            <div class="card-image">
+              <img [src]="getActionImage(action)" [alt]="action.title" loading="lazy" />
+              @if (action.isFixed) {
+                <span class="badge badge-fixed">Action fixe</span>
+              } @else {
+                <span class="badge badge-cat">{{ action.categoryName | uppercase }}</span>
+                <span class="badge badge-places">{{ action.availablePlaces }} places</span>
+              }
+            </div>
+            <div class="card-body">
+              <p class="card-city">{{ action.city }}</p>
+              <h3 class="card-title">{{ action.title }}</h3>
+              <div class="card-footer">
+                @if (!action.isFixed) {
+                  <div class="card-datetime">
+                    <span>{{ formatDate(action.dateStart) }}</span>
+                    <span class="time">{{ formatTime(action.dateStart, action.dateEnd) }}</span>
+                  </div>
+                } @else {
+                  <div class="card-datetime programmable">
+                    <span>Programmable</span>
+                    <span class="time">À définir</span>
+                  </div>
+                }
+                <div class="card-points">
+                  <span class="points-num">{{ action.points }}</span>
+                  <span class="points-label">points</span>
+                </div>
+              </div>
+            </div>
+          </a>
+        </article>
+      } @empty {
+        <div class="state-box state-empty">
+          <h3>Aucune action trouvée</h3>
+          <p>Essayez d'élargir vos filtres pour découvrir d'autres rendez-vous.</p>
+        </div>
+      }
+    </div>
+  }
+</div>
