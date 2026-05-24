@@ -8,14 +8,14 @@ management:
         include: health,info
   endpoint:
     health:
-      show-details: when_authorized
+      show-details: always
       probes:
         enabled: true
 
 # Clients HTTP internes (docker-compose : SERVICE_UTILISATEUR_URL, SERVICE_INSCRIPTION_URL)
 ecopria:
   internal:
-    utilisateur-base-url: ${SERVICE_UTILISATEUR_URL:http://service-utilisateur-backend:8080}
+    utilisateur-base-url: ${SERVICE_UTILISATEUR_URL:http://service-utilisateur-backend:8082}
     inscription-base-url: ${SERVICE_INSCRIPTION_URL:http://service-inscription-backend:8084}
 
 spring:
