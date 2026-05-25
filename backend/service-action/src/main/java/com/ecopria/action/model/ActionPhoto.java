@@ -24,6 +24,9 @@ public class ActionPhoto {
     @Column(nullable = false, length = 255)
     private String url;
 
+    @Column(nullable = false, length = 255)
+    private String filename;
+
     @Column(name = "uploaded_at", nullable = false, updatable = false)
     private LocalDateTime uploadedAt;
 

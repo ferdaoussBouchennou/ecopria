@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AssociationService, CreateActionDTO } from '../services/association.service';
 import { ActionService } from '../../action/services/action.service';
 import { ActionDetail } from '../../action/models/action.model';
+import { Observable } from 'rxjs';
 import * as L from 'leaflet';
 
 interface Category {
@@ -27,6 +28,15 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
   loading = false;
   submitting = false;
   error: string | null = null;
+  isGeocoding = false;
+  geocodeError: string | null = null;
+  geocodeSuccess = false;
+  uploadedPhoto: {file: File, preview: string, name: string} | null = null;
+  uploadError: string | null = null;
+  
+  // Stepper
+  currentStep = 1;
+  totalSteps = 6;
   
   private map?: L.Map;
   private marker?: L.Marker;
@@ -53,81 +63,113 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.initMap();
-      this.setupAddressWatcher();
-    }, 100);
+    // Map will be initialized when user reaches step 2
+    // No automatic initialization needed here
   }
 
-  setupAddressWatcher(): void {
-    // Watch for changes in address and city fields
-    this.actionForm.get('address')?.valueChanges.subscribe(() => {
-      this.geocodeAddress();
-    });
-
-    this.actionForm.get('city')?.valueChanges.subscribe(() => {
-      this.geocodeAddress();
-    });
-  }
-
-  async geocodeAddress(): Promise<void> {
+  rechercherAdresse(): void {
     const address = this.actionForm.get('address')?.value;
     const city = this.actionForm.get('city')?.value;
 
     if (!address || !city) {
+      this.geocodeError = 'Veuillez remplir l\'adresse et la ville';
       return;
     }
 
-    // Debounce: wait 1 second after user stops typing
-    if (this.geocodeTimeout) {
-      clearTimeout(this.geocodeTimeout);
-    }
+    this.isGeocoding = true;
+    this.geocodeError = null;
+    this.geocodeSuccess = false;
 
-    this.geocodeTimeout = setTimeout(async () => {
-      try {
-        const query = `${address}, ${city}, France`;
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+    // Try multiple search strategies
+    const queries = [
+      `${address}, ${city}, Maroc`,
+      `${city}, Maroc`,
+      `${address}, Maroc`
+    ];
 
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data && data.length > 0) {
-          const lat = parseFloat(data[0].lat);
-          const lng = parseFloat(data[0].lon);
-
-          // Update map view
-          if (this.map) {
-            this.map.setView([lat, lng], 15);
-
-            // Remove old marker
-            if (this.marker) {
-              this.map.removeLayer(this.marker);
-            }
-
-            // Add new marker
-            this.marker = L.marker([lat, lng]).addTo(this.map);
-            this.marker.bindPopup('Position suggérée - Cliquez pour ajuster').openPopup();
-
-            // Update form
-            this.actionForm.patchValue({
-              latitude: lat,
-              longitude: lng
-            }, { emitEvent: false });
-          }
-        }
-      } catch (error) {
-        console.error('Erreur de géocodage:', error);
-      }
-    }, 1000);
+    this.tryGeocodeWithQueries(queries, 0);
   }
 
-  private geocodeTimeout: any;
+  private tryGeocodeWithQueries(queries: string[], index: number): void {
+    if (index >= queries.length) {
+      this.isGeocoding = false;
+      this.geocodeError = '❌ Adresse non reconnue. Veuillez cliquer directement sur la carte pour placer le marqueur à l\'endroit exact.';
+      this.geocodeSuccess = false;
+      return;
+    }
+
+    const query = queries[index];
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=ma`;
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          // Check if we have a good match (not just country or region level)
+          const goodMatch = data.find((result: any) => {
+            const type = result.type?.toLowerCase() || '';
+            const addressType = result.addresstype?.toLowerCase() || '';
+            
+            // Accept specific locations, reject vague ones
+            return !['country', 'state', 'region', 'province'].includes(type) &&
+                   !['country', 'state', 'region', 'province'].includes(addressType);
+          });
+
+          if (goodMatch) {
+            const lat = parseFloat(goodMatch.lat);
+            const lng = parseFloat(goodMatch.lon);
+            const displayName = goodMatch.display_name;
+
+            // Update map view
+            if (this.map) {
+              this.map.setView([lat, lng], 13);
+
+              // Remove old marker
+              if (this.marker) {
+                this.map.removeLayer(this.marker);
+              }
+
+              // Add new marker
+              this.marker = L.marker([lat, lng]).addTo(this.map);
+              this.marker.bindPopup(`📍 ${displayName}<br><small><strong>⚠️ Vérifiez et ajustez en cliquant sur la carte</strong></small>`).openPopup();
+
+              // Update form
+              this.actionForm.patchValue({
+                latitude: lat,
+                longitude: lng
+              }, { emitEvent: false });
+
+              this.geocodeSuccess = true;
+              this.geocodeError = null;
+              this.isGeocoding = false;
+            }
+          } else {
+            // No good match, try next query
+            setTimeout(() => {
+              this.tryGeocodeWithQueries(queries, index + 1);
+            }, 500);
+          }
+        } else {
+          // Try next query
+          setTimeout(() => {
+            this.tryGeocodeWithQueries(queries, index + 1);
+          }, 500);
+        }
+      })
+      .catch(error => {
+        console.error('Erreur de géocodage:', error);
+        // Try next query
+        setTimeout(() => {
+          this.tryGeocodeWithQueries(queries, index + 1);
+        }, 500);
+      });
+  }
 
   initForm(): void {
     this.actionForm = this.fb.group({
       titre: ['', [Validators.required, Validators.maxLength(200)]],
       description: ['', Validators.required],
-      categoryId: [null, Validators.required],
+      categoryId: ['', Validators.required], // Changed from null to empty string
       dateStart: ['', Validators.required],
       dateEnd: ['', Validators.required],
       address: ['', Validators.required],
@@ -253,6 +295,16 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
   onSubmit(publier: boolean = false): void {
     if (this.actionForm.invalid) {
       this.markFormGroupTouched(this.actionForm);
+      
+      // Debug: Log all invalid fields
+      console.log('=== FORMULAIRE INVALIDE ===');
+      Object.keys(this.actionForm.controls).forEach(key => {
+        const control = this.actionForm.get(key);
+        if (control && control.invalid) {
+          console.log(`Champ invalide: ${key}`, control.errors);
+        }
+      });
+      
       this.error = 'Veuillez remplir tous les champs obligatoires';
       return;
     }
@@ -287,9 +339,24 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
 
     if (this.isEditMode && this.actionId) {
       this.associationService.modifierAction(this.actionId, actionData).subscribe({
-        next: () => {
-          alert(publier ? 'Action publiée avec succès !' : 'Action modifiée avec succès !');
-          this.router.navigate(['/association/mes-actions']);
+        next: (action) => {
+          // Upload photo if exists
+          if (this.uploadedPhoto) {
+            this.uploadPhoto(action.id).subscribe({
+              next: () => {
+                alert(publier ? 'Action publiée avec succès !' : 'Action modifiée avec succès !');
+                this.router.navigate(['/association/mes-actions']);
+              },
+              error: (err) => {
+                console.error('Erreur upload photo:', err);
+                alert('Action modifiée mais erreur lors de l\'upload de la photo');
+                this.router.navigate(['/association/mes-actions']);
+              }
+            });
+          } else {
+            alert(publier ? 'Action publiée avec succès !' : 'Action modifiée avec succès !');
+            this.router.navigate(['/association/mes-actions']);
+          }
         },
         error: (err) => {
           console.error('Erreur modification:', err);
@@ -299,9 +366,24 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
       });
     } else {
       this.associationService.creerAction(actionData).subscribe({
-        next: () => {
-          alert(publier ? 'Action créée et publiée !' : 'Action enregistrée en brouillon !');
-          this.router.navigate(['/association/mes-actions']);
+        next: (action) => {
+          // Upload photo if exists
+          if (this.uploadedPhoto) {
+            this.uploadPhoto(action.id).subscribe({
+              next: () => {
+                alert(publier ? 'Action créée et publiée !' : 'Action enregistrée en brouillon !');
+                this.router.navigate(['/association/mes-actions']);
+              },
+              error: (err) => {
+                console.error('Erreur upload photo:', err);
+                alert('Action créée mais erreur lors de l\'upload de la photo');
+                this.router.navigate(['/association/mes-actions']);
+              }
+            });
+          } else {
+            alert(publier ? 'Action créée et publiée !' : 'Action enregistrée en brouillon !');
+            this.router.navigate(['/association/mes-actions']);
+          }
         },
         error: (err) => {
           console.error('Erreur création:', err);
@@ -310,6 +392,26 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
         }
       });
     }
+  }
+
+  private uploadPhoto(actionId: number): Observable<any> {
+    if (!this.uploadedPhoto) {
+      return new Observable(observer => {
+        observer.next(null);
+        observer.complete();
+      });
+    }
+
+    const formData = new FormData();
+    formData.append('photo', this.uploadedPhoto.file);
+
+    return this.associationService.uploadActionPhoto(actionId, formData);
+  }
+
+  getCategoryName(categoryId: any): string {
+    if (!categoryId) return 'Non spécifiée';
+    const category = this.categories.find(c => c.id === Number(categoryId));
+    return category ? category.name : 'Non spécifiée';
   }
 
   enregistrerBrouillon(): void {
@@ -352,6 +454,35 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
       if (field.errors['min']) return `Minimum ${field.errors['min'].min}`;
     }
     return '';
+  }
+
+  getInvalidFields(): string[] {
+    const invalidFields: string[] = [];
+    Object.keys(this.actionForm.controls).forEach(key => {
+      const control = this.actionForm.get(key);
+      if (control && control.invalid) {
+        invalidFields.push(key);
+      }
+    });
+    return invalidFields;
+  }
+
+  getFieldLabel(fieldName: string): string {
+    const labels: { [key: string]: string } = {
+      'titre': 'Titre de l\'action',
+      'description': 'Description',
+      'categoryId': 'Catégorie',
+      'dateStart': 'Date et heure de début',
+      'dateEnd': 'Date et heure de fin',
+      'address': 'Adresse',
+      'city': 'Ville',
+      'postalCode': 'Code postal',
+      'latitude': 'Latitude',
+      'longitude': 'Longitude',
+      'maxParticipants': 'Nombre maximum de participants',
+      'points': 'Points attribués'
+    };
+    return labels[fieldName] || fieldName;
   }
 
   initMap(): void {
@@ -409,22 +540,206 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
 
       // Add new marker
       this.marker = L.marker([lat, lng]).addTo(this.map!);
-      this.marker.bindPopup('Position de l\'action<br><small>Vous pouvez cliquer ailleurs pour ajuster</small>').openPopup();
+      this.marker.bindPopup('✅ Position définie<br><small>Latitude: ' + lat.toFixed(6) + '<br>Longitude: ' + lng.toFixed(6) + '</small>').openPopup();
+      
+      // Show success message
+      this.geocodeSuccess = true;
+      this.geocodeError = null;
     });
-
-    // Trigger geocoding if address and city are already filled
-    setTimeout(() => {
-      const address = this.actionForm.get('address')?.value;
-      const city = this.actionForm.get('city')?.value;
-      if (address && city) {
-        this.geocodeAddress();
-      }
-    }, 500);
   }
 
   ngOnDestroy(): void {
     if (this.map) {
       this.map.remove();
     }
+    // Clean up photo preview
+    if (this.uploadedPhoto) {
+      URL.revokeObjectURL(this.uploadedPhoto.preview);
+    }
+  }
+
+  // Photo upload methods
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.handleFile(input.files[0]);
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (event.dataTransfer?.files && event.dataTransfer.files[0]) {
+      this.handleFile(event.dataTransfer.files[0]);
+    }
+  }
+
+  handleFile(file: File): void {
+    this.uploadError = null;
+
+    // Validate file type
+    if (!file.type.match(/image\/(jpeg|jpg|png|webp)/)) {
+      this.uploadError = `Format non supporté. Utilisez JPG, PNG ou WEBP`;
+      return;
+    }
+
+    // Validate file size (5 MB)
+    if (file.size > 5 * 1024 * 1024) {
+      this.uploadError = `Fichier trop volumineux (maximum 5 Mo)`;
+      return;
+    }
+
+    // Clean up old preview if exists
+    if (this.uploadedPhoto) {
+      URL.revokeObjectURL(this.uploadedPhoto.preview);
+    }
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      if (e.target?.result) {
+        this.uploadedPhoto = {
+          file: file,
+          preview: e.target.result as string,
+          name: file.name
+        };
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removePhoto(): void {
+    if (this.uploadedPhoto) {
+      URL.revokeObjectURL(this.uploadedPhoto.preview);
+      this.uploadedPhoto = null;
+      this.uploadError = null;
+    }
+  }
+
+  // Stepper navigation
+  nextStep(): void {
+    if (this.currentStep < this.totalSteps) {
+      // Validate current step before moving forward
+      if (this.validateCurrentStep()) {
+        this.currentStep++;
+        
+        // Initialize or refresh map when reaching step 2
+        if (this.currentStep === 2) {
+          if (!this.map) {
+            setTimeout(() => this.initMap(), 100);
+          } else {
+            // Refresh map size in case container was hidden
+            setTimeout(() => {
+              this.map?.invalidateSize();
+            }, 100);
+          }
+        }
+        
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  }
+
+  previousStep(): void {
+    if (this.currentStep > 1) {
+      this.currentStep--;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  goToStep(step: number): void {
+    if (step >= 1 && step <= this.totalSteps) {
+      this.currentStep = step;
+      
+      // Initialize or refresh map when reaching step 2
+      if (this.currentStep === 2) {
+        if (!this.map) {
+          setTimeout(() => this.initMap(), 100);
+        } else {
+          // Refresh map size in case container was hidden
+          setTimeout(() => {
+            this.map?.invalidateSize();
+          }, 100);
+        }
+      }
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  validateCurrentStep(): boolean {
+    this.error = null;
+    
+    switch (this.currentStep) {
+      case 1: // Informations de base
+        const step1Fields = ['titre', 'description', 'categoryId'];
+        return this.validateFields(step1Fields, 'Veuillez remplir tous les champs obligatoires');
+      
+      case 2: // Date et localisation
+        const step2Fields = ['dateStart', 'dateEnd', 'address', 'city'];
+        return this.validateFields(step2Fields, 'Veuillez remplir tous les champs obligatoires');
+      
+      case 3: // Participants et récompenses
+        const step3Fields = ['maxParticipants', 'points'];
+        return this.validateFields(step3Fields, 'Veuillez remplir tous les champs obligatoires');
+      
+      case 4: // Programme et infos (optionnel)
+      case 5: // Photos (optionnel)
+        return true;
+      
+      default:
+        return true;
+    }
+  }
+
+  private validateFields(fields: string[], errorMessage: string): boolean {
+    for (const field of fields) {
+      const control = this.actionForm.get(field);
+      if (control && control.invalid) {
+        control.markAsTouched();
+        this.error = errorMessage;
+        return false;
+      }
+    }
+    return true;
+  }
+
+  isStepValid(step: number): boolean {
+    switch (step) {
+      case 1:
+        return ['titre', 'description', 'categoryId'].every(field => 
+          this.actionForm.get(field)?.valid
+        );
+      case 2:
+        return ['dateStart', 'dateEnd', 'address', 'city'].every(field => 
+          this.actionForm.get(field)?.valid
+        );
+      case 3:
+        return ['maxParticipants', 'points'].every(field => 
+          this.actionForm.get(field)?.valid
+        );
+      default:
+        return true;
+    }
+  }
+
+  getStepTitle(step: number): string {
+    const titles = [
+      '',
+      'Informations de base',
+      'Date et localisation',
+      'Participants et récompenses',
+      'Programme et infos pratiques',
+      'Photos',
+      'Révision et publication'
+    ];
+    return titles[step] || '';
   }
 }

@@ -85,6 +85,14 @@ export class AssociationService {
     );
   }
 
+  uploadActionPhoto(actionId: number, formData: FormData): Observable<{photoUrl: string}> {
+    return this.http.post<{photoUrl: string}>(
+      `${this.apiUrl}/actions/${actionId}/photo`,
+      formData,
+      { headers: this.getHeaders() }
+    );
+  }
+
   // ─── PROFIL ASSOCIATION ───────────────────────────────────
 
   getProfile(authId: number): Observable<AssociationProfile> {

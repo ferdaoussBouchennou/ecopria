@@ -5,31 +5,30 @@
 
 /* ===== MAIN CONTENT ===== */
 .main-content {
-  padding: 3rem 4rem;
+  padding: 2.5rem;
   max-width: 1400px;
   margin: 0 auto;
 }
 
 .content-header {
-  margin-bottom: 3rem;
-}
+  margin-bottom: 2.5rem;
 
-.header-breadcrumb {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #78716C;
-  margin: 0 0 0.75rem 0;
-}
+  .title-section {
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      color: #1C1917;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
 
-.content-title {
-  font-family: var(--ec-font-serif);
-  font-size: 2.5rem;
-  font-weight: 600;
-  line-height: 1.2;
-  color: #1C1917;
-  margin: 0;
+    .subtitle {
+      margin: 0.5rem 0 0 0;
+      font-size: 1rem;
+      color: #57534E;
+      font-weight: 400;
+    }
+  }
 }
 
 /* ===== STATS GRID ===== */
@@ -375,11 +374,11 @@
 
 @media (max-width: 768px) {
   .main-content {
-    padding: 2rem 1.5rem;
+    padding: 1.25rem;
   }
 
-  .content-title {
-    font-size: 1.75rem;
+  .content-header .title-section h1 {
+    font-size: 1.5rem;
   }
 
   .stats-grid {

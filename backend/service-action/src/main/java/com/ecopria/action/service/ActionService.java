@@ -8,12 +8,20 @@ import com.ecopria.action.model.Action.ActionStatus;
 import com.ecopria.action.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +33,12 @@ public class ActionService {
     private final AssociationRepository associationRepository;
     private final CategorieRepository categorieRepository;
     private final ActionProducer actionProducer;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
+
+    @Value("${app.base-url:http://localhost:9090}")
+    private String baseUrl;
 
     // ─── LISTE PUBLIQUE ───────────────────────────────────────
 
@@ -450,5 +464,68 @@ public class ActionService {
             categorieRepository.save(cat);
             log.info("Catégorie mise à jour en local: {}", name);
         });
+    }
+
+    // ─── UPLOAD PHOTO ─────────────────────────────────────────
+
+    @Transactional
+    public String uploadPhoto(Long actionId, MultipartFile photo, Long userId) {
+        // Vérifier que l'action appartient à l'utilisateur
+        Action action = getActionOwnedByUser(actionId, userId);
+
+        // Valider le fichier
+        if (photo.isEmpty()) {
+            throw new RuntimeException("Le fichier photo est vide");
+        }
+
+        String contentType = photo.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new RuntimeException("Le fichier doit être une image");
+        }
+
+        // Valider la taille (5 MB max)
+        if (photo.getSize() > 5 * 1024 * 1024) {
+            throw new RuntimeException("La photo ne peut pas dépasser 5 Mo");
+        }
+
+        try {
+            // Créer le dossier d'upload s'il n'existe pas
+            Path uploadPath = Paths.get(uploadDir, "actions");
+            Files.createDirectories(uploadPath);
+
+            // Générer un nom de fichier unique
+            String originalFilename = photo.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".") 
+                ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                : ".jpg";
+            String filename = "action_" + actionId + "_" + UUID.randomUUID().toString() + extension;
+
+            // Sauvegarder le fichier
+            Path filePath = uploadPath.resolve(filename);
+            Files.copy(photo.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // Construire l'URL publique
+            String photoUrl = baseUrl + "/uploads/actions/" + filename;
+
+            // Supprimer l'ancienne photo s'il y en a une
+            action.getPhotos().clear();
+
+            // Créer et sauvegarder la nouvelle photo
+            ActionPhoto actionPhoto = ActionPhoto.builder()
+                    .action(action)
+                    .url(photoUrl)
+                    .filename(filename)
+                    .build();
+
+            action.getPhotos().add(actionPhoto);
+            actionRepository.save(action);
+
+            log.info("Photo uploadée pour l'action {}: {}", actionId, filename);
+            return photoUrl;
+
+        } catch (IOException e) {
+            log.error("Erreur lors de l'upload de la photo pour l'action {}", actionId, e);
+            throw new RuntimeException("Erreur lors de l'upload de la photo: " + e.getMessage());
+        }
     }
 }

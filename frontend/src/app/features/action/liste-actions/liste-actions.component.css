@@ -19,7 +19,7 @@
 
 .page-hero h1 {
   font-size: clamp(2.25rem, 4.5vw, 3.25rem);
-  color: var(--ec-sage-dark);
+  color: #1C1917;
   margin: 0 0 0.85rem;
   font-weight: 600;
   max-width: 720px;

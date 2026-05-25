@@ -7,7 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/actions")
@@ -111,6 +113,17 @@ public class ActionController {
     @GetMapping("/admin/all")
     public ResponseEntity<List<ActionSummaryDTO>> getAllForAdmin() {
         return ResponseEntity.ok(actionService.getAllForAdmin());
+    }
+
+    // ── UPLOAD PHOTO ────────────────────────────────────────
+    // POST /api/actions/{id}/photo
+    @PostMapping("/{id}/photo")
+    public ResponseEntity<Map<String, String>> uploadPhoto(
+            @PathVariable Long id,
+            @RequestParam("photo") MultipartFile photo,
+            @RequestHeader("X-User-Id") Long userId) {
+        String photoUrl = actionService.uploadPhoto(id, photo, userId);
+        return ResponseEntity.ok(Map.of("photoUrl", photoUrl));
     }
 
     // ── ENDPOINTS DE TEST KAFKA — à supprimer après ──────────

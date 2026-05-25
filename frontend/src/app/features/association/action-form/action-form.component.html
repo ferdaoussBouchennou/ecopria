@@ -1,15 +1,33 @@
 <div class="form-page">
   <header class="page-header">
-    <button type="button" class="btn-back" (click)="annuler()">
-      ← Retour à mes actions
-    </button>
-    <div class="header-content">
-      <p class="header-label">ESPACE ASSOCIATION</p>
-      <h1 class="header-title">
-        {{ isEditMode ? 'Modifier l\'action' : 'Créer une action' }}
-      </h1>
+    <div class="title-section">
+      <h1>{{ isEditMode ? 'Modifier l\'action' : 'Créer une action' }}</h1>
+      <p class="subtitle">
+        {{ isEditMode ? 'Modifiez les informations de votre action' : 'Remplissez les informations pour créer une nouvelle action' }}
+      </p>
     </div>
   </header>
+
+  <!-- Stepper Progress -->
+  <div class="stepper-container">
+    <div class="stepper">
+      @for (step of [1, 2, 3, 4, 5, 6]; track step) {
+        <div class="step-item" [class.active]="currentStep === step" [class.completed]="currentStep > step">
+          <div class="step-circle" (click)="currentStep > step ? goToStep(step) : null">
+            @if (currentStep > step) {
+              <span class="step-check">✓</span>
+            } @else {
+              <span class="step-number">{{ step }}</span>
+            }
+          </div>
+          <span class="step-label">{{ getStepTitle(step) }}</span>
+        </div>
+        @if (step < 6) {
+          <div class="step-line" [class.completed]="currentStep > step"></div>
+        }
+      }
+    </div>
+  </div>
 
   @if (loading) {
     <div class="state-box">
@@ -25,331 +43,528 @@
   }
 
   @if (!loading) {
-    <form [formGroup]="actionForm" (ngSubmit)="publier()" class="action-form">
-      <!-- Informations de base -->
-      <section class="form-section">
-        <h2 class="section-title">Informations de base</h2>
-
-        <div class="form-group">
-          <label for="titre" class="form-label">
-            Titre de l'action <span class="required">*</span>
-          </label>
-          <input
-            type="text"
-            id="titre"
-            formControlName="titre"
-            class="form-input"
-            [class.invalid]="isFieldInvalid('titre')"
-            placeholder="Ex: Nettoyage de la plage"
-          />
-          @if (isFieldInvalid('titre')) {
-            <span class="error-message">{{ getFieldError('titre') }}</span>
-          }
-        </div>
-
-        <div class="form-group">
-          <label for="description" class="form-label">
-            Description <span class="required">*</span>
-          </label>
-          <textarea
-            id="description"
-            formControlName="description"
-            class="form-textarea"
-            [class.invalid]="isFieldInvalid('description')"
-            rows="5"
-            placeholder="Décrivez l'action en détail..."
-          ></textarea>
-          @if (isFieldInvalid('description')) {
-            <span class="error-message">{{ getFieldError('description') }}</span>
-          }
-        </div>
-
-        <div class="form-group">
-          <label for="categoryId" class="form-label">
-            Catégorie <span class="required">*</span>
-          </label>
-          <select
-            id="categoryId"
-            formControlName="categoryId"
-            class="form-select"
-            [class.invalid]="isFieldInvalid('categoryId')"
-          >
-            <option [value]="null">Sélectionnez une catégorie</option>
-            @for (category of categories; track category.id) {
-              <option [value]="category.id">{{ category.name }}</option>
-            }
-          </select>
-          @if (isFieldInvalid('categoryId')) {
-            <span class="error-message">{{ getFieldError('categoryId') }}</span>
-          }
-        </div>
-      </section>
-
-      <!-- Date et horaires -->
-      <section class="form-section">
-        <h2 class="section-title">Date et horaires</h2>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="dateStart" class="form-label">
-              Date et heure de début <span class="required">*</span>
-            </label>
-            <input
-              type="datetime-local"
-              id="dateStart"
-              formControlName="dateStart"
-              class="form-input"
-              [class.invalid]="isFieldInvalid('dateStart')"
-            />
-            @if (isFieldInvalid('dateStart')) {
-              <span class="error-message">{{ getFieldError('dateStart') }}</span>
-            }
-          </div>
+    <form [formGroup]="actionForm" class="action-form">
+      
+      <!-- Étape 1: Informations de base -->
+      @if (currentStep === 1) {
+        <section class="form-section">
+          <h2 class="section-title">Informations de base</h2>
 
           <div class="form-group">
-            <label for="dateEnd" class="form-label">
-              Date et heure de fin <span class="required">*</span>
-            </label>
-            <input
-              type="datetime-local"
-              id="dateEnd"
-              formControlName="dateEnd"
-              class="form-input"
-              [class.invalid]="isFieldInvalid('dateEnd')"
-            />
-            @if (isFieldInvalid('dateEnd')) {
-              <span class="error-message">{{ getFieldError('dateEnd') }}</span>
-            }
-          </div>
-        </div>
-      </section>
-
-      <!-- Localisation -->
-      <section class="form-section">
-        <h2 class="section-title">Localisation</h2>
-
-        <div class="form-group">
-          <label for="address" class="form-label">
-            Adresse <span class="required">*</span>
-          </label>
-          <input
-            type="text"
-            id="address"
-            formControlName="address"
-            class="form-input"
-            [class.invalid]="isFieldInvalid('address')"
-            placeholder="Ex: 123 Rue de la Plage"
-          />
-          @if (isFieldInvalid('address')) {
-            <span class="error-message">{{ getFieldError('address') }}</span>
-          }
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="city" class="form-label">
-              Ville <span class="required">*</span>
+            <label for="titre" class="form-label">
+              Titre de l'action <span class="required">*</span>
             </label>
             <input
               type="text"
-              id="city"
-              formControlName="city"
+              id="titre"
+              formControlName="titre"
               class="form-input"
-              [class.invalid]="isFieldInvalid('city')"
-              placeholder="Ex: Nice"
+              [class.invalid]="isFieldInvalid('titre')"
+              placeholder="Ex: Nettoyage de la plage"
             />
-            @if (isFieldInvalid('city')) {
-              <span class="error-message">{{ getFieldError('city') }}</span>
+            @if (isFieldInvalid('titre')) {
+              <span class="error-message">{{ getFieldError('titre') }}</span>
             }
           </div>
 
           <div class="form-group">
-            <label for="postalCode" class="form-label">
-              Code postal
+            <label for="description" class="form-label">
+              Description <span class="required">*</span>
+            </label>
+            <textarea
+              id="description"
+              formControlName="description"
+              class="form-textarea"
+              [class.invalid]="isFieldInvalid('description')"
+              rows="5"
+              placeholder="Décrivez l'action en détail..."
+            ></textarea>
+            @if (isFieldInvalid('description')) {
+              <span class="error-message">{{ getFieldError('description') }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="categoryId" class="form-label">
+              Catégorie <span class="required">*</span>
+            </label>
+            <select
+              id="categoryId"
+              formControlName="categoryId"
+              class="form-select"
+              [class.invalid]="isFieldInvalid('categoryId')"
+            >
+              <option value="">Sélectionnez une catégorie</option>
+              @for (category of categories; track category.id) {
+                <option [value]="category.id">{{ category.name }}</option>
+              }
+            </select>
+            @if (isFieldInvalid('categoryId')) {
+              <span class="error-message">{{ getFieldError('categoryId') }}</span>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Étape 2: Date et localisation -->
+      @if (currentStep === 2) {
+        <section class="form-section">
+          <h2 class="section-title">Date et horaires</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="dateStart" class="form-label">
+                Date et heure de début <span class="required">*</span>
+              </label>
+              <input
+                type="datetime-local"
+                id="dateStart"
+                formControlName="dateStart"
+                class="form-input"
+                [class.invalid]="isFieldInvalid('dateStart')"
+              />
+              @if (isFieldInvalid('dateStart')) {
+                <span class="error-message">{{ getFieldError('dateStart') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="dateEnd" class="form-label">
+                Date et heure de fin <span class="required">*</span>
+              </label>
+              <input
+                type="datetime-local"
+                id="dateEnd"
+                formControlName="dateEnd"
+                class="form-input"
+                [class.invalid]="isFieldInvalid('dateEnd')"
+              />
+              @if (isFieldInvalid('dateEnd')) {
+                <span class="error-message">{{ getFieldError('dateEnd') }}</span>
+              }
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2 class="section-title">Localisation</h2>
+
+          <div class="form-group">
+            <label for="address" class="form-label">
+              Adresse <span class="required">*</span>
             </label>
             <input
               type="text"
-              id="postalCode"
-              formControlName="postalCode"
+              id="address"
+              formControlName="address"
               class="form-input"
-              placeholder="Ex: 06000"
+              [class.invalid]="isFieldInvalid('address')"
+              placeholder="Ex: 123 Rue de la Plage"
             />
+            @if (isFieldInvalid('address')) {
+              <span class="error-message">{{ getFieldError('address') }}</span>
+            }
           </div>
-        </div>
 
-        <div class="form-row">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="city" class="form-label">
+                Ville <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="city"
+                formControlName="city"
+                class="form-input"
+                [class.invalid]="isFieldInvalid('city')"
+                placeholder="Ex: Nice"
+              />
+              @if (isFieldInvalid('city')) {
+                <span class="error-message">{{ getFieldError('city') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="postalCode" class="form-label">
+                Code postal
+              </label>
+              <input
+                type="text"
+                id="postalCode"
+                formControlName="postalCode"
+                class="form-input"
+                placeholder="Ex: 06000"
+              />
+            </div>
+          </div>
+
           <div class="form-group">
-            <label for="latitude" class="form-label">
-              Latitude
-            </label>
-            <input
-              type="number"
-              id="latitude"
-              formControlName="latitude"
-              class="form-input"
-              step="0.000001"
-              placeholder="Ex: 43.7102"
-              readonly
-            />
+            <button
+              type="button"
+              class="btn-geocode"
+              (click)="rechercherAdresse()"
+              [disabled]="!actionForm.get('address')?.value || !actionForm.get('city')?.value || isGeocoding"
+            >
+              @if (isGeocoding) {
+                <span class="spinner-small"></span>
+                Recherche en cours...
+              } @else {
+                📍 Localiser l'adresse sur la carte
+              }
+            </button>
+            @if (geocodeError) {
+              <span class="error-message">{{ geocodeError }}</span>
+            }
+            @if (geocodeSuccess) {
+              <span class="success-message">✓ Adresse trouvée ! Cliquez sur la carte pour ajuster la position exacte si nécessaire.</span>
+            }
           </div>
 
-          <div class="form-group">
-            <label for="longitude" class="form-label">
-              Longitude
-            </label>
-            <input
-              type="number"
-              id="longitude"
-              formControlName="longitude"
-              class="form-input"
-              step="0.000001"
-              placeholder="Ex: 7.2620"
-              readonly
-            />
-          </div>
-        </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="latitude" class="form-label">
+                Latitude
+              </label>
+              <input
+                type="number"
+                id="latitude"
+                formControlName="latitude"
+                class="form-input"
+                step="0.000001"
+                placeholder="Ex: 43.7102"
+                readonly
+              />
+            </div>
 
-        <div class="map-help">
-          <p class="help-text">
-            Entrez l'adresse et la ville ci-dessus, la carte se centrera automatiquement. 
-            Cliquez ensuite sur la carte pour ajuster la position exacte.
+            <div class="form-group">
+              <label for="longitude" class="form-label">
+                Longitude
+              </label>
+              <input
+                type="number"
+                id="longitude"
+                formControlName="longitude"
+                class="form-input"
+                step="0.000001"
+                placeholder="Ex: 7.2620"
+                readonly
+              />
+            </div>
+          </div>
+
+          <div class="map-help">
+            <p class="help-text">
+              <strong>Comment localiser votre action :</strong><br>
+              <strong style="color: var(--ec-sage-dark);">→ Méthode recommandée : Cliquez directement sur la carte</strong> à l'endroit exact de votre action<br>
+              <em>ou</em><br>
+              1. Remplissez l'adresse et la ville ci-dessus<br>
+              2. Cliquez sur "Localiser l'adresse sur la carte" pour une position approximative<br>
+              3. Puis ajustez en cliquant sur la carte
+            </p>
+          </div>
+
+          <div class="map-container" id="locationMap"></div>
+        </section>
+      }
+
+      <!-- Étape 3: Participants et récompenses -->
+      @if (currentStep === 3) {
+        <section class="form-section">
+          <h2 class="section-title">Participants et récompenses</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="maxParticipants" class="form-label">
+                Nombre maximum de participants <span class="required">*</span>
+              </label>
+              <input
+                type="number"
+                id="maxParticipants"
+                formControlName="maxParticipants"
+                class="form-input"
+                [class.invalid]="isFieldInvalid('maxParticipants')"
+                min="1"
+              />
+              @if (isFieldInvalid('maxParticipants')) {
+                <span class="error-message">{{ getFieldError('maxParticipants') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="points" class="form-label">
+                Points attribués <span class="required">*</span>
+              </label>
+              <input
+                type="number"
+                id="points"
+                formControlName="points"
+                class="form-input"
+                [class.invalid]="isFieldInvalid('points')"
+                min="1"
+              />
+              @if (isFieldInvalid('points')) {
+                <span class="error-message">{{ getFieldError('points') }}</span>
+              }
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- Étape 4: Programme et infos pratiques -->
+      @if (currentStep === 4) {
+        <section class="form-section">
+          <h2 class="section-title">Programme (optionnel)</h2>
+          <p class="section-description">
+            Ajoutez les différentes étapes ou activités de l'action
           </p>
-        </div>
 
-        <div class="map-container" id="locationMap"></div>
-      </section>
-
-      <!-- Participants et points -->
-      <section class="form-section">
-        <h2 class="section-title">Participants et récompenses</h2>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="maxParticipants" class="form-label">
-              Nombre maximum de participants <span class="required">*</span>
-            </label>
-            <input
-              type="number"
-              id="maxParticipants"
-              formControlName="maxParticipants"
-              class="form-input"
-              [class.invalid]="isFieldInvalid('maxParticipants')"
-              min="1"
-            />
-            @if (isFieldInvalid('maxParticipants')) {
-              <span class="error-message">{{ getFieldError('maxParticipants') }}</span>
+          <div formArrayName="program" class="dynamic-list">
+            @for (item of programArray.controls; track $index) {
+              <div class="dynamic-item">
+                <input
+                  type="text"
+                  [formControlName]="$index"
+                  class="form-input"
+                  placeholder="Ex: 9h00 - Accueil des participants"
+                />
+                <button
+                  type="button"
+                  class="btn-remove"
+                  (click)="removeProgramItem($index)"
+                  aria-label="Supprimer"
+                >
+                  ✕
+                </button>
+              </div>
             }
           </div>
 
-          <div class="form-group">
-            <label for="points" class="form-label">
-              Points attribués <span class="required">*</span>
-            </label>
-            <input
-              type="number"
-              id="points"
-              formControlName="points"
-              class="form-input"
-              [class.invalid]="isFieldInvalid('points')"
-              min="1"
-            />
-            @if (isFieldInvalid('points')) {
-              <span class="error-message">{{ getFieldError('points') }}</span>
+          <button type="button" class="btn-add" (click)="addProgramItem()">
+            + Ajouter une étape
+          </button>
+        </section>
+
+        <section class="form-section">
+          <h2 class="section-title">Informations pratiques (optionnel)</h2>
+          <p class="section-description">
+            Ajoutez des informations utiles pour les participants
+          </p>
+
+          <div formArrayName="practicalInfos" class="dynamic-list">
+            @for (info of practicalInfosArray.controls; track $index) {
+              <div class="dynamic-item">
+                <input
+                  type="text"
+                  [formControlName]="$index"
+                  class="form-input"
+                  placeholder="Ex: Prévoir des gants et des sacs"
+                />
+                <button
+                  type="button"
+                  class="btn-remove"
+                  (click)="removePracticalInfo($index)"
+                  aria-label="Supprimer"
+                >
+                  ✕
+                </button>
+              </div>
             }
           </div>
-        </div>
-      </section>
 
-      <!-- Programme -->
-      <section class="form-section">
-        <h2 class="section-title">Programme (optionnel)</h2>
-        <p class="section-description">
-          Ajoutez les différentes étapes ou activités de l'action
-        </p>
+          <button type="button" class="btn-add" (click)="addPracticalInfo()">
+            + Ajouter une information
+          </button>
+        </section>
+      }
 
-        <div formArrayName="program" class="dynamic-list">
-          @for (item of programArray.controls; track $index) {
-            <div class="dynamic-item">
+      <!-- Étape 5: Photo -->
+      @if (currentStep === 5) {
+        <section class="form-section">
+          <h2 class="section-title">Photo de l'action (optionnel)</h2>
+          <p class="section-description">
+            Ajoutez une photo principale pour illustrer votre action (maximum 5 Mo)
+          </p>
+
+          @if (uploadedPhoto) {
+            <div class="photo-preview-container">
+              <img [src]="uploadedPhoto.preview" [alt]="uploadedPhoto.name" class="photo-preview-large" />
+              <div class="photo-info">
+                <span class="photo-name">{{ uploadedPhoto.name }}</span>
+                <button
+                  type="button"
+                  class="btn-remove-photo"
+                  (click)="removePhoto()"
+                  aria-label="Supprimer la photo"
+                >
+                  ✕ Supprimer
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="upload-zone" (click)="fileInput.click()" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
               <input
-                type="text"
-                [formControlName]="$index"
-                class="form-input"
-                placeholder="Ex: 9h00 - Accueil des participants"
+                #fileInput
+                type="file"
+                accept="image/jpeg,image/png,image/jpg,image/webp"
+                (change)="onFileSelected($event)"
+                style="display: none"
               />
-              <button
-                type="button"
-                class="btn-remove"
-                (click)="removeProgramItem($index)"
-                aria-label="Supprimer"
-              >
-                ✕
-              </button>
+              <div class="upload-content">
+                <span class="upload-icon">📷</span>
+                <p class="upload-text">
+                  <strong>Cliquez pour sélectionner</strong> ou glissez-déposez votre photo ici
+                </p>
+                <p class="upload-hint">
+                  JPG, PNG ou WEBP • Maximum 5 Mo
+                </p>
+              </div>
             </div>
           }
-        </div>
 
-        <button type="button" class="btn-add" (click)="addProgramItem()">
-          + Ajouter une étape
-        </button>
-      </section>
-
-      <!-- Informations pratiques -->
-      <section class="form-section">
-        <h2 class="section-title">Informations pratiques (optionnel)</h2>
-        <p class="section-description">
-          Ajoutez des informations utiles pour les participants
-        </p>
-
-        <div formArrayName="practicalInfos" class="dynamic-list">
-          @for (info of practicalInfosArray.controls; track $index) {
-            <div class="dynamic-item">
-              <input
-                type="text"
-                [formControlName]="$index"
-                class="form-input"
-                placeholder="Ex: Prévoir des gants et des sacs"
-              />
-              <button
-                type="button"
-                class="btn-remove"
-                (click)="removePracticalInfo($index)"
-                aria-label="Supprimer"
-              >
-                ✕
-              </button>
-            </div>
+          @if (uploadError) {
+            <span class="error-message">{{ uploadError }}</span>
           }
-        </div>
+        </section>
+      }
 
-        <button type="button" class="btn-add" (click)="addPracticalInfo()">
-          + Ajouter une information
-        </button>
-      </section>
+      <!-- Étape 6: Révision -->
+      @if (currentStep === 6) {
+        <section class="form-section review-section">
+          <h2 class="section-title">Révision de votre action</h2>
+          <p class="section-description">
+            Vérifiez les informations avant de publier
+          </p>
 
-      <!-- Actions -->
+          <div class="review-grid">
+            <div class="review-item">
+              <h3 class="review-label">Titre</h3>
+              <p class="review-value">{{ actionForm.get('titre')?.value }}</p>
+            </div>
+
+            <div class="review-item">
+              <h3 class="review-label">Description</h3>
+              <p class="review-value">{{ actionForm.get('description')?.value }}</p>
+            </div>
+
+            <div class="review-item">
+              <h3 class="review-label">Catégorie</h3>
+              <p class="review-value">
+                {{ getCategoryName(actionForm.get('categoryId')?.value) }}
+              </p>
+            </div>
+
+            <div class="review-item">
+              <h3 class="review-label">Date et heure</h3>
+              <p class="review-value">
+                Du {{ actionForm.get('dateStart')?.value | date:'dd/MM/yyyy HH:mm' }}<br>
+                au {{ actionForm.get('dateEnd')?.value | date:'dd/MM/yyyy HH:mm' }}
+              </p>
+            </div>
+
+            <div class="review-item">
+              <h3 class="review-label">Lieu</h3>
+              <p class="review-value">
+                {{ actionForm.get('address')?.value }}<br>
+                {{ actionForm.get('city')?.value }} {{ actionForm.get('postalCode')?.value }}
+              </p>
+            </div>
+
+            <div class="review-item">
+              <h3 class="review-label">Participants</h3>
+              <p class="review-value">Maximum {{ actionForm.get('maxParticipants')?.value }} personnes</p>
+            </div>
+
+            <div class="review-item">
+              <h3 class="review-label">Points</h3>
+              <p class="review-value">{{ actionForm.get('points')?.value }} points</p>
+            </div>
+
+            @if (programArray.length > 0) {
+              <div class="review-item">
+                <h3 class="review-label">Programme</h3>
+                <ul class="review-list">
+                  @for (item of programArray.controls; track $index) {
+                    @if (item.value) {
+                      <li>{{ item.value }}</li>
+                    }
+                  }
+                </ul>
+              </div>
+            }
+
+            @if (practicalInfosArray.length > 0) {
+              <div class="review-item">
+                <h3 class="review-label">Informations pratiques</h3>
+                <ul class="review-list">
+                  @for (info of practicalInfosArray.controls; track $index) {
+                    @if (info.value) {
+                      <li>{{ info.value }}</li>
+                    }
+                  }
+                </ul>
+              </div>
+            }
+
+            @if (uploadedPhoto) {
+              <div class="review-item">
+                <h3 class="review-label">Photo</h3>
+                <img [src]="uploadedPhoto.preview" alt="Photo de l'action" class="review-photo" />
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Navigation buttons -->
       <div class="form-actions">
+        @if (currentStep > 1) {
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="previousStep()"
+            [disabled]="submitting"
+          >
+            ← Précédent
+          </button>
+        }
+
+        @if (currentStep < totalSteps) {
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="nextStep()"
+            [disabled]="submitting"
+          >
+            Suivant →
+          </button>
+        }
+
+        @if (currentStep === totalSteps) {
+          <button
+            type="button"
+            class="btn-outline"
+            (click)="enregistrerBrouillon()"
+            [disabled]="submitting"
+          >
+            {{ submitting ? 'Enregistrement...' : 'Enregistrer en brouillon' }}
+          </button>
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="publier()"
+            [disabled]="submitting"
+          >
+            {{ submitting ? 'Publication...' : (isEditMode ? 'Publier les modifications' : 'Publier l\'action') }}
+          </button>
+        }
+
         <button
           type="button"
-          class="btn-secondary"
+          class="btn-cancel"
           (click)="annuler()"
           [disabled]="submitting"
         >
           Annuler
-        </button>
-        <button
-          type="button"
-          class="btn-outline"
-          (click)="enregistrerBrouillon()"
-          [disabled]="submitting"
-        >
-          {{ submitting ? 'Enregistrement...' : 'Enregistrer en brouillon' }}
-        </button>
-        <button
-          type="submit"
-          class="btn-primary"
-          [disabled]="submitting"
-        >
-          {{ submitting ? 'Publication...' : (isEditMode ? 'Publier les modifications' : 'Publier l\'action') }}
         </button>
       </div>
     </form>

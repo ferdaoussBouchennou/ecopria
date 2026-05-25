@@ -1,6 +1,6 @@
 .dashboard-page {
-  padding: 3rem 4rem;
-  max-width: 1600px;
+  padding: 2.5rem;
+  max-width: 1400px;
   margin: 0 auto;
   background: #FAF8F5;
   min-height: 100vh;
@@ -9,21 +9,23 @@
 /* ===== HEADER ===== */
 .page-header {
   margin-bottom: 2.5rem;
-}
 
-.page-title {
-  font-family: var(--ec-font-serif);
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1C1917;
-  margin: 0 0 0.5rem 0;
-}
+  .title-section {
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      color: #1C1917;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
 
-.header-subtitle {
-  font-size: 0.9375rem;
-  color: #78716C;
-  margin: 0;
-  line-height: 1.6;
+    .subtitle {
+      margin: 0.5rem 0 0 0;
+      font-size: 1rem;
+      color: #57534E;
+      font-weight: 400;
+    }
+  }
 }
 
 /* ===== STATS GRID ===== */
@@ -308,7 +310,11 @@
 
 @media (max-width: 768px) {
   .dashboard-page {
-    padding: 2rem 1.5rem;
+    padding: 1.25rem;
+  }
+
+  .page-header .title-section h1 {
+    font-size: 1.5rem;
   }
 
   .stats-grid {
