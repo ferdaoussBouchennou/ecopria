@@ -1,0 +1,55 @@
+<div *ngIf="loading" class="loading-block">
+  <div class="spinner"></div>
+</div>
+
+<div *ngIf="!loading" class="commissions-page">
+  <header>
+    <span class="page-label">Facturation Ecopria</span>
+    <h1 class="page-title">Commissions.</h1>
+  </header>
+
+  <div *ngIf="erreur" class="alert alert--error">{{ erreur }}</div>
+
+  <div class="summary-row">
+    <div class="pay-card">
+      <span class="pay-label">À régler ce mois</span>
+      <span class="pay-amount">{{ aRegler | number:'1.0-0' }} €</span>
+      <button type="button" class="btn btn--pay" disabled title="Paiement — à brancher (Stripe / virement)">
+        Régler maintenant
+      </button>
+    </div>
+
+    <div class="info-card card">
+      <span class="info-label">Mécanisme</span>
+      <p>
+        Une commission de <strong>15 %</strong> est appliquée sur chaque coupon validé en magasin.
+        Elle reflète le service rendu : vous apporter une clientèle qualifiée, engagée pour le vivant.
+      </p>
+    </div>
+  </div>
+
+  <section>
+    <h2 class="section-title">Historique mensuel</h2>
+    <div class="card table-wrap" *ngIf="commissions.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Mois</th>
+            <th>Coupons utilisés</th>
+            <th>CA généré</th>
+            <th>Commission</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of commissions">
+            <td>{{ formatMois(c.mois) }}</td>
+            <td>{{ c.couponsUtilises }}</td>
+            <td>{{ c.caGenere | number:'1.0-0' }} €</td>
+            <td><strong>{{ c.commission | number:'1.0-0' }} €</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p *ngIf="commissions.length === 0 && !erreur" class="empty-hint">Aucune commission enregistrée pour le moment.</p>
+  </section>
+</div>

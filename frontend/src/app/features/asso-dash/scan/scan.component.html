@@ -1,0 +1,240 @@
+<div class="scan-page">
+
+  <!-- ══════════════════════════════════════════════════════════
+       EN-TÊTE
+  ══════════════════════════════════════════════════════════ -->
+  <header class="page-header">
+    <div>
+      <span class="page-label">Espace Association</span>
+      <h1 class="page-title">Scanner les présences</h1>
+      <p class="page-sub">Validez les QR codes des participants le jour de l'action. Chaque validation crédite automatiquement les points Ecopria.</p>
+    </div>
+    <a routerLink="/asso-dash/participants" class="btn btn--outline">
+      ← Liste participants
+    </a>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════
+       BANDE GPS
+  ══════════════════════════════════════════════════════════ -->
+  <div class="gps-bar" [class.gps-bar--ok]="validatorLat !== null && !gpsError"
+                        [class.gps-bar--error]="gpsError && validatorLat === null"
+                        [class.gps-bar--warn]="gpsError && validatorLat !== null">
+    <span *ngIf="gpsLoading" class="gps-loading">
+      <span class="spinner spinner--sm"></span> Localisation en cours…
+    </span>
+    <span *ngIf="!gpsLoading && validatorLat !== null && !gpsError" class="gps-ok">
+      📍 GPS actif — Lat {{ validatorLat | number:'1.4-4' }}, Lng {{ validatorLng | number:'1.4-4' }}
+      <span class="gps-hint">Zone de validation : rayon 200 m</span>
+    </span>
+    <span *ngIf="!gpsLoading && gpsError && validatorLat !== null" class="gps-warn">
+      ⚠ GPS approximatif (coordonnées de secours) — {{ gpsError }}
+    </span>
+    <span *ngIf="!gpsLoading && gpsError && validatorLat === null" class="gps-err">
+      ✕ GPS indisponible — {{ gpsError }}
+    </span>
+    <button *ngIf="!gpsLoading" class="gps-refresh" (click)="getGpsPosition()" title="Actualiser la position">↺</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       CHAMP ACTION ID
+  ══════════════════════════════════════════════════════════ -->
+  <div class="action-id-bar">
+    <label for="actionIdInput">ID de l'action en cours :</label>
+    <input id="actionIdInput" type="number" [(ngModel)]="actionId"
+           placeholder="Ex: 42" class="action-id-input" min="1" />
+    <button type="button" class="btn btn--outline btn--sm" (click)="loadActionQr()" [disabled]="!actionId || loadingActionQr">
+      Afficher QR action
+    </button>
+    <span class="action-id-hint" *ngIf="!actionId">⚠ Requis pour afficher le QR</span>
+    <span class="action-id-hint action-id-hint--ok" *ngIf="actionId">Action #{{ actionId }}</span>
+  </div>
+
+  <div class="action-qr-display" *ngIf="actionQrCode">
+    <span class="qr-label">QR code de l'action (à scanner par les participants)</span>
+    <code class="qr-code">{{ actionQrCode }}</code>
+  </div>
+
+  <div class="participant-id-bar">
+    <label for="userIdInput">ID participant (userId) *</label>
+    <input id="userIdInput" type="number" [(ngModel)]="participantUserId"
+           placeholder="Ex: 1" class="action-id-input" min="1" />
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       ONGLETS MODE
+  ══════════════════════════════════════════════════════════ -->
+  <div class="mode-tabs">
+    <button class="mode-tab" [class.active]="mode === 'camera'" (click)="setMode('camera')">
+      📷 Scanner (caméra)
+    </button>
+    <button class="mode-tab" [class.active]="mode === 'manual'" (click)="setMode('manual')">
+      ⌨ Saisie manuelle
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       ZONE SCAN / SAISIE
+  ══════════════════════════════════════════════════════════ -->
+  <div class="scan-zone">
+
+    <!-- ── Mode Caméra ───────────────────────────────────────── -->
+    <div *ngIf="mode === 'camera'" class="camera-panel">
+      <!-- Viewfinder simulé -->
+      <div class="viewfinder" [class.viewfinder--scanning]="state === 'validating'">
+        <div class="vf-corner vf-tl"></div>
+        <div class="vf-corner vf-tr"></div>
+        <div class="vf-corner vf-bl"></div>
+        <div class="vf-corner vf-br"></div>
+        <div class="vf-scan-line" *ngIf="state === 'validating'"></div>
+        <div class="vf-center" *ngIf="state !== 'validating'">
+          <span class="vf-icon">📷</span>
+          <span class="vf-label">Pointez la caméra vers le QR code du participant</span>
+        </div>
+        <div class="vf-center" *ngIf="state === 'validating'">
+          <div class="spinner spinner--lg"></div>
+          <span class="vf-label">Validation en cours…</span>
+        </div>
+      </div>
+
+      <!-- Zone test (simulation caméra) -->
+      <div class="camera-test-zone">
+        <p class="test-label">🛠 Zone de simulation (développement) — coller le token QR ici :</p>
+        <div class="test-input-row">
+          <input type="text" [(ngModel)]="cameraSimToken"
+                 placeholder="Collez le token HMAC ici…"
+                 class="test-input"
+                 (keyup.enter)="simulateScan()" />
+          <button class="btn btn--primary"
+                  (click)="simulateScan()"
+                  [disabled]="!cameraSimToken.trim() || !participantUserId || state === 'validating'">
+            <span *ngIf="state !== 'validating'">Valider</span>
+            <span *ngIf="state === 'validating'" class="btn-loading">
+              <span class="spinner spinner--sm"></span> …
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Mode Manuel ───────────────────────────────────────── -->
+    <div *ngIf="mode === 'manual'" class="manual-panel">
+      <p class="manual-desc">
+        Saisissez le token HMAC manuellement (affiché sous le QR code du participant).
+      </p>
+      <div class="manual-form">
+        <div class="form-field">
+          <label for="tokenInput">TOKEN QR *</label>
+          <input id="tokenInput" type="text" [(ngModel)]="manualToken"
+                 placeholder="Ex: a3f8b2c1d4e5f6a7b8c9d0…"
+                 class="token-input"
+                 (keyup.enter)="submitManual()" />
+        </div>
+        <button class="btn btn--primary btn--full"
+                (click)="submitManual()"
+                [disabled]="!manualToken.trim() || !participantUserId || state === 'validating'">
+          <span *ngIf="state !== 'validating'">Valider la présence</span>
+          <span *ngIf="state === 'validating'" class="btn-loading">
+            <span class="spinner spinner--sm"></span> Vérification cryptographique…
+          </span>
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /scan-zone -->
+
+  <!-- ══════════════════════════════════════════════════════════
+       RÉSULTAT
+  ══════════════════════════════════════════════════════════ -->
+  <div *ngIf="state === 'result'" class="result-zone" [ngClass]="result ? resultClass : 'result--error'">
+
+    <!-- Résultat succès / avertissement / erreur / fraude -->
+    <div *ngIf="result" class="result-card">
+      <div class="result-icon-circle" [ngClass]="resultClass">
+        {{ resultIcon }}
+      </div>
+      <h2 class="result-title">{{ resultLabel }}</h2>
+      <p class="result-message">{{ result.message }}</p>
+
+      <!-- Détails VALIDE -->
+      <div *ngIf="isSuccess" class="result-details result-details--success">
+        <div class="detail-item">
+          <span class="detail-label">Participant</span>
+          <span class="detail-value">Utilisateur #{{ result.userId }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Points crédités</span>
+          <span class="detail-value points-credited">+{{ result.pointsCredites }} pts</span>
+        </div>
+        <div class="detail-item" *ngIf="result.distanceMetres !== undefined">
+          <span class="detail-label">Distance GPS</span>
+          <span class="detail-value">{{ result.distanceMetres | number:'1.0-0' }} m</span>
+        </div>
+      </div>
+
+      <!-- Détails GPS hors zone -->
+      <div *ngIf="result.status === 'GPS_HORS_ZONE'" class="result-details result-details--error">
+        <div class="detail-item">
+          <span class="detail-label">Distance calculée</span>
+          <span class="detail-value">{{ result.distanceMetres | number:'1.0-0' }} m</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Zone autorisée</span>
+          <span class="detail-value">200 m max</span>
+        </div>
+      </div>
+
+      <!-- Alerte fraude -->
+      <div *ngIf="isFraud" class="fraud-alert">
+        <div class="fraud-icon">🚨</div>
+        <div>
+          <strong>Événement fraude.detectee publié sur Kafka</strong>
+          <p>L'administrateur a été alerté automatiquement après {{ result.tentativesEchouees }} tentatives échouées.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Erreur réseau -->
+    <div *ngIf="!result && erreurMessage" class="result-card result-card--error">
+      <div class="result-icon-circle result--error">✕</div>
+      <h2 class="result-title">Erreur de validation</h2>
+      <p class="result-message">{{ erreurMessage }}</p>
+    </div>
+
+    <button class="btn btn--outline btn--full" (click)="resetResult()">
+      ← Scanner un autre QR code
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       HISTORIQUE DE SESSION
+  ══════════════════════════════════════════════════════════ -->
+  <section *ngIf="history.length > 0" class="history-section">
+    <h2 class="section-heading">
+      <span class="section-dot"></span>
+      Scans de cette session
+      <span class="section-count">{{ history.length }}</span>
+    </h2>
+
+    <div class="history-list">
+      <div *ngFor="let item of history" class="history-item"
+           [class.history-item--ok]="item.result.status === 'VALIDE'"
+           [class.history-item--warn]="item.result.status === 'DEJA_VALIDE'"
+           [class.history-item--err]="item.result.status === 'QR_INVALIDE' || item.result.status === 'GPS_HORS_ZONE'"
+           [class.history-item--fraud]="item.result.status === 'FRAUDE_DETECTEE'">
+        <span class="h-time">{{ formatTime(item.time) }}</span>
+        <span class="h-token">{{ item.token }}</span>
+        <span class="h-status">{{ item.result.status }}</span>
+        <span class="h-pts" *ngIf="item.result.pointsCredites">+{{ item.result.pointsCredites }} pts</span>
+      </div>
+    </div>
+
+    <div class="history-stats">
+      <span>✓ {{ countStatus('VALIDE') }} validés</span>
+      <span>⚠ {{ countStatus('DEJA_VALIDE') }} déjà validés</span>
+      <span>✕ {{ countStatus('QR_INVALIDE') }} invalides</span>
+      <span>🚨 {{ countStatus('FRAUDE_DETECTEE') }} fraudes</span>
+    </div>
+  </section>
+
+</div>

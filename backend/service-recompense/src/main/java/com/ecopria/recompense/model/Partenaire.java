@@ -28,6 +28,26 @@ public class Partenaire {
     @Column(length = 100)
     private String category;
 
+    @Column(length = 255)
+    private String address;
+
+    @Column(length = 100)
+    private String city;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "vues_profil", nullable = false)
+    @Builder.Default
+    private Long vuesProfil = 0L;
+
+    @Column(name = "clics_offres", nullable = false)
+    @Builder.Default
+    private Long clicsOffres = 0L;
+
     // commission appliquée — 10% par défaut
     @Column(nullable = false)
     @Builder.Default

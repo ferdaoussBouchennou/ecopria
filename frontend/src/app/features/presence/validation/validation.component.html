@@ -1,0 +1,171 @@
+<!-- ================================================================
+     CHARGEMENT
+================================================================ -->
+<div *ngIf="loading" class="page-loading">
+  <div class="spinner"></div>
+  <p>Chargement de vos QR codes...</p>
+</div>
+
+<!-- ================================================================
+     ERREUR
+================================================================ -->
+<div *ngIf="!loading && erreurMessage" class="error-state">
+  <div class="error-icon">⚠</div>
+  <p>{{ erreurMessage }}</p>
+  <button class="btn btn--primary" (click)="charger()">Réessayer</button>
+</div>
+
+<!-- ================================================================
+     CONTENU PRINCIPAL
+================================================================ -->
+<div *ngIf="!loading && !erreurMessage" class="mes-qrcodes-page">
+
+  <!-- En-tête -->
+  <header class="page-header">
+    <div class="header-top">
+      <div>
+        <span class="page-label">Mes QR Codes</span>
+        <h1 class="page-title">Codes d'accès aux actions</h1>
+        <p class="page-sub">Présentez votre QR code le jour de l'événement pour valider votre présence et gagner vos points.</p>
+      </div>
+    </div>
+
+    <!-- Bandeau info sécurité -->
+    <div class="security-banner">
+      <span class="security-icon">🔐</span>
+      <div>
+        <strong>QR codes sécurisés HMAC SHA-256</strong>
+        <span>Chaque code est unique, à usage unique et expire à minuit du jour de l'action. Toute tentative de falsification est détectée automatiquement.</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── État vide ───────────────────────────────────────────────── -->
+  <div *ngIf="items.length === 0" class="empty-state">
+    <div class="empty-icon">🎟</div>
+    <h2>Aucun QR code pour le moment</h2>
+    <p>Inscrivez-vous à une action pour recevoir votre code d'accès unique.</p>
+    <a routerLink="/actions" class="btn btn--primary">Découvrir les actions</a>
+  </div>
+
+  <!-- ── QR codes actifs ─────────────────────────────────────────── -->
+  <section *ngIf="activeQrs.length > 0">
+    <h2 class="section-heading">
+      <span class="section-dot"></span>
+      QR codes actifs
+      <span class="section-count">{{ activeQrs.length }}</span>
+    </h2>
+
+    <div class="qr-grid">
+      <div
+        *ngFor="let item of activeQrs"
+        class="qr-card"
+        [class.qr-card--soon]="isExpiresoon(item.qr.expiresAt)">
+
+        <!-- Bandeau expiration imminente -->
+        <div class="expiry-banner" *ngIf="isExpiresoon(item.qr.expiresAt)">
+          ⚡ Expire aujourd'hui !
+        </div>
+
+        <!-- Infos action -->
+        <div class="qr-card__action">
+          <div class="action-loading" *ngIf="item.loadingAction">
+            <div class="spinner spinner--sm"></div>
+          </div>
+          <ng-container *ngIf="!item.loadingAction && item.action">
+            <span class="action-category">{{ item.action.categorie }}</span>
+            <h3 class="action-title">{{ item.action.titre }}</h3>
+            <div class="action-meta" *ngIf="!item.action.isFixed">
+              <span class="meta-item">📍 {{ item.action.lieu }}, {{ item.action.ville }}</span>
+              <span class="meta-item">📅 {{ formatDate(item.action.dateAction!) }}</span>
+              <span class="meta-item">🕐 {{ item.action.heureDebut }} — {{ item.action.heureFin }}</span>
+            </div>
+            <div class="action-meta" *ngIf="item.action.isFixed">
+              <span class="meta-item">📋 Action fixe — programmable</span>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="!item.loadingAction && !item.action">
+            <span class="action-category">Action #{{ item.qr.actionId }}</span>
+            <h3 class="action-title">Détails non disponibles</h3>
+          </ng-container>
+        </div>
+
+        <!-- QR Code visuel -->
+        <div class="qr-visual">
+          <div class="qr-frame">
+            <!-- Représentation visuelle du QR code (token affiché sous forme de grille) -->
+            <div class="qr-grid-visual">
+              <ng-container *ngFor="let _ of [].constructor(64); let i = index">
+                <div class="qr-cell"
+                     [class.qr-cell--dark]="item.qr.token.charCodeAt(i % item.qr.token.length) % 2 === 0">
+                </div>
+              </ng-container>
+            </div>
+          </div>
+          <div class="qr-token">
+            <span class="token-label">TOKEN D'ACCÈS</span>
+            <span class="token-value">{{ item.qr.token | slice:0:20 }}…</span>
+          </div>
+        </div>
+
+        <!-- Infos QR -->
+        <div class="qr-card__info">
+          <div class="info-row">
+            <span class="info-label">Généré le</span>
+            <span class="info-value">{{ formatDate(item.qr.generatedAt) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Expire le</span>
+            <span class="info-value" [class.text-warn]="isExpiresoon(item.qr.expiresAt)">
+              {{ formatExpiry(item.qr.expiresAt) }}
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Statut</span>
+            <span class="badge badge--green">✓ Actif — prêt à scanner</span>
+          </div>
+        </div>
+
+        <!-- Points à gagner -->
+        <div class="points-bar" *ngIf="item.action">
+          <span class="points-label">Points à gagner à la validation</span>
+          <span class="points-value">+{{ item.action.points }} pts</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── QR codes utilisés / expirés ────────────────────────────── -->
+  <section *ngIf="usedOrExpiredQrs.length > 0" class="section-archive">
+    <h2 class="section-heading section-heading--muted">
+      <span class="section-dot section-dot--gray"></span>
+      Historique
+      <span class="section-count section-count--gray">{{ usedOrExpiredQrs.length }}</span>
+    </h2>
+
+    <div class="archive-list">
+      <div *ngFor="let item of usedOrExpiredQrs" class="archive-card">
+        <div class="archive-icon">
+          <span *ngIf="item.qr.used">✓</span>
+          <span *ngIf="!item.qr.used && isExpired(item.qr.expiresAt)">⌛</span>
+        </div>
+        <div class="archive-info">
+          <span class="archive-title">
+            {{ item.action?.titre || 'Action #' + item.qr.actionId }}
+          </span>
+          <span class="archive-sub" *ngIf="item.qr.used">
+            Présence validée le {{ item.qr.usedAt ? formatDate(item.qr.usedAt) : '—' }}
+          </span>
+          <span class="archive-sub" *ngIf="!item.qr.used">
+            Expiré le {{ formatExpiry(item.qr.expiresAt) }}
+          </span>
+        </div>
+        <span class="badge" [class.badge--green]="item.qr.used" [class.badge--gray]="!item.qr.used">
+          {{ item.qr.used ? 'Utilisé' : 'Expiré' }}
+        </span>
+      </div>
+    </div>
+  </section>
+
+</div>

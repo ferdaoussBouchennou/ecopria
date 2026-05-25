@@ -1,0 +1,50 @@
+<div *ngIf="loading" class="loading-block"><div class="spinner"></div></div>
+
+<div *ngIf="!loading" class="profil-page">
+  <header class="page-header-row">
+    <div>
+      <span class="page-label">Vitrine Ecopria</span>
+      <h1 class="page-title">Profil public.</h1>
+      <p class="page-sub">Cette page est visible par tous les utilisateurs Ecopria. Les informations sont au format public.</p>
+    </div>
+    <a href="/recompenses" target="_blank" class="btn btn--outline btn--pill">Voir ma page publique →</a>
+  </header>
+
+  <div *ngIf="erreur" class="alert alert--error">{{ erreur }}</div>
+  <div *ngIf="succes" class="alert alert--success">{{ succes }}</div>
+
+  <div class="card form-card">
+    <label class="field">
+      <span>Nom de l'établissement</span>
+      <input type="text" [(ngModel)]="form.name" name="name" />
+    </label>
+    <label class="field">
+      <span>Catégorie</span>
+      <input type="text" [(ngModel)]="form.category" name="category" />
+    </label>
+    <label class="field">
+      <span>Adresse</span>
+      <input type="text" [(ngModel)]="form.address" name="address" />
+    </label>
+    <label class="field">
+      <span>Ville</span>
+      <input type="text" [(ngModel)]="form.city" name="city" />
+    </label>
+    <label class="field">
+      <span>Description</span>
+      <textarea rows="4" [(ngModel)]="form.description" name="description"></textarea>
+    </label>
+    <label class="field">
+      <span>URL image (aperçu)</span>
+      <input type="url" [(ngModel)]="form.imageUrl" name="imageUrl" placeholder="https://..." />
+    </label>
+    <button type="button" class="btn btn--primary" [disabled]="saving" (click)="enregistrer()">
+      {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
+    </button>
+  </div>
+
+  <section class="apercu" *ngIf="form.imageUrl">
+    <h2 class="section-title">Aperçu</h2>
+    <img [src]="form.imageUrl" alt="Aperçu vitrine" class="apercu-img" />
+  </section>
+</div>

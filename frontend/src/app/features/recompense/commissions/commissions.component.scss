@@ -1,0 +1,85 @@
+@import '../partenaire-shared';
+
+.summary-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  @media (max-width: 700px) { grid-template-columns: 1fr; }
+}
+
+.pay-card {
+  background: var(--ec-sage);
+  color: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.btn--pay {
+  margin-top: 1rem;
+  background: #fff;
+  color: var(--ec-sage-dark);
+  border: none;
+  padding: 0.65rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.pay-card .pay-label { color: rgba(255,255,255,0.85); }
+.pay-card .pay-amount { color: #fff; margin-bottom: 0; }
+
+.info-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ec-text-muted);
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.pay-label {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ec-text-soft);
+  margin-bottom: 0.5rem;
+}
+
+.pay-amount {
+  font-family: var(--ec-font-serif);
+  font-size: 2.75rem;
+  font-weight: 600;
+  color: var(--ec-sage-dark);
+  display: block;
+  margin-bottom: 1.25rem;
+}
+
+.pay-hint {
+  font-size: 0.75rem;
+  color: var(--ec-text-muted);
+  margin: 0.75rem 0 0;
+}
+
+.info-card p {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--ec-text-soft);
+  margin: 0;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  padding: 0;
+}
+
+.empty-hint {
+  color: var(--ec-text-muted);
+  font-size: 0.875rem;
+}

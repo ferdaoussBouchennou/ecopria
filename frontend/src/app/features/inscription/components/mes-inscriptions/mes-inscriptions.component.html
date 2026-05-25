@@ -27,7 +27,10 @@
         <h1 class="page-title">Mes inscriptions</h1>
         <p class="page-sub">Gerez vos participations aux actions Ecopria</p>
       </div>
-      <a routerLink="/actions" class="btn btn--primary">+ Decouvrir des actions</a>
+      <div class="header-actions">
+        <a routerLink="/espace/qr" class="btn btn--secondary">Mes QR codes</a>
+        <a routerLink="/actions" class="btn btn--primary">+ Decouvrir des actions</a>
+      </div>
     </div>
 
     <!-- Stats -->
@@ -81,7 +84,7 @@
           <div class="card-infos">
             <div class="card-info-item">
               <span class="info-label">Action</span>
-              <span class="info-value">#{{ insc.actionId }}</span>
+              <span class="info-value">{{ insc.actionTitre || ('Action #' + insc.actionId) }}</span>
             </div>
             <div class="card-info-item">
               <span class="info-label">Dossier</span>
@@ -96,7 +99,7 @@
           <!-- QR Code si CONFIRMEE -->
           <div class="qr-block" *ngIf="insc.statut === 'CONFIRMEE'">
             <span class="qr-label">Code d'acces (presente le jour J)</span>
-            <span class="qr-code">{{ insc.qrCode }}</span>
+            <span class="qr-code">{{ insc.qrCode || 'En cours de génération…' }}</span>
           </div>
 
           <!-- Message si EN_ATTENTE -->
@@ -137,7 +140,7 @@
           <div class="card-infos">
             <div class="card-info-item">
               <span class="info-label">Action</span>
-              <span class="info-value">#{{ insc.actionId }}</span>
+              <span class="info-value">{{ insc.actionTitre || ('Action #' + insc.actionId) }}</span>
             </div>
             <div class="card-info-item">
               <span class="info-label">Dossier</span>

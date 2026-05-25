@@ -14,19 +14,29 @@ export interface InscriptionResponse {
   statut: 'CONFIRMEE' | 'EN_ATTENTE' | 'ANNULEE';
   pointsAction: number;
 }
+export type { InscriptionRequest, InscriptionResponse } from '../../../core/models/inscription.model';
 
 // Correspond a ActionDTO.java du service-action (port 8083)
 export interface ActionDTO {
   id: number;
   titre: string;
   description: string;
-  lieu: string;
-  dateAction: string;
-  heureDebut: string;
-  heureFin: string;
   categorie: string;
-  placesDisponibles: number;
-  placesTotal: number;
   points: number;
   imageUrl?: string;
+  isFixed: boolean;
+  /** Champs association uniquement */
+  lieu?: string;
+  ville?: string;
+  dateAction?: string;
+  heureDebut?: string;
+  heureFin?: string;
+  placesDisponibles?: number;
+  placesTotal?: number;
+  inscrits?: number;
+  associationId?: number;
+  associationName?: string;
+  associationCity?: string;
+  associationLogoUrl?: string;
+  practicalInfos?: string[];
 }

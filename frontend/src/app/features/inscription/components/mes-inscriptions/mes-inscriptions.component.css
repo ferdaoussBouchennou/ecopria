@@ -59,6 +59,19 @@
   margin-bottom: 28px; flex-wrap: wrap;
 }
 
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn--secondary {
+  background: transparent;
+  color: var(--green-dark);
+  border: 1.5px solid var(--green-dark);
+}
+.btn--secondary:hover { background: var(--green-light); }
+
 .page-title {
   font-size: 28px; font-weight: 700;
   color: var(--text-dark); margin: 0 0 4px;

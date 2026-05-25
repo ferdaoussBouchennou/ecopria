@@ -1,0 +1,60 @@
+<div class="scanner-page">
+  <header>
+    <span class="page-label">Validation en magasin</span>
+    <h1 class="page-title">Scanner un coupon.</h1>
+    <p class="page-sub">
+      Saisissez le code ECO-XXXX affiché sur le téléphone du client.
+      La commission est calculée automatiquement si l'offre inclut une remise monétaire.
+    </p>
+  </header>
+
+  <div class="scanner-panel card">
+    <label for="code">Code coupon</label>
+    <div class="scan-row">
+      <input
+        id="code"
+        type="text"
+        [(ngModel)]="code"
+        placeholder="ECO-2025-XXXXX"
+        class="code-input"
+        (keyup.enter)="valider()"
+        [disabled]="loading" />
+      <button type="button" class="btn btn--primary" (click)="valider()" [disabled]="loading || !code.trim()">
+        {{ loading ? 'Vérification…' : 'Valider' }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="erreur" class="alert alert--error">{{ erreur }}</div>
+
+  <div *ngIf="coupon" class="result card result--success">
+    <div class="result-icon">✓</div>
+    <h2>Coupon validé</h2>
+    <p><strong>{{ coupon.recompenseTitle }}</strong></p>
+    <p class="result-code">{{ coupon.code }}</p>
+    <p class="result-meta">{{ coupon.pointsUtilises }} points · {{ formatDate(coupon.valideLe) }}</p>
+    <p class="result-note">Commission enregistrée si applicable (offre avec valeur DH).</p>
+  </div>
+
+  <section *ngIf="history.length > 0" class="history">
+    <h2 class="section-title">Validations de cette session</h2>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Offre</th>
+          <th>Points</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let h of history">
+          <td><code>{{ h.code }}</code></td>
+          <td>{{ h.recompenseTitle }}</td>
+          <td>{{ h.pointsUtilises }}</td>
+          <td><span class="badge badge--green">Utilisé</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</div>

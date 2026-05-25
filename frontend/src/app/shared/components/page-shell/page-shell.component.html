@@ -9,9 +9,8 @@
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Accueil</a>
       <a routerLink="/actions" class="nav-soon">Carte</a>
       <a routerLink="/actions" routerLinkActive="active">Actions</a>
-      <a routerLink="/actions" class="nav-soon">Partenaires</a>
-      <a routerLink="/actions" class="nav-soon">Associations</a>
-      <a routerLink="/actions" class="nav-soon">Récompenses</a>
+      <a routerLink="/partenaire" routerLinkActive="active">Partenaires</a>
+      <a routerLink="/recompenses" routerLinkActive="active">Récompenses</a>
       <a routerLink="/actions" class="nav-soon">Comment ça marche</a>
     </nav>
   </header>
@@ -37,16 +36,19 @@
         <ul>
           <li><a routerLink="/actions" class="nav-soon">Carte interactive</a></li>
           <li><a routerLink="/actions">Actions</a></li>
-          <li><a routerLink="/actions" class="nav-soon">Récompenses</a></li>
+          <li><a routerLink="/recompenses">Récompenses</a></li>
           <li><a routerLink="/actions" class="nav-soon">Comment ça marche</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Espaces</h4>
         <ul>
-          <li><a routerLink="/mes-inscriptions">Mon espace</a></li>
+          <li><a routerLink="/mes-inscriptions">Mes inscriptions</a></li>
+          <li><a routerLink="/espace/qr">Mes QR codes</a></li>
+          <li><a routerLink="/asso-dash/participants">Participants (asso)</a></li>
+          <li><a routerLink="/asso-dash/scan">Scanner (asso)</a></li>
           <li><a routerLink="/actions" class="nav-soon">Associations</a></li>
-          <li><a routerLink="/actions" class="nav-soon">Partenaires</a></li>
+          <li><a routerLink="/partenaire">Espace partenaire</a></li>
           <li><a routerLink="/actions" class="nav-soon">Administration</a></li>
         </ul>
       </div>

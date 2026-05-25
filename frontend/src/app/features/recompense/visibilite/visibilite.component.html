@@ -1,0 +1,58 @@
+<div *ngIf="loading" class="loading-block"><div class="spinner"></div></div>
+<div *ngIf="erreur" class="alert alert--error">{{ erreur }}</div>
+
+<div *ngIf="data && !loading" class="visibilite-page">
+  <header>
+    <span class="page-label">Impact</span>
+    <h1 class="page-title">Visibilité &amp; impact.</h1>
+  </header>
+
+  <div class="stats-grid stats-grid--8">
+    <div class="stat-card">
+      <span class="stat-value">{{ data.vuesProfil | number }}</span>
+      <span class="stat-label">Vues du profil public</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ data.clicsOffres | number }}</span>
+      <span class="stat-label">Clics vers vos offres</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ data.tauxClic }}%</span>
+      <span class="stat-label">Taux de clic</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ data.noteMoyenne ?? '—' }}</span>
+      <span class="stat-label">Note ({{ data.nombreAvis }} avis)</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ data.couponsDistribues | number }}</span>
+      <span class="stat-label">Coupons distribués</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ data.couponsUtilises | number }}</span>
+      <span class="stat-label">Coupons utilisés</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ data.tauxConversion }}%</span>
+      <span class="stat-label">Taux de conversion</span>
+    </div>
+    <div class="stat-card stat-card--badge">
+      <span class="badge badge--green badge--pill">{{ data.badgeActuel }}</span>
+      <span class="stat-label">Badge actuel</span>
+      <span class="badge-sub">{{ data.couponsUtilises }}+ coupons utilisés</span>
+    </div>
+  </div>
+
+  <section class="progression">
+    <h2 class="section-title">Progression vers le prochain badge</h2>
+    <div class="progress-item" *ngFor="let b of data.progressionBadges">
+      <div class="progress-head">
+        <span>{{ b.nom }}</span>
+        <span>{{ b.actuel }} / {{ b.seuil }}</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" [style.width.%]="b.pourcentage"></div>
+      </div>
+    </div>
+  </section>
+</div>

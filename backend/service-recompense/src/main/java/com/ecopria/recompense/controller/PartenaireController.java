@@ -76,4 +76,44 @@ public class PartenaireController {
             @RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(recompenseService.getCommissions(userId));
     }
+
+    @GetMapping("/profil")
+    public ResponseEntity<PartenaireProfilDTO> getProfil(
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(recompenseService.getProfil(userId));
+    }
+
+    @PutMapping("/profil")
+    public ResponseEntity<PartenaireProfilDTO> updateProfil(
+            @RequestBody UpdatePartenaireProfilDTO dto,
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(recompenseService.updateProfil(userId, dto));
+    }
+
+    @GetMapping("/visibilite")
+    public ResponseEntity<VisibiliteDTO> getVisibilite(
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(recompenseService.getVisibilite(userId));
+    }
+
+    @GetMapping("/avis")
+    public ResponseEntity<List<AvisDTO>> getAvis(
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(recompenseService.getAvis(userId));
+    }
+
+    @PutMapping("/avis/{avisId}/reponse")
+    public ResponseEntity<AvisDTO> repondreAvis(
+            @PathVariable Long avisId,
+            @Valid @RequestBody RepondreAvisDTO dto,
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(recompenseService.repondreAvis(userId, avisId, dto));
+    }
+
+    @PatchMapping("/offres/{id}/toggle-active")
+    public ResponseEntity<RecompenseDTO> toggleOffreActive(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(recompenseService.toggleOffreActive(id, userId));
+    }
 }

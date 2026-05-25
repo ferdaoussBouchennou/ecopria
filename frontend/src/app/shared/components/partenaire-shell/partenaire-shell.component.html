@@ -1,0 +1,42 @@
+<div class="partenaire-layout">
+  <aside class="partenaire-sidebar">
+    <div class="sidebar-brand">
+      <a routerLink="/actions" class="brand">
+        <span class="brand-dot"></span>
+        <span class="brand-mark">ecopria</span>
+      </a>
+      <span class="sidebar-badge">Partenaire</span>
+    </div>
+
+    <div class="sidebar-identity">
+      <h2 class="commerce-name">{{ partenaireName }}</h2>
+      <span class="commerce-role" *ngIf="!loadingName">Ambassadeur Ecopria</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a
+        *ngFor="let item of navItems"
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.exact }"
+        class="nav-link">
+        {{ item.label }}
+      </a>
+    </nav>
+
+    <a routerLink="/actions" class="back-site">← Retour au site</a>
+  </aside>
+
+  <div class="partenaire-content">
+    <header class="partenaire-topbar">
+      <span class="topbar-commerce">{{ partenaireName }}</span>
+      <div class="topbar-user">
+        <span class="topbar-name">Camille R.</span>
+        <span class="topbar-avatar">CR</span>
+      </div>
+    </header>
+    <main class="partenaire-main">
+      <router-outlet />
+    </main>
+  </div>
+</div>
