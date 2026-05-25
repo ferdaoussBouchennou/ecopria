@@ -1,0 +1,73 @@
+@import '../partenaire-shared';
+
+.scanner-panel label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ec-text-muted);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.scan-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.code-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--ec-border);
+  border-radius: 8px;
+  font-family: ui-monospace, monospace;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.result {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding: 2rem;
+}
+
+.result--success {
+  border-color: var(--ec-sage);
+  background: var(--ec-mint);
+}
+
+.result-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--ec-sage);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  font-size: 1.25rem;
+}
+
+.result h2 {
+  font-family: var(--ec-font-serif);
+  margin: 0 0 0.5rem;
+}
+
+.result-code {
+  font-family: ui-monospace, monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ec-sage-dark);
+}
+
+.result-meta, .result-note {
+  font-size: 0.85rem;
+  color: var(--ec-text-soft);
+}
+
+.history {
+  margin-top: 2.5rem;
+}

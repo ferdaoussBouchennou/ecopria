@@ -1,0 +1,67 @@
+<div class="participants-page">
+
+  <header class="page-header">
+    <div>
+      <span class="page-label">Espace Association</span>
+      <h1 class="page-title">Participants</h1>
+      <p class="page-sub">Liste des inscrits et statuts pour une action (service-inscription).</p>
+    </div>
+    <a routerLink="/asso-dash/scan" class="btn btn--outline">Scanner les présences →</a>
+  </header>
+
+  <div class="filter-bar">
+    <label for="actionId">ID de l'action</label>
+    <input id="actionId" type="number" [(ngModel)]="actionId" placeholder="Ex: 1" min="1" />
+    <button class="btn btn--primary" (click)="charger()" [disabled]="!actionId || loading">
+      Charger
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="page-loading">
+    <div class="spinner"></div>
+    <p>Chargement des participants...</p>
+  </div>
+
+  <div *ngIf="!loading && erreurMessage" class="error-box">{{ erreurMessage }}</div>
+
+  <div *ngIf="!loading && !erreurMessage && participants.length > 0" class="stats-row">
+    <div class="stat-card">
+      <span class="stat-value">{{ participants.length }}</span>
+      <span class="stat-label">Total</span>
+    </div>
+    <div class="stat-card stat-card--green">
+      <span class="stat-value">{{ confirmes }}</span>
+      <span class="stat-label">Confirmés</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ enAttente }}</span>
+      <span class="stat-label">En attente</span>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !erreurMessage && actionId && participants.length === 0" class="empty-state">
+    <p>Aucun participant pour l'action #{{ actionId }}.</p>
+  </div>
+
+  <table *ngIf="!loading && participants.length > 0" class="participants-table">
+    <thead>
+      <tr>
+        <th>Dossier</th>
+        <th>Utilisateur</th>
+        <th>Statut</th>
+        <th>Inscrit le</th>
+        <th>Points</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of participants">
+        <td>#{{ p.inscriptionId }}</td>
+        <td>User #{{ p.userId }}</td>
+        <td><span class="badge" [ngClass]="statutClass(p.statut)">{{ statutLabel(p.statut) }}</span></td>
+        <td>{{ formatDate(p.dateInscription) }}</td>
+        <td>+{{ p.pointsAction }} pts</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>

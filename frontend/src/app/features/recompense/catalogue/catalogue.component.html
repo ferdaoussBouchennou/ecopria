@@ -1,0 +1,69 @@
+<div class="catalogue-page">
+  <header class="catalogue-hero">
+    <span class="page-label">Récompenses</span>
+    <h1 class="page-title">Catalogue citoyen.</h1>
+    <p class="page-sub">Échangez vos points contre des offres locales. Certaines offres proposent une boîte mystère.</p>
+  </header>
+
+  <div *ngIf="loading" class="loading-block"><div class="spinner"></div></div>
+  <div *ngIf="erreur" class="alert alert--error">{{ erreur }}</div>
+
+  <div class="catalogue-grid" *ngIf="!loading && offres.length > 0">
+    <article class="catalogue-card" *ngFor="let o of offres" (click)="ouvrirDetail(o)">
+      <img *ngIf="o.imageUrl" [src]="o.imageUrl" [alt]="o.title" class="catalogue-img" />
+      <div class="catalogue-img catalogue-img--placeholder" *ngIf="!o.imageUrl"></div>
+      <div class="catalogue-body">
+        <span class="catalogue-cat">{{ o.partenaireCategory || o.type }}</span>
+        <h2>{{ o.title }}</h2>
+        <p class="catalogue-partner">{{ o.partenaireName }}</p>
+        <p class="catalogue-desc" *ngIf="o.description">{{ o.description }}</p>
+        <div class="catalogue-meta">
+          <span><strong>{{ o.pointsNecessaires }}</strong> pts</span>
+          <span *ngIf="o.stock != null">stock {{ o.stock }}</span>
+        </div>
+        <div class="catalogue-actions" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            class="btn btn--primary"
+            [disabled]="!o.isAvailable || actionId === o.id"
+            (click)="echanger(o)">
+            {{ actionId === o.id ? '…' : 'Échanger' }}
+          </button>
+          <button
+            type="button"
+            class="btn btn--mystere"
+            *ngIf="o.hasMystereBox"
+            [disabled]="!o.isAvailable || actionId === o.id"
+            (click)="ouvrirMystere(o)">
+            🎁 Ouvrir la boîte mystère
+            <span class="mystere-pts" *ngIf="o.mystereBoxPoints">({{ o.mystereBoxPoints }} pts)</span>
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <p *ngIf="!loading && offres.length === 0 && !erreur" class="empty-hint">
+    Aucune offre disponible. Démarrez le service récompense (port 9093).
+  </p>
+</div>
+
+<div class="modal-backdrop" *ngIf="showMystereModal && mystereResult" (click)="fermerModals()">
+  <div class="modal card" (click)="$event.stopPropagation()">
+    <h2>🎁 Boîte mystère</h2>
+    <p class="modal-prize">{{ mystereResult.titrePrix }}</p>
+    <p *ngIf="mystereResult.descriptionPrix">{{ mystereResult.descriptionPrix }}</p>
+    <p class="modal-code">Coupon : <code>{{ mystereResult.coupon.code }}</code></p>
+    <button type="button" class="btn btn--primary" (click)="fermerModals()">Fermer</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="showCouponModal && dernierCoupon" (click)="fermerModals()">
+  <div class="modal card" (click)="$event.stopPropagation()">
+    <h2>Coupon obtenu</h2>
+    <p>{{ dernierCoupon.recompenseTitle }}</p>
+    <p class="modal-code"><code>{{ dernierCoupon.code }}</code></p>
+    <p class="modal-hint">Présentez ce code chez {{ dernierCoupon.partenaireName }}.</p>
+    <button type="button" class="btn btn--primary" (click)="fermerModals()">Fermer</button>
+  </div>
+</div>

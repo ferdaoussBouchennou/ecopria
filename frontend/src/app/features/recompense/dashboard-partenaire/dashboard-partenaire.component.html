@@ -1,0 +1,112 @@
+<div *ngIf="loading" class="loading-block">
+  <div class="spinner"></div>
+  <p>Chargement du tableau de bord…</p>
+</div>
+
+<div *ngIf="!loading && erreur" class="alert alert--error">
+  {{ erreur }}
+  <button type="button" class="btn btn--outline" style="margin-top:0.75rem" (click)="charger()">Réessayer</button>
+</div>
+
+<div *ngIf="!loading && data && !erreur" class="dashboard-page">
+  <header class="page-header-row">
+    <div>
+      <span class="page-label">Vue d'ensemble</span>
+      <h1 class="page-title">Bonjour {{ data.partenaireName }}.</h1>
+      <div class="hero-badges">
+        <span class="badge badge--green badge--pill" *ngIf="data.badgeActuel">{{ data.badgeActuel }}</span>
+        <span class="rating-pill" *ngIf="data.noteMoyenne">
+          ★ {{ data.noteMoyenne }} <span class="rating-count">({{ data.nombreAvis }} avis)</span>
+        </span>
+      </div>
+    </div>
+    <a routerLink="/recompenses" class="btn btn--outline btn--pill" target="_blank">Voir ma page publique →</a>
+  </header>
+
+  <div class="stats-grid stats-grid--8">
+    <div class="stat-card">
+      <span class="stat-value">{{ data.vuesProfilPublic ?? 0 | number }}</span>
+      <span class="stat-label">Vues profil public</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ data.clicsVersOffres ?? 0 | number }}</span>
+      <span class="stat-label">Clics vers offres</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ data.couponsDistribues | number }}</span>
+      <span class="stat-label">Coupons distribués</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ data.couponsUtilises | number }}</span>
+      <span class="stat-label">Coupons utilisés</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ data.tauxUtilisation }}%</span>
+      <span class="stat-label">Taux conversion</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ data.noteMoyenne ?? '—' }}</span>
+      <span class="stat-label">Note moyenne</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ data.nombreAvis ?? 0 }}</span>
+      <span class="stat-label">Nombre d'avis</span>
+    </div>
+    <div class="stat-card stat-card--highlight">
+      <span class="stat-value">{{ data.commissionsARegler | number:'1.0-0' }} €</span>
+      <span class="stat-label">Commissions à régler</span>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <section class="section-block">
+      <div class="section-head">
+        <h2 class="section-title">Offres actives</h2>
+        <a routerLink="/partenaire/offres" class="link-sm">Gérer →</a>
+      </div>
+      <div class="offres-mini" *ngIf="data.offresActives.length > 0">
+        <div class="offre-mini" *ngFor="let o of data.offresActives">
+          <img *ngIf="o.imageUrl" [src]="o.imageUrl" [alt]="o.title" class="offre-thumb" />
+          <div class="offre-thumb offre-thumb--placeholder" *ngIf="!o.imageUrl"></div>
+          <div class="offre-mini-body">
+            <strong>{{ o.title }}</strong>
+            <span class="offre-meta">{{ o.pointsNecessaires }} pts · stock {{ o.stock ?? '∞' }}</span>
+          </div>
+          <span class="badge badge--green">Active</span>
+        </div>
+      </div>
+      <p *ngIf="data.offresActives.length === 0" class="empty-hint">
+        Aucune offre active. <a routerLink="/partenaire/offres/nouvelle">Créer une offre</a>
+      </p>
+    </section>
+
+    <section class="section-block">
+      <h2 class="section-title">Échanges récents</h2>
+      <div class="card table-wrap" *ngIf="data.echangesRecents.length > 0">
+        <table class="data-table data-table--compact">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Coupon</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of data.echangesRecents">
+              <td>{{ formatDate(c.createdAt) }}</td>
+              <td><code>{{ c.code }}</code></td>
+              <td>
+                <span class="badge"
+                  [class.badge--green]="c.status === 'UTILISE'"
+                  [class.badge--orange]="c.status === 'DISTRIBUE'">
+                  {{ statutLabel(c.status) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p *ngIf="data.echangesRecents.length === 0" class="empty-hint">Aucun échange récent.</p>
+    </section>
+  </div>
+</div>

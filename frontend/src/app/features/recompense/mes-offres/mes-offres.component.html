@@ -1,0 +1,48 @@
+<div *ngIf="loading" class="loading-block">
+  <div class="spinner"></div>
+  <p>Chargement de vos offres…</p>
+</div>
+
+<div *ngIf="!loading">
+  <header class="page-header-row">
+    <div>
+      <span class="page-label">Catalogue</span>
+      <h1 class="page-title">Mes offres.</h1>
+    </div>
+    <a routerLink="/partenaire/offres/nouvelle" class="btn btn--primary">+ Nouvelle offre</a>
+  </header>
+
+  <div *ngIf="erreur" class="alert alert--error">{{ erreur }}</div>
+
+  <div class="offres-grid" *ngIf="offres.length > 0">
+    <article *ngFor="let o of offres" class="offre-card" [class.offre-card--inactive]="!o.isActive">
+      <img *ngIf="o.imageUrl" [src]="o.imageUrl" [alt]="o.title" class="offre-card__img" />
+      <div class="offre-card__img offre-card__img--ph" *ngIf="!o.imageUrl"></div>
+      <div class="offre-card__body">
+        <div class="offre-card__top">
+          <span class="offre-cat">{{ o.partenaireCategory || typeLabel(o.type) }}</span>
+          <label class="toggle">
+            <input type="checkbox" [checked]="o.isActive" [disabled]="desactivationId === o.id"
+              (change)="toggleActif(o)" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <h3 class="offre-title">{{ o.title }}</h3>
+        <div class="offre-stats">
+          <span><strong>{{ o.pointsNecessaires }}</strong> pts</span>
+          <span *ngIf="o.stock != null">{{ o.stock }} stock</span>
+          <span>{{ o.couponsUtilises ?? 0 }} utilisés</span>
+        </div>
+        <span class="badge badge--mystere" *ngIf="o.hasMystereBox">🎁 Boîte mystère</span>
+        <div class="offre-card__actions">
+          <a [routerLink]="['/partenaire/offres', o.id, 'modifier']" class="btn btn--outline btn--sm">Modifier</a>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div *ngIf="offres.length === 0 && !erreur" class="empty-state card">
+    <p>Aucune offre pour le moment.</p>
+    <a routerLink="/partenaire/offres/nouvelle" class="btn btn--primary">Créer ma première offre</a>
+  </div>
+</div>

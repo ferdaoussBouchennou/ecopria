@@ -1,3 +1,5 @@
+/** @deprecated Utiliser `../inscription.service` */
+export { InscriptionService } from '../inscription.service';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';

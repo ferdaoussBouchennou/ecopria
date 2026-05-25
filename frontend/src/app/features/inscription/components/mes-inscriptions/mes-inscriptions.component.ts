@@ -1,8 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { InscriptionService } from '../../services/inscription.service';
-import { InscriptionResponse } from '../../models/inscription.model';
+import { InscriptionService } from '../../inscription.service';
+import { PresenceService } from '../../../presence/presence.service';
+import { InscriptionResponse } from '../../../../core/models/inscription.model';
+import { ActionDTO } from '../../models/inscription.model';
+
+interface InscriptionCard extends InscriptionResponse {
+  actionTitre?: string;
+  qrCode?: string;
+}
 
 @Component({
   selector: 'app-mes-inscriptions',
@@ -13,15 +20,17 @@ import { InscriptionResponse } from '../../models/inscription.model';
 })
 export class MesInscriptionsComponent implements OnInit {
 
-  inscriptions: InscriptionResponse[] = [];
+  inscriptions: InscriptionCard[] = [];
   loading = true;
   erreurMessage = '';
   annulationEnCours: number | null = null;
 
-  // TODO: remplacer par votre AuthService quand l'auth sera branchee
   private readonly userId = 1;
 
-  constructor(private inscriptionService: InscriptionService) {}
+  constructor(
+    private inscriptionService: InscriptionService,
+    private presenceService: PresenceService
+  ) {}
 
   ngOnInit(): void {
     this.charger();
@@ -35,8 +44,11 @@ export class MesInscriptionsComponent implements OnInit {
       next: (list: InscriptionResponse[]) => {
         // Tri : CONFIRMEE d'abord, EN_ATTENTE ensuite, ANNULEE a la fin
         const ordre: Record<string, number> = { 'CONFIRMEE': 0, 'EN_ATTENTE': 1, 'ANNULEE': 2 };
-        this.inscriptions = list.sort((a, b) => ordre[a.statut] - ordre[b.statut]);
+        this.inscriptions = list
+          .sort((a, b) => ordre[a.statut] - ordre[b.statut])
+          .map((i) => ({ ...i }));
         this.loading = false;
+        this.enrichirCartes();
       },
       error: (err: Error) => {
         this.erreurMessage = err.message;
@@ -45,7 +57,24 @@ export class MesInscriptionsComponent implements OnInit {
     });
   }
 
-  annuler(insc: InscriptionResponse): void {
+  private enrichirCartes(): void {
+    this.inscriptions.forEach((insc, idx) => {
+      this.inscriptionService.getAction(insc.actionId).subscribe({
+        next: (action: ActionDTO) => {
+          this.inscriptions[idx] = { ...this.inscriptions[idx], actionTitre: action.titre };
+        }
+      });
+      if (insc.statut === 'CONFIRMEE') {
+        this.presenceService.getQrCodeParAction(insc.actionId).subscribe({
+          next: (qr) => {
+            this.inscriptions[idx] = { ...this.inscriptions[idx], qrCode: qr.qrCode };
+          }
+        });
+      }
+    });
+  }
+
+  annuler(insc: InscriptionCard): void {
     if (!confirm('Annuler cette inscription ? Cette action est irreversible.')) return;
 
     this.annulationEnCours = insc.id;
@@ -86,11 +115,11 @@ export class MesInscriptionsComponent implements OnInit {
     return labels[statut] ?? statut;
   }
 
-  get actives(): InscriptionResponse[] {
+  get actives(): InscriptionCard[] {
     return this.inscriptions.filter(i => i.statut !== 'ANNULEE');
   }
 
-  get annulees(): InscriptionResponse[] {
+  get annulees(): InscriptionCard[] {
     return this.inscriptions.filter(i => i.statut === 'ANNULEE');
   }
 

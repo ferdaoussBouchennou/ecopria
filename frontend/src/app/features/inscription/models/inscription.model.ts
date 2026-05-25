@@ -14,6 +14,7 @@ export interface InscriptionResponse {
   statut: 'CONFIRMEE' | 'EN_ATTENTE' | 'ANNULEE';
   pointsAction: number;
 }
+export type { InscriptionRequest, InscriptionResponse } from '../../../core/models/inscription.model';
 
 /** Mappé depuis ActionDetailDTO (service-action) */
 export interface ActionDTO {

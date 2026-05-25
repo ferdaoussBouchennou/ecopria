@@ -191,7 +191,7 @@ export class DetailActionComponent implements OnInit {
 
   participate(): void {
     if (this.action && !this.isFull()) {
-      this.router.navigate(['/inscription', this.action.id]);
+      this.router.navigate(['/participer', this.action.id]);
     }
   }
 

@@ -42,4 +42,13 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
 
     // vérifier si un utilisateur a déjà échangé cette récompense
     boolean existsByUserIdAndRecompenseId(Long userId, Long recompenseId);
+
+    Long countByRecompenseId(Long recompenseId);
+
+    Long countByRecompenseIdAndStatus(Long recompenseId, CouponStatus status);
+
+    @Query("SELECT c FROM Coupon c WHERE c.recompense.partenaire.id = :partenaireId " +
+           "ORDER BY c.createdAt DESC")
+    List<Coupon> findRecentByPartenaire(@Param("partenaireId") Long partenaireId,
+                                        org.springframework.data.domain.Pageable pageable);
 }

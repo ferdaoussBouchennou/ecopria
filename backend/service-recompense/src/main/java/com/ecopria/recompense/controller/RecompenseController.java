@@ -64,4 +64,15 @@ public class RecompenseController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(recompenseService.ouvrirMystereBox(id, userId));
     }
+
+    @PostMapping("/{id}/clic")
+    public ResponseEntity<Void> enregistrerClic(@PathVariable Long id) {
+        recompenseService.enregistrerClicOffre(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/public/partenaire/{userId}")
+    public ResponseEntity<PartenaireProfilDTO> getProfilPublic(@PathVariable Long userId) {
+        return ResponseEntity.ok(recompenseService.getProfilPublic(userId));
+    }
 }

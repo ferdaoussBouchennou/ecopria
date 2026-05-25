@@ -1,0 +1,118 @@
+<div *ngIf="loading" class="page-loading">
+  <div class="spinner"></div>
+  <p>Chargement de vos QR codes...</p>
+</div>
+
+<div *ngIf="!loading && erreurMessage" class="error-state">
+  <div class="error-icon">⚠</div>
+  <p>{{ erreurMessage }}</p>
+  <button class="btn btn--primary" (click)="charger()">Réessayer</button>
+</div>
+
+<div *ngIf="!loading && !erreurMessage" class="mes-qrcodes-page">
+
+  <header class="page-header">
+    <div class="header-top">
+      <div>
+        <span class="page-label">Mon espace</span>
+        <h1 class="page-title">Mes QR codes</h1>
+        <p class="page-sub">Présentez le code de l'action le jour J pour valider votre présence et gagner vos points.</p>
+      </div>
+      <a routerLink="/mes-inscriptions" class="btn btn--secondary">Mes inscriptions</a>
+    </div>
+
+    <div class="security-banner">
+      <span class="security-icon">🔐</span>
+      <div>
+        <strong>QR codes sécurisés HMAC SHA-256</strong>
+        <span>Un code unique par action, généré par service-presence après confirmation d'inscription.</span>
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="items.length === 0" class="empty-state">
+    <div class="empty-icon">🎟</div>
+    <h2>Aucun QR code pour le moment</h2>
+    <p>Inscrivez-vous à une action confirmée pour obtenir votre code d'accès.</p>
+    <a routerLink="/actions" class="btn btn--primary">Découvrir les actions</a>
+  </div>
+
+  <section *ngIf="activeItems.length > 0">
+    <h2 class="section-heading">
+      <span class="section-dot"></span>
+      QR codes actifs
+      <span class="section-count">{{ activeItems.length }}</span>
+    </h2>
+
+    <div class="qr-grid">
+      <div *ngFor="let item of activeItems" class="qr-card">
+
+        <div class="qr-card__action">
+          <div class="action-loading" *ngIf="item.loadingAction">
+            <div class="spinner spinner--sm"></div>
+          </div>
+          <ng-container *ngIf="!item.loadingAction && item.action">
+            <span class="action-category">{{ item.action.categorie }}</span>
+            <h3 class="action-title">{{ item.action.titre }}</h3>
+            <div class="action-meta" *ngIf="!item.action.isFixed">
+              <span class="meta-item">📍 {{ item.action.lieu }}, {{ item.action.ville }}</span>
+              <span class="meta-item">📅 {{ formatDate(item.action.dateAction) }}</span>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="!item.loadingAction && !item.action">
+            <span class="action-category">Action #{{ item.inscription.actionId }}</span>
+          </ng-container>
+        </div>
+
+        <div class="qr-visual">
+          <div class="qr-frame">
+            <div class="qr-grid-visual">
+              <ng-container *ngFor="let _ of [].constructor(64); let i = index">
+                <div class="qr-cell"
+                     [class.qr-cell--dark]="item.token.charCodeAt(i % item.token.length) % 2 === 0">
+                </div>
+              </ng-container>
+            </div>
+          </div>
+          <div class="qr-token">
+            <span class="token-label">TOKEN D'ACCÈS</span>
+            <span class="token-value">{{ item.token | slice:0:28 }}…</span>
+          </div>
+        </div>
+
+        <div class="qr-card__info">
+          <div class="info-row">
+            <span class="info-label">Inscription</span>
+            <span class="info-value">#{{ item.inscription.id }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Expire</span>
+            <span class="info-value">{{ formatExpiry() }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Statut</span>
+            <span class="badge badge--green">✓ Actif</span>
+          </div>
+        </div>
+
+        <div class="points-bar" *ngIf="item.action">
+          <span class="points-label">Points à gagner</span>
+          <span class="points-value">+{{ item.action.points }} pts</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section *ngIf="pendingItems.length > 0" class="section-archive">
+    <h2 class="section-heading section-heading--muted">En attente de génération</h2>
+    <div class="archive-list">
+      <div *ngFor="let item of pendingItems" class="archive-card">
+        <div class="archive-info">
+          <span class="archive-title">Action #{{ item.inscription.actionId }}</span>
+          <span class="archive-sub">{{ item.qrError || 'Démarrez Kafka + service-presence pour générer le QR.' }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>

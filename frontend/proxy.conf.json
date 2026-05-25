@@ -7,8 +7,31 @@
       "^/api/inscriptions": "/inscriptions"
     }
   },
-  "/api": {
+  "/api/presences": {
+    "target": "http://localhost:8085",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/presences": "/presences"
+    }
+  },
+  "/api/actions": {
     "target": "http://localhost:9090",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/api/recompenses": {
+    "target": "http://localhost:9093",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/api/partenaire": {
+    "target": "http://localhost:9093",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/api": {
+    "target": "http://localhost:8080",
     "secure": false,
     "changeOrigin": true
   }

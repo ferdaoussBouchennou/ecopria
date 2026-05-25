@@ -11,6 +11,7 @@ import com.ecopria.recompense.model.Recompense.RecompenseType;
 import com.ecopria.recompense.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ public class RecompenseService {
     private final CouponRepository couponRepository;
     private final CommissionRepository commissionRepository;
     private final MystereBoxItemRepository mystereBoxItemRepository;
+    private final AvisPartenaireRepository avisPartenaireRepository;
     private final UtilisateurClient utilisateurClient;
     private final RecompenseProducer recompenseProducer;
     private final CodeCouponGenerator codeGenerator;
@@ -160,20 +162,122 @@ public class RecompenseService {
                 .findByPartenaireIdAndIsActiveTrue(partenaire.getId())
                 .stream().map(this::toDTO).collect(Collectors.toList());
 
-        // échanges récents
         List<CouponDTO> recents = couponRepository
-                .findValidatedTodayByPartenaire(partenaire.getId())
+                .findRecentByPartenaire(partenaire.getId(), PageRequest.of(0, 8))
                 .stream().map(this::toCouponDTO).collect(Collectors.toList());
+
+        Double noteMoyenne = avisPartenaireRepository.averageRatingByPartenaire(partenaire.getId());
+        Long nombreAvis = avisPartenaireRepository.countByPartenaireId(partenaire.getId());
 
         return DashboardPartenaireDTO.builder()
                 .partenaireName(partenaire.getName())
+                .vuesProfilPublic(partenaire.getVuesProfil())
+                .clicsVersOffres(partenaire.getClicsOffres())
                 .couponsDistribues(distribues)
                 .couponsUtilises(utilises)
                 .tauxUtilisation(Math.round(taux * 100.0) / 100.0)
+                .noteMoyenne(noteMoyenne != null ? Math.round(noteMoyenne * 10.0) / 10.0 : null)
+                .nombreAvis(nombreAvis)
                 .commissionsARegler(commissions != null ? commissions : 0.0)
+                .badgeActuel(computeBadgeActuel(utilises))
                 .offresActives(offres)
                 .echangesRecents(recents)
                 .build();
+    }
+
+    // ─── PROFIL PUBLIC PARTENAIRE ────────────────────────────
+
+    @Transactional(readOnly = true)
+    public PartenaireProfilDTO getProfil(Long userId) {
+        return toProfilDTO(getPartenaireByUserId(userId));
+    }
+
+    @Transactional
+    public PartenaireProfilDTO updateProfil(Long userId, UpdatePartenaireProfilDTO dto) {
+        Partenaire p = getPartenaireByUserId(userId);
+        if (dto.getName() != null) p.setName(dto.getName());
+        if (dto.getCategory() != null) p.setCategory(dto.getCategory());
+        if (dto.getAddress() != null) p.setAddress(dto.getAddress());
+        if (dto.getCity() != null) p.setCity(dto.getCity());
+        if (dto.getDescription() != null) p.setDescription(dto.getDescription());
+        if (dto.getImageUrl() != null) p.setImageUrl(dto.getImageUrl());
+        return toProfilDTO(partenaireRepository.save(p));
+    }
+
+    @Transactional
+    public PartenaireProfilDTO getProfilPublic(Long partenaireUserId) {
+        Partenaire p = getPartenaireByUserId(partenaireUserId);
+        p.setVuesProfil(p.getVuesProfil() + 1);
+        partenaireRepository.save(p);
+        return toProfilDTO(p);
+    }
+
+    // ─── VISIBILITÉ & AVIS ───────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public VisibiliteDTO getVisibilite(Long userId) {
+        Partenaire p = getPartenaireByUserId(userId);
+        Long distribues = couponRepository.countByRecompensePartenaireId(p.getId());
+        Long utilises = couponRepository.countByRecompensePartenaireIdAndStatus(
+                p.getId(), Coupon.CouponStatus.UTILISE);
+        double tauxConv = distribues > 0 ? (double) utilises / distribues * 100 : 0;
+        double tauxClic = p.getVuesProfil() > 0
+                ? (double) p.getClicsOffres() / p.getVuesProfil() * 100 : 0;
+        Double note = avisPartenaireRepository.averageRatingByPartenaire(p.getId());
+        Long nbAvis = avisPartenaireRepository.countByPartenaireId(p.getId());
+
+        return VisibiliteDTO.builder()
+                .vuesProfil(p.getVuesProfil())
+                .clicsOffres(p.getClicsOffres())
+                .tauxClic(Math.round(tauxClic * 10.0) / 10.0)
+                .noteMoyenne(note != null ? Math.round(note * 10.0) / 10.0 : null)
+                .nombreAvis(nbAvis)
+                .couponsDistribues(distribues)
+                .couponsUtilises(utilises)
+                .tauxConversion(Math.round(tauxConv * 100.0) / 100.0)
+                .badgeActuel(computeBadgeActuel(utilises))
+                .progressionBadges(buildBadgeProgression(utilises))
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AvisDTO> getAvis(Long userId) {
+        Partenaire p = getPartenaireByUserId(userId);
+        return avisPartenaireRepository.findByPartenaireIdOrderByCreatedAtDesc(p.getId())
+                .stream().map(this::toAvisDTO).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public AvisDTO repondreAvis(Long userId, Long avisId, RepondreAvisDTO dto) {
+        Partenaire p = getPartenaireByUserId(userId);
+        AvisPartenaire avis = avisPartenaireRepository.findById(avisId)
+                .orElseThrow(() -> new RuntimeException("Avis non trouvé"));
+        if (!avis.getPartenaire().getId().equals(p.getId())) {
+            throw new RuntimeException("Cet avis ne vous appartient pas");
+        }
+        avis.setReponse(dto.getReponse());
+        return toAvisDTO(avisPartenaireRepository.save(avis));
+    }
+
+    @Transactional
+    public void enregistrerClicOffre(Long recompenseId) {
+        Recompense r = recompenseRepository.findById(recompenseId)
+                .orElseThrow(() -> new RuntimeException("Récompense non trouvée"));
+        Partenaire p = r.getPartenaire();
+        p.setClicsOffres(p.getClicsOffres() + 1);
+        partenaireRepository.save(p);
+    }
+
+    @Transactional
+    public RecompenseDTO toggleOffreActive(Long recompenseId, Long userId) {
+        Partenaire partenaire = getPartenaireByUserId(userId);
+        Recompense recompense = recompenseRepository.findById(recompenseId)
+                .orElseThrow(() -> new RuntimeException("Récompense non trouvée"));
+        if (!recompense.getPartenaire().getId().equals(partenaire.getId())) {
+            throw new RuntimeException("Vous n'êtes pas le propriétaire de cette offre");
+        }
+        recompense.setIsActive(!Boolean.TRUE.equals(recompense.getIsActive()));
+        return toDTO(recompenseRepository.save(recompense));
     }
 
     // ─── MES OFFRES PARTENAIRE ────────────────────────────────
@@ -510,6 +614,58 @@ public class RecompenseService {
                 .hasMystereBox(r.getHasMystereBox())
                 .mystereBoxPoints(r.getMystereBoxPoints())
                 .mystereBoxItems(boxItems)
+                .couponsUtilises(couponRepository.countByRecompenseIdAndStatus(
+                        r.getId(), Coupon.CouponStatus.UTILISE))
+                .couponsDistribues(couponRepository.countByRecompenseId(r.getId()))
+                .build();
+    }
+
+    private PartenaireProfilDTO toProfilDTO(Partenaire p) {
+        return PartenaireProfilDTO.builder()
+                .userId(p.getUserId())
+                .name(p.getName())
+                .category(p.getCategory())
+                .address(p.getAddress())
+                .city(p.getCity())
+                .description(p.getDescription())
+                .imageUrl(p.getImageUrl())
+                .build();
+    }
+
+    private AvisDTO toAvisDTO(AvisPartenaire a) {
+        return AvisDTO.builder()
+                .id(a.getId())
+                .authorName(a.getAuthorName())
+                .rating(a.getRating())
+                .comment(a.getComment())
+                .reponse(a.getReponse())
+                .createdAt(a.getCreatedAt())
+                .build();
+    }
+
+    private String computeBadgeActuel(long couponsUtilises) {
+        if (couponsUtilises >= 500) return "Ambassadeur Ecopria";
+        if (couponsUtilises >= 200) return "Partenaire engagé";
+        if (couponsUtilises >= 50) return "Nouveau";
+        return "Découverte";
+    }
+
+    private List<BadgeProgressionDTO> buildBadgeProgression(long actuel) {
+        List<BadgeProgressionDTO> list = new ArrayList<>();
+        list.add(badgeTier("Nouveau", 50, actuel));
+        list.add(badgeTier("Partenaire engagé", 200, actuel));
+        list.add(badgeTier("Ambassadeur Ecopria", 500, actuel));
+        return list;
+    }
+
+    private BadgeProgressionDTO badgeTier(String nom, int seuil, long actuel) {
+        int pct = (int) Math.min(100, actuel * 100 / seuil);
+        return BadgeProgressionDTO.builder()
+                .nom(nom)
+                .seuil(seuil)
+                .actuel(actuel)
+                .pourcentage(pct)
+                .atteint(actuel >= seuil)
                 .build();
     }
 

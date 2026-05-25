@@ -1,0 +1,35 @@
+<div *ngIf="loading" class="loading-block"><div class="spinner"></div></div>
+
+<div *ngIf="!loading" class="avis-page">
+  <header>
+    <span class="page-label">Relation client</span>
+    <h1 class="page-title">Avis clients.</h1>
+    <p class="page-sub" *ngIf="moyenne() as m">
+      Note moyenne ★ {{ m }} — {{ avis.length }} avis reçus.
+    </p>
+  </header>
+
+  <div *ngIf="erreur" class="alert alert--error">{{ erreur }}</div>
+
+  <div class="avis-list" *ngIf="avis.length > 0">
+    <article class="card avis-card" *ngFor="let a of avis">
+      <div class="avis-head">
+        <strong>{{ a.authorName }}</strong>
+        <span class="avis-stars">{{ '★'.repeat(a.rating) }}</span>
+        <span class="avis-date">{{ formatDate(a.createdAt) }}</span>
+      </div>
+      <p class="avis-comment" *ngIf="a.comment">{{ a.comment }}</p>
+      <p class="avis-reponse" *ngIf="a.reponse"><em>Votre réponse :</em> {{ a.reponse }}</p>
+      <div class="avis-reply-form">
+        <textarea rows="2" [(ngModel)]="reponseDraft[a.id]" placeholder="Répondre à cet avis…"></textarea>
+        <button type="button" class="btn btn--primary btn--sm"
+          [disabled]="savingId === a.id"
+          (click)="publierReponse(a)">
+          {{ savingId === a.id ? '…' : 'Publier la réponse' }}
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <p *ngIf="avis.length === 0 && !erreur" class="empty-hint">Aucun avis pour le moment.</p>
+</div>

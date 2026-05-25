@@ -1,0 +1,134 @@
+@import '../partenaire-shared';
+
+.form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ec-text-muted);
+  }
+
+  input, select, textarea {
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--ec-border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: var(--ec-cream);
+  }
+
+  textarea { resize: vertical; }
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--ec-text-muted);
+}
+
+.mystere-section {
+  border-color: #e9d5ff;
+  background: linear-gradient(135deg, #faf5ff 0%, var(--ec-card) 40%);
+}
+
+.mystere-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.mystere-desc {
+  font-size: 0.85rem;
+  color: var(--ec-text-soft);
+  margin: 0.35rem 0 0;
+  max-width: 480px;
+  line-height: 1.5;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mystere-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--ec-border);
+}
+
+.proba-bar {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: #fef3c7;
+  color: #92400e;
+
+  &--ok {
+    background: var(--ec-mint);
+    color: var(--ec-sage-dark);
+  }
+
+  &--err {
+    background: #fdf0ee;
+    color: #c0392b;
+  }
+}
+
+.mystere-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mystere-item {
+  background: var(--ec-cream);
+}
+
+.mystere-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+  .field-row { grid-template-columns: 1fr; }
+}

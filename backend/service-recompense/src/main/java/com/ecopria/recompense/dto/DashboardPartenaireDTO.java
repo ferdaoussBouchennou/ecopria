@@ -10,10 +10,15 @@ import java.util.List;
 @Builder
 public class DashboardPartenaireDTO {
     private String partenaireName;
+    private Long vuesProfilPublic;
+    private Long clicsVersOffres;
     private Long couponsDistribues;
     private Long couponsUtilises;
-    private Double tauxUtilisation; // calculé
-    private Double commissionsARegler; // mois en cours
+    private Double tauxUtilisation;
+    private Double noteMoyenne;
+    private Long nombreAvis;
+    private Double commissionsARegler;
+    private String badgeActuel;
     private List<RecompenseDTO> offresActives;
     private List<CouponDTO> echangesRecents;
 }
