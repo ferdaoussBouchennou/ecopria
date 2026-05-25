@@ -111,23 +111,19 @@ export class AssociationService {
 
 // DTOs
 export interface CreateActionDTO {
-  titre: string;
+  title: string;  // Changed from 'titre'
   description: string;
   categoryId: number;
   dateStart: string;
   dateEnd: string;
   address: string;
   city: string;
-  postalCode?: string;
-  latitude?: number;
-  longitude?: number;
+  latitude: number;  // Made required (not optional)
+  longitude: number;  // Made required (not optional)
   maxParticipants: number;
   points: number;
   program?: string[];
   practicalInfos?: string[];
-  photoUrls?: string[];
-  isFixed: boolean;
-  statut: 'DRAFT' | 'PUBLISHED';
 }
 
 export interface UpdateActionDTO extends Partial<CreateActionDTO> {}

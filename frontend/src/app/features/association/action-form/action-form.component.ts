@@ -318,44 +318,46 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
     const program = formValue.program.filter((item: string) => item.trim() !== '');
     const practicalInfos = formValue.practicalInfos.filter((info: string) => info.trim() !== '');
 
+    // Validation: latitude et longitude sont obligatoires
+    if (!formValue.latitude || !formValue.longitude) {
+      this.error = 'Veuillez définir la position sur la carte';
+      this.submitting = false;
+      return;
+    }
+
     const actionData: CreateActionDTO = {
-      titre: formValue.titre,
+      title: formValue.titre,  // Changed from 'titre' to 'title'
       description: formValue.description,
       categoryId: formValue.categoryId,
       dateStart: new Date(formValue.dateStart).toISOString(),
       dateEnd: new Date(formValue.dateEnd).toISOString(),
       address: formValue.address,
       city: formValue.city,
-      postalCode: formValue.postalCode || undefined,
-      latitude: formValue.latitude || undefined,
-      longitude: formValue.longitude || undefined,
+      latitude: formValue.latitude,  // Now required
+      longitude: formValue.longitude,  // Now required
       maxParticipants: formValue.maxParticipants,
       points: formValue.points,
       program: program.length > 0 ? program : undefined,
-      practicalInfos: practicalInfos.length > 0 ? practicalInfos : undefined,
-      isFixed: false,
-      statut: publier ? 'PUBLISHED' : 'DRAFT'
+      practicalInfos: practicalInfos.length > 0 ? practicalInfos : undefined
     };
 
     if (this.isEditMode && this.actionId) {
       this.associationService.modifierAction(this.actionId, actionData).subscribe({
         next: (action) => {
-          // Upload photo if exists
-          if (this.uploadedPhoto) {
-            this.uploadPhoto(action.id).subscribe({
+          // Si on veut publier, appeler l'endpoint publier
+          if (publier && action.status !== 'PUBLISHED') {
+            this.associationService.publierAction(action.id).subscribe({
               next: () => {
-                alert(publier ? 'Action publiée avec succès !' : 'Action modifiée avec succès !');
-                this.router.navigate(['/association/mes-actions']);
+                this.handlePhotoUploadAndRedirect(action.id, true);
               },
               error: (err) => {
-                console.error('Erreur upload photo:', err);
-                alert('Action modifiée mais erreur lors de l\'upload de la photo');
-                this.router.navigate(['/association/mes-actions']);
+                console.error('Erreur publication:', err);
+                this.error = 'Action modifiée mais erreur lors de la publication';
+                this.submitting = false;
               }
             });
           } else {
-            alert(publier ? 'Action publiée avec succès !' : 'Action modifiée avec succès !');
-            this.router.navigate(['/association/mes-actions']);
+            this.handlePhotoUploadAndRedirect(action.id, publier);
           }
         },
         error: (err) => {
@@ -367,22 +369,20 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
     } else {
       this.associationService.creerAction(actionData).subscribe({
         next: (action) => {
-          // Upload photo if exists
-          if (this.uploadedPhoto) {
-            this.uploadPhoto(action.id).subscribe({
+          // Si on veut publier, appeler l'endpoint publier
+          if (publier) {
+            this.associationService.publierAction(action.id).subscribe({
               next: () => {
-                alert(publier ? 'Action créée et publiée !' : 'Action enregistrée en brouillon !');
-                this.router.navigate(['/association/mes-actions']);
+                this.handlePhotoUploadAndRedirect(action.id, true);
               },
               error: (err) => {
-                console.error('Erreur upload photo:', err);
-                alert('Action créée mais erreur lors de l\'upload de la photo');
-                this.router.navigate(['/association/mes-actions']);
+                console.error('Erreur publication:', err);
+                this.error = 'Action créée mais erreur lors de la publication';
+                this.submitting = false;
               }
             });
           } else {
-            alert(publier ? 'Action créée et publiée !' : 'Action enregistrée en brouillon !');
-            this.router.navigate(['/association/mes-actions']);
+            this.handlePhotoUploadAndRedirect(action.id, false);
           }
         },
         error: (err) => {
@@ -391,6 +391,34 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
           this.submitting = false;
         }
       });
+    }
+  }
+
+  private handlePhotoUploadAndRedirect(actionId: number, wasPublished: boolean): void {
+    if (this.uploadedPhoto) {
+      this.uploadPhoto(actionId).subscribe({
+        next: () => {
+          const message = wasPublished ? 
+            (this.isEditMode ? 'Action publiée avec succès !' : 'Action créée et publiée !') :
+            (this.isEditMode ? 'Action modifiée avec succès !' : 'Action enregistrée en brouillon !');
+          alert(message);
+          this.router.navigate(['/association/mes-actions']);
+        },
+        error: (err) => {
+          console.error('Erreur upload photo:', err);
+          const message = this.isEditMode ? 
+            'Action modifiée mais erreur lors de l\'upload de la photo' :
+            'Action créée mais erreur lors de l\'upload de la photo';
+          alert(message);
+          this.router.navigate(['/association/mes-actions']);
+        }
+      });
+    } else {
+      const message = wasPublished ? 
+        (this.isEditMode ? 'Action publiée avec succès !' : 'Action créée et publiée !') :
+        (this.isEditMode ? 'Action modifiée avec succès !' : 'Action enregistrée en brouillon !');
+      alert(message);
+      this.router.navigate(['/association/mes-actions']);
     }
   }
 
