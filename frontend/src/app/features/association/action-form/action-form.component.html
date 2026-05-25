@@ -1,0 +1,346 @@
+<div class="form-page">
+  <header class="page-header">
+    <button type="button" class="btn-back" (click)="annuler()">
+      ← Retour à mes actions
+    </button>
+    <div class="header-content">
+      <p class="header-label">ESPACE ASSOCIATION</p>
+      <h1 class="header-title">
+        {{ isEditMode ? 'Modifier l\'action' : 'Créer une action' }}
+      </h1>
+    </div>
+  </header>
+
+  @if (loading) {
+    <div class="state-box">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Chargement…</p>
+    </div>
+  }
+
+  @if (error && !submitting) {
+    <div class="alert alert-error">
+      {{ error }}
+    </div>
+  }
+
+  @if (!loading) {
+    <form [formGroup]="actionForm" (ngSubmit)="publier()" class="action-form">
+      <!-- Informations de base -->
+      <section class="form-section">
+        <h2 class="section-title">Informations de base</h2>
+
+        <div class="form-group">
+          <label for="titre" class="form-label">
+            Titre de l'action <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="titre"
+            formControlName="titre"
+            class="form-input"
+            [class.invalid]="isFieldInvalid('titre')"
+            placeholder="Ex: Nettoyage de la plage"
+          />
+          @if (isFieldInvalid('titre')) {
+            <span class="error-message">{{ getFieldError('titre') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="description" class="form-label">
+            Description <span class="required">*</span>
+          </label>
+          <textarea
+            id="description"
+            formControlName="description"
+            class="form-textarea"
+            [class.invalid]="isFieldInvalid('description')"
+            rows="5"
+            placeholder="Décrivez l'action en détail..."
+          ></textarea>
+          @if (isFieldInvalid('description')) {
+            <span class="error-message">{{ getFieldError('description') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="categoryId" class="form-label">
+            Catégorie <span class="required">*</span>
+          </label>
+          <select
+            id="categoryId"
+            formControlName="categoryId"
+            class="form-select"
+            [class.invalid]="isFieldInvalid('categoryId')"
+          >
+            <option [value]="null">Sélectionnez une catégorie</option>
+            @for (category of categories; track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+          @if (isFieldInvalid('categoryId')) {
+            <span class="error-message">{{ getFieldError('categoryId') }}</span>
+          }
+        </div>
+      </section>
+
+      <!-- Date et horaires -->
+      <section class="form-section">
+        <h2 class="section-title">Date et horaires</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dateStart" class="form-label">
+              Date et heure de début <span class="required">*</span>
+            </label>
+            <input
+              type="datetime-local"
+              id="dateStart"
+              formControlName="dateStart"
+              class="form-input"
+              [class.invalid]="isFieldInvalid('dateStart')"
+            />
+            @if (isFieldInvalid('dateStart')) {
+              <span class="error-message">{{ getFieldError('dateStart') }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="dateEnd" class="form-label">
+              Date et heure de fin <span class="required">*</span>
+            </label>
+            <input
+              type="datetime-local"
+              id="dateEnd"
+              formControlName="dateEnd"
+              class="form-input"
+              [class.invalid]="isFieldInvalid('dateEnd')"
+            />
+            @if (isFieldInvalid('dateEnd')) {
+              <span class="error-message">{{ getFieldError('dateEnd') }}</span>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- Localisation -->
+      <section class="form-section">
+        <h2 class="section-title">Localisation</h2>
+
+        <div class="form-group">
+          <label for="address" class="form-label">
+            Adresse <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="address"
+            formControlName="address"
+            class="form-input"
+            [class.invalid]="isFieldInvalid('address')"
+            placeholder="Ex: 123 Rue de la Plage"
+          />
+          @if (isFieldInvalid('address')) {
+            <span class="error-message">{{ getFieldError('address') }}</span>
+          }
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city" class="form-label">
+              Ville <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="city"
+              formControlName="city"
+              class="form-input"
+              [class.invalid]="isFieldInvalid('city')"
+              placeholder="Ex: Nice"
+            />
+            @if (isFieldInvalid('city')) {
+              <span class="error-message">{{ getFieldError('city') }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="postalCode" class="form-label">
+              Code postal
+            </label>
+            <input
+              type="text"
+              id="postalCode"
+              formControlName="postalCode"
+              class="form-input"
+              placeholder="Ex: 06000"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="latitude" class="form-label">
+              Latitude
+            </label>
+            <input
+              type="number"
+              id="latitude"
+              formControlName="latitude"
+              class="form-input"
+              step="0.000001"
+              placeholder="Ex: 43.7102"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="longitude" class="form-label">
+              Longitude
+            </label>
+            <input
+              type="number"
+              id="longitude"
+              formControlName="longitude"
+              class="form-input"
+              step="0.000001"
+              placeholder="Ex: 7.2620"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- Participants et points -->
+      <section class="form-section">
+        <h2 class="section-title">Participants et récompenses</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="maxParticipants" class="form-label">
+              Nombre maximum de participants <span class="required">*</span>
+            </label>
+            <input
+              type="number"
+              id="maxParticipants"
+              formControlName="maxParticipants"
+              class="form-input"
+              [class.invalid]="isFieldInvalid('maxParticipants')"
+              min="1"
+            />
+            @if (isFieldInvalid('maxParticipants')) {
+              <span class="error-message">{{ getFieldError('maxParticipants') }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="points" class="form-label">
+              Points attribués <span class="required">*</span>
+            </label>
+            <input
+              type="number"
+              id="points"
+              formControlName="points"
+              class="form-input"
+              [class.invalid]="isFieldInvalid('points')"
+              min="1"
+            />
+            @if (isFieldInvalid('points')) {
+              <span class="error-message">{{ getFieldError('points') }}</span>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- Programme -->
+      <section class="form-section">
+        <h2 class="section-title">Programme (optionnel)</h2>
+        <p class="section-description">
+          Ajoutez les différentes étapes ou activités de l'action
+        </p>
+
+        <div formArrayName="program" class="dynamic-list">
+          @for (item of programArray.controls; track $index) {
+            <div class="dynamic-item">
+              <input
+                type="text"
+                [formControlName]="$index"
+                class="form-input"
+                placeholder="Ex: 9h00 - Accueil des participants"
+              />
+              <button
+                type="button"
+                class="btn-remove"
+                (click)="removeProgramItem($index)"
+                aria-label="Supprimer"
+              >
+                ✕
+              </button>
+            </div>
+          }
+        </div>
+
+        <button type="button" class="btn-add" (click)="addProgramItem()">
+          + Ajouter une étape
+        </button>
+      </section>
+
+      <!-- Informations pratiques -->
+      <section class="form-section">
+        <h2 class="section-title">Informations pratiques (optionnel)</h2>
+        <p class="section-description">
+          Ajoutez des informations utiles pour les participants
+        </p>
+
+        <div formArrayName="practicalInfos" class="dynamic-list">
+          @for (info of practicalInfosArray.controls; track $index) {
+            <div class="dynamic-item">
+              <input
+                type="text"
+                [formControlName]="$index"
+                class="form-input"
+                placeholder="Ex: Prévoir des gants et des sacs"
+              />
+              <button
+                type="button"
+                class="btn-remove"
+                (click)="removePracticalInfo($index)"
+                aria-label="Supprimer"
+              >
+                ✕
+              </button>
+            </div>
+          }
+        </div>
+
+        <button type="button" class="btn-add" (click)="addPracticalInfo()">
+          + Ajouter une information
+        </button>
+      </section>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="annuler()"
+          [disabled]="submitting"
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          class="btn-outline"
+          (click)="enregistrerBrouillon()"
+          [disabled]="submitting"
+        >
+          {{ submitting ? 'Enregistrement...' : 'Enregistrer en brouillon' }}
+        </button>
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="submitting"
+        >
+          {{ submitting ? 'Publication...' : (isEditMode ? 'Publier les modifications' : 'Publier l\'action') }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

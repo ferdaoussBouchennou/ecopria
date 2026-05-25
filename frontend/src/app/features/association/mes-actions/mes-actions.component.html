@@ -1,0 +1,123 @@
+<div class="mes-actions-page">
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="content-header">
+      <div class="header-top">
+        <p class="header-breadcrumb">vue d'ensemble</p>
+      </div>
+      <h1 class="content-title">Bonjour {{ getAssociationName() }}.</h1>
+    </header>
+
+    @if (loading) {
+      <div class="state-box">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Chargement de vos actions…</p>
+      </div>
+    }
+
+    @if (error) {
+      <div class="state-box state-error">
+        <p>{{ error }}</p>
+        <button type="button" class="btn-retry" (click)="loadActions()">Réessayer</button>
+      </div>
+    }
+
+    @if (!loading && !error) {
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">{{ actionsPubliees.length }}</div>
+          <div class="stat-label">actions à venir</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ getTotalInscrits() }}</div>
+          <div class="stat-label">inscrits ce mois</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ getPresenceRate() }}%</div>
+          <div class="stat-label">taux de présence</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ getTotalPoints() }}</div>
+          <div class="stat-label">points distribués</div>
+        </div>
+      </div>
+
+      <!-- Actions Section -->
+      <section class="actions-section">
+        <div class="section-header">
+          <h2 class="section-title">Actions à venir</h2>
+          <button type="button" class="btn-create" (click)="creerAction()">
+            Créer une action
+          </button>
+        </div>
+
+        @if (actionsPubliees.length === 0) {
+          <div class="empty-state">
+            <p>Vous n'avez pas encore d'actions publiées.</p>
+            <button type="button" class="btn-create" (click)="creerAction()">
+              Créer votre première action
+            </button>
+          </div>
+        }
+
+        <div class="actions-list">
+          @for (action of actionsPubliees; track action.id) {
+            <article class="action-item" (click)="voirDetails(action.id)">
+              <div class="action-image">
+                <img [src]="getActionImage(action)" [alt]="action.title" />
+              </div>
+              
+              <div class="action-content">
+                <div class="action-header">
+                  <span class="action-category">{{ action.categoryName }}</span>
+                  <span class="action-status" [class]="getStatutClass(action)">
+                    {{ getStatutLabel(action) }}
+                  </span>
+                </div>
+                
+                <h3 class="action-title">{{ action.title }}</h3>
+                
+                <div class="action-meta">
+                  <span class="meta-date">{{ formatDate(action.dateStart) }}</span>
+                  <span class="meta-separator">•</span>
+                  <span class="meta-location">{{ action.city }}</span>
+                  <span class="meta-separator">•</span>
+                  <span class="meta-points">{{ action.points }} points</span>
+                </div>
+              </div>
+
+              <div class="action-aside">
+                <div class="action-participants">
+                  <div class="participants-count">{{ action.registeredCount }}/{{ action.maxParticipants }}</div>
+                  <div class="participants-label">Inscrits</div>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+
+      <!-- Brouillons Section -->
+      @if (brouillons.length > 0) {
+        <section class="drafts-section">
+          <h2 class="section-title">Brouillons</h2>
+          <div class="drafts-list">
+            @for (brouillon of brouillons; track brouillon.id) {
+              <div class="draft-item" (click)="modifierAction(brouillon.id)">
+                <div class="draft-content">
+                  <span class="draft-badge">Brouillon</span>
+                  <h4 class="draft-title">{{ brouillon.title }}</h4>
+                  <p class="draft-date">{{ formatDate(brouillon.dateStart) }}</p>
+                </div>
+                <button type="button" class="btn-publish-small" (click)="publierBrouillon(brouillon.id); $event.stopPropagation()">
+                  Publier
+                </button>
+              </div>
+            }
+          </div>
+        </section>
+      }
+    }
+  </main>
+</div>

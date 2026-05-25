@@ -151,6 +151,38 @@
             }
           </div>
         </div>
+
+        <!-- QR Code Section for Association -->
+        @if (isAssociationView && action.registeredCount > 0) {
+          <div class="bottom-col qr-col">
+            <h2><span class="col-line"></span> QR Code de présence</h2>
+            <div class="qr-card">
+              @if (loadingQR) {
+                <div class="qr-loading">
+                  <div class="spinner-small"></div>
+                  <p>Chargement...</p>
+                </div>
+              }
+              
+              @if (!loadingQR && qrCodeDataUrl) {
+                <div class="qr-display">
+                  <img [src]="qrCodeDataUrl" alt="QR Code" class="qr-image" />
+                </div>
+                <div class="qr-actions">
+                  <button type="button" class="btn-qr-action" (click)="telechargerQR()">
+                    Télécharger
+                  </button>
+                  <button type="button" class="btn-qr-action" (click)="imprimerQR()">
+                    Imprimer
+                  </button>
+                </div>
+                <p class="qr-notice">
+                  À afficher sur place le jour de l'action pour validation des présences.
+                </p>
+              }
+            </div>
+          </div>
+        }
       </section>
     } @else if (action.practicalInfos.length) {
       <section class="detail-bottom detail-bottom--fixed">

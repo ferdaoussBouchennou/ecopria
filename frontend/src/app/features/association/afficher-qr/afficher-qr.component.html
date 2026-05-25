@@ -1,0 +1,92 @@
+<div class="qr-page">
+  <header class="page-header">
+    <button type="button" class="btn-back" (click)="retour()">
+      ← Retour à mes actions
+    </button>
+    <div class="header-content">
+      <p class="header-label">CODE QR DE PRÉSENCE</p>
+      <h1 class="header-title">{{ action?.title || 'Chargement...' }}</h1>
+      @if (action) {
+        <p class="header-meta">
+          {{ formatDate(action.dateStart) }} • {{ action.registeredCount }} inscrits
+        </p>
+      }
+    </div>
+  </header>
+
+  @if (loading) {
+    <div class="state-box">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Chargement du QR code…</p>
+    </div>
+  }
+
+  @if (error) {
+    <div class="state-box state-error">
+      <p>{{ error }}</p>
+      <button type="button" class="btn-primary" (click)="retour()">
+        Retour à mes actions
+      </button>
+    </div>
+  }
+
+  @if (!loading && !error && qrCodeDataUrl) {
+    <div class="qr-content">
+      <div class="qr-card">
+        <div class="qr-image-container">
+          <img [src]="qrCodeDataUrl" alt="QR Code de présence" class="qr-image" />
+        </div>
+
+        <div class="qr-info">
+          <h2 class="qr-info-title">Comment utiliser ce QR code ?</h2>
+          <ol class="qr-instructions">
+            <li>
+              <strong>Affichez ou imprimez</strong> ce QR code le jour de l'action
+            </li>
+            <li>
+              <strong>Les participants scannent</strong> le code avec leur smartphone
+            </li>
+            <li>
+              <strong>Leur présence est validée</strong> automatiquement
+            </li>
+            <li>
+              <strong>Les points sont attribués</strong> après validation
+            </li>
+          </ol>
+
+          <div class="qr-warning">
+            <span class="warning-icon">⚠️</span>
+            <div>
+              <strong>Important :</strong> Ne partagez pas ce QR code en ligne. 
+              Il doit être scanné uniquement sur place pour éviter les fraudes.
+            </div>
+          </div>
+        </div>
+
+        <div class="qr-actions">
+          <button type="button" class="btn-action btn-download" (click)="telechargerQR()">
+            📥 Télécharger
+          </button>
+          <button type="button" class="btn-action btn-print" (click)="imprimerQR()">
+            🖨️ Imprimer
+          </button>
+        </div>
+      </div>
+
+      <div class="qr-stats">
+        <div class="stat-card">
+          <div class="stat-value">{{ action?.registeredCount || 0 }}</div>
+          <div class="stat-label">Inscrits</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ action?.maxParticipants || 0 }}</div>
+          <div class="stat-label">Places totales</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ action?.points || 0 }}</div>
+          <div class="stat-label">Points attribués</div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

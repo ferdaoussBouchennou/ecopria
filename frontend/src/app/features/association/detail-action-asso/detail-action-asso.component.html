@@ -1,0 +1,151 @@
+<div class="detail-page">
+  <header class="page-header">
+    <button type="button" class="btn-back" (click)="retour()">
+      ← Retour à mes actions
+    </button>
+    <div class="header-actions">
+      <button type="button" class="btn-secondary" (click)="modifierAction()">
+        Modifier
+      </button>
+      <button type="button" class="btn-danger" (click)="annulerAction()">
+        Annuler l'action
+      </button>
+    </div>
+  </header>
+
+  @if (loading) {
+    <div class="state-box">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Chargement de l'action…</p>
+    </div>
+  }
+
+  @if (error) {
+    <div class="state-box state-error">
+      <p>{{ error }}</p>
+      <button type="button" class="btn-primary" (click)="retour()">Retour</button>
+    </div>
+  }
+
+  @if (!loading && !error && action) {
+    <div class="content-grid">
+      <!-- Colonne principale -->
+      <div class="main-column">
+        <div class="action-header">
+          <span class="action-category">{{ action.categoryName }}</span>
+          <h1 class="action-title">{{ action.title }}</h1>
+          <p class="action-description">{{ action.description }}</p>
+        </div>
+
+        <div class="info-card">
+          <h2 class="card-title">Informations</h2>
+          <dl class="info-list">
+            <div class="info-row">
+              <dt>Date</dt>
+              <dd>{{ formatDate(action.dateStart) }}</dd>
+            </div>
+            <div class="info-row">
+              <dt>Horaire</dt>
+              <dd>{{ formatTime(action.dateStart, action.dateEnd) }}</dd>
+            </div>
+            <div class="info-row">
+              <dt>Lieu</dt>
+              <dd>{{ formatLieu(action.address, action.city) }}</dd>
+            </div>
+            <div class="info-row">
+              <dt>Points</dt>
+              <dd class="points-value">{{ action.points }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        @if (action.program && action.program.length > 0) {
+          <div class="info-card">
+            <h2 class="card-title">Programme</h2>
+            <ul class="program-list">
+              @for (step of action.program; track step) {
+                <li>{{ step }}</li>
+              }
+            </ul>
+          </div>
+        }
+
+        @if (action.practicalInfos && action.practicalInfos.length > 0) {
+          <div class="info-card">
+            <h2 class="card-title">Informations pratiques</h2>
+            <ul class="program-list">
+              @for (info of action.practicalInfos; track info) {
+                <li>{{ info }}</li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+
+      <!-- Colonne latérale -->
+      <aside class="side-column">
+        <!-- Statistiques -->
+        <div class="stats-card">
+          <h2 class="card-title">Statistiques</h2>
+          
+          <div class="stat-item">
+            <div class="stat-label">Inscrits</div>
+            <div class="stat-value">{{ action.registeredCount }} / {{ action.maxParticipants }}</div>
+          </div>
+
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="getRegistrationPercent()"></div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-label">Places disponibles</div>
+            <div class="stat-value">{{ action.availablePlaces }}</div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-label">Taux de remplissage</div>
+            <div class="stat-value">{{ getRegistrationPercent() }}%</div>
+          </div>
+        </div>
+
+        <!-- QR Code -->
+        @if (action.registeredCount > 0) {
+          <div class="qr-card">
+            <h2 class="card-title">QR Code de présence</h2>
+            
+            @if (loadingQR) {
+              <div class="qr-loading">
+                <div class="spinner-small"></div>
+                <p>Chargement...</p>
+              </div>
+            }
+            
+            @if (!loadingQR && qrCodeDataUrl) {
+              <div class="qr-display">
+                <img [src]="qrCodeDataUrl" alt="QR Code" class="qr-image" />
+              </div>
+              <div class="qr-actions">
+                <button type="button" class="btn-qr" (click)="telechargerQR()">
+                  Télécharger
+                </button>
+                <button type="button" class="btn-qr" (click)="imprimerQR()">
+                  Imprimer
+                </button>
+              </div>
+              <p class="qr-notice">
+                À afficher sur place le jour de l'action pour validation des présences.
+              </p>
+            }
+          </div>
+        } @else {
+          <div class="qr-card qr-empty">
+            <h2 class="card-title">QR Code de présence</h2>
+            <p class="empty-message">
+              Le QR code sera généré automatiquement dès la première inscription.
+            </p>
+          </div>
+        }
+      </aside>
+    </div>
+  }
+</div>
