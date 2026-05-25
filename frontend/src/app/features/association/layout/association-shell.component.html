@@ -94,6 +94,69 @@
 
   <!-- Main Content -->
   <main class="main-content">
+    <!-- Top Navbar -->
+    <header class="top-navbar">
+      <div class="navbar-left">
+        <h1 class="navbar-brand">ecopria</h1>
+      </div>
+      <div class="navbar-right">
+        <button type="button" class="navbar-btn" (click)="toggleNotifications()">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 2C7.23858 2 5 4.23858 5 7V10.5858L3.70711 11.8787C3.07714 12.5087 3.52331 13.6 4.41421 13.6H15.5858C16.4767 13.6 16.9229 12.5087 16.2929 11.8787L15 10.5858V7C15 4.23858 12.7614 2 10 2Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 14C8 15.1046 8.89543 16 10 16C11.1046 16 12 15.1046 12 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          @if (unreadCount > 0) {
+            <span class="notification-badge">{{ unreadCount }}</span>
+          }
+        </button>
+        <div class="navbar-divider"></div>
+        <button type="button" class="navbar-profile" (click)="navigateTo('/association/profil')">
+          <div class="profile-avatar">
+            <span>{{ getInitials() }}</span>
+          </div>
+          <span class="profile-name">{{ associationName }}</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Notifications Panel -->
+    @if (showNotifications) {
+      <div class="notifications-overlay" (click)="toggleNotifications()"></div>
+      <div class="notifications-panel">
+        <div class="notifications-header">
+          <h3>Notifications</h3>
+          @if (unreadCount > 0) {
+            <button type="button" class="btn-mark-read" (click)="markAllAsRead()">
+              Tout marquer comme lu
+            </button>
+          }
+        </div>
+        <div class="notifications-list">
+          @if (notifications.length === 0) {
+            <div class="no-notifications">
+              <svg width="48" height="48" viewBox="0 0 20 20" fill="none">
+                <path d="M10 2C7.23858 2 5 4.23858 5 7V10.5858L3.70711 11.8787C3.07714 12.5087 3.52331 13.6 4.41421 13.6H15.5858C16.4767 13.6 16.9229 12.5087 16.2929 11.8787L15 10.5858V7C15 4.23858 12.7614 2 10 2Z" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <p>Aucune notification</p>
+            </div>
+          } @else {
+            @for (notif of notifications; track notif.id) {
+              <div class="notification-item" [class.unread]="!notif.read">
+                <div class="notification-content">
+                  <p class="notification-message">{{ notif.message }}</p>
+                  <span class="notification-time">{{ formatTime(notif.createdAt) }}</span>
+                </div>
+                @if (!notif.read) {
+                  <span class="unread-dot"></span>
+                }
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+
     <router-outlet />
   </main>
 </div>
+
