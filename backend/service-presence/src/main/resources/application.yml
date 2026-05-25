@@ -2,7 +2,7 @@ spring:
   application:
     name: service-presence
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql-presence:3306/db_presence?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3310/db_presence?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
     username: ${SPRING_DATASOURCE_USERNAME:ecopria}
     password: ${SPRING_DATASOURCE_PASSWORD:ecopria_pass_2026}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -11,7 +11,11 @@ spring:
       ddl-auto: update
     show-sql: false
   kafka:
-    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    listener:
+      auto-startup: false
+    admin:
+      fail-fast: false
     consumer:
       group-id: service-presence
       auto-offset-reset: earliest
@@ -29,4 +33,4 @@ server:
 
 service:
   action:
-    url: ${SERVICE_ACTION_URL:http://service-action-backend:9090}
+    url: ${SERVICE_ACTION_URL:http://localhost:9090}

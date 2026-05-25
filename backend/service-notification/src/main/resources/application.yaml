@@ -23,17 +23,17 @@ ecopria:
     # Mettre à true uniquement en production (si EMAIL_USERNAME est requis obligatoirement)
     enforce: ${MAIL_ENFORCE:false}
   internal:
-    utilisateur-base-url: ${SERVICE_UTILISATEUR_URL:http://service-utilisateur-backend:8082}
-    inscription-base-url: ${SERVICE_INSCRIPTION_URL:http://service-inscription-backend:8084}
+    utilisateur-base-url: ${SERVICE_UTILISATEUR_URL:http://localhost:8082}
+    inscription-base-url: ${SERVICE_INSCRIPTION_URL:http://localhost:8084}
 
 spring:
   application:
     name: service-notification
 
   datasource:
-    url: jdbc:mysql://mysql-notification:3306/db_notification?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
-    username: ecopria
-    password: ${SPRING_DATASOURCE_PASSWORD:${MYSQL_PASSWORD:ecopria_pass_2026}}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3313/db_notification?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:ecopria}
+    password: ${SPRING_DATASOURCE_PASSWORD:ecopria_pass_2026}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -45,7 +45,11 @@ spring:
         format_sql: true
 
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    listener:
+      auto-startup: false
+    admin:
+      fail-fast: false
     consumer:
       group-id: notification-group
       auto-offset-reset: earliest

@@ -49,4 +49,4 @@ kafka:
 
 services:
   utilisateur:
-    url: ${UTILISATEUR_SERVICE_URL:http://service-utilisateur:8082}
+    url: ${UTILISATEUR_SERVICE_URL:http://localhost:8082}
