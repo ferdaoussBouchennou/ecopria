@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AssociationService, CreateActionDTO } from '../services/association.service';
 import { ActionService } from '../../action/services/action.service';
 import { ActionDetail } from '../../action/models/action.model';
+import * as L from 'leaflet';
 
 interface Category {
   id: number;
@@ -18,7 +19,7 @@ interface Category {
   templateUrl: './action-form.component.html',
   styleUrls: ['./action-form.component.css']
 })
-export class ActionFormComponent implements OnInit {
+export class ActionFormComponent implements OnInit, AfterViewInit {
   actionForm!: FormGroup;
   categories: Category[] = [];
   isEditMode = false;
@@ -26,6 +27,9 @@ export class ActionFormComponent implements OnInit {
   loading = false;
   submitting = false;
   error: string | null = null;
+  
+  private map?: L.Map;
+  private marker?: L.Marker;
 
   constructor(
     private fb: FormBuilder,
@@ -47,6 +51,77 @@ export class ActionFormComponent implements OnInit {
       this.loadAction(this.actionId);
     }
   }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.initMap();
+      this.setupAddressWatcher();
+    }, 100);
+  }
+
+  setupAddressWatcher(): void {
+    // Watch for changes in address and city fields
+    this.actionForm.get('address')?.valueChanges.subscribe(() => {
+      this.geocodeAddress();
+    });
+
+    this.actionForm.get('city')?.valueChanges.subscribe(() => {
+      this.geocodeAddress();
+    });
+  }
+
+  async geocodeAddress(): Promise<void> {
+    const address = this.actionForm.get('address')?.value;
+    const city = this.actionForm.get('city')?.value;
+
+    if (!address || !city) {
+      return;
+    }
+
+    // Debounce: wait 1 second after user stops typing
+    if (this.geocodeTimeout) {
+      clearTimeout(this.geocodeTimeout);
+    }
+
+    this.geocodeTimeout = setTimeout(async () => {
+      try {
+        const query = `${address}, ${city}, France`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lng = parseFloat(data[0].lon);
+
+          // Update map view
+          if (this.map) {
+            this.map.setView([lat, lng], 15);
+
+            // Remove old marker
+            if (this.marker) {
+              this.map.removeLayer(this.marker);
+            }
+
+            // Add new marker
+            this.marker = L.marker([lat, lng]).addTo(this.map);
+            this.marker.bindPopup('Position suggérée - Cliquez pour ajuster').openPopup();
+
+            // Update form
+            this.actionForm.patchValue({
+              latitude: lat,
+              longitude: lng
+            }, { emitEvent: false });
+          }
+        }
+      } catch (error) {
+        console.error('Erreur de géocodage:', error);
+      }
+    }, 1000);
+  }
+
+  private geocodeTimeout: any;
 
   initForm(): void {
     this.actionForm = this.fb.group({
@@ -277,5 +352,79 @@ export class ActionFormComponent implements OnInit {
       if (field.errors['min']) return `Minimum ${field.errors['min'].min}`;
     }
     return '';
+  }
+
+  initMap(): void {
+    // Default center (France - centre approximatif)
+    const defaultLat = 46.603354;
+    const defaultLng = 1.888334;
+    const defaultZoom = 6; // Zoom sur la France
+
+    // Get existing coordinates if any
+    const lat = this.actionForm.get('latitude')?.value || defaultLat;
+    const lng = this.actionForm.get('longitude')?.value || defaultLng;
+    const zoom = (lat !== defaultLat && lng !== defaultLng) ? 15 : defaultZoom;
+
+    // Initialize map
+    this.map = L.map('locationMap').setView([lat, lng], zoom);
+
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(this.map);
+
+    // Configure default icon
+    const iconDefault = L.icon({
+      iconUrl: '/leaflet/marker-icon.png',
+      iconRetinaUrl: '/leaflet/marker-icon-2x.png',
+      shadowUrl: '/leaflet/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+    L.Marker.prototype.options.icon = iconDefault;
+
+    // Add existing marker if coordinates exist
+    if (lat !== defaultLat && lng !== defaultLng) {
+      this.marker = L.marker([lat, lng]).addTo(this.map);
+      this.marker.bindPopup('Position de l\'action').openPopup();
+    }
+
+    // Add click event to set location
+    this.map.on('click', (e: L.LeafletMouseEvent) => {
+      const { lat, lng } = e.latlng;
+      
+      // Update form
+      this.actionForm.patchValue({
+        latitude: lat,
+        longitude: lng
+      }, { emitEvent: false });
+
+      // Remove old marker
+      if (this.marker) {
+        this.map?.removeLayer(this.marker);
+      }
+
+      // Add new marker
+      this.marker = L.marker([lat, lng]).addTo(this.map!);
+      this.marker.bindPopup('Position de l\'action<br><small>Vous pouvez cliquer ailleurs pour ajuster</small>').openPopup();
+    });
+
+    // Trigger geocoding if address and city are already filled
+    setTimeout(() => {
+      const address = this.actionForm.get('address')?.value;
+      const city = this.actionForm.get('city')?.value;
+      if (address && city) {
+        this.geocodeAddress();
+      }
+    }, 500);
+  }
+
+  ngOnDestroy(): void {
+    if (this.map) {
+      this.map.remove();
+    }
   }
 }

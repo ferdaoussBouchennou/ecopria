@@ -1,0 +1,209 @@
+<div class="profil-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="title-section">
+      <h1>Profil de l'Association</h1>
+      <p class="subtitle">Gérez les informations de votre association</p>
+    </div>
+    <button 
+      *ngIf="!editMode" 
+      class="btn-edit" 
+      (click)="toggleEditMode()"
+      [disabled]="loading"
+    >
+      Modifier
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div class="success-message" *ngIf="successMessage">
+    {{ successMessage }}
+  </div>
+
+  <div class="error-message" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Chargement du profil...</p>
+  </div>
+
+  <!-- Contenu -->
+  <div class="content" *ngIf="!loading && profile">
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <div class="logo-container">
+        <div class="logo-wrapper">
+          <img 
+            *ngIf="logoPreview" 
+            [src]="logoPreview" 
+            alt="Logo de l'association"
+            class="logo-image"
+          />
+          <div *ngIf="!logoPreview" class="logo-placeholder">
+            <p>Aucun logo</p>
+          </div>
+        </div>
+        
+        <div class="logo-actions" *ngIf="editMode">
+          <input 
+            type="file" 
+            id="logo-input" 
+            accept="image/*"
+            (change)="onFileSelected($event)"
+            style="display: none"
+          />
+          <button type="button" class="btn-upload" (click)="triggerFileInput()">
+            Choisir une image
+          </button>
+          <button 
+            type="button" 
+            class="btn-remove" 
+            (click)="removeLogo()"
+            *ngIf="logoPreview"
+          >
+            Supprimer
+          </button>
+          <p class="help-text">Format: JPG, PNG. Max 2 MB</p>
+          <p class="error-text" *ngIf="errors.logo">{{ errors.logo }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="form-section">
+      <form (ngSubmit)="saveProfile()">
+        <!-- Nom -->
+        <div class="form-group">
+          <label for="name">
+            Nom de l'association <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="name"
+            [(ngModel)]="editedProfile.name"
+            name="name"
+            [disabled]="!editMode"
+            [class.error]="errors.name"
+            placeholder="Ex: Méditerranée Propre"
+          />
+          <span class="error-text" *ngIf="errors.name">{{ errors.name }}</span>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">
+            Email <span class="required">*</span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            [(ngModel)]="editedProfile.email"
+            name="email"
+            [disabled]="!editMode"
+            [class.error]="errors.email"
+            placeholder="contact@association.org"
+          />
+          <span class="error-text" *ngIf="errors.email">{{ errors.email }}</span>
+        </div>
+
+        <!-- Téléphone -->
+        <div class="form-group">
+          <label for="phone">Téléphone</label>
+          <input
+            type="tel"
+            id="phone"
+            [(ngModel)]="editedProfile.phone"
+            name="phone"
+            [disabled]="!editMode"
+            [class.error]="errors.phone"
+            placeholder="0612345678"
+          />
+          <span class="error-text" *ngIf="errors.phone">{{ errors.phone }}</span>
+        </div>
+
+        <!-- Adresse -->
+        <div class="form-group">
+          <label for="address">Adresse</label>
+          <input
+            type="text"
+            id="address"
+            [(ngModel)]="editedProfile.address"
+            name="address"
+            [disabled]="!editMode"
+            placeholder="12 rue de la Mer"
+          />
+        </div>
+
+        <!-- Ville -->
+        <div class="form-group">
+          <label for="city">
+            Ville <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="city"
+            [(ngModel)]="editedProfile.city"
+            name="city"
+            [disabled]="!editMode"
+            [class.error]="errors.city"
+            placeholder="Marseille"
+          />
+          <span class="error-text" *ngIf="errors.city">{{ errors.city }}</span>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            [(ngModel)]="editedProfile.description"
+            name="description"
+            [disabled]="!editMode"
+            [class.error]="errors.description"
+            rows="5"
+            placeholder="Décrivez votre association, ses missions et ses valeurs..."
+          ></textarea>
+          <div class="character-count" *ngIf="editMode">
+            {{ getCharacterCount(editedProfile.description) }}
+          </div>
+          <span class="error-text" *ngIf="errors.description">{{ errors.description }}</span>
+        </div>
+
+        <!-- Informations supplémentaires -->
+        <div class="info-box" *ngIf="!editMode">
+          <div class="info-row">
+            <span class="info-label">Membre depuis</span>
+            <span class="info-value">{{ formatDate(profile.createdAt) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">ID Association</span>
+            <span class="info-value">#{{ profile.id }}</span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions" *ngIf="editMode">
+          <button 
+            type="button" 
+            class="btn-cancel" 
+            (click)="toggleEditMode()"
+            [disabled]="saving"
+          >
+            Annuler
+          </button>
+          <button 
+            type="submit" 
+            class="btn-save"
+            [disabled]="saving"
+          >
+            <span *ngIf="!saving">Enregistrer</span>
+            <span *ngIf="saving">Enregistrement...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

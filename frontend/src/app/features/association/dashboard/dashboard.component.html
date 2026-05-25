@@ -1,0 +1,122 @@
+<div class="dashboard-page">
+  <header class="page-header">
+    <h1 class="page-title">Tableau de bord</h1>
+    <p class="header-subtitle">Vue d'ensemble des performances de vos actions au fil du temps.</p>
+  </header>
+
+  @if (loading) {
+    <div class="state-box">
+      <div class="spinner"></div>
+      <p>Chargement des statistiques...</p>
+    </div>
+  }
+
+  @if (!loading) {
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">{{ stats.inscritsCeMois }}</div>
+        <div class="stat-label">INSCRITS CE MOIS</div>
+        <div class="stat-trend positive">+12% vs mois -1</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ stats.actionsPubliees }}</div>
+        <div class="stat-label">ACTIONS PUBLIÉES</div>
+        <div class="stat-trend neutral">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ stats.tauxRemplissage }}%</div>
+        <div class="stat-label">TAUX REMPLISSAGE MOYEN</div>
+        <div class="stat-trend positive">+5% vs mois -1</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ stats.inscritsCumules }}</div>
+        <div class="stat-label">INSCRITS CUMULÉS (12 MOIS)</div>
+        <div class="stat-trend positive">+18% vs année -1</div>
+      </div>
+    </div>
+
+    <!-- Evolution Chart -->
+    <div class="chart-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Évolution des inscriptions</h2>
+          <p class="section-subtitle">12 derniers mois</p>
+        </div>
+        <div class="trend-badge positive">
+          ▲ 12% vs mois précédent
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas #evolutionChart></canvas>
+      </div>
+    </div>
+
+    <!-- Two Columns -->
+    <div class="two-columns">
+      <!-- Categories Chart -->
+      <div class="chart-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Répartition par catégorie</h2>
+            <p class="section-subtitle">Actions publiées par votre association</p>
+          </div>
+        </div>
+        <div class="chart-container donut">
+          <canvas #categoriesChart></canvas>
+        </div>
+        <div class="legend-list">
+          @for (cat of categoriesData; track cat.name) {
+            <div class="legend-item">
+              <span class="legend-color" [style.background-color]="cat.color"></span>
+              <span class="legend-name">{{ cat.name }}</span>
+              <span class="legend-count">{{ cat.count }} - {{ cat.percentage }}%</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Top Actions -->
+      <div class="chart-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Top 5 actions populaires</h2>
+            <p class="section-subtitle">Par nombre d'inscrits</p>
+          </div>
+        </div>
+        <div class="top-actions-list">
+          @for (action of topActions; track action.id; let idx = $index) {
+            <div class="top-action-item" (click)="viewAction(action.id)">
+              <div class="action-rank">{{ idx + 1 }}</div>
+              <div class="action-image">
+                @if (action.imageUrl) {
+                  <img [src]="action.imageUrl" [alt]="action.titre" />
+                } @else {
+                  <div class="action-placeholder"></div>
+                }
+              </div>
+              <div class="action-info">
+                <div class="action-title">{{ action.titre }}</div>
+                <div class="action-meta">{{ action.city }} · {{ action.inscrits }} inscrits</div>
+              </div>
+              <div class="action-percentage">{{ action.fillPercentage }}%</div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Fill Rate Chart -->
+    <div class="chart-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Taux de remplissage moyen / mois</h2>
+          <p class="section-subtitle">% de places occupées</p>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas #fillRateChart></canvas>
+      </div>
+    </div>
+  }
+</div>

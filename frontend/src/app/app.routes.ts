@@ -9,6 +9,12 @@ import { AssociationShellComponent } from './features/association/layout/associa
 import { MesActionsComponent } from './features/association/mes-actions/mes-actions.component';
 import { ActionFormComponent } from './features/association/action-form/action-form.component';
 import { DetailActionAssoComponent } from './features/association/detail-action-asso/detail-action-asso.component';
+import { ParticipantsComponent } from './features/association/participants/participants.component';
+import { ProfilComponent } from './features/association/profil/profil.component';
+import { ListeParticipantsComponent } from './features/association/liste-participants/liste-participants.component';
+
+import { DashboardComponent } from './features/association/dashboard/dashboard.component';
+import { CalendrierComponent } from './features/association/calendrier/calendrier.component';
 
 export const routes: Routes = [
   // Routes publiques avec navbar/footer
@@ -31,13 +37,17 @@ export const routes: Routes = [
     path: 'association',
     component: AssociationShellComponent,
     children: [
-      { path: '', redirectTo: 'mes-actions', pathMatch: 'full' },
-      { path: 'tableau-de-bord', component: MesActionsComponent },
+      { path: '', redirectTo: 'tableau-de-bord', pathMatch: 'full' },
+      { path: 'tableau-de-bord', component: DashboardComponent },
       { path: 'mes-actions', component: MesActionsComponent },
+      { path: 'calendrier', component: CalendrierComponent },
       { path: 'creer', component: ActionFormComponent },
       { path: 'modifier/:id', component: ActionFormComponent },
       { path: 'action/:id', component: DetailActionAssoComponent },
-      // TODO: Ajouter les routes pour participants et scanner
+      { path: 'action/:id/participants', component: ParticipantsComponent },
+      { path: 'participants', component: ListeParticipantsComponent },
+      { path: 'profil', component: ProfilComponent },
+      // TODO: Ajouter les routes pour notifications
     ],
   },
   

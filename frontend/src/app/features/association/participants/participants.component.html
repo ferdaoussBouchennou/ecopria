@@ -1,0 +1,165 @@
+<div class="participants-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <button class="btn-back" (click)="goBack()">
+        ← Retour
+      </button>
+      <div class="title-section">
+        <h1>Liste des Participants</h1>
+        <p class="action-title">{{ actionTitle }}</p>
+      </div>
+    </div>
+    <button class="btn-export" (click)="exportCSV()" [disabled]="filteredParticipants.length === 0">
+      Exporter CSV
+    </button>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-cards">
+    <div class="stat-card">
+      <div class="stat-label">Total</div>
+      <div class="stat-value">{{ stats.total }}</div>
+    </div>
+    <div class="stat-card stat-confirme">
+      <div class="stat-label">Confirmés</div>
+      <div class="stat-value">{{ stats.confirmes }}</div>
+    </div>
+    <div class="stat-card stat-attente">
+      <div class="stat-label">En attente</div>
+      <div class="stat-value">{{ stats.enAttente }}</div>
+    </div>
+    <div class="stat-card stat-annule">
+      <div class="stat-label">Annulés</div>
+      <div class="stat-value">{{ stats.annules }}</div>
+    </div>
+  </div>
+
+  <!-- Filtres et recherche -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="Rechercher par nom ou email..." 
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange()"
+      />
+    </div>
+
+    <div class="filter-buttons">
+      <button 
+        class="filter-btn"
+        [class.active]="statutFilter === 'TOUS'"
+        (click)="onStatutFilterChange('TOUS')"
+      >
+        Tous <span class="count">{{ stats.total }}</span>
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="statutFilter === 'CONFIRMEE'"
+        (click)="onStatutFilterChange('CONFIRMEE')"
+      >
+        Confirmés <span class="count">{{ stats.confirmes }}</span>
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="statutFilter === 'EN_ATTENTE'"
+        (click)="onStatutFilterChange('EN_ATTENTE')"
+      >
+        En attente <span class="count">{{ stats.enAttente }}</span>
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="statutFilter === 'ANNULEE'"
+        (click)="onStatutFilterChange('ANNULEE')"
+      >
+        Annulés <span class="count">{{ stats.annules }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Résultats -->
+  <div class="results-info" *ngIf="!loading">
+    {{ filteredParticipants.length }} participant(s) trouvé(s)
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Chargement des participants...</p>
+  </div>
+
+  <!-- Erreur -->
+  <div class="error-message" *ngIf="error && !loading">
+    {{ error }}
+  </div>
+
+  <!-- Tableau des participants -->
+  <div class="table-container" *ngIf="!loading && !error">
+    <table class="participants-table">
+      <thead>
+        <tr>
+          <th>Photo</th>
+          <th class="sortable" (click)="onSort('nom')">
+            Nom
+            <span class="sort-indicator" *ngIf="sortColumn === 'nom'">
+              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+            </span>
+          </th>
+          <th>Email</th>
+          <th>Téléphone</th>
+          <th>Ville</th>
+          <th class="sortable" (click)="onSort('dateInscription')">
+            Date d'inscription
+            <span class="sort-indicator" *ngIf="sortColumn === 'dateInscription'">
+              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+            </span>
+          </th>
+          <th class="sortable" (click)="onSort('statut')">
+            Statut
+            <span class="sort-indicator" *ngIf="sortColumn === 'statut'">
+              {{ sortDirection === 'asc' ? '↑' : '↓' }}
+            </span>
+          </th>
+          <th>Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let participant of filteredParticipants">
+          <td>
+            <div class="avatar" *ngIf="!participant.photoUrl">
+              {{ getInitials(participant.firstName, participant.lastName) }}
+            </div>
+            <img 
+              *ngIf="participant.photoUrl" 
+              [src]="participant.photoUrl" 
+              [alt]="participant.firstName + ' ' + participant.lastName"
+              class="avatar-img"
+            />
+          </td>
+          <td class="name-cell">
+            {{ participant.lastName }} {{ participant.firstName }}
+          </td>
+          <td class="email-cell">{{ participant.email }}</td>
+          <td>{{ participant.phone }}</td>
+          <td>{{ participant.city }}</td>
+          <td>{{ formatDate(participant.dateInscription) }}</td>
+          <td>
+            <span class="badge" [ngClass]="getStatutClass(participant.statut)">
+              {{ getStatutLabel(participant.statut) }}
+            </span>
+          </td>
+          <td class="points-cell">{{ participant.pointsAction }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Message si aucun résultat -->
+    <div class="no-results" *ngIf="filteredParticipants.length === 0">
+      <p>Aucun participant trouvé</p>
+      <button class="btn-reset" (click)="searchTerm = ''; statutFilter = 'TOUS'; applyFilters()">
+        Réinitialiser les filtres
+      </button>
+    </div>
+  </div>
+</div>

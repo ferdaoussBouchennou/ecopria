@@ -3,15 +3,15 @@
 :root {
   --ec-sage: #2d6a4f;
   --ec-sage-light: #40916c;
-  --ec-sage-dark: #2d4639;
-  --ec-mint: #d9eee1;
-  --ec-cream: #f9faf7;
-  --ec-cream-deep: #f0ebe3;
-  --ec-earth: #d4c4b9;
-  --ec-text: #1a1a1a;
-  --ec-text-soft: #4a4a4a;
-  --ec-text-muted: #8a8a8a;
-  --ec-border: #e8e4dc;
+  --ec-sage-dark: #7FA99B;
+  --ec-mint: #E8F3EF;
+  --ec-cream: #FAF8F5;
+  --ec-cream-deep: #F5F1EB;
+  --ec-earth: #D4C4B9;
+  --ec-text: #1C1917;
+  --ec-text-soft: #57534E;
+  --ec-text-muted: #78716C;
+  --ec-border: #E7E5E4;
   --ec-card: #ffffff;
   --ec-font-serif: 'Cormorant Garamond', Georgia, serif;
   --ec-font-sans: 'DM Sans', system-ui, sans-serif;
@@ -31,7 +31,7 @@ body {
   font-family: var(--ec-font-sans);
   font-size: 16px;
   color: var(--ec-text);
-  background: var(--ec-cream);
+  background: #FAF8F5;
   -webkit-font-smoothing: antialiased;
 }
 

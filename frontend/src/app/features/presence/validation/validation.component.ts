@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { PresenceService } from '../../presence.service';
-import { QrCode } from '../../../../core/models/presence.model';
-import { InscriptionService } from '../../../inscription/services/inscription.service';
-import { ActionDTO } from '../../../inscription/models/inscription.model';
+import { PresenceService } from '../presence.service';
+import { QrCode } from '../../../core/models/presence.model';
+import { InscriptionService } from '../../inscription/services/inscription.service';
+import { ActionDTO } from '../../inscription/models/inscription.model';
 
 interface QrCodeWithAction {
   qr: QrCode;

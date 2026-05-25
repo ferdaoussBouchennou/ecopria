@@ -189,6 +189,12 @@ export class DetailActionAssoComponent implements OnInit {
     this.router.navigate(['/association/mes-actions']);
   }
 
+  voirParticipants(): void {
+    if (this.action) {
+      this.router.navigate(['/association/action', this.action.id, 'participants']);
+    }
+  }
+
   getRegistrationPercent(): number {
     if (!this.action?.maxParticipants) return 0;
     return Math.min(

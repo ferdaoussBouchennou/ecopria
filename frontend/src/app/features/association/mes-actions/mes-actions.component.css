@@ -1,6 +1,6 @@
 .mes-actions-page {
   min-height: 100vh;
-  background: #FAFAF9;
+  background: #FAF8F5;
 }
 
 /* ===== MAIN CONTENT ===== */
@@ -43,13 +43,13 @@
 .stat-card {
   background: white;
   border: 1px solid #E7E5E4;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 1.75rem;
   transition: all 0.2s ease;
 }
 
 .stat-card:hover {
-  border-color: var(--ec-sage-light);
+  border-color: #C5E0D8;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -94,7 +94,7 @@
   background: var(--ec-sage-dark);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -102,9 +102,7 @@
 }
 
 .btn-create:hover {
-  background: var(--ec-sage);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(45, 106, 79, 0.2);
+  background: #6D9488;
 }
 
 .btn-retry {
@@ -112,7 +110,7 @@
   background: var(--ec-sage-dark);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -120,7 +118,7 @@
 }
 
 .btn-retry:hover {
-  background: var(--ec-sage);
+  background: #6D9488;
 }
 
 /* ===== ACTIONS LIST ===== */
@@ -136,14 +134,14 @@
   gap: 1.5rem;
   background: white;
   border: 1px solid #E7E5E4;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 1.25rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .action-item:hover {
-  border-color: var(--ec-sage-light);
+  border-color: #C5E0D8;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   transform: translateY(-2px);
 }
@@ -151,7 +149,7 @@
 .action-image {
   width: 80px;
   height: 80px;
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
   flex-shrink: 0;
   background: #F5F5F4;
@@ -235,8 +233,8 @@
   flex-shrink: 0;
   text-align: center;
   padding: 0.75rem 1.5rem;
-  background: #FAFAF9;
-  border-radius: 8px;
+  background: #E8F3EF;
+  border-radius: 6px;
 }
 
 .participants-count {
@@ -273,14 +271,14 @@
   gap: 1rem;
   background: white;
   border: 1px dashed #D6D3D1;
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 1rem 1.25rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .draft-item:hover {
-  border-color: var(--ec-sage-light);
+  border-color: #C5E0D8;
   background: #FAFAF9;
 }
 
@@ -327,7 +325,7 @@
 }
 
 .btn-publish-small:hover {
-  background: var(--ec-sage);
+  background: #6D9488;
 }
 
 /* ===== STATES ===== */
@@ -344,7 +342,7 @@
 .spinner {
   width: 40px;
   height: 40px;
-  border: 2px solid #E7E5E4;
+  border: 3px solid #E7E5E4;
   border-top-color: var(--ec-sage-dark);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;

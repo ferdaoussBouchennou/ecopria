@@ -37,3 +37,14 @@ export interface ParticipantRow {
   dateInscription: string;
   pointsAction: number;
 }
+
+// Interface pour les QR codes des participants (mes QR codes)
+export interface QrCode {
+  id: number;
+  userId: number;
+  actionId: number;
+  qrCode: string;
+  used: boolean;
+  expiresAt: string;
+  createdAt: string;
+}

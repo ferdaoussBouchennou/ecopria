@@ -1,0 +1,84 @@
+<div class="calendrier-page">
+  <header class="page-header">
+    <div class="header-content">
+      <p class="header-label">PLANIFICATION</p>
+      <h1 class="header-title">Calendrier des actions.</h1>
+    </div>
+    <div class="header-controls">
+      <button type="button" class="btn-nav" (click)="previousMonth()">←</button>
+      <span class="current-month">{{ currentMonthLabel }}</span>
+      <button type="button" class="btn-nav" (click)="nextMonth()">→</button>
+    </div>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item">
+      <span class="legend-dot published"></span>
+      <span class="legend-label">Publiée</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-dot draft"></span>
+      <span class="legend-label">Brouillon</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-dot cancelled"></span>
+      <span class="legend-label">Annulée</span>
+    </div>
+  </div>
+
+  @if (loading) {
+    <div class="state-box">
+      <div class="spinner"></div>
+      <p>Chargement du calendrier...</p>
+    </div>
+  }
+
+  @if (error && !loading) {
+    <div class="error-message">
+      {{ error }}
+    </div>
+  }
+
+  @if (!loading && !error) {
+    <div class="calendar">
+      <div class="calendar-header">
+        <div class="day-header">LUN</div>
+        <div class="day-header">MAR</div>
+        <div class="day-header">MER</div>
+        <div class="day-header">JEU</div>
+        <div class="day-header">VEN</div>
+        <div class="day-header">SAM</div>
+        <div class="day-header">DIM</div>
+      </div>
+
+      <div class="calendar-grid">
+        @for (day of calendarDays; track day.date) {
+          <div 
+            class="calendar-day"
+            [class.other-month]="!day.isCurrentMonth"
+            [class.today]="day.isToday"
+          >
+            <div class="day-number">{{ day.dayNumber }}</div>
+            
+            @if (day.actions && day.actions.length > 0) {
+              <div class="day-actions">
+                @for (action of day.actions; track action.id) {
+                  <div 
+                    class="action-pill"
+                    [class.published]="action.status === 'PUBLISHED'"
+                    [class.draft]="action.status === 'DRAFT'"
+                    [class.cancelled]="action.status === 'CANCELLED'"
+                    (click)="viewAction(action.id)"
+                    [title]="action.titre"
+                  >
+                    {{ action.titre }}
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

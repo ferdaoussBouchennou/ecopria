@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ActionSummary, ActionDetail } from '../../action/models/action.model';
+import { AssociationProfile, UpdateAssociationProfileDTO } from '../models/association-profile.model';
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +32,13 @@ export class AssociationService {
   getMesBrouillons(): Observable<ActionSummary[]> {
     return this.http.get<ActionSummary[]>(
       `${this.apiUrl}/actions/mes-brouillons`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getAction(actionId: number): Observable<ActionDetail> {
+    return this.http.get<ActionDetail>(
+      `${this.apiUrl}/actions/${actionId}`,
       { headers: this.getHeaders() }
     );
   }
@@ -74,6 +82,21 @@ export class AssociationService {
   getQRCode(actionId: number): Observable<QRCodeResponse> {
     return this.http.get<QRCodeResponse>(
       `${environment.presenceApi}/presences/qr/${actionId}`
+    );
+  }
+
+  // ─── PROFIL ASSOCIATION ───────────────────────────────────
+
+  getProfile(authId: number): Observable<AssociationProfile> {
+    return this.http.get<AssociationProfile>(
+      `/api/users/association/${authId}`
+    );
+  }
+
+  updateProfile(authId: number, profile: UpdateAssociationProfileDTO): Observable<AssociationProfile> {
+    return this.http.put<AssociationProfile>(
+      `/api/users/association/${authId}/profile`,
+      profile
     );
   }
 }

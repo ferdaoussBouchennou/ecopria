@@ -15,35 +15,73 @@
         class="nav-item"
         [class.active]="isActive('/association/tableau-de-bord')"
         (click)="navigateTo('/association/tableau-de-bord')">
-        Tableau de bord
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        <span>Tableau de bord</span>
       </button>
       <button 
         type="button" 
         class="nav-item"
         [class.active]="isActive('/association/mes-actions')"
         (click)="navigateTo('/association/mes-actions')">
-        Mes actions
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 6C3 4.89543 3.89543 4 5 4H15C16.1046 4 17 4.89543 17 6V14C17 15.1046 16.1046 16 15 16H5C3.89543 16 3 15.1046 3 14V6Z" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M3 8H17" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="6.5" cy="11.5" r="0.5" fill="currentColor"/>
+          <circle cx="9.5" cy="11.5" r="0.5" fill="currentColor"/>
+        </svg>
+        <span>Mes actions</span>
+      </button>
+      <button 
+        type="button" 
+        class="nav-item"
+        [class.active]="isActive('/association/calendrier')"
+        (click)="navigateTo('/association/calendrier')">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M3 8H17" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 3V5M13 3V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span>Calendrier</span>
       </button>
       <button 
         type="button" 
         class="nav-item"
         [class.active]="isActive('/association/creer')"
         (click)="navigateTo('/association/creer')">
-        Créer une action
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 7V13M7 10H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span>Créer une action</span>
       </button>
       <button 
         type="button" 
         class="nav-item"
         [class.active]="isActive('/association/participants')"
         (click)="navigateTo('/association/participants')">
-        Participants
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M5 17C5 14.2386 7.23858 12 10 12C12.7614 12 15 14.2386 15 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="15" cy="5" r="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M17 12C17 10.8954 16.1046 10 15 10C13.8954 10 13 10.8954 13 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span>Participants</span>
       </button>
       <button 
         type="button" 
         class="nav-item"
-        [class.active]="isActive('/association/scanner')"
-        (click)="navigateTo('/association/scanner')">
-        Scanner
+        [class.active]="isActive('/association/profil')"
+        (click)="navigateTo('/association/profil')">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M4 17C4 13.6863 6.68629 11 10 11C13.3137 11 16 13.6863 16 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span>Profil</span>
       </button>
     </nav>
 

@@ -7,7 +7,8 @@ import {
   PresenceResponse,
   PresenceValidationResult,
   PresenceStatus,
-  QrCodeActionResponse
+  QrCodeActionResponse,
+  QrCode
 } from '../../core/models/presence.model';
 import { InscriptionResponse } from '../../core/models/inscription.model';
 
@@ -52,6 +53,15 @@ export class PresenceService {
         ),
         catchError(this.handleError)
       );
+  }
+
+  /** Récupérer les QR codes d'un utilisateur (pour mes-qrcodes) */
+  getMesQrCodes(userId: number): Observable<QrCode[]> {
+    // TODO: Implémenter l'endpoint backend si nécessaire
+    // Pour l'instant, retourne un tableau vide
+    return this.http
+      .get<QrCode[]>(`${API_PRESENCES}/user/${userId}/qrcodes`)
+      .pipe(catchError(() => throwError(() => new Error('Endpoint non implémenté'))));
   }
 
   private toValidationResult(
