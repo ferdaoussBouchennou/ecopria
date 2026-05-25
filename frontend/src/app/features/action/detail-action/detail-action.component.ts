@@ -82,6 +82,56 @@ export class DetailActionComponent implements OnInit {
     }
   }
 
+  share(): void {
+    if (!this.action) return;
+
+    const shareData = {
+      title: `${this.action.title} - Ecopria`,
+      text: `Rejoignez-moi pour cette action : ${this.action.title}`,
+      url: window.location.href
+    };
+
+    // Vérifier si l'API Web Share est disponible (mobile principalement)
+    if (navigator.share) {
+      navigator.share(shareData)
+        .then(() => console.log('Partage réussi'))
+        .catch((error) => {
+          // Si l'utilisateur annule, ne rien faire
+          if (error.name !== 'AbortError') {
+            console.error('Erreur lors du partage:', error);
+            this.fallbackShare();
+          }
+        });
+    } else {
+      // Fallback : copier le lien dans le presse-papiers
+      this.fallbackShare();
+    }
+  }
+
+  private fallbackShare(): void {
+    const url = window.location.href;
+    
+    // Essayer de copier dans le presse-papiers
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url)
+        .then(() => {
+          alert('Lien copié dans le presse-papiers !');
+        })
+        .catch(() => {
+          // Si la copie échoue, afficher le lien
+          this.showShareDialog(url);
+        });
+    } else {
+      // Méthode alternative pour les navigateurs plus anciens
+      this.showShareDialog(url);
+    }
+  }
+
+  private showShareDialog(url: string): void {
+    const message = `Partagez cette action :\n\n${url}`;
+    prompt('Copiez ce lien pour partager :', url);
+  }
+
   goBack(): void {
     this.router.navigate(['/actions']);
   }
