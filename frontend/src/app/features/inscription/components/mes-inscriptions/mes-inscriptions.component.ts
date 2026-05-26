@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { InscriptionService } from '../../inscription.service';
+import { DevContextService } from '../../../../core/services/dev-context.service';
 import { PresenceService } from '../../../presence/presence.service';
 import { InscriptionResponse } from '../../../../core/models/inscription.model';
 import { ActionDTO } from '../../models/inscription.model';
@@ -25,12 +26,15 @@ export class MesInscriptionsComponent implements OnInit {
   erreurMessage = '';
   annulationEnCours: number | null = null;
 
-  private readonly userId = 1;
-
   constructor(
     private inscriptionService: InscriptionService,
-    private presenceService: PresenceService
+    private presenceService: PresenceService,
+    private devContext: DevContextService
   ) {}
+
+  private get userId(): number {
+    return this.devContext.getParticipantUserId();
+  }
 
   ngOnInit(): void {
     this.charger();

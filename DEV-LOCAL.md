@@ -52,14 +52,19 @@ Ordre recommandé (chaque service dans un terminal ou via l’IDE) :
 | Auth | `backend/auth-service` | 8081 | `mvn spring-boot:run` |
 | Utilisateur | `backend/service-utilisateur` | 8082 | `mvn spring-boot:run` |
 | Action | `backend/service-action` | 9090 | `mvn spring-boot:run -Dspring-boot.run.profiles=local` |
+| Utilisateur | `backend/service-utilisateur` | 8082 | `mvn spring-boot:run -Dspring-boot.run.profiles=local` |
 | Inscription | `backend/service-inscription` | 8084 | `mvn spring-boot:run -Dspring-boot.run.profiles=local` |
 | Présence | `backend/service-presence` | 8085 | `mvn spring-boot:run -Dspring-boot.run.profiles=local` |
 | Récompense | `backend/service-recompense` | 9093 | `mvn spring-boot:run` |
-| Notification | `backend/service-notification` | 8086 | `mvn spring-boot:run` |
+| Notification | `backend/service-notification` | 8086 | `mvn spring-boot:run -Dspring-boot.run.profiles=local` |
 | Admin | `backend/admin-service` | 8087 | `mvn spring-boot:run -Dspring-boot.run.profiles=local` |
 | **API Gateway** | `backend/api-gateway` | **8080** | `mvn spring-boot:run` |
 
-Le profil `local` active Kafka (`localhost:29092`) et pointe les appels inter-services vers les ports locaux (ex. action → `9090`).
+Le profil `local` :
+
+- active **Kafka** (`localhost:29092`) pour la communication entre microservices ;
+- crée automatiquement l’association de démo et une action **PUBLISHED** (service-action + service-utilisateur) si la base est vide ;
+- **aucun mock** côté Angular : si un service est arrêté, une erreur s’affiche.
 
 ## 4. Frontend
 
@@ -104,7 +109,27 @@ ng serve
 Par défaut, le profil `local` met `spring.kafka.listener.auto-startup: true` pour inscription, présence, action et utilisateur.  
 Si Kafka n’est pas démarré, repassez à `false` ou ne lancez pas le profil `local`.
 
-## 8. Tout en Docker (CI / démo)
+## 8. Données de test (association + participant)
+
+Sans données en base, le profil association affiche une erreur (`Association non trouvée`).
+
+Exécutez le script SQL dans phpMyAdmin (http://localhost:8888) :
+
+`scripts/seed-dev-data.sql`
+
+| Rôle | auth_id / user_id | Usage |
+|------|-------------------|--------|
+| Association | `auth_id = 1`, `user_id = 1` (db_action) | Espace `/association/*` |
+| Participant | `auth_id = 2` | `/mes-inscriptions`, inscription |
+
+IDs modifiables dans le navigateur :
+
+```javascript
+localStorage.setItem('ecopria.dev.associationAuthId', '1');
+localStorage.setItem('ecopria.dev.participantUserId', '2');
+```
+
+## 9. Tout en Docker (CI / démo)
 
 ```powershell
 docker compose up -d

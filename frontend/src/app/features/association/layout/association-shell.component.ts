@@ -1,13 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
-
-interface Notification {
-  id: number;
-  message: string;
-  createdAt: Date;
-  read: boolean;
-}
+import { AssociationService } from '../services/association.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { AppNotification } from '../../../core/models/notification.model';
+import { httpErrorMessage } from '../../../core/utils/http-error.util';
 
 @Component({
   selector: 'app-association-shell',
@@ -17,61 +14,59 @@ interface Notification {
   styleUrls: ['./association-shell.component.css']
 })
 export class AssociationShellComponent implements OnInit {
-  associationName: string = '';
-  associationId: number = 0;
-  showNotifications: boolean = false;
-  notifications: Notification[] = [];
-  unreadCount: number = 0;
+  associationName = '';
+  associationId = 0;
+  showNotifications = false;
+  notifications: AppNotification[] = [];
+  unreadCount = 0;
+  profileLoadError = '';
+  notificationsError = '';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private associationService: AssociationService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
-    // TODO: Récupérer les infos de l'association depuis le service d'authentification
-    // Pour l'instant, données mockées
     this.loadAssociationInfo();
-    this.loadNotifications();
   }
 
   loadAssociationInfo(): void {
-    // TODO: Remplacer par un vrai appel API
-    // this.authService.getCurrentAssociation().subscribe(...)
-    
-    // Mock data pour le développement
-    this.associationName = 'Méditerranée Propre';
-    this.associationId = 1;
-  }
-
-  loadNotifications(): void {
-    // TODO: Remplacer par un vrai appel API
-    // this.notificationService.getNotifications(this.associationId).subscribe(...)
-    
-    // Mock data pour le développement
-    this.notifications = [
-      {
-        id: 1,
-        message: 'Nouvelle inscription à votre action "Nettoyage de la plage"',
-        createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 min ago
-        read: false
+    const authId = this.associationService.getAssociationAuthId();
+    this.associationService.getProfile(authId).subscribe({
+      next: (profile) => {
+        this.associationName = profile.name;
+        this.associationId = profile.id;
+        this.profileLoadError = '';
+        this.loadNotifications(authId);
       },
-      {
-        id: 2,
-        message: 'Votre action "Plantation d\'arbres" a été publiée avec succès',
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2h ago
-        read: false
-      },
-      {
-        id: 3,
-        message: '5 nouvelles inscriptions cette semaine',
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-        read: true
+      error: (err) => {
+        this.associationName = 'Association';
+        this.profileLoadError = httpErrorMessage(
+          err,
+          'Profil association introuvable. Démarrez service-utilisateur et exécutez scripts/seed-dev-data.sql.'
+        );
       }
-    ];
-
-    this.updateUnreadCount();
+    });
   }
 
-  updateUnreadCount(): void {
-    this.unreadCount = this.notifications.filter(n => !n.read).length;
+  loadNotifications(authId: number): void {
+    this.notificationsError = '';
+    this.notificationService.getAll(authId).subscribe({
+      next: (list) => {
+        this.notifications = list;
+        this.unreadCount = list.filter((n) => !n.isRead).length;
+      },
+      error: (err) => {
+        this.notifications = [];
+        this.unreadCount = 0;
+        this.notificationsError = httpErrorMessage(
+          err,
+          'Notifications indisponibles (service-notification :8086).'
+        );
+      }
+    });
   }
 
   toggleNotifications(): void {
@@ -79,13 +74,18 @@ export class AssociationShellComponent implements OnInit {
   }
 
   markAllAsRead(): void {
-    this.notifications.forEach(n => n.read = true);
-    this.updateUnreadCount();
-    // TODO: Appel API pour marquer comme lu
-    // this.notificationService.markAllAsRead(this.associationId).subscribe(...)
+    const authId = this.associationService.getAssociationAuthId();
+    this.notificationService.markAllAsRead(authId).subscribe({
+      next: () => {
+        this.notifications = this.notifications.map((n) => ({ ...n, isRead: true }));
+        this.unreadCount = 0;
+      },
+      error: (err) => console.error('Marquage notifications:', err)
+    });
   }
 
-  formatTime(date: Date): string {
+  formatTime(isoDate: string): string {
+    const date = new Date(isoDate);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 1000 / 60);
@@ -97,14 +97,14 @@ export class AssociationShellComponent implements OnInit {
     if (hours < 24) return `Il y a ${hours}h`;
     if (days === 1) return 'Hier';
     if (days < 7) return `Il y a ${days} jours`;
-    
+
     return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
   }
 
   getInitials(): string {
     return this.associationName
       .split(' ')
-      .map(word => word[0])
+      .map((word) => word[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
@@ -119,9 +119,7 @@ export class AssociationShellComponent implements OnInit {
   }
 
   logout(): void {
-    // TODO: Implémenter la déconnexion
     if (confirm('Voulez-vous vous déconnecter ?')) {
-      // this.authService.logout();
       this.router.navigate(['/actions']);
     }
   }

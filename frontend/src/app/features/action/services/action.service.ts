@@ -1,20 +1,16 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, catchError, map, of } from 'rxjs';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
+import { httpErrorMessage } from '../../../core/utils/http-error.util';
 import {
   ActionDetail,
   ActionListFilters,
-  ActionSourceFilter,
   ActionSummary,
   Category,
   SortBy,
 } from '../models/action.model';
-import {
-  MOCK_ACTION_DETAILS,
-  MOCK_ACTIONS,
-  MOCK_CATEGORIES,
-} from '../data/mock-actions.data';
 
 @Injectable({
   providedIn: 'root',
@@ -34,7 +30,7 @@ export class ActionService {
       .get<ActionSummary[]>(`${this.apiUrl}/actions`, { params })
       .pipe(
         map((actions) => this.applyClientFilters(actions, filters)),
-        catchError(() => of(this.applyClientFilters(MOCK_ACTIONS, filters)))
+        catchError(this.handleError('Impossible de charger les actions'))
       );
   }
 
@@ -47,26 +43,20 @@ export class ActionService {
     return this.http
       .get<ActionSummary[]>(`${this.apiUrl}/actions/carte`, { params })
       .pipe(
-        catchError(() => of(MOCK_ACTIONS))
+        catchError(this.handleError('Impossible de charger la carte des actions'))
       );
   }
 
   getActionById(id: number): Observable<ActionDetail> {
-    return this.http.get<ActionDetail>(`${this.apiUrl}/actions/${id}`).pipe(
-      catchError(() => {
-        const mock = MOCK_ACTION_DETAILS[id];
-        if (!mock) {
-          throw new Error('Action introuvable');
-        }
-        return of(mock);
-      })
-    );
+    return this.http
+      .get<ActionDetail>(`${this.apiUrl}/actions/${id}`)
+      .pipe(catchError(this.handleError('Action introuvable')));
   }
 
   getCategories(): Observable<Category[]> {
     return this.http
       .get<Category[]>(`${this.apiUrl}/categories`)
-      .pipe(catchError(() => of(MOCK_CATEGORIES)));
+      .pipe(catchError(this.handleError('Impossible de charger les catégories')));
   }
 
   getFeaturedActions(limit = 3): Observable<ActionSummary[]> {
@@ -107,5 +97,10 @@ export class ActionService {
       default:
         return new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime();
     }
+  }
+
+  private handleError(fallback: string) {
+    return (error: HttpErrorResponse) =>
+      throwError(() => new Error(httpErrorMessage(error, fallback)));
   }
 }

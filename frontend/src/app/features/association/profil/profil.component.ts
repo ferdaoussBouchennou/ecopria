@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AssociationService } from '../services/association.service';
-import { 
-  AssociationProfile, 
+import { httpErrorMessage } from '../../../core/utils/http-error.util';
+import {
+  AssociationProfile,
   UpdateAssociationProfileDTO,
-  ProfileFormErrors 
+  ProfileFormErrors
 } from '../models/association-profile.model';
 
 @Component({
@@ -42,13 +43,14 @@ export class ProfilComponent implements OnInit {
   // Validation
   errors: ProfileFormErrors = {};
 
-  // TODO: Récupérer depuis le service auth
-  private readonly authId = 1;
-
   constructor(
     private associationService: AssociationService,
     private router: Router
   ) {}
+
+  private get authId(): number {
+    return this.associationService.getAssociationAuthId();
+  }
 
   ngOnInit(): void {
     this.loadProfile();
@@ -74,7 +76,10 @@ export class ProfilComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        this.error = 'Erreur lors du chargement du profil';
+        this.error = httpErrorMessage(
+          err,
+          'Erreur lors du chargement du profil. Vérifiez la gateway (8080), service-utilisateur (8082) et le script scripts/seed-dev-data.sql.'
+        );
         this.loading = false;
         console.error(err);
       }

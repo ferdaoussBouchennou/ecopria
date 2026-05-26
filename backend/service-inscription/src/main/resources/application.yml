@@ -22,7 +22,7 @@ spring:
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
     listener:
-      auto-startup: false
+      auto-startup: ${KAFKA_LISTENER_AUTO_STARTUP:false}
     admin:
       fail-fast: false
 

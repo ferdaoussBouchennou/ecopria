@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AssociationService } from '../services/association.service';
+import { httpErrorMessage } from '../../../core/utils/http-error.util';
 import { ActionSummary } from '../../action/models/action.model';
 
 @Component({
@@ -38,7 +39,10 @@ export class MesActionsComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        this.error = 'Erreur lors du chargement des actions';
+        this.error = httpErrorMessage(
+          err,
+          'Impossible de charger les actions. Démarrez service-action (9090) et exécutez seed-dev-data.sql (db_action.associations, user_id=1).'
+        );
         this.loading = false;
         console.error(err);
       }
@@ -131,17 +135,24 @@ export class MesActionsComponent implements OnInit {
     return this.actionsPubliees.reduce((sum, action) => sum + action.registeredCount, 0);
   }
 
-  getPresenceRate(): number {
-    // Mock data - à remplacer par de vraies données
-    return 92;
+  /** Taux de remplissage moyen des actions publiées (données API action). */
+  getAverageFillRate(): number {
+    const withCapacity = this.actionsPubliees.filter(
+      (a) => a.maxParticipants > 0 && !a.isFixed
+    );
+    if (withCapacity.length === 0) {
+      return 0;
+    }
+    const sum = withCapacity.reduce((acc, a) => {
+      return acc + (a.registeredCount / a.maxParticipants) * 100;
+    }, 0);
+    return Math.round(sum / withCapacity.length);
   }
 
   getTotalPoints(): number {
-    return this.actionsPubliees.reduce((sum, action) => sum + (action.points * action.registeredCount), 0);
-  }
-
-  getAssociationName(): string {
-    // TODO: Récupérer depuis le service d'authentification
-    return 'Méditerranée Propre';
+    return this.actionsPubliees.reduce(
+      (sum, action) => sum + action.points * (action.registeredCount ?? 0),
+      0
+    );
   }
 }

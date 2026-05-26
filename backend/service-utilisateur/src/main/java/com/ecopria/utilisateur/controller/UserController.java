@@ -42,8 +42,16 @@ public class UserController {
     }
 
     @GetMapping("/association/{authId}")
-    public ResponseEntity<Association> getAssociation(@PathVariable Long authId) {
-        return ResponseEntity.ok(userService.getAssociation(authId));
+    public ResponseEntity<?> getAssociation(@PathVariable Long authId) {
+        try {
+            return ResponseEntity.ok(userService.getAssociation(authId));
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("Association non trouvée")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", e.getMessage(), "authId", authId));
+            }
+            throw e;
+        }
     }
 
     @GetMapping("/partner/{authId}")

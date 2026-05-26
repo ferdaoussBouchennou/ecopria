@@ -8,6 +8,7 @@ import {
   ReactiveFormsModule
 } from '@angular/forms';
 import { InscriptionService } from '../../inscription.service';
+import { DevContextService } from '../../../../core/services/dev-context.service';
 import { InscriptionResponse } from '../../../../core/models/inscription.model';
 import { ActionDTO } from '../../models/inscription.model';
 
@@ -36,14 +37,16 @@ export class InscriptionFormComponent implements OnInit {
   statut: PageStatut = 'loading_action';
   form!: FormGroup;
 
-  // TODO: remplacer par votre AuthService quand l'auth sera branchee
-  private readonly userId = 1;
-
   constructor(
     private route: ActivatedRoute,
     private fb: FormBuilder,
-    private inscriptionService: InscriptionService
+    private inscriptionService: InscriptionService,
+    private devContext: DevContextService
   ) {}
+
+  private get userId(): number {
+    return this.devContext.getParticipantUserId();
+  }
 
   ngOnInit(): void {
     // Recupere l'actionId depuis l'URL : /inscription/42

@@ -60,12 +60,12 @@ export class ParticipantsService {
       dateInscription: inscription.dateInscription,
       statut: inscription.statut,
       pointsAction: inscription.pointsAction,
-      firstName: profile?.firstName ?? 'Utilisateur',
+      firstName: profile?.firstName ?? 'Citoyen',
       lastName: profile?.lastName ?? `#${inscription.userId}`,
-      email: profile?.email ?? '',
-      phone: profile?.phone ?? '',
+      email: profile?.email ?? '—',
+      phone: profile?.phone ?? '—',
       photoUrl: profile?.photo,
-      city: profile?.city ?? ''
+      city: profile?.city ?? '—'
     };
   }
 

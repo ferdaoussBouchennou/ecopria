@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { DevContextService } from '../../../core/services/dev-context.service';
 import { ActionSummary, ActionDetail } from '../../action/models/action.model';
 import { AssociationProfile, UpdateAssociationProfileDTO } from '../models/association-profile.model';
 
@@ -10,15 +11,19 @@ import { AssociationProfile, UpdateAssociationProfileDTO } from '../models/assoc
 })
 export class AssociationService {
   private readonly apiUrl = environment.actionApi;
-  
-  // TODO: Récupérer le vrai userId depuis le service d'authentification
-  private readonly userId = 1; // Temporaire pour le développement
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private devContext: DevContextService
+  ) {}
+
+  getAssociationAuthId(): number {
+    return this.devContext.getAssociationAuthId();
+  }
 
   private getHeaders(): HttpHeaders {
     return new HttpHeaders({
-      'X-User-Id': this.userId.toString()
+      'X-User-Id': String(this.devContext.getAssociationActionUserId())
     });
   }
 
