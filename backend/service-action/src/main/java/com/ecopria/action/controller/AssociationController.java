@@ -21,6 +21,6 @@ public class AssociationController {
     // GET /api/associations/{id}/actions
     @GetMapping("/{id}/actions")
     public ResponseEntity<List<ActionSummaryDTO>> getAssociationActions(@PathVariable Long id) {
-        return ResponseEntity.ok(actionService.getMyActions(id));
+        return ResponseEntity.ok(actionService.getPublishedActionsByAssociationId(id));
     }
 }

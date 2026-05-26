@@ -7,8 +7,9 @@ import {
   Validators,
   ReactiveFormsModule
 } from '@angular/forms';
-import { InscriptionService } from '../../services/inscription.service';
-import { ActionDTO, InscriptionResponse } from '../../models/inscription.model';
+import { InscriptionService } from '../../inscription.service';
+import { InscriptionResponse } from '../../../../core/models/inscription.model';
+import { ActionDTO } from '../../models/inscription.model';
 
 // Les 6 etats possibles de la page
 type PageStatut =

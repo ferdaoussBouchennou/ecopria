@@ -1,0 +1,11 @@
+# mvn spring-boot:run -Dspring-boot.run.profiles=local
+
+spring:
+  kafka:
+    bootstrap-servers: localhost:29092
+    listener:
+      auto-startup: true
+
+service:
+  action:
+    url: http://localhost:9090

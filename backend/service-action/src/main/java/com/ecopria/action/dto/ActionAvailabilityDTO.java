@@ -12,6 +12,7 @@ public class ActionAvailabilityDTO {
     private Long actionId;
     private Integer availablePlaces;
     private Integer maxParticipants;
+    private Integer points;
     private ActionStatus status;
     private Boolean hasAvailablePlaces;
 }

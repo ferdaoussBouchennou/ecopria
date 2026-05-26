@@ -25,7 +25,6 @@ export const routes: Routes = [
       { path: '', redirectTo: 'actions', pathMatch: 'full' },
       { path: 'actions', component: ListeActionsComponent },
       { path: 'carte', component: CarteActionsComponent },
-      { path: 'carte', component: CarteActionsComponent },
       { path: 'action/:id', component: DetailActionComponent },
       { path: 'inscription/:actionId', component: InscriptionFormComponent },
       { path: 'mes-inscriptions', component: MesInscriptionsComponent },

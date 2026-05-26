@@ -1,0 +1,15 @@
+# mvn spring-boot:run -Dspring-boot.run.profiles=local
+# Appels HTTP directs vers les microservices locaux (sans passer par la gateway)
+
+spring:
+  kafka:
+    bootstrap-servers: localhost:29092
+    listener:
+      auto-startup: true
+
+services:
+  auth-url: http://localhost:8081
+  action-url: http://localhost:9090
+  inscription-url: http://localhost:8084
+  recompense-url: http://localhost:9093
+  utilisateur-url: http://localhost:8082

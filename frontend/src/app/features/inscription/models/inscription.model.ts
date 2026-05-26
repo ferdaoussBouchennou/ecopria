@@ -10,7 +10,7 @@ export interface InscriptionResponse {
   userId: number;
   actionId: number;
   dateInscription: string;
-  qrCode: string;
+  qrCode?: string;
   statut: 'CONFIRMEE' | 'EN_ATTENTE' | 'ANNULEE';
   pointsAction: number;
 }

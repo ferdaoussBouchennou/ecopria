@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { AssociationService } from '../services/association.service';
+import { ActionSummary } from '../../action/models/action.model';
 
 Chart.register(...registerables);
 
@@ -52,6 +53,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   categoriesData: CategoryData[] = [];
   topActions: TopAction[] = [];
+  private actions: ActionSummary[] = [];
 
   private evolutionChart?: Chart;
   private categoriesChart?: Chart;
@@ -75,11 +77,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     this.associationService.getMesActions().subscribe({
       next: (actions) => {
+        this.actions = actions;
         this.calculateStats(actions);
         this.calculateCategories(actions);
         this.calculateTopActions(actions);
-        
-        // Create charts after data is ready
+
         setTimeout(() => {
           this.createEvolutionChart();
           this.createCategoriesChart();
@@ -95,32 +97,39 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  calculateStats(actions: any[]): void {
+  calculateStats(actions: ActionSummary[]): void {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
-    // Actions publiées
-    this.stats.actionsPubliees = actions.filter(a => a.status === 'PUBLISHED').length;
+    const publishedActions = actions.filter(a => a.status === 'PUBLISHED' && !a.isFixed);
+    this.stats.actionsPubliees = publishedActions.length;
 
-    // Inscrits ce mois (simulé)
-    this.stats.inscritsCeMois = Math.floor(Math.random() * 50) + 80;
+    this.stats.inscritsCeMois = publishedActions
+      .filter(a => {
+        const d = new Date(a.dateStart);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      })
+      .reduce((sum, a) => sum + (a.registeredCount ?? 0), 0);
 
-    // Taux de remplissage moyen
-    const publishedActions = actions.filter(a => a.status === 'PUBLISHED');
     if (publishedActions.length > 0) {
       const totalFillRate = publishedActions.reduce((sum, action) => {
-        const fillRate = (action.currentParticipants / action.maxParticipants) * 100;
+        const max = action.maxParticipants || 1;
+        const fillRate = ((action.registeredCount ?? 0) / max) * 100;
         return sum + fillRate;
       }, 0);
       this.stats.tauxRemplissage = Math.round(totalFillRate / publishedActions.length);
+    } else {
+      this.stats.tauxRemplissage = 0;
     }
 
-    // Inscrits cumulés 12 mois (simulé)
-    this.stats.inscritsCumules = Math.floor(Math.random() * 200) + 500;
+    this.stats.inscritsCumules = publishedActions.reduce(
+      (sum, a) => sum + (a.registeredCount ?? 0),
+      0
+    );
   }
 
-  calculateCategories(actions: any[]): void {
+  calculateCategories(actions: ActionSummary[]): void {
     const categoryColors = [
       '#7FA99B', // Vert sage
       '#1C1917', // Noir
@@ -148,18 +157,22 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .slice(0, 5);
   }
 
-  calculateTopActions(actions: any[]): void {
+  calculateTopActions(actions: ActionSummary[]): void {
     this.topActions = actions
-      .filter(a => a.status === 'PUBLISHED')
-      .map(action => ({
-        id: action.id,
-        titre: action.titre,
-        city: action.city,
-        inscrits: action.currentParticipants || 0,
-        maxParticipants: action.maxParticipants,
-        fillPercentage: Math.round(((action.currentParticipants || 0) / action.maxParticipants) * 100),
-        imageUrl: action.imageUrl
-      }))
+      .filter(a => a.status === 'PUBLISHED' && !a.isFixed)
+      .map(action => {
+        const inscrits = action.registeredCount ?? 0;
+        const max = action.maxParticipants || 1;
+        return {
+          id: action.id,
+          titre: action.title,
+          city: action.city,
+          inscrits,
+          maxParticipants: action.maxParticipants,
+          fillPercentage: Math.round((inscrits / max) * 100),
+          imageUrl: action.categoryImageUrl
+        };
+      })
       .sort((a, b) => b.inscrits - a.inscrits)
       .slice(0, 5);
   }
@@ -170,9 +183,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const ctx = this.evolutionChartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    // Données simulées pour 12 mois
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jui', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-    const data = [45, 52, 61, 58, 72, 68, 85, 92, 88, 105, 98, 103];
+    const data = this.buildMonthlyInscriptions(this.actions);
 
     const config: ChartConfiguration = {
       type: 'line',
@@ -289,7 +301,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!ctx) return;
 
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jui', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-    const data = [55, 62, 58, 71, 68, 75, 72, 78, 82, 76, 85, 88];
+    const data = this.buildMonthlyFillRates(this.actions);
 
     const config: ChartConfiguration = {
       type: 'bar',
@@ -363,6 +375,30 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   viewAction(actionId: number): void {
     this.router.navigate(['/association/action', actionId]);
+  }
+
+  private buildMonthlyInscriptions(actions: ActionSummary[]): number[] {
+    const buckets = new Array(12).fill(0);
+    actions
+      .filter(a => a.status === 'PUBLISHED' && !a.isFixed)
+      .forEach(a => {
+        const d = new Date(a.dateStart);
+        buckets[d.getMonth()] += a.registeredCount ?? 0;
+      });
+    return buckets;
+  }
+
+  private buildMonthlyFillRates(actions: ActionSummary[]): number[] {
+    const sum = new Array(12).fill(0);
+    const counts = new Array(12).fill(0);
+    actions
+      .filter(a => a.status === 'PUBLISHED' && !a.isFixed && a.maxParticipants > 0)
+      .forEach(a => {
+        const m = new Date(a.dateStart).getMonth();
+        sum[m] += Math.round(((a.registeredCount ?? 0) / a.maxParticipants) * 100);
+        counts[m] += 1;
+      });
+    return sum.map((total, i) => (counts[i] > 0 ? Math.round(total / counts[i]) : 0));
   }
 
   ngOnDestroy(): void {

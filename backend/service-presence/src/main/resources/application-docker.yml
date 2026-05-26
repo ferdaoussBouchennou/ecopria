@@ -9,6 +9,8 @@ spring:
     show-sql: false
   kafka:
     bootstrap-servers: kafka:9092
+    listener:
+      auto-startup: true
     consumer:
       group-id: service-presence
       auto-offset-reset: earliest

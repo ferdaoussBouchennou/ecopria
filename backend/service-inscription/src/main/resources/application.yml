@@ -41,4 +41,5 @@ spring:
 
 service:
   action:
+    # Dev local : service-action:9090 | via gateway : http://localhost:8080
     url: ${SERVICE_ACTION_URL:http://localhost:9090}

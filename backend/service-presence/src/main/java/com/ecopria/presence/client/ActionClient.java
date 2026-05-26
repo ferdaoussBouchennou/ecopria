@@ -1,10 +1,10 @@
 package com.ecopria.presence.client;
 
-
-
+import com.ecopria.presence.client.dto.ActionDetailResponse;
 import com.ecopria.presence.dto.ActionDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -19,18 +19,27 @@ public class ActionClient {
     }
 
     public ActionDTO getAction(Long actionId) {
+        String base = actionServiceUrl.endsWith("/") ? actionServiceUrl.substring(0, actionServiceUrl.length() - 1) : actionServiceUrl;
+        String url = base + "/api/actions/" + actionId;
         try {
-            String url = actionServiceUrl + "/actions/" + actionId;
-            ActionDTO action = restTemplate.getForObject(url, ActionDTO.class);
-            if (action == null) throw new RuntimeException("Action introuvable");
-            return action;
-        } catch (Exception e) {
-            // Mock si service-action non disponible
-            ActionDTO mock = new ActionDTO();
-            mock.setId(actionId);
-            mock.setPoints(100);
-            mock.setStatus("PUBLISHED");
-            return mock;
+            ActionDetailResponse detail = restTemplate.getForObject(url, ActionDetailResponse.class);
+            if (detail == null) {
+                throw new RuntimeException("Action introuvable : id=" + actionId);
+            }
+            return toActionDTO(detail);
+        } catch (RestClientException e) {
+            throw new RuntimeException(
+                    "Impossible de joindre le service action (" + url + ") : " + e.getMessage(), e);
         }
+    }
+
+    private ActionDTO toActionDTO(ActionDetailResponse detail) {
+        ActionDTO dto = new ActionDTO();
+        dto.setId(detail.getId());
+        dto.setPoints(detail.getPoints() != null ? detail.getPoints() : 0);
+        dto.setLatitude(detail.getLatitude());
+        dto.setLongitude(detail.getLongitude());
+        dto.setStatus(detail.getStatus() != null ? detail.getStatus() : "UNKNOWN");
+        return dto;
     }
 }

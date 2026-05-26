@@ -1,13 +1,17 @@
+/**
+ * En dev : ng serve utilise proxy.conf.json → tout passe par l'API Gateway (port 8080).
+ */
 export const environment = {
   production: false,
-  userApi: 'http://localhost:8082/api',
-  notificationApi: 'http://localhost:8086/api',
-  actionApi: '/api',
-  inscriptionApi: 'http://localhost:8084/inscriptions',
-  recompenseApi: 'http://localhost:9093/api',
-  adminApi: 'http://localhost:8088/api',
-  authApi: 'http://localhost:8089/api',
-  /** Dev Angular : proxy.conf.json redirige /api/* */
   useProxy: true,
-  presenceApi: '/api',
+  /** Préfixe unique via gateway */
+  apiUrl: '/api',
+  adminApi: '/admin',
+  authApi: '/api/auth',
+  userApi: '/api/users',
+  notificationApi: '/api/notifications',
+  actionApi: '/api',
+  inscriptionApi: '/api/inscriptions',
+  recompenseApi: '/api/recompenses',
+  presenceApi: '/api/presences',
 };

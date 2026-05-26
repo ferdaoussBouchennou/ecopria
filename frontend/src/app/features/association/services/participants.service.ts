@@ -1,73 +1,86 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, switchMap } from 'rxjs/operators';
+import { environment } from '../../../../environments/environment';
 import { Participant, ParticipantsStats } from '../models/participant.model';
 import { InscriptionResponse } from '../../inscription/models/inscription.model';
+
+interface CitizenProfile {
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  photo?: string;
+  city?: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class ParticipantsService {
-  private readonly API_INSCRIPTIONS = '/api/inscriptions';
-  private readonly API_USERS = '/api/users';
+  private readonly apiInscriptions = environment.inscriptionApi;
+  private readonly apiUsers = environment.userApi;
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Récupère la liste complète des participants d'une action
-   * avec leurs détails utilisateur
-   */
   getParticipants(actionId: number): Observable<Participant[]> {
-    return this.http.get<InscriptionResponse[]>(`${this.API_INSCRIPTIONS}/action/${actionId}`)
+    return this.http
+      .get<InscriptionResponse[]>(`${this.apiInscriptions}/action/${actionId}`)
       .pipe(
-        map(inscriptions => {
-          // Pour l'instant, on retourne les inscriptions sans détails utilisateur
-          // TODO: Faire des appels pour récupérer les détails de chaque utilisateur
-          return inscriptions.map(inscription => ({
-            inscriptionId: inscription.id,
-            userId: inscription.userId,
-            actionId: inscription.actionId,
-            dateInscription: inscription.dateInscription,
-            statut: inscription.statut,
-            pointsAction: inscription.pointsAction,
-            // Données mockées en attendant l'endpoint utilisateur
-            firstName: `Utilisateur`,
-            lastName: `#${inscription.userId}`,
-            email: `user${inscription.userId}@example.com`,
-            phone: '06XXXXXXXX',
-            photoUrl: undefined,
-            city: 'Ville inconnue'
-          }));
+        switchMap((inscriptions) => {
+          if (inscriptions.length === 0) {
+            return of([]);
+          }
+          const profileCalls = inscriptions.map((inscription) =>
+            this.http
+              .get<CitizenProfile>(`${this.apiUsers}/${inscription.userId}/profile`)
+              .pipe(
+                map((profile) => this.toParticipant(inscription, profile)),
+                catchError(() => of(this.toParticipant(inscription, null)))
+              )
+          );
+          return forkJoin(profileCalls);
         }),
-        catchError(error => {
+        catchError((error) => {
           console.error('Erreur récupération participants:', error);
           return of([]);
         })
       );
   }
 
-  /**
-   * Calcule les statistiques des participants
-   */
-  calculateStats(participants: Participant[]): ParticipantsStats {
+  private toParticipant(
+    inscription: InscriptionResponse,
+    profile: CitizenProfile | null
+  ): Participant {
     return {
-      total: participants.length,
-      confirmes: participants.filter(p => p.statut === 'CONFIRMEE').length,
-      enAttente: participants.filter(p => p.statut === 'EN_ATTENTE').length,
-      annules: participants.filter(p => p.statut === 'ANNULEE').length
+      inscriptionId: inscription.id,
+      userId: inscription.userId,
+      actionId: inscription.actionId,
+      dateInscription: inscription.dateInscription,
+      statut: inscription.statut,
+      pointsAction: inscription.pointsAction,
+      firstName: profile?.firstName ?? 'Utilisateur',
+      lastName: profile?.lastName ?? `#${inscription.userId}`,
+      email: profile?.email ?? '',
+      phone: profile?.phone ?? '',
+      photoUrl: profile?.photo,
+      city: profile?.city ?? ''
     };
   }
 
-  /**
-   * Exporte la liste des participants en CSV
-   */
+  calculateStats(participants: Participant[]): ParticipantsStats {
+    return {
+      total: participants.length,
+      confirmes: participants.filter((p) => p.statut === 'CONFIRMEE').length,
+      enAttente: participants.filter((p) => p.statut === 'EN_ATTENTE').length,
+      annules: participants.filter((p) => p.statut === 'ANNULEE').length
+    };
+  }
+
   exportToCSV(participants: Participant[], actionTitle: string): void {
-    // En-têtes CSV
     const headers = ['Nom', 'Prénom', 'Email', 'Téléphone', 'Ville', 'Date inscription', 'Statut', 'Points'];
-    
-    // Données
-    const rows = participants.map(p => [
+    const rows = participants.map((p) => [
       p.lastName || '',
       p.firstName || '',
       p.email || '',
@@ -78,19 +91,16 @@ export class ParticipantsService {
       p.pointsAction.toString()
     ]);
 
-    // Construction du CSV
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(','))
     ].join('\n');
 
-    // Téléchargement
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    
     const fileName = `participants_${this.sanitizeFileName(actionTitle)}_${this.formatDateForFile(new Date())}.csv`;
-    
+
     link.setAttribute('href', url);
     link.setAttribute('download', fileName);
     link.style.visibility = 'hidden';
@@ -100,8 +110,7 @@ export class ParticipantsService {
   }
 
   private formatDate(isoDate: string): string {
-    const date = new Date(isoDate);
-    return date.toLocaleDateString('fr-FR', {
+    return new Date(isoDate).toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -120,9 +129,9 @@ export class ParticipantsService {
 
   private getStatutLabel(statut: string): string {
     const labels: Record<string, string> = {
-      'CONFIRMEE': 'Confirmé',
-      'EN_ATTENTE': 'En attente',
-      'ANNULEE': 'Annulé'
+      CONFIRMEE: 'Confirmé',
+      EN_ATTENTE: 'En attente',
+      ANNULEE: 'Annulé'
     };
     return labels[statut] || statut;
   }

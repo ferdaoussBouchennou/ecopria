@@ -1,4 +1,13 @@
 export const environment = {
   production: true,
+  useProxy: false,
+  apiUrl: '/api',
+  adminApi: '/admin',
+  authApi: '/api/auth',
+  userApi: '/api/users',
+  notificationApi: '/api/notifications',
   actionApi: '/api',
+  inscriptionApi: '/api/inscriptions',
+  recompenseApi: '/api/recompenses',
+  presenceApi: '/api/presences',
 };

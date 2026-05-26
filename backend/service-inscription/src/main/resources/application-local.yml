@@ -1,0 +1,13 @@
+# mvn spring-boot:run -Dspring-boot.run.profiles=local
+# Prérequis : docker compose -f docker-compose.infra.yml up -d
+
+spring:
+  kafka:
+    bootstrap-servers: localhost:29092
+    listener:
+      auto-startup: true
+
+service:
+  action:
+    # Appel direct au service-action local (pas besoin de gateway pour ce lien)
+    url: http://localhost:9090

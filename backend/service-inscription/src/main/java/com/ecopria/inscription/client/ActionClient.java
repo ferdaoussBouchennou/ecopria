@@ -1,5 +1,6 @@
 package com.ecopria.inscription.client;
 
+import com.ecopria.inscription.client.dto.ActionAvailabilityResponse;
 import com.ecopria.inscription.dto.ActionDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,27 +18,33 @@ public class ActionClient {
         this.actionServiceUrl = actionServiceUrl;
     }
 
+    /**
+     * Récupère la disponibilité via GET /api/actions/{id}/disponibilite
+     * (directement ou via API Gateway selon {@code service.action.url}).
+     */
     public ActionDTO getAction(Long actionId) {
+        String base = actionServiceUrl.endsWith("/") ? actionServiceUrl.substring(0, actionServiceUrl.length() - 1) : actionServiceUrl;
+        String url = base + "/api/actions/" + actionId + "/disponibilite";
         try {
-            String url = actionServiceUrl + "/actions/" + actionId;
-            System.out.println("Appel REST vers service-action : " + url);
-            ActionDTO action = restTemplate.getForObject(url, ActionDTO.class);
-            if (action == null) throw new RuntimeException("Action introuvable : id=" + actionId);
-            return action;
+            ActionAvailabilityResponse availability = restTemplate.getForObject(url, ActionAvailabilityResponse.class);
+            if (availability == null) {
+                throw new RuntimeException("Action introuvable : id=" + actionId);
+            }
+            return toActionDTO(availability);
         } catch (RestClientException e) {
-            System.out.println("service-action non disponible, utilisation du mock. Erreur: " + e.getMessage());
-            return getMockAction(actionId);
+            throw new RuntimeException(
+                    "Impossible de joindre le service action (" + url + ") : " + e.getMessage(), e);
         }
     }
 
-    private ActionDTO getMockAction(Long actionId) {
-        ActionDTO mock = new ActionDTO();
-        mock.setId(actionId);
-        mock.setTitre("Action écologique test #" + actionId);
-        mock.setPlacesDisponibles(10);
-        mock.setPlacesTotales(20);
-        mock.setPoints(100);
-        mock.setStatut("ACTIVE");
-        return mock;
+    private ActionDTO toActionDTO(ActionAvailabilityResponse availability) {
+        ActionDTO dto = new ActionDTO();
+        dto.setId(availability.getActionId());
+        dto.setTitre("Action #" + availability.getActionId());
+        dto.setPlacesDisponibles(availability.getAvailablePlaces() != null ? availability.getAvailablePlaces() : 0);
+        dto.setPlacesTotales(availability.getMaxParticipants() != null ? availability.getMaxParticipants() : 0);
+        dto.setPoints(availability.getPoints() != null ? availability.getPoints() : 0);
+        dto.setStatut(availability.getStatus() != null ? availability.getStatus() : "UNKNOWN");
+        return dto;
     }
 }

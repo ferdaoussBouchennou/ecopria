@@ -81,7 +81,7 @@ export class AssociationService {
 
   getQRCode(actionId: number): Observable<QRCodeResponse> {
     return this.http.get<QRCodeResponse>(
-      `${environment.presenceApi}/presences/qr/${actionId}`
+      `${environment.presenceApi}/qr/${actionId}`
     );
   }
 
@@ -97,13 +97,13 @@ export class AssociationService {
 
   getProfile(authId: number): Observable<AssociationProfile> {
     return this.http.get<AssociationProfile>(
-      `/api/users/association/${authId}`
+      `${environment.userApi}/association/${authId}`
     );
   }
 
   updateProfile(authId: number, profile: UpdateAssociationProfileDTO): Observable<AssociationProfile> {
     return this.http.put<AssociationProfile>(
-      `/api/users/association/${authId}/profile`,
+      `${environment.userApi}/association/${authId}/profile`,
       profile
     );
   }

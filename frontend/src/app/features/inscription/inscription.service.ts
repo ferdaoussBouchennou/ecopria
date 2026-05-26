@@ -89,7 +89,7 @@ export class InscriptionService {
     let message = 'Une erreur inattendue est survenue.';
 
     if (error.status === 0) {
-      message = 'Impossible de joindre le serveur. Vérifiez que service-inscription (8084) et service-action (9090) sont démarrés.';
+      message = 'Impossible de joindre l\'API Gateway (port 8080). Vérifiez que la gateway et les microservices sont démarrés.';
     } else if (error.error?.erreur) {
       message = error.error.erreur;
     } else if (error.status === 409) {

@@ -12,8 +12,10 @@ import {
 } from '../../core/models/presence.model';
 import { InscriptionResponse } from '../../core/models/inscription.model';
 
-const API_PRESENCES = '/api/presences';
-const API_INSCRIPTIONS = '/api/inscriptions';
+import { environment } from '../../../environments/environment';
+
+const API_PRESENCES = environment.presenceApi;
+const API_INSCRIPTIONS = environment.inscriptionApi;
 
 @Injectable({ providedIn: 'root' })
 export class PresenceService {

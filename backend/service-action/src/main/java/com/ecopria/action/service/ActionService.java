@@ -94,6 +94,7 @@ public class ActionService {
                 .actionId(actionId)
                 .availablePlaces(action.getAvailablePlaces())
                 .maxParticipants(action.getMaxParticipants())
+                .points(action.getPoints())
                 .status(action.getStatus())
                 .hasAvailablePlaces(action.getAvailablePlaces() > 0)
                 .build();
@@ -232,6 +233,16 @@ public class ActionService {
         Association association = associationRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Association non trouvée"));
         return actionRepository.findByAssociationId(association.getId())
+                .stream().map(this::toSummaryDTO).collect(Collectors.toList());
+    }
+
+    /** Actions publiées d'une association (page publique /api/associations/{id}/actions). */
+    @Transactional(readOnly = true)
+    public List<ActionSummaryDTO> getPublishedActionsByAssociationId(Long associationId) {
+        if (!associationRepository.existsById(associationId)) {
+            throw new RuntimeException("Association non trouvée : id=" + associationId);
+        }
+        return actionRepository.findByAssociationIdAndStatus(associationId, ActionStatus.PUBLISHED)
                 .stream().map(this::toSummaryDTO).collect(Collectors.toList());
     }
 

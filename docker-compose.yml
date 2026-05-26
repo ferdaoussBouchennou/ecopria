@@ -1,6 +1,8 @@
 # =============================================================
-#  ecopria — Infrastructure complète
-#  Kafka KRaft + 9 bases MySQL + tous les microservices
+#  ecopria — Stack COMPLÈTE (tout en Docker)
+#  Pour le dev local (microservices en Maven/IDE) :
+#    docker compose -f docker-compose.infra.yml up -d
+#  Voir DEV-LOCAL.md
 # =============================================================
 
 networks:
@@ -287,6 +289,8 @@ services:
     ports:
       - "8080:8080"
     environment:
+      GATEWAY_AUTH_URI: http://service-auth-backend:8081
+      GATEWAY_ADMIN_URI: http://admin-service-backend:8087
       GATEWAY_UTILISATEUR_URI: http://service-utilisateur-backend:8082
       GATEWAY_NOTIFICATION_URI: http://service-notification-backend:8086
       GATEWAY_ACTION_URI: http://service-action-backend:9090
@@ -426,6 +430,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ecopria
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      # Appel interne direct (évite cycle gateway ↔ inscription au démarrage)
       SERVICE_ACTION_URL: http://service-action-backend:9090
     restart: on-failure
     depends_on:
@@ -433,6 +438,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      service-action-backend:
+        condition: service_started
 
   # ─────────────────────────────────────────────────────────
   #  SERVICE PRESENCE  → port 8085
@@ -459,6 +466,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      service-action-backend:
+        condition: service_started
 
   # ─────────────────────────────────────────────────────────
   #  SERVICE ACTION  → port 9090

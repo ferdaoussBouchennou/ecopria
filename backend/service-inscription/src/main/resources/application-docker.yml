@@ -6,6 +6,8 @@ spring:
 
   kafka:
     bootstrap-servers: kafka:9092
+    listener:
+      auto-startup: true
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
