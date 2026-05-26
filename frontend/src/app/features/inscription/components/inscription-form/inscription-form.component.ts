@@ -7,7 +7,7 @@ import {
   Validators,
   ReactiveFormsModule
 } from '@angular/forms';
-import { InscriptionService } from '../../services/inscription.service';
+import { InscriptionService } from '../../inscription.service';
 import { ActionDTO, InscriptionResponse } from '../../models/inscription.model';
 
 // Les 6 etats possibles de la page
@@ -127,7 +127,7 @@ export class InscriptionFormComponent implements OnInit {
   }
 
   get actionDate(): string {
-    if (!this.action) return '';
+    if (!this.action?.dateAction) return '';
     return new Date(this.action.dateAction).toLocaleDateString('fr-FR', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });

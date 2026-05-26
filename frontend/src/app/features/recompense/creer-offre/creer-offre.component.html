@@ -6,70 +6,88 @@
 <div *ngIf="!loadingOffre" class="creer-page">
   <header class="page-header-row">
     <div>
-      <span class="page-label">Mes offres</span>
-      <h1 class="page-title">{{ pageTitle }}</h1>
-      <p class="page-sub">Configurez votre récompense et, optionnellement, une boîte mystère pour vos clients Ecopria.</p>
+      <span class="page-label">{{ editId ? 'Modifier' : 'Créer' }}</span>
+      <h1 class="page-title">{{ pageTitle }}.</h1>
+      <p class="page-sub">Configurez votre récompense. Les modifications sont sauvegardées en base de données.</p>
     </div>
-    <a routerLink="/partenaire/offres" class="btn btn--outline">← Retour</a>
+    <a routerLink="/partenaire/offres" class="btn btn--outline">← Retour aux offres</a>
   </header>
 
-  <div *ngIf="erreur" class="alert alert--error">{{ erreur }}</div>
-  <div *ngIf="succes" class="alert alert--success">{{ succes }}</div>
+  <div *ngIf="erreur" class="alert alert--error">⚠ {{ erreur }}</div>
+  <div *ngIf="succes" class="alert alert--success">✓ {{ succes }}</div>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="form-layout">
+
+    <!-- Section principale -->
     <section class="card form-section">
       <h2 class="section-title">Informations générales</h2>
 
       <div class="field">
-        <label for="title">Titre *</label>
-        <input id="title" type="text" formControlName="title" placeholder="Ex: Café & pâtisserie maison" />
+        <label for="title">Titre de l'offre *</label>
+        <input id="title" type="text" formControlName="title"
+          placeholder="Ex: Café & pâtisserie maison"
+          [class.field-error]="form.get('title')?.invalid && form.get('title')?.touched" />
+        <span class="field-hint error" *ngIf="form.get('title')?.touched && form.get('title')?.hasError('required')">
+          Le titre est obligatoire
+        </span>
       </div>
 
       <div class="field">
         <label for="description">Description</label>
-        <textarea id="description" formControlName="description" rows="3"></textarea>
+        <textarea id="description" formControlName="description" rows="3"
+          placeholder="Décrivez votre offre en quelques mots…"></textarea>
       </div>
 
       <div class="field">
-        <label for="imageUrl">URL image</label>
-        <input id="imageUrl" type="url" formControlName="imageUrl" placeholder="https://..." />
+        <label for="imageUrl">URL de l'image</label>
+        <input id="imageUrl" type="url" formControlName="imageUrl"
+          placeholder="https://images.unsplash.com/..." />
+        <div class="img-preview" *ngIf="form.get('imageUrl')?.value">
+          <img [src]="form.get('imageUrl')?.value" alt="Aperçu" />
+        </div>
       </div>
 
       <div class="field-row">
         <div class="field">
           <label for="points">Points requis *</label>
-          <input id="points" type="number" formControlName="pointsNecessaires" min="1" />
+          <input id="points" type="number" formControlName="pointsNecessaires" min="1"
+            [class.field-error]="form.get('pointsNecessaires')?.invalid && form.get('pointsNecessaires')?.touched" />
         </div>
         <div class="field">
-          <label for="type">Type *</label>
+          <label for="type">Type d'offre *</label>
           <select id="type" formControlName="type">
             <option *ngFor="let t of types" [value]="t.value">{{ t.label }}</option>
           </select>
         </div>
       </div>
 
+      <!-- Stock (STOCK / EXPERIENCE) -->
       <div class="field-row" *ngIf="showStock">
         <div class="field">
-          <label for="stock">Stock *</label>
-          <input id="stock" type="number" formControlName="stock" min="1" />
+          <label for="stock">Stock disponible *</label>
+          <input id="stock" type="number" formControlName="stock" min="1"
+            [class.field-error]="form.get('stock')?.invalid && form.get('stock')?.touched" />
+          <span class="field-hint">Nombre d'unités disponibles</span>
         </div>
         <div class="field">
-          <label for="valeurDhStock">Valeur (DH) — commission</label>
+          <label for="valeurDhStock">Valeur en DH (pour commission)</label>
           <input id="valeurDhStock" type="number" formControlName="valeurDh" min="0" step="0.01" />
         </div>
       </div>
 
+      <!-- Réduction -->
       <div class="field-row" *ngIf="showReduction">
         <div class="field">
           <label for="discount">Réduction (%) *</label>
           <input id="discount" type="number" formControlName="discountPercentage" min="1" max="100" />
         </div>
         <div class="field">
-          <label for="valeurDhRed">Valeur remise (DH) *</label>
+          <label for="valeurDhRed">Valeur de la remise (DH) *</label>
           <input id="valeurDhRed" type="number" formControlName="valeurDh" min="0" step="0.01" />
         </div>
       </div>
 
+      <!-- Service -->
       <div class="field" *ngIf="form.get('type')?.value === 'SERVICE'">
         <label for="valeurDhSvc">Valeur prestation (DH)</label>
         <input id="valeurDhSvc" type="number" formControlName="valeurDh" min="0" step="0.01" />
@@ -78,21 +96,23 @@
       <div class="field">
         <label for="exp">Date d'expiration (optionnel)</label>
         <input id="exp" type="datetime-local" formControlName="dateExpiration" />
+        <span class="field-hint">Laissez vide pour une offre sans limite de temps</span>
       </div>
     </section>
 
+    <!-- Boîte mystère -->
     <section class="card form-section mystere-section">
       <div class="mystere-head">
         <div>
-          <h2 class="section-title">🎁 Boîte mystère</h2>
+          <h2 class="section-title">🎁 Boîte mystère <span class="optional-badge">optionnel</span></h2>
           <p class="mystere-desc">
-            Le citoyen peut choisir d'ouvrir la boîte au lieu de l'offre classique.
-            Un tirage aléatoire pondéré détermine le prix gagné (service-presence / récompense).
+            Le client peut choisir d'ouvrir la boîte au lieu de l'offre classique.
+            Un tirage aléatoire pondéré détermine le prix gagné.
           </p>
         </div>
-        <label class="toggle">
+        <label class="toggle-label">
           <input type="checkbox" formControlName="hasMystereBox" (change)="onMystereToggle()" />
-          <span>Activer la boîte mystère</span>
+          <span class="toggle-text">Activer</span>
         </label>
       </div>
 
@@ -100,48 +120,57 @@
         <div class="field">
           <label for="mbPoints">Coût en points (boîte) *</label>
           <input id="mbPoints" type="number" formControlName="mystereBoxPoints" min="1" />
-          <span class="hint">Souvent inférieur au prix de l'offre normale pour inciter au jeu.</span>
+          <span class="field-hint">Souvent moins cher que l'offre normale pour inciter au jeu</span>
         </div>
 
-        <div class="proba-bar" [class.proba-bar--ok]="probaTotal === 100" [class.proba-bar--err]="probaTotal !== 100">
-          Probabilités totales : <strong>{{ probaTotal }} %</strong>
-          <span *ngIf="probaTotal !== 100"> — doit être exactement 100 %</span>
+        <div class="proba-bar" [class.proba-bar--ok]="probaTotal === 100" [class.proba-bar--err]="probaTotal !== 100 && probaTotal > 0">
+          Total probabilités : <strong>{{ probaTotal }}%</strong>
+          <span *ngIf="probaTotal !== 100 && probaTotal > 0"> — doit être exactement 100%</span>
+          <span *ngIf="probaTotal === 100"> ✓</span>
         </div>
 
         <div formArrayName="mystereBoxItems" class="mystere-items">
-          <div
-            *ngFor="let item of mystereItems.controls; let i = index"
-            [formGroupName]="i"
-            class="mystere-item card">
+          <div *ngFor="let item of mystereItems.controls; let i = index"
+            [formGroupName]="i" class="mystere-item card">
             <div class="mystere-item-head">
-              <span>Option {{ i + 1 }}</span>
-              <button type="button" class="btn btn--danger btn--sm" (click)="supprimerItemMystere(i)"
-                      [disabled]="mystereItems.length <= 2">Supprimer</button>
+              <span class="item-num">Option {{ i + 1 }}</span>
+              <button type="button" class="btn btn--danger btn--sm"
+                (click)="supprimerItemMystere(i)"
+                [disabled]="mystereItems.length <= 2">
+                Supprimer
+              </button>
             </div>
-            <div class="field">
-              <label>Titre du prix *</label>
-              <input type="text" formControlName="titre" placeholder="Ex: Dessert offert" />
+            <div class="field-row">
+              <div class="field">
+                <label>Titre du prix *</label>
+                <input type="text" formControlName="titre" placeholder="Ex: Dessert offert" />
+              </div>
+              <div class="field">
+                <label>Probabilité (%) *</label>
+                <input type="number" formControlName="probabilite" min="1" max="100" />
+              </div>
             </div>
             <div class="field">
               <label>Description</label>
-              <input type="text" formControlName="description" />
-            </div>
-            <div class="field">
-              <label>Probabilité (%) *</label>
-              <input type="number" formControlName="probabilite" min="1" max="100" />
+              <input type="text" formControlName="description" placeholder="Détails optionnels" />
             </div>
           </div>
         </div>
 
-        <button type="button" class="btn btn--outline" (click)="ajouterItemMystere()">+ Ajouter une option</button>
+        <button type="button" class="btn btn--outline btn--sm" (click)="ajouterItemMystere()">
+          + Ajouter une option
+        </button>
       </div>
     </section>
 
+    <!-- Actions -->
     <div class="form-actions">
-      <button type="submit" class="btn btn--primary" [disabled]="loading">
-        {{ loading ? 'Enregistrement…' : (editId ? 'Enregistrer' : 'Publier l\'offre') }}
+      <button type="submit" class="btn btn--primary btn--lg" [disabled]="loading">
+        <span *ngIf="!loading">{{ editId ? '💾 Enregistrer les modifications' : '🚀 Publier l\'offre' }}</span>
+        <span *ngIf="loading">Enregistrement…</span>
       </button>
       <a routerLink="/partenaire/offres" class="btn btn--outline">Annuler</a>
     </div>
+
   </form>
 </div>

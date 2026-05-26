@@ -15,7 +15,9 @@
     <article class="card avis-card" *ngFor="let a of avis">
       <div class="avis-head">
         <strong>{{ a.authorName }}</strong>
-        <span class="avis-stars">{{ '★'.repeat(a.rating) }}</span>
+        <span class="avis-stars">
+          <span *ngFor="let s of [].constructor(a.rating)">★</span>
+        </span>
         <span class="avis-date">{{ formatDate(a.createdAt) }}</span>
       </div>
       <p class="avis-comment" *ngIf="a.comment">{{ a.comment }}</p>

@@ -1,22 +1,7 @@
-// Correspond exactement à InscriptionRequestDTO.java du backend
-export interface InscriptionRequest {
-  userId: number;
-  actionId: number;
-}
-
-// Correspond exactement à InscriptionResponseDTO.java du backend
-export interface InscriptionResponse {
-  id: number;
-  userId: number;
-  actionId: number;
-  dateInscription: string;        // LocalDateTime serialise en ISO string
-  qrCode: string;                 // ex: INS-1-42-A3F9B2C1
-  statut: 'CONFIRMEE' | 'EN_ATTENTE' | 'ANNULEE';
-  pointsAction: number;
-}
+// Re-export depuis core pour compatibilité avec les imports existants
 export type { InscriptionRequest, InscriptionResponse } from '../../../core/models/inscription.model';
 
-// Correspond a ActionDTO.java du service-action (port 8083)
+// Correspond a ActionDTO.java du service-action (port 9090)
 export interface ActionDTO {
   id: number;
   titre: string;
@@ -25,7 +10,7 @@ export interface ActionDTO {
   points: number;
   imageUrl?: string;
   isFixed: boolean;
-  /** Champs association uniquement */
+  /** Champs action non-fixe uniquement */
   lieu?: string;
   ville?: string;
   dateAction?: string;

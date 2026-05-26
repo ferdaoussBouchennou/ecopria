@@ -15,7 +15,7 @@ export class MesOffresComponent implements OnInit {
   offres: Recompense[] = [];
   loading = true;
   erreur = '';
-  desactivationId: number | null = null;
+  actionEnCours: number | null = null;
 
   constructor(private partenaireService: PartenaireService) {}
 
@@ -39,15 +39,30 @@ export class MesOffresComponent implements OnInit {
   }
 
   toggleActif(o: Recompense): void {
-    this.desactivationId = o.id;
+    this.actionEnCours = o.id;
     this.partenaireService.toggleOffreActive(o.id).subscribe({
       next: (updated) => {
         this.offres = this.offres.map((x) => (x.id === o.id ? updated : x));
-        this.desactivationId = null;
+        this.actionEnCours = null;
       },
       error: (e: Error) => {
-        alert(e.message);
-        this.desactivationId = null;
+        this.erreur = e.message;
+        this.actionEnCours = null;
+      }
+    });
+  }
+
+  supprimerOffre(o: Recompense): void {
+    if (!confirm(`Supprimer l'offre "${o.title}" ? Cette action est irréversible.`)) return;
+    this.actionEnCours = o.id;
+    this.partenaireService.desactiverOffre(o.id).subscribe({
+      next: () => {
+        this.offres = this.offres.filter((x) => x.id !== o.id);
+        this.actionEnCours = null;
+      },
+      error: (e: Error) => {
+        this.erreur = e.message;
+        this.actionEnCours = null;
       }
     });
   }
@@ -60,5 +75,13 @@ export class MesOffresComponent implements OnInit {
       EXPERIENCE: 'Expérience'
     };
     return map[type] ?? type;
+  }
+
+  get offresActives(): Recompense[] {
+    return this.offres.filter(o => o.isActive);
+  }
+
+  get offresInactives(): Recompense[] {
+    return this.offres.filter(o => !o.isActive);
   }
 }

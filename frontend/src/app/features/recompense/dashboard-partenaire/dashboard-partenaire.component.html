@@ -9,10 +9,12 @@
 </div>
 
 <div *ngIf="!loading && data && !erreur" class="dashboard-page">
+
+  <!-- En-tête -->
   <header class="page-header-row">
     <div>
       <span class="page-label">Vue d'ensemble</span>
-      <h1 class="page-title">Bonjour {{ data.partenaireName }}.</h1>
+      <h1 class="page-title">Bonjour, {{ data.partenaireName }}.</h1>
       <div class="hero-badges">
         <span class="badge badge--green badge--pill" *ngIf="data.badgeActuel">{{ data.badgeActuel }}</span>
         <span class="rating-pill" *ngIf="data.noteMoyenne">
@@ -20,85 +22,126 @@
         </span>
       </div>
     </div>
-    <a routerLink="/recompenses" class="btn btn--outline btn--pill" target="_blank">Voir ma page publique →</a>
+    <a routerLink="profil" class="btn btn--outline btn--pill">Modifier mon profil →</a>
   </header>
 
-  <div class="stats-grid stats-grid--8">
-    <div class="stat-card">
-      <span class="stat-value">{{ data.vuesProfilPublic ?? 0 | number }}</span>
-      <span class="stat-label">Vues profil public</span>
+  <!-- KPIs principaux -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon--blue">👁</div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ data.vuesProfil ?? 0 | number }}</span>
+        <span class="kpi-label">Vues du profil</span>
+      </div>
     </div>
-    <div class="stat-card">
-      <span class="stat-value">{{ data.clicsVersOffres ?? 0 | number }}</span>
-      <span class="stat-label">Clics vers offres</span>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon--purple">🖱</div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ data.clicsOffres ?? 0 | number }}</span>
+        <span class="kpi-label">Clics sur les offres</span>
+      </div>
     </div>
-    <div class="stat-card">
-      <span class="stat-value">{{ data.couponsDistribues | number }}</span>
-      <span class="stat-label">Coupons distribués</span>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon--green">🎟</div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ data.couponsDistribues | number }}</span>
+        <span class="kpi-label">Coupons distribués</span>
+      </div>
     </div>
-    <div class="stat-card">
-      <span class="stat-value">{{ data.couponsUtilises | number }}</span>
-      <span class="stat-label">Coupons utilisés</span>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon--orange">✓</div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ data.couponsUtilises | number }}</span>
+        <span class="kpi-label">Coupons utilisés</span>
+      </div>
     </div>
-    <div class="stat-card">
-      <span class="stat-value">{{ data.tauxUtilisation }}%</span>
-      <span class="stat-label">Taux conversion</span>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon--teal">%</div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ data.tauxUtilisation }}%</span>
+        <span class="kpi-label">Taux de conversion</span>
+      </div>
     </div>
-    <div class="stat-card">
-      <span class="stat-value">{{ data.noteMoyenne ?? '—' }}</span>
-      <span class="stat-label">Note moyenne</span>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-icon--yellow">★</div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ data.noteMoyenne ?? '—' }}</span>
+        <span class="kpi-label">Note moyenne ({{ data.nombreAvis ?? 0 }} avis)</span>
+      </div>
     </div>
-    <div class="stat-card">
-      <span class="stat-value">{{ data.nombreAvis ?? 0 }}</span>
-      <span class="stat-label">Nombre d'avis</span>
-    </div>
-    <div class="stat-card stat-card--highlight">
-      <span class="stat-value">{{ data.commissionsARegler | number:'1.0-0' }} €</span>
-      <span class="stat-label">Commissions à régler</span>
+    <div class="kpi-card kpi-card--highlight">
+      <div class="kpi-icon kpi-icon--sage">€</div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ data.commissionsARegler | number:'1.0-0' }} DH</span>
+        <span class="kpi-label">Commissions ce mois</span>
+      </div>
     </div>
   </div>
 
+  <!-- Deux colonnes -->
   <div class="two-col">
+
+    <!-- Offres actives -->
     <section class="section-block">
       <div class="section-head">
         <h2 class="section-title">Offres actives</h2>
-        <a routerLink="/partenaire/offres" class="link-sm">Gérer →</a>
+        <a routerLink="offres" class="link-sm">Gérer toutes les offres →</a>
       </div>
-      <div class="offres-mini" *ngIf="data.offresActives.length > 0">
-        <div class="offre-mini" *ngFor="let o of data.offresActives">
+
+      <div class="offres-list" *ngIf="data.offresActives.length > 0">
+        <div class="offre-row" *ngFor="let o of data.offresActives">
           <img *ngIf="o.imageUrl" [src]="o.imageUrl" [alt]="o.title" class="offre-thumb" />
-          <div class="offre-thumb offre-thumb--placeholder" *ngIf="!o.imageUrl"></div>
-          <div class="offre-mini-body">
-            <strong>{{ o.title }}</strong>
-            <span class="offre-meta">{{ o.pointsNecessaires }} pts · stock {{ o.stock ?? '∞' }}</span>
+          <div class="offre-thumb offre-thumb--ph" *ngIf="!o.imageUrl">
+            <span>🎁</span>
           </div>
-          <span class="badge badge--green">Active</span>
+          <div class="offre-row-body">
+            <strong>{{ o.title }}</strong>
+            <div class="offre-row-meta">
+              <span class="pts-badge">{{ o.pointsNecessaires }} pts</span>
+              <span *ngIf="o.stock != null" class="stock-info">{{ o.stock }} en stock</span>
+              <span *ngIf="o.hasMystereBox" class="mystere-badge">🎁 Mystère</span>
+            </div>
+          </div>
+          <span class="status-dot status-dot--green"></span>
         </div>
       </div>
-      <p *ngIf="data.offresActives.length === 0" class="empty-hint">
-        Aucune offre active. <a routerLink="/partenaire/offres/nouvelle">Créer une offre</a>
-      </p>
+
+      <div class="empty-card" *ngIf="data.offresActives.length === 0">
+        <p>Aucune offre active.</p>
+        <a routerLink="offres/nouvelle" class="btn btn--primary btn--sm">+ Créer une offre</a>
+      </div>
+
+      <a routerLink="offres/nouvelle" class="btn btn--outline btn--sm" style="margin-top:1rem"
+         *ngIf="data.offresActives.length > 0">
+        + Nouvelle offre
+      </a>
     </section>
 
+    <!-- Échanges récents -->
     <section class="section-block">
-      <h2 class="section-title">Échanges récents</h2>
-      <div class="card table-wrap" *ngIf="data.echangesRecents.length > 0">
-        <table class="data-table data-table--compact">
+      <div class="section-head">
+        <h2 class="section-title">Échanges récents</h2>
+        <a routerLink="scanner" class="link-sm">Scanner un coupon →</a>
+      </div>
+
+      <div class="table-card" *ngIf="data.echangesRecents.length > 0">
+        <table class="data-table">
           <thead>
             <tr>
               <th>Date</th>
-              <th>Coupon</th>
+              <th>Code</th>
               <th>Statut</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let c of data.echangesRecents">
-              <td>{{ formatDate(c.createdAt) }}</td>
+              <td class="td-date">{{ formatDate(c.createdAt) }}</td>
               <td><code>{{ c.code }}</code></td>
               <td>
                 <span class="badge"
                   [class.badge--green]="c.status === 'UTILISE'"
-                  [class.badge--orange]="c.status === 'DISTRIBUE'">
+                  [class.badge--orange]="c.status === 'DISTRIBUE'"
+                  [class.badge--muted]="c.status === 'EXPIRE'">
                   {{ statutLabel(c.status) }}
                 </span>
               </td>
@@ -106,7 +149,44 @@
           </tbody>
         </table>
       </div>
-      <p *ngIf="data.echangesRecents.length === 0" class="empty-hint">Aucun échange récent.</p>
+
+      <div class="empty-card" *ngIf="data.echangesRecents.length === 0">
+        <p>Aucun échange aujourd'hui.</p>
+        <a routerLink="scanner" class="btn btn--outline btn--sm">Scanner un coupon</a>
+      </div>
     </section>
+
   </div>
+
+  <!-- Raccourcis rapides -->
+  <section class="shortcuts">
+    <h2 class="section-title">Accès rapide</h2>
+    <div class="shortcuts-grid">
+      <a routerLink="offres" class="shortcut-card">
+        <span class="shortcut-icon">🎁</span>
+        <span>Mes offres</span>
+      </a>
+      <a routerLink="scanner" class="shortcut-card">
+        <span class="shortcut-icon">📱</span>
+        <span>Scanner coupon</span>
+      </a>
+      <a routerLink="avis" class="shortcut-card">
+        <span class="shortcut-icon">⭐</span>
+        <span>Avis clients</span>
+      </a>
+      <a routerLink="visibilite" class="shortcut-card">
+        <span class="shortcut-icon">📈</span>
+        <span>Visibilité</span>
+      </a>
+      <a routerLink="commissions" class="shortcut-card">
+        <span class="shortcut-icon">💰</span>
+        <span>Commissions</span>
+      </a>
+      <a routerLink="profil" class="shortcut-card">
+        <span class="shortcut-icon">👤</span>
+        <span>Mon profil</span>
+      </a>
+    </div>
+  </section>
+
 </div>
