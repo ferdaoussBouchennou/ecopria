@@ -128,6 +128,10 @@ export class MesActionsComponent implements OnInit {
   }
 
   getActionImage(action: ActionSummary): string {
+    // Priorité: photo de l'action > image de catégorie > placeholder
+    if (action.photoUrls && action.photoUrls.length > 0) {
+      return action.photoUrls[0];
+    }
     return action.categoryImageUrl || '/assets/placeholder-action.jpg';
   }
 

@@ -97,6 +97,14 @@
   line-height: 1.7; max-width: 380px;
 }
 
+.error-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 300px;
+}
+
 .qr-block {
   background: var(--green-bg);
   border: 1px solid var(--border);

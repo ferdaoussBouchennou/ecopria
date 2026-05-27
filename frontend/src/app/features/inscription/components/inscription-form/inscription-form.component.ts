@@ -11,6 +11,10 @@ import { InscriptionService } from '../../inscription.service';
 import { DevContextService } from '../../../../core/services/dev-context.service';
 import { InscriptionResponse } from '../../../../core/models/inscription.model';
 import { ActionDTO } from '../../models/inscription.model';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../../environments/environment';
+import { switchMap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 // Les 6 etats possibles de la page
 type PageStatut =
@@ -41,7 +45,8 @@ export class InscriptionFormComponent implements OnInit {
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private inscriptionService: InscriptionService,
-    private devContext: DevContextService
+    private devContext: DevContextService,
+    private http: HttpClient
   ) {}
 
   private get userId(): number {
@@ -64,6 +69,21 @@ export class InscriptionFormComponent implements OnInit {
 
     // Charge infos de l'action pour le recapitulatif
     this.chargerAction();
+
+    // Pre-remplir le profil
+    this.http.get<any>(`${environment.userApi}/${this.userId}/profile`).subscribe({
+      next: (profile) => {
+        if (profile) {
+          this.form.patchValue({
+            prenom: profile.firstName || '',
+            nom: profile.lastName || '',
+            email: profile.email || '',
+            telephone: profile.phone || ''
+          });
+        }
+      },
+      error: (err) => console.error('Erreur chargement profil', err)
+    });
   }
 
   private chargerAction(): void {
@@ -90,22 +110,40 @@ export class InscriptionFormComponent implements OnInit {
     this.statut = 'submitting';
     this.erreurMessage = '';
 
-    // Envoie uniquement userId + actionId au backend
-    // Le backend gere lui-meme le qrCode, les points, le statut
-    this.inscriptionService.inscrire({
-      userId:   this.userId,
-      actionId: this.actionId
-    }).subscribe({
-      next: (res: InscriptionResponse) => {
-        this.inscription = res;
-        // CONFIRMEE si places dispo, EN_ATTENTE si complet (gere par ActionPlacesConsumer)
-        this.statut = res.statut === 'EN_ATTENTE' ? 'en_attente' : 'confirmee';
-      },
-      error: (err: Error) => {
-        this.erreurMessage = err.message;
-        this.statut = 'erreur';
-      }
-    });
+    const formData = this.form.value;
+    const updateProfileReq = {
+      firstName: formData.prenom,
+      lastName: formData.nom,
+      email: formData.email,
+      phone: formData.telephone,
+      auth_id: this.userId
+    };
+
+    // Mettre à jour le profil d'abord, puis s'inscrire
+    this.http.put(`${environment.userApi}/${this.userId}/profile`, updateProfileReq)
+      .pipe(
+        catchError((err) => {
+          console.error('Erreur MAJ profil, on continue l\'inscription', err);
+          return of(null);
+        }),
+        switchMap(() => {
+          return this.inscriptionService.inscrire({
+            userId:   this.userId,
+            actionId: this.actionId
+          });
+        })
+      )
+      .subscribe({
+        next: (res: InscriptionResponse) => {
+          this.inscription = res;
+          // CONFIRMEE si places dispo, EN_ATTENTE si complet (gere par ActionPlacesConsumer)
+          this.statut = res.statut === 'EN_ATTENTE' ? 'en_attente' : 'confirmee';
+        },
+        error: (err: Error) => {
+          this.erreurMessage = err.message;
+          this.statut = 'erreur';
+        }
+      });
   }
 
   recommencer(): void {

@@ -54,7 +54,8 @@ export class AfficherQRComponent implements OnInit {
         // Charger le QR code
         this.associationService.getQRCode(actionId).subscribe({
           next: (response) => {
-            this.qrCodeDataUrl = response.qrCode;
+            const qrText = encodeURIComponent(response.qrCode);
+            this.qrCodeDataUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${qrText}`;
             this.loading = false;
           },
           error: (err) => {

@@ -101,8 +101,14 @@ export class ParticiperComponent implements OnInit {
         }
       },
       error: (err: Error) => {
-        this.erreurMessage = err.message;
+        // Gérer spécifiquement l'erreur de doublon
+        if (err.message.includes('déjà inscrit')) {
+          this.erreurMessage = 'Vous êtes déjà inscrit à cette action. Consultez vos inscriptions pour voir les détails.';
+        } else {
+          this.erreurMessage = err.message || 'Une erreur est survenue lors de l\'inscription.';
+        }
         this.statut = 'erreur';
+        console.error('Erreur inscription:', err);
       }
     });
   }

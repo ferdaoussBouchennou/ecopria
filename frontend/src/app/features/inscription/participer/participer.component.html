@@ -72,7 +72,23 @@
     <div class="result-icon result-icon--error">✕</div>
     <h2>Une erreur est survenue</h2>
     <p class="result-sub">{{ erreurMessage }}</p>
-    <button class="btn btn--primary" (click)="recommencer()">Reessayer</button>
+    
+    <!-- Si l'utilisateur est déjà inscrit, proposer de voir ses inscriptions -->
+    <div class="error-actions">
+      <a *ngIf="erreurMessage.includes('déjà inscrit')" 
+         routerLink="/mes-inscriptions" 
+         class="btn btn--primary">
+        Voir mes inscriptions
+      </a>
+      <button *ngIf="!erreurMessage.includes('déjà inscrit')" 
+              class="btn btn--primary" 
+              (click)="recommencer()">
+        Réessayer
+      </button>
+      <a routerLink="/actions" class="btn btn--secondary">
+        Retour aux actions
+      </a>
+    </div>
   </div>
 </div>
 

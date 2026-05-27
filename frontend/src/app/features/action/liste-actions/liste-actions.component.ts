@@ -157,6 +157,10 @@ export class ListeActionsComponent implements OnInit {
   }
 
   getActionImage(action: ActionSummary): string {
+    // Priorité: photo de l'action > image de catégorie > icône de catégorie
+    if (action.photoUrls && action.photoUrls.length > 0) {
+      return action.photoUrls[0];
+    }
     return (
       action.categoryImageUrl ||
       `/assets/categories/${getCategoryMeta(action.categoryName).slug}.svg`

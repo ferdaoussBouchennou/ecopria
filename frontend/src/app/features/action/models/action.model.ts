@@ -17,6 +17,7 @@ export interface ActionSummary {
   status: ActionStatus;
   latitude?: number;
   longitude?: number;
+  photoUrls?: string[]; // URLs des photos de l'action
 }
 
 /** Réponse GET /api/actions/{id} — ActionDetailDTO */

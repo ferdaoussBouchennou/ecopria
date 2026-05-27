@@ -24,27 +24,29 @@ public class ActionPlacesConsumer {
     @Transactional
     public void onPlacesMisesAJour(ActionPlacesEvent event) {
         System.out.println("Kafka reçu [action.places.mises.a.jour] actionId="
-                + event.getActionId() + " places=" + event.getPlacesDisponibles());
+                + event.getActionId() + " places=" + event.getAvailablePlaces());
 
-        // S'il y a au moins une place qui vient de se libérer
-        if (event.getPlacesDisponibles() > 0) {
-            // Cherche la première personne EN_ATTENTE pour cette action (par ordre d'inscription)
-            List<Inscription> enAttente = inscriptionRepository
-                    .findByActionIdAndStatutOrderByDateInscriptionAsc(
-                            event.getActionId(), "EN_ATTENTE"
-                    );
+        Integer availablePlaces = event.getAvailablePlaces();
+        if (availablePlaces == null || availablePlaces <= 0) {
+            return;
+        }
 
-            if (!enAttente.isEmpty()) {
-                Inscription premiere = enAttente.get(0);
-                premiere.setStatut("CONFIRMEE");
-                inscriptionRepository.save(premiere);
+        List<Inscription> enAttente = inscriptionRepository
+                .findByActionIdAndStatutOrderByDateInscriptionAsc(
+                        event.getActionId(), "EN_ATTENTE"
+                );
 
-                // Publie inscription.confirmee → Sanae lui envoie le QR Code par email
-                inscriptionProducer.envoyerConfirmation(premiere);
-
-                System.out.println("Liste d'attente : userId=" + premiere.getUserId()
-                        + " promu CONFIRMEE pour actionId=" + event.getActionId());
+        int remaining = availablePlaces;
+        for (Inscription inscription : enAttente) {
+            if (remaining <= 0) {
+                break;
             }
+            inscription.setStatut("CONFIRMEE");
+            inscriptionRepository.save(inscription);
+            inscriptionProducer.envoyerConfirmation(inscription);
+            remaining--;
+            System.out.println("Liste d'attente : userId=" + inscription.getUserId()
+                    + " promu CONFIRMEE pour actionId=" + event.getActionId());
         }
     }
 }

@@ -1,16 +1,22 @@
 package com.ecopria.inscription.kafka;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+
 public class ActionPlacesEvent {
     private Long actionId;
-    private int placesDisponibles;
-    private int placesTotal;
+    private Integer availablePlaces;
+    private Integer maxParticipants;
 
     public ActionPlacesEvent() {}
 
     public Long getActionId() { return actionId; }
-    public void setActionId(Long a) { this.actionId = a; }
-    public int getPlacesDisponibles() { return placesDisponibles; }
-    public void setPlacesDisponibles(int p) { this.placesDisponibles = p; }
-    public int getPlacesTotal() { return placesTotal; }
-    public void setPlacesTotal(int p) { this.placesTotal = p; }
+    public void setActionId(Long actionId) { this.actionId = actionId; }
+
+    public Integer getAvailablePlaces() { return availablePlaces; }
+    @JsonAlias({"placesDisponibles"})
+    public void setAvailablePlaces(Integer availablePlaces) { this.availablePlaces = availablePlaces; }
+
+    public Integer getMaxParticipants() { return maxParticipants; }
+    @JsonAlias({"placesTotal"})
+    public void setMaxParticipants(Integer maxParticipants) { this.maxParticipants = maxParticipants; }
 }

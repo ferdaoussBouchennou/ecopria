@@ -25,7 +25,7 @@ spring:
     # Local : Kafka exposé sur localhost:29092 (voir docker-compose.yml)
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
     listener:
-      auto-startup: false
+      auto-startup: true
     admin:
       fail-fast: false
     producer:

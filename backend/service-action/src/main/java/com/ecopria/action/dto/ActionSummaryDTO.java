@@ -3,6 +3,7 @@ package com.ecopria.action.dto;
 import com.ecopria.action.model.Action.ActionStatus;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -25,4 +26,5 @@ public class ActionSummaryDTO {
     private Integer registeredCount; // calculé
     private Boolean isFixed;
     private ActionStatus status;
+    private List<String> photoUrls; // URLs des photos de l'action
 }

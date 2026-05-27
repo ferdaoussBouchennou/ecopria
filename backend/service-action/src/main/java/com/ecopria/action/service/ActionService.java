@@ -425,6 +425,9 @@ public class ActionService {
                 .registeredCount(action.getRegisteredCount())
                 .isFixed(action.getIsFixed())
                 .status(action.getStatus())
+                .photoUrls(action.getPhotos().stream()
+                        .map(photo -> photo.getUrl())
+                        .collect(Collectors.toList()))
                 .build();
     }
 

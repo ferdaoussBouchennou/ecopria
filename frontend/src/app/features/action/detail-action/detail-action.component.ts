@@ -190,9 +190,16 @@ export class DetailActionComponent implements OnInit {
   }
 
   participate(): void {
-    if (this.action && !this.isFull()) {
-      this.router.navigate(['/participer', this.action.id]);
+    if (!this.action || this.isFull()) {
+      return;
     }
+    
+    // TODO: Récupérer l'ID utilisateur depuis le service d'authentification
+    const userId = 1; // Temporaire pour le développement
+    
+    this.router.navigate(['/participer', this.action.id], {
+      queryParams: { userId }
+    });
   }
 
   share(): void {
