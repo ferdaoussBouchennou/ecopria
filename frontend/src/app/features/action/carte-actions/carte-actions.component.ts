@@ -34,7 +34,7 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private actionService: ActionService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadCategories();
@@ -61,16 +61,16 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
     // Attendre que le DOM soit complètement rendu
     setTimeout(() => {
       this.initMap();
-      
+
       // Vérifier que les tuiles sont visibles après initialisation
       setTimeout(() => {
         if (this.map) {
           this.map.invalidateSize();
-          
+
           // Vérifier les tuiles dans le DOM
           const tiles = document.querySelectorAll('.leaflet-tile');
           console.log(`📊 Nombre de tuiles dans le DOM: ${tiles.length}`);
-          
+
           if (tiles.length > 0) {
             const firstTile = tiles[0] as HTMLImageElement;
             console.log('🖼️ Première tuile:', {
@@ -132,7 +132,7 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
         updateWhenZooming: false,
         updateInterval: 200
       });
-      
+
       this.tileLayer.addTo(this.map);
 
       // Événements de débogage
@@ -246,7 +246,7 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
     const icon = this.getMarkerIcon(action);
     const marker = L.marker([action.latitude!, action.longitude!], { icon });
 
-    const distance = this.userLocation 
+    const distance = this.userLocation
       ? this.calculateDistance(this.userLocation.lat, this.userLocation.lng, action.latitude!, action.longitude!)
       : null;
 
@@ -314,7 +314,7 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
           lng: position.coords.longitude
         };
 
-        console.log('📍 Position utilisateur:', this.userLocation);
+        console.log(' Position utilisateur:', this.userLocation);
 
         if (this.userMarker) {
           this.userMarker.remove();
@@ -338,7 +338,7 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
         }).addTo(this.map);
 
         this.userMarker.bindPopup('Vous êtes ici');
-        
+
         // Centrer la carte sur la position de l'utilisateur avec animation douce
         this.map.flyTo([this.userLocation.lat, this.userLocation.lng], 13, {
           duration: 1.5
@@ -346,7 +346,7 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // Mettre à jour seulement les distances dans la liste, sans refaire fitBounds
         this.filteredActions = [...this.filteredActions];
-        
+
         this.isLoadingLocation = false;
       },
       (error) => {
@@ -374,11 +374,11 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
         if (data && data.length > 0) {
           const lat = parseFloat(data[0].lat);
           const lon = parseFloat(data[0].lon);
-          
+
           console.log('🔍 Adresse trouvée:', { lat, lon, name: data[0].display_name });
-          
+
           this.map.setView([lat, lon], 14);
-          
+
           // Ajouter un marqueur temporaire
           const searchMarker = L.marker([lat, lon], {
             icon: L.divIcon({
@@ -439,7 +439,7 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
     const date = new Date(dateStr);
     const days = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
     const months = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
-    
+
     return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   }
 

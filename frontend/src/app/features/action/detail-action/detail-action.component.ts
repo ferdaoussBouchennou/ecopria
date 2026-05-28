@@ -197,7 +197,7 @@ export class DetailActionComponent implements OnInit {
     // TODO: Récupérer l'ID utilisateur depuis le service d'authentification
     const userId = 1; // Temporaire pour le développement
     
-    this.router.navigate(['/participer', this.action.id], {
+    this.router.navigate(['/inscription', this.action.id], {
       queryParams: { userId }
     });
   }

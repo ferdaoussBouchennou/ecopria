@@ -32,6 +32,8 @@ export class ParticipantsComponent implements OnInit {
   // États
   loading: boolean = true;
   error: string = '';
+  pinCode: string | null = null;
+  validerLoading: Record<number, boolean> = {};
   
   // Filtres et recherche
   searchTerm: string = '';
@@ -61,6 +63,13 @@ export class ParticipantsComponent implements OnInit {
     this.associationService.getAction(this.actionId).subscribe({
       next: (action: ActionDetail) => {
         this.actionTitle = action.title;
+        // Fetch PIN code if action has registrations
+        if (action.registeredCount > 0) {
+          this.associationService.getQRCode(this.actionId).subscribe({
+            next: (qr) => this.pinCode = qr.pinCode,
+            error: (err) => console.error('Erreur chargement PIN', err)
+          });
+        }
       },
       error: (err: Error) => {
         console.error('Erreur chargement action:', err);
@@ -193,5 +202,26 @@ export class ParticipantsComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/association/action', this.actionId]);
+  }
+
+  validerPresence(participant: Participant): void {
+    if (!this.pinCode) {
+      alert("Le code PIN de l'action n'est pas disponible.");
+      return;
+    }
+    
+    this.validerLoading[participant.userId] = true;
+    this.associationService.validerPresenceParPin(this.pinCode, participant.userId).subscribe({
+      next: (res) => {
+        alert(`Présence validée pour ${participant.firstName} ${participant.lastName} !`);
+        // We could change the local object to reflect the change, but it's best to reload data
+        this.loadData();
+      },
+      error: (err) => {
+        const msg = err.error?.erreur || err.message || 'Erreur lors de la validation';
+        alert(`Erreur: ${msg}`);
+        this.validerLoading[participant.userId] = false;
+      }
+    });
   }
 }

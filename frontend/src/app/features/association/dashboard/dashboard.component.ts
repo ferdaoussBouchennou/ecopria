@@ -170,7 +170,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           inscrits,
           maxParticipants: action.maxParticipants,
           fillPercentage: Math.round((inscrits / max) * 100),
-          imageUrl: action.categoryImageUrl
+          imageUrl: (action.photoUrls && action.photoUrls.length > 0) ? action.photoUrls[0] : action.categoryImageUrl
         };
       })
       .sort((a, b) => b.inscrits - a.inscrits)

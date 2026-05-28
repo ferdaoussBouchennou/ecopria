@@ -24,4 +24,9 @@ public class AssociationDTO {
     private String description;
     private String logo;
     private String city;
+
+    private Long id;
+
+    @JsonProperty("created_at")
+    private java.time.LocalDateTime createdAt;
 }

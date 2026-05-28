@@ -122,6 +122,7 @@
             </span>
           </th>
           <th>Points</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -150,6 +151,15 @@
             </span>
           </td>
           <td class="points-cell">{{ participant.pointsAction }}</td>
+          <td>
+            <button 
+              *ngIf="participant.statut === 'CONFIRMEE' || participant.statut === 'EN_ATTENTE'"
+              class="btn-valider" 
+              (click)="validerPresence(participant)"
+              [disabled]="validerLoading[participant.userId]">
+              {{ validerLoading[participant.userId] ? '...' : 'Valider' }}
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>

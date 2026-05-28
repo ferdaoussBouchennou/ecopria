@@ -40,6 +40,9 @@ public class InscriptionConfirmeeConsumer {
         qrCodeAction.setActionId(event.getActionId());
         qrCodeAction.setQrCode(qrCode);
         qrCodeAction.setPoints(100); // sera récupéré via ActionClient
+        // Générer un code PIN à 6 chiffres pour la validation manuelle
+        String pinCode = String.format("%06d", (int)(Math.random() * 1000000));
+        qrCodeAction.setPinCode(pinCode);
         qrCodeAction.setDateCreation(LocalDateTime.now());
         qrCodeActionRepository.save(qrCodeAction);
 

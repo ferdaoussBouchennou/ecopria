@@ -447,7 +447,6 @@
   background: transparent;
   color: #78716C;
   border: none;
-  margin-left: auto;
 }
 
 .btn-cancel:hover:not(:disabled) {

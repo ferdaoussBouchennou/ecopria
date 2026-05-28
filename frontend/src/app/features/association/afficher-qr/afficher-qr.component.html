@@ -34,7 +34,10 @@
     <div class="qr-content">
       <div class="qr-card">
         <div class="qr-image-container">
-          <img [src]="qrCodeDataUrl" alt="QR Code de présence" class="qr-image" />
+          <qrcode [qrdata]="qrCodeDataUrl" [width]="300" [errorCorrectionLevel]="'M'"></qrcode>
+          <div class="qr-pin">
+            <p *ngIf="pinCode">Code PIN : <strong>{{ pinCode }}</strong></p>
+          </div>
         </div>
 
         <div class="qr-info">

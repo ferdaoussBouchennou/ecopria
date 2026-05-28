@@ -212,7 +212,7 @@ public class NotificationConsumer {
             String subject = "Nouvelle action ecologique — " + city;
             String body = "Bonjour " + prenom + ",\n\n" +
                     "Une nouvelle action vient d'etre publiee a " + city + ".\n\n" +
-                    "📍 " + title + "\n" +
+                    title + "\n" +
                     (category.isEmpty() ? "" : "📂 " + category + "\n") +
                     (points.isEmpty() ? "" : "🏆 " + points + " points\n") +
                     (dateStart.isEmpty() ? "" : "📅 " + dateStart + "\n") +
@@ -258,7 +258,7 @@ public class NotificationConsumer {
                     "Action annulee — " + title,
                     "Bonjour,\n\n" +
                             "L'action a laquelle vous etiez inscrit a ete annulee.\n\n" +
-                            "📍 " + title + "\n" +
+                            title + "\n" +
                             (reason.isEmpty() ? "" : "❌ " + reason + "\n") +
                             "\nhttps://ecopria.ma\n" +
                             "- L'equipe EcoPria",

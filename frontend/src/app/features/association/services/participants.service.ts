@@ -34,7 +34,7 @@ export class ParticipantsService {
           }
           const profileCalls = inscriptions.map((inscription) =>
             this.http
-              .get<CitizenProfile>(`${this.apiUsers}/${inscription.userId}/profile`)
+              .get<CitizenProfile>(`${this.apiUsers}/${inscription.userId}/participant-profile`)
               .pipe(
                 map((profile) => this.toParticipant(inscription, profile)),
                 catchError(() => of(this.toParticipant(inscription, null)))

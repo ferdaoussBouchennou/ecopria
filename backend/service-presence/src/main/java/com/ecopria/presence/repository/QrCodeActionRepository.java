@@ -8,5 +8,6 @@ import java.util.Optional;
 public interface QrCodeActionRepository extends JpaRepository<QrCodeAction, Long> {
     Optional<QrCodeAction> findByActionId(Long actionId);
     Optional<QrCodeAction> findByQrCode(String qrCode);
+    Optional<QrCodeAction> findByPinCode(String pinCode);
     boolean existsByActionId(Long actionId);
 }

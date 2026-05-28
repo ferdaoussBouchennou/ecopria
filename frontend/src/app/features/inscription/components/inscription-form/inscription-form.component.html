@@ -179,7 +179,45 @@
                 <option *ngFor="let n of accompagnantsOptions" [value]="n">{{ n }}</option>
               </select>
             </div>
+            
+            <!-- Motivation -->
+            <div class="form-field form-field--full">
+              <label for="motivation">POURQUOI PARTICIPEZ-VOUS A CETTE ACTION ?</label>
+              <textarea id="motivation" formControlName="motivation" rows="3" placeholder="Optionnel — partagez votre motivation"></textarea>
+            </div>
 
+            <!-- Conditions médicales -->
+            <div class="form-field form-field--full">
+              <label for="conditions">CONDITIONS MÉDICALES / ALLERGIES</label>
+              <textarea id="conditions" formControlName="conditions" rows="3" placeholder="Optionnel — informations utiles à l'organisateur"></textarea>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Consentements -->
+        <section class="form-section">
+          <h2 class="section-title">Consentements</h2>
+          <div class="form-grid">
+            <div class="form-field form-field--full checkbox-field" [class.form-field--error]="isInvalid('rulesAccepted')">
+              <label>
+                <input type="checkbox" formControlName="rulesAccepted" />
+                J'accepte le règlement intérieur de l'association *
+              </label>
+              <span class="field-error" *ngIf="hasError('rulesAccepted', 'required')">Ce consentement est obligatoire.</span>
+            </div>
+            <div class="form-field form-field--full checkbox-field">
+              <label>
+                <input type="checkbox" formControlName="imageRights" />
+                J'accepte d'être pris en photo/vidéo lors de l'action
+              </label>
+            </div>
+            <div class="form-field form-field--full checkbox-field">
+              <label>
+                <input type="checkbox" formControlName="newsletter" />
+                Je souhaite recevoir les actualités de l'association
+              </label>
+            </div>
           </div>
         </section>
 

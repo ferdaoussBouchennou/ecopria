@@ -1,6 +1,11 @@
 export interface InscriptionRequest {
   userId: number;
   actionId: number;
+  accompagnants?: number;
+  motivation?: string;
+  conditions?: string;
+  imageRights?: boolean;
+  newsletter?: boolean;
 }
 
 export interface InscriptionResponse {

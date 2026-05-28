@@ -39,6 +39,9 @@ public class Citizen {
     @Column(name = "total_points")
     private Integer totalPoints = 0;
 
+    @Column(name = "trust_score")
+    private Integer trustScore = 100;
+
     @Transient
     public Integer getLevel() {
         if (totalPoints == null) return 1;

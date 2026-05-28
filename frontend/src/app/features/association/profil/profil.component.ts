@@ -214,8 +214,9 @@ export class ProfilComponent implements OnInit {
     };
     reader.readAsDataURL(file);
 
-    // TODO: Upload vers le serveur
-    // this.uploadLogo(file);
+    // Upload vers le serveur (mise à jour immédiate)
+    this.editedProfile.logo = this.logoPreview ?? '';
+    this.saveProfile();
   }
 
   removeLogo(): void {
@@ -228,8 +229,15 @@ export class ProfilComponent implements OnInit {
     fileInput?.click();
   }
 
-  formatDate(isoDate: string): string {
-    return new Date(isoDate).toLocaleDateString('fr-FR', {
+  formatDate(isoDate: string | undefined): string {
+    if (!isoDate) {
+      return 'Date inconnue';
+    }
+    const date = new Date(isoDate);
+    if (isNaN(date.getTime())) {
+      return 'Date inconnue';
+    }
+    return date.toLocaleDateString('fr-FR', {
       day: 'numeric',
       month: 'long',
       year: 'numeric'

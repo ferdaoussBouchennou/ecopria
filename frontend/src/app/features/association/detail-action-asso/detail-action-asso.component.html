@@ -125,7 +125,7 @@
             
             @if (!loadingQR && qrCodeDataUrl) {
               <div class="qr-display">
-                <img [src]="qrCodeDataUrl" alt="QR Code" class="qr-image" />
+                <qrcode [qrdata]="qrCodeDataUrl" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
               </div>
               <div class="qr-actions">
                 <button type="button" class="btn-qr" (click)="telechargerQR()">

@@ -7,7 +7,8 @@
     <div>
       <span class="page-label">Espace Association</span>
       <h1 class="page-title">Scanner les présences</h1>
-      <p class="page-sub">Validez les QR codes des participants le jour de l'action. Chaque validation crédite automatiquement les points Ecopria.</p>
+      <p class="page-sub">Validez les QR codes des participants le jour de l'action. Chaque validation crédite
+        automatiquement les points Ecopria.</p>
     </div>
     <a routerLink="/asso-dash/participants" class="btn btn--outline">
       ← Liste participants
@@ -18,20 +19,20 @@
        BANDE GPS
   ══════════════════════════════════════════════════════════ -->
   <div class="gps-bar" [class.gps-bar--ok]="validatorLat !== null && !gpsError"
-                        [class.gps-bar--error]="gpsError && validatorLat === null"
-                        [class.gps-bar--warn]="gpsError && validatorLat !== null">
+    [class.gps-bar--error]="gpsError && validatorLat === null"
+    [class.gps-bar--warn]="gpsError && validatorLat !== null">
     <span *ngIf="gpsLoading" class="gps-loading">
       <span class="spinner spinner--sm"></span> Localisation en cours…
     </span>
     <span *ngIf="!gpsLoading && validatorLat !== null && !gpsError" class="gps-ok">
-      📍 GPS actif — Lat {{ validatorLat | number:'1.4-4' }}, Lng {{ validatorLng | number:'1.4-4' }}
+      GPS actif — Lat {{ validatorLat | number:'1.4-4' }}, Lng {{ validatorLng | number:'1.4-4' }}
       <span class="gps-hint">Zone de validation : rayon 200 m</span>
     </span>
     <span *ngIf="!gpsLoading && gpsError && validatorLat !== null" class="gps-warn">
-      ⚠ GPS approximatif (coordonnées de secours) — {{ gpsError }}
+      GPS approximatif (coordonnées de secours) — {{ gpsError }}
     </span>
     <span *ngIf="!gpsLoading && gpsError && validatorLat === null" class="gps-err">
-      ✕ GPS indisponible — {{ gpsError }}
+      GPS indisponible — {{ gpsError }}
     </span>
     <button *ngIf="!gpsLoading" class="gps-refresh" (click)="getGpsPosition()" title="Actualiser la position">↺</button>
   </div>
@@ -41,9 +42,10 @@
   ══════════════════════════════════════════════════════════ -->
   <div class="action-id-bar">
     <label for="actionIdInput">ID de l'action en cours :</label>
-    <input id="actionIdInput" type="number" [(ngModel)]="actionId"
-           placeholder="Ex: 42" class="action-id-input" min="1" />
-    <button type="button" class="btn btn--outline btn--sm" (click)="loadActionQr()" [disabled]="!actionId || loadingActionQr">
+    <input id="actionIdInput" type="number" [(ngModel)]="actionId" placeholder="Ex: 42" class="action-id-input"
+      min="1" />
+    <button type="button" class="btn btn--outline btn--sm" (click)="loadActionQr()"
+      [disabled]="!actionId || loadingActionQr">
       Afficher QR action
     </button>
     <span class="action-id-hint" *ngIf="!actionId">⚠ Requis pour afficher le QR</span>
@@ -57,8 +59,8 @@
 
   <div class="participant-id-bar">
     <label for="userIdInput">ID participant (userId) *</label>
-    <input id="userIdInput" type="number" [(ngModel)]="participantUserId"
-           placeholder="Ex: 1" class="action-id-input" min="1" />
+    <input id="userIdInput" type="number" [(ngModel)]="participantUserId" placeholder="Ex: 1" class="action-id-input"
+      min="1" />
   </div>
 
   <!-- ══════════════════════════════════════════════════════════
@@ -101,13 +103,10 @@
       <div class="camera-test-zone">
         <p class="test-label">🛠 Zone de simulation (développement) — coller le token QR ici :</p>
         <div class="test-input-row">
-          <input type="text" [(ngModel)]="cameraSimToken"
-                 placeholder="Collez le token HMAC ici…"
-                 class="test-input"
-                 (keyup.enter)="simulateScan()" />
-          <button class="btn btn--primary"
-                  (click)="simulateScan()"
-                  [disabled]="!cameraSimToken.trim() || !participantUserId || state === 'validating'">
+          <input type="text" [(ngModel)]="cameraSimToken" placeholder="Collez le token HMAC ici…" class="test-input"
+            (keyup.enter)="simulateScan()" />
+          <button class="btn btn--primary" (click)="simulateScan()"
+            [disabled]="!cameraSimToken.trim() || !participantUserId || state === 'validating'">
             <span *ngIf="state !== 'validating'">Valider</span>
             <span *ngIf="state === 'validating'" class="btn-loading">
               <span class="spinner spinner--sm"></span> …
@@ -125,14 +124,11 @@
       <div class="manual-form">
         <div class="form-field">
           <label for="tokenInput">TOKEN QR *</label>
-          <input id="tokenInput" type="text" [(ngModel)]="manualToken"
-                 placeholder="Ex: a3f8b2c1d4e5f6a7b8c9d0…"
-                 class="token-input"
-                 (keyup.enter)="submitManual()" />
+          <input id="tokenInput" type="text" [(ngModel)]="manualToken" placeholder="Ex: a3f8b2c1d4e5f6a7b8c9d0…"
+            class="token-input" (keyup.enter)="submitManual()" />
         </div>
-        <button class="btn btn--primary btn--full"
-                (click)="submitManual()"
-                [disabled]="!manualToken.trim() || !participantUserId || state === 'validating'">
+        <button class="btn btn--primary btn--full" (click)="submitManual()"
+          [disabled]="!manualToken.trim() || !participantUserId || state === 'validating'">
           <span *ngIf="state !== 'validating'">Valider la présence</span>
           <span *ngIf="state === 'validating'" class="btn-loading">
             <span class="spinner spinner--sm"></span> Vérification cryptographique…
@@ -189,7 +185,8 @@
         <div class="fraud-icon">🚨</div>
         <div>
           <strong>Événement fraude.detectee publié sur Kafka</strong>
-          <p>L'administrateur a été alerté automatiquement après {{ result.tentativesEchouees }} tentatives échouées.</p>
+          <p>L'administrateur a été alerté automatiquement après {{ result.tentativesEchouees }} tentatives échouées.
+          </p>
         </div>
       </div>
     </div>
@@ -217,11 +214,10 @@
     </h2>
 
     <div class="history-list">
-      <div *ngFor="let item of history" class="history-item"
-           [class.history-item--ok]="item.result.status === 'VALIDE'"
-           [class.history-item--warn]="item.result.status === 'DEJA_VALIDE'"
-           [class.history-item--err]="item.result.status === 'QR_INVALIDE' || item.result.status === 'GPS_HORS_ZONE'"
-           [class.history-item--fraud]="item.result.status === 'FRAUDE_DETECTEE'">
+      <div *ngFor="let item of history" class="history-item" [class.history-item--ok]="item.result.status === 'VALIDE'"
+        [class.history-item--warn]="item.result.status === 'DEJA_VALIDE'"
+        [class.history-item--err]="item.result.status === 'QR_INVALIDE' || item.result.status === 'GPS_HORS_ZONE'"
+        [class.history-item--fraud]="item.result.status === 'FRAUDE_DETECTEE'">
         <span class="h-time">{{ formatTime(item.time) }}</span>
         <span class="h-token">{{ item.token }}</span>
         <span class="h-status">{{ item.result.status }}</span>

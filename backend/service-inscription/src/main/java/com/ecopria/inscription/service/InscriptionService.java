@@ -1,6 +1,7 @@
 package com.ecopria.inscription.service;
 
 import com.ecopria.inscription.client.ActionClient;
+import com.ecopria.inscription.client.UtilisateurClient;
 import com.ecopria.inscription.dto.ActionDTO;
 import com.ecopria.inscription.dto.InscriptionRequestDTO;
 import com.ecopria.inscription.dto.InscriptionResponseDTO;
@@ -17,16 +18,21 @@ import java.util.stream.Collectors;
 @Service
 public class InscriptionService {
 
+    private static final int TRUST_SCORE_SEUIL = 70;
+
     private final InscriptionRepository inscriptionRepository;
     private final ActionClient actionClient;
     private final InscriptionProducer inscriptionProducer;
+    private final UtilisateurClient utilisateurClient;
 
     public InscriptionService(InscriptionRepository inscriptionRepository,
                               ActionClient actionClient,
-                              InscriptionProducer inscriptionProducer) {
+                              InscriptionProducer inscriptionProducer,
+                              UtilisateurClient utilisateurClient) {
         this.inscriptionRepository = inscriptionRepository;
         this.actionClient = actionClient;
         this.inscriptionProducer = inscriptionProducer;
+        this.utilisateurClient = utilisateurClient;
     }
 
     @Transactional
@@ -43,8 +49,28 @@ public class InscriptionService {
         inscription.setActionId(request.getActionId());
         inscription.setDateInscription(LocalDateTime.now());
         inscription.setPointsAction(action.getPoints());
+        
+        if (request.getAccompagnants() != null) {
+            inscription.setAccompagnants(request.getAccompagnants());
+        }
+        inscription.setMotivation(request.getMotivation());
+        inscription.setConditions(request.getConditions());
+        if (request.getImageRights() != null) {
+            inscription.setImageRights(request.getImageRights());
+        }
+        if (request.getNewsletter() != null) {
+            inscription.setNewsletter(request.getNewsletter());
+        }
 
         if (action.getPlacesDisponibles() <= 0) {
+            inscription.setStatut("EN_ATTENTE");
+            Inscription saved = inscriptionRepository.save(inscription);
+            return toResponseDTO(saved);
+        }
+
+        // Vérifier le Trust Score : si < seuil, mise en attente automatique
+        int trustScore = utilisateurClient.getTrustScore(request.getUserId());
+        if (trustScore < 70) {
             inscription.setStatut("EN_ATTENTE");
             Inscription saved = inscriptionRepository.save(inscription);
             return toResponseDTO(saved);

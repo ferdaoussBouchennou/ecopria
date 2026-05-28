@@ -4,16 +4,18 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AssociationService } from '../services/association.service';
 import { ActionService } from '../../action/services/action.service';
 import { ActionDetail } from '../../action/models/action.model';
+import { QRCodeModule } from 'angularx-qrcode';
 
 @Component({
   selector: 'app-afficher-qr',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, QRCodeModule],
   templateUrl: './afficher-qr.component.html',
   styleUrls: ['./afficher-qr.component.css']
 })
 export class AfficherQRComponent implements OnInit {
   action: ActionDetail | null = null;
+  pinCode: string | null = null;
   qrCodeDataUrl: string | null = null;
   loading = true;
   error: string | null = null;
@@ -44,18 +46,21 @@ export class AfficherQRComponent implements OnInit {
       next: (action) => {
         this.action = action;
 
-        // Vérifier qu'il y a au moins une inscription
-        if (action.registeredCount === 0) {
-          this.error = 'Le QR code sera généré dès la première inscription.';
-          this.loading = false;
-          return;
-        }
+          // Si aucune inscription, afficher un message d'attente
+          if (action.registeredCount === 0) {
+            this.loading = false;
+            // Aucun QR à charger tant qu'il n'y a pas d'inscription
+            this.qrCodeDataUrl = null;
+            this.pinCode = null;
+            // On affichera un texte d'information dans le template
+            return;
+          }
 
         // Charger le QR code
         this.associationService.getQRCode(actionId).subscribe({
           next: (response) => {
-            const qrText = encodeURIComponent(response.qrCode);
-            this.qrCodeDataUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${qrText}`;
+            this.pinCode = response.pinCode;
+            this.qrCodeDataUrl = response.qrCode; // Store raw token for local generation
             this.loading = false;
           },
           error: (err) => {
@@ -119,10 +124,10 @@ export class AfficherQRComponent implements OnInit {
               margin-bottom: 2rem;
               text-align: center;
             }
-            img {
-              max-width: 400px;
-              width: 100%;
-              height: auto;
+            .qr-container {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
             }
             .footer {
               margin-top: 2rem;
@@ -139,7 +144,10 @@ export class AfficherQRComponent implements OnInit {
         <body>
           <h1>${this.action?.title || 'Action'}</h1>
           <p>Scannez ce QR code pour valider votre présence</p>
-          <img src="${this.qrCodeDataUrl}" alt="QR Code" />
+          <div class="qr-container">
+             <!-- Pour l'impression on peut utiliser une librairie JS ou afficher juste le token, mais on va simplement afficher le pin -->
+             <h2>Code PIN : ${this.pinCode}</h2>
+          </div>
           <div class="footer">
             <p>Ecopria - ${new Date().toLocaleDateString('fr-FR')}</p>
           </div>

@@ -11,10 +11,12 @@ import {
   formatLieu,
 } from '../../action/utils/action-format.utils';
 
+import { QRCodeModule } from 'angularx-qrcode';
+
 @Component({
   selector: 'app-detail-action-asso',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, QRCodeModule],
   templateUrl: './detail-action-asso.component.html',
   styleUrls: ['./detail-action-asso.component.css']
 })

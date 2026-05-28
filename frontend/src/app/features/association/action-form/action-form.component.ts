@@ -31,13 +31,15 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
   isGeocoding = false;
   geocodeError: string | null = null;
   geocodeSuccess = false;
-  uploadedPhoto: {file: File, preview: string, name: string} | null = null;
+  uploadedPhoto: { file: File, preview: string, name: string } | null = null;
   uploadError: string | null = null;
-  
+
   // Stepper
   currentStep = 1;
   totalSteps = 6;
-  
+
+  minDateTime: string = '';
+
   private map?: L.Map;
   private marker?: L.Marker;
 
@@ -52,6 +54,10 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    this.minDateTime = now.toISOString().slice(0, 16);
+
     this.loadCategories();
 
     const id = this.route.snapshot.paramMap.get('id');
@@ -109,10 +115,10 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
           const goodMatch = data.find((result: any) => {
             const type = result.type?.toLowerCase() || '';
             const addressType = result.addresstype?.toLowerCase() || '';
-            
+
             // Accept specific locations, reject vague ones
             return !['country', 'state', 'region', 'province'].includes(type) &&
-                   !['country', 'state', 'region', 'province'].includes(addressType);
+              !['country', 'state', 'region', 'province'].includes(addressType);
           });
 
           if (goodMatch) {
@@ -131,7 +137,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
 
               // Add new marker
               this.marker = L.marker([lat, lng]).addTo(this.map);
-              this.marker.bindPopup(`📍 ${displayName}<br><small><strong>⚠️ Vérifiez et ajustez en cliquant sur la carte</strong></small>`).openPopup();
+              this.marker.bindPopup(` ${displayName}<br><small><strong> Vérifiez et ajustez en cliquant sur la carte</strong></small>`).openPopup();
 
               // Update form
               this.actionForm.patchValue({
@@ -223,12 +229,12 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
 
   loadAction(id: number): void {
     this.loading = true;
-    
+
     // Load categories first, then load the action
     this.actionService.getCategories().subscribe({
       next: (categories) => {
         this.categories = categories;
-        
+
         // Now load the action
         this.actionService.getActionById(id).subscribe({
           next: (action: ActionDetail) => {
@@ -295,7 +301,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
   onSubmit(publier: boolean = false): void {
     if (this.actionForm.invalid) {
       this.markFormGroupTouched(this.actionForm);
-      
+
       // Debug: Log all invalid fields
       console.log('=== FORMULAIRE INVALIDE ===');
       Object.keys(this.actionForm.controls).forEach(key => {
@@ -304,7 +310,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
           console.log(`Champ invalide: ${key}`, control.errors);
         }
       });
-      
+
       this.error = 'Veuillez remplir tous les champs obligatoires';
       return;
     }
@@ -329,8 +335,8 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
       title: formValue.titre,  // Changed from 'titre' to 'title'
       description: formValue.description,
       categoryId: formValue.categoryId,
-      dateStart: new Date(formValue.dateStart).toISOString(),
-      dateEnd: new Date(formValue.dateEnd).toISOString(),
+      dateStart: formValue.dateStart,
+      dateEnd: formValue.dateEnd,
       address: formValue.address,
       city: formValue.city,
       latitude: formValue.latitude,  // Now required
@@ -398,7 +404,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
     if (this.uploadedPhoto) {
       this.uploadPhoto(actionId).subscribe({
         next: () => {
-          const message = wasPublished ? 
+          const message = wasPublished ?
             (this.isEditMode ? 'Action publiée avec succès !' : 'Action créée et publiée !') :
             (this.isEditMode ? 'Action modifiée avec succès !' : 'Action enregistrée en brouillon !');
           alert(message);
@@ -406,7 +412,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           console.error('Erreur upload photo:', err);
-          const message = this.isEditMode ? 
+          const message = this.isEditMode ?
             'Action modifiée mais erreur lors de l\'upload de la photo' :
             'Action créée mais erreur lors de l\'upload de la photo';
           alert(message);
@@ -414,7 +420,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
         }
       });
     } else {
-      const message = wasPublished ? 
+      const message = wasPublished ?
         (this.isEditMode ? 'Action publiée avec succès !' : 'Action créée et publiée !') :
         (this.isEditMode ? 'Action modifiée avec succès !' : 'Action enregistrée en brouillon !');
       alert(message);
@@ -477,11 +483,23 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
   getFieldError(fieldName: string): string {
     const field = this.actionForm.get(fieldName);
     if (field?.errors) {
-      if (field.errors['required']) return 'Ce champ est obligatoire';
-      if (field.errors['maxlength']) return `Maximum ${field.errors['maxlength'].requiredLength} caractères`;
-      if (field.errors['min']) return `Minimum ${field.errors['min'].min}`;
+      if (field.errors['required']) {
+        if (fieldName === 'address' || fieldName === 'city') return 'Ce lieu est obligatoire';
+        if (fieldName === 'categoryId') return 'Veuillez sélectionner une catégorie';
+        if (fieldName === 'dateStart' || fieldName === 'dateEnd') return 'La date et l\'heure sont requises';
+        return 'Ce champ est obligatoire';
+      }
+      if (field.errors['maxlength']) {
+        return `La longueur maximale est de ${field.errors['maxlength'].requiredLength} caractères`;
+      }
+      if (field.errors['min']) {
+        if (fieldName === 'dateStart' || fieldName === 'dateEnd') {
+          return 'La date et l\'heure ne peuvent pas être dans le passé';
+        }
+        return `La valeur minimale autorisée est ${field.errors['min'].min}`;
+      }
     }
-    return '';
+    return 'Valeur invalide';
   }
 
   getInvalidFields(): string[] {
@@ -554,7 +572,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
     // Add click event to set location
     this.map.on('click', (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
-      
+
       // Update form
       this.actionForm.patchValue({
         latitude: lat,
@@ -569,7 +587,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
       // Add new marker
       this.marker = L.marker([lat, lng]).addTo(this.map!);
       this.marker.bindPopup('✅ Position définie<br><small>Latitude: ' + lat.toFixed(6) + '<br>Longitude: ' + lng.toFixed(6) + '</small>').openPopup();
-      
+
       // Show success message
       this.geocodeSuccess = true;
       this.geocodeError = null;
@@ -602,7 +620,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
   onDrop(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
-    
+
     if (event.dataTransfer?.files && event.dataTransfer.files[0]) {
       this.handleFile(event.dataTransfer.files[0]);
     }
@@ -656,7 +674,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
       // Validate current step before moving forward
       if (this.validateCurrentStep()) {
         this.currentStep++;
-        
+
         // Initialize or refresh map when reaching step 2
         if (this.currentStep === 2) {
           if (!this.map) {
@@ -668,7 +686,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
             }, 100);
           }
         }
-        
+
         // Scroll to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -685,7 +703,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
   goToStep(step: number): void {
     if (step >= 1 && step <= this.totalSteps) {
       this.currentStep = step;
-      
+
       // Initialize or refresh map when reaching step 2
       if (this.currentStep === 2) {
         if (!this.map) {
@@ -697,31 +715,31 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
           }, 100);
         }
       }
-      
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
   validateCurrentStep(): boolean {
     this.error = null;
-    
+
     switch (this.currentStep) {
       case 1: // Informations de base
         const step1Fields = ['titre', 'description', 'categoryId'];
         return this.validateFields(step1Fields, 'Veuillez remplir tous les champs obligatoires');
-      
+
       case 2: // Date et localisation
         const step2Fields = ['dateStart', 'dateEnd', 'address', 'city'];
         return this.validateFields(step2Fields, 'Veuillez remplir tous les champs obligatoires');
-      
+
       case 3: // Participants et récompenses
         const step3Fields = ['maxParticipants', 'points'];
         return this.validateFields(step3Fields, 'Veuillez remplir tous les champs obligatoires');
-      
+
       case 4: // Programme et infos (optionnel)
       case 5: // Photos (optionnel)
         return true;
-      
+
       default:
         return true;
     }
@@ -742,15 +760,15 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
   isStepValid(step: number): boolean {
     switch (step) {
       case 1:
-        return ['titre', 'description', 'categoryId'].every(field => 
+        return ['titre', 'description', 'categoryId'].every(field =>
           this.actionForm.get(field)?.valid
         );
       case 2:
-        return ['dateStart', 'dateEnd', 'address', 'city'].every(field => 
+        return ['dateStart', 'dateEnd', 'address', 'city'].every(field =>
           this.actionForm.get(field)?.valid
         );
       case 3:
-        return ['maxParticipants', 'points'].every(field => 
+        return ['maxParticipants', 'points'].every(field =>
           this.actionForm.get(field)?.valid
         );
       default:

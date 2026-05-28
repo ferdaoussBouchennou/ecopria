@@ -216,7 +216,7 @@
   text-transform: uppercase;
 }
 
-.form-field input,
+.form-field input:not([type="checkbox"]),
 .form-field select {
   width: 100%;
   padding: 12px 14px;
@@ -231,19 +231,41 @@
   -webkit-appearance: none;
   appearance: none;
 }
-.form-field input:focus,
+.form-field input:not([type="checkbox"]):focus,
 .form-field select:focus {
   border-color: var(--green-dark);
   box-shadow: 0 0 0 3px rgba(45, 90, 61, 0.1);
 }
 
 /* Champ en erreur */
-.form-field--error input,
+.form-field--error input:not([type="checkbox"]),
 .form-field--error select {
   border-color: var(--error);
 }
 .field-error {
   font-size: 12px; color: var(--error);
+}
+
+/* Style specifique pour les cases a cocher (consentements) */
+.checkbox-field label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-dark);
+  text-transform: none;
+  cursor: pointer;
+  letter-spacing: normal;
+}
+.checkbox-field input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: var(--green-dark);
+  cursor: pointer;
 }
 
 /* Fleche select */

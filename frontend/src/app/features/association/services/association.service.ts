@@ -90,6 +90,13 @@ export class AssociationService {
     );
   }
 
+  validerPresenceParPin(pinCode: string, userId: number): Observable<any> {
+    return this.http.post<any>(
+      `${environment.presenceApi}/valider/pin`,
+      { pinCode, userId }
+    );
+  }
+
   uploadActionPhoto(actionId: number, formData: FormData): Observable<{photoUrl: string}> {
     return this.http.post<{photoUrl: string}>(
       `${this.apiUrl}/actions/${actionId}/photo`,
@@ -136,4 +143,5 @@ export interface UpdateActionDTO extends Partial<CreateActionDTO> {}
 export interface QRCodeResponse {
   actionId: number;
   qrCode: string;
+  pinCode: string;
 }

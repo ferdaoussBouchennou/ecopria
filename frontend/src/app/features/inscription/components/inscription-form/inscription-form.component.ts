@@ -64,7 +64,12 @@ export class InscriptionFormComponent implements OnInit {
       email:         ['', [Validators.required, Validators.email]],
       telephone:     ['', [Validators.required, Validators.pattern(/^[0-9+\s]{8,15}$/)]],
       age:           ['', [Validators.required, Validators.min(16), Validators.max(99)]],
-      accompagnants: [0,  [Validators.required, Validators.min(0),  Validators.max(10)]]
+      accompagnants: [0,  [Validators.required, Validators.min(0),  Validators.max(10)]],
+      motivation:    [''],
+      conditions:    [''],
+      rulesAccepted: [false, Validators.requiredTrue],
+      imageRights:   [false],
+      newsletter:    [false]
     });
 
     // Charge infos de l'action pour le recapitulatif
@@ -129,7 +134,12 @@ export class InscriptionFormComponent implements OnInit {
         switchMap(() => {
           return this.inscriptionService.inscrire({
             userId:   this.userId,
-            actionId: this.actionId
+            actionId: this.actionId,
+            accompagnants: formData.accompagnants,
+            motivation: formData.motivation,
+            conditions: formData.conditions,
+            imageRights: formData.imageRights,
+            newsletter: formData.newsletter
           });
         })
       )

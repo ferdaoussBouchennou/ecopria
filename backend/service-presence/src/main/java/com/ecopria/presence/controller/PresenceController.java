@@ -3,6 +3,7 @@ package com.ecopria.presence.controller;
 
 
 import com.ecopria.presence.dto.PresenceResponseDTO;
+import com.ecopria.presence.dto.ValidationByPinDTO;
 import com.ecopria.presence.dto.ValidationRequestDTO;
 import com.ecopria.presence.service.PresenceService;
 import org.springframework.http.HttpStatus;
@@ -40,16 +41,47 @@ public class PresenceController {
         }
     }
 
+    // L'association valide manuellement via le PIN
+    @PostMapping("/valider/pin")
+    public ResponseEntity<?> validerPresenceParPin(@RequestBody ValidationByPinDTO request) {
+        try {
+            PresenceResponseDTO response = presenceService.validerPresenceParPin(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("erreur", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("erreur", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("erreur", "Erreur interne : " + e.getMessage()));
+        }
+    }
+
     // L'association affiche le QR Code de son action
     @GetMapping("/qr/{actionId}")
     public ResponseEntity<?> getQrCode(@PathVariable Long actionId) {
         try {
             String qrCode = presenceService.getQrCodeParAction(actionId);
-            return ResponseEntity.ok(Map.of("actionId", actionId, "qrCode", qrCode));
+            String pinCode = presenceService.getPinCodeParAction(actionId);
+            return ResponseEntity.ok(Map.of("actionId", actionId, "qrCode", qrCode, "pinCode", pinCode));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("erreur", e.getMessage()));
         }
+    }
+
+    /**
+     * Vérifie si la présence d'un userId a été validée pour une action donnée.
+     * Utilisé par le job AbsenceJob de service-inscription.
+     */
+    @GetMapping("/verif")
+    public ResponseEntity<Map<String, Boolean>> verifierPresence(
+            @RequestParam Long userId,
+            @RequestParam Long actionId) {
+        boolean presente = presenceService.estPresent(userId, actionId);
+        return ResponseEntity.ok(Map.of("present", presente));
     }
 
     @GetMapping("/health")

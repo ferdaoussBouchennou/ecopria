@@ -375,6 +375,28 @@
   }
 }
 
+// Bouton de validation manuelle
+.btn-valider {
+  padding: 0.5rem 1rem;
+  background: var(--ec-sage-dark);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #6D9488;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
 // Responsive
 @media (max-width: 1200px) {
   .participants-table {

@@ -19,6 +19,10 @@ public class QrCodeAction {
     @Column(nullable = false, unique = true, length = 500)
     private String qrCode;
 
+    // Code PIN à 6 chiffres pour validation manuelle
+    @Column(nullable = false, length = 6)
+    private String pinCode;
+
     // Points de l'action
     @Column(nullable = false)
     private Integer points;
@@ -32,6 +36,8 @@ public class QrCodeAction {
     public void setActionId(Long actionId) { this.actionId = actionId; }
     public String getQrCode() { return qrCode; }
     public void setQrCode(String qrCode) { this.qrCode = qrCode; }
+    public String getPinCode() { return pinCode; }
+    public void setPinCode(String pinCode) { this.pinCode = pinCode; }
     public Integer getPoints() { return points; }
     public void setPoints(Integer points) { this.points = points; }
     public LocalDateTime getDateCreation() { return dateCreation; }

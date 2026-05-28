@@ -15,4 +15,7 @@ public interface InscriptionRepository extends JpaRepository<Inscription, Long> 
 
     // ← NOUVEAU : pour la liste d'attente (ordonnée par date pour respecter l'ordre d'arrivée)
     List<Inscription> findByActionIdAndStatutOrderByDateInscriptionAsc(Long actionId, String statut);
+
+    // ← Pour le job de pénalité d'absence
+    List<Inscription> findByStatutAndPenalise(String statut, Boolean penalise);
 }

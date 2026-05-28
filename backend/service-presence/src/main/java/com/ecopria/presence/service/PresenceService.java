@@ -5,6 +5,7 @@ package com.ecopria.presence.service;
 import com.ecopria.presence.client.ActionClient;
 import com.ecopria.presence.dto.ActionDTO;
 import com.ecopria.presence.dto.PresenceResponseDTO;
+import com.ecopria.presence.dto.ValidationByPinDTO;
 import com.ecopria.presence.dto.ValidationRequestDTO;
 import com.ecopria.presence.kafka.FraudeDetecteeEvent;
 import com.ecopria.presence.kafka.PresenceProducer;
@@ -97,6 +98,38 @@ public class PresenceService {
                 .orElseThrow(() -> new RuntimeException(
                         "QR Code non encore généré pour actionId=" + actionId));
         return qrCodeAction.getQrCode();
+    }
+
+    public String getPinCodeParAction(Long actionId) {
+        QrCodeAction qrCodeAction = qrCodeActionRepository
+                .findByActionId(actionId)
+                .orElseThrow(() -> new RuntimeException(
+                        "QR Code non encore généré pour actionId=" + actionId));
+        return qrCodeAction.getPinCode();
+    }
+
+    @Transactional
+    public PresenceResponseDTO validerPresenceParPin(ValidationByPinDTO request) {
+        // Find the QR code action by PIN
+        QrCodeAction qrCodeAction = qrCodeActionRepository
+                .findByPinCode(request.getPinCode())
+                .orElseThrow(() -> {
+                    enregistrerTentativeEchouee(request.getUserId(), null, "PIN invalide");
+                    return new IllegalArgumentException("PIN invalide ou inexistant");
+                });
+        // Reuse existing QR validation logic
+        ValidationRequestDTO vr = new ValidationRequestDTO();
+        vr.setQrCode(qrCodeAction.getQrCode());
+        vr.setUserId(request.getUserId());
+        return validerPresence(vr);
+    }
+
+    /**
+     * Vérifie si un citoyen a une présence validée pour une action donnée.
+     * Appelé par l'endpoint /verif pour le job AbsenceJob de service-inscription.
+     */
+    public boolean estPresent(Long userId, Long actionId) {
+        return presenceRepository.existsByUserIdAndActionId(userId, actionId);
     }
 
     private void enregistrerTentativeEchouee(Long userId, Long actionId, String raison) {

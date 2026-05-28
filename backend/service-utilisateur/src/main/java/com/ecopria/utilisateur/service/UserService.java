@@ -266,6 +266,15 @@ public class UserService {
         return citizen.getTotalPoints() != null ? citizen.getTotalPoints() : 0;
     }
 
+    @Transactional
+    public void updateTrustScore(Long authId, int delta) {
+        Citizen citizen = getCitizen(authId);
+        int current = citizen.getTrustScore() != null ? citizen.getTrustScore() : 100;
+        int updated = Math.max(0, Math.min(100, current + delta));
+        citizen.setTrustScore(updated);
+        citizenRepository.save(citizen);
+    }
+
     public Association getAssociation(Long authId) {
         return associationRepository.findByAuthId(authId)
                 .orElseThrow(() -> new RuntimeException("Association non trouvée"));
@@ -399,5 +408,47 @@ public class UserService {
         return citizenRepository.findByCityIgnoreCase(city.trim()).stream()
                 .map(c -> new CitizenContactDTO(c.getAuthId(), c.getEmail(), c.getFirstName()))
                 .collect(Collectors.toList());
+    }
+
+    public Optional<Map<String, String>> getParticipantProfile(Long authId) {
+        Optional<Citizen> citOpt = citizenRepository.findByAuthId(authId);
+        if (citOpt.isPresent()) {
+            Citizen c = citOpt.get();
+            Map<String, String> map = new HashMap<>();
+            map.put("firstName", c.getFirstName() != null ? c.getFirstName() : "");
+            map.put("lastName", c.getLastName() != null ? c.getLastName() : "");
+            map.put("email", c.getEmail() != null ? c.getEmail() : "");
+            map.put("phone", c.getPhone() != null ? c.getPhone() : "");
+            map.put("city", c.getCity() != null ? c.getCity() : "");
+            map.put("photo", c.getPhoto() != null ? c.getPhoto() : "");
+            return Optional.of(map);
+        }
+        
+        Optional<Association> assoOpt = associationRepository.findByAuthId(authId);
+        if (assoOpt.isPresent()) {
+            Association a = assoOpt.get();
+            Map<String, String> map = new HashMap<>();
+            map.put("firstName", "");
+            map.put("lastName", a.getName() != null ? a.getName() : "");
+            map.put("email", a.getEmail() != null ? a.getEmail() : "");
+            map.put("phone", a.getPhone() != null ? a.getPhone() : "");
+            map.put("city", a.getCity() != null ? a.getCity() : "");
+            map.put("photo", a.getLogo() != null ? a.getLogo() : "");
+            return Optional.of(map);
+        }
+        
+        Optional<Partner> partOpt = partnerRepository.findByAuthId(authId);
+        if (partOpt.isPresent()) {
+            Partner p = partOpt.get();
+            Map<String, String> map = new HashMap<>();
+            map.put("firstName", "");
+            map.put("lastName", p.getName() != null ? p.getName() : "");
+            map.put("email", p.getEmail() != null ? p.getEmail() : "");
+            map.put("phone", p.getPhone() != null ? p.getPhone() : "");
+            map.put("city", p.getCity() != null ? p.getCity() : "");
+            map.put("photo", p.getLogo() != null ? p.getLogo() : "");
+            return Optional.of(map);
+        }
+        return Optional.empty();
     }
 }

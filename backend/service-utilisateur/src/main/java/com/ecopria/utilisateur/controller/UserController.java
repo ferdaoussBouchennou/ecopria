@@ -59,6 +59,14 @@ public class UserController {
         return ResponseEntity.ok(userService.getPartner(authId));
     }
 
+    @PutMapping("/{id}/trust-score")
+    public ResponseEntity<Void> updateTrustScore(
+            @PathVariable Long id,
+            @RequestParam int delta) {
+        userService.updateTrustScore(id, delta);
+        return ResponseEntity.ok().build();
+    }
+
     @PutMapping("/{id}/profile")
     public ResponseEntity<Citizen> updateProfile(
             @PathVariable Long id,
@@ -127,5 +135,12 @@ public class UserController {
     public ResponseEntity<List<CitizenContactDTO>> internalCitizenContactsByCity(
             @RequestParam String city) {
         return ResponseEntity.ok(userService.findCitizenContactsByCity(city));
+    }
+
+    @GetMapping("/{id}/participant-profile")
+    public ResponseEntity<Map<String, String>> getParticipantProfile(@PathVariable Long id) {
+        return userService.getParticipantProfile(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
