@@ -260,6 +260,12 @@ export class ProfilComponent implements OnInit {
         });
     }
 
+    removeLogo(): void {
+        this.logoPreview = null;
+        this.editedProfile.logo = '';
+        this.selectedFile = null;
+    }
+
   triggerFileInput(): void {
     const fileInput = document.getElementById('logo-input') as HTMLInputElement;
     fileInput?.click();
