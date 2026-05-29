@@ -11,6 +11,7 @@
     <div class="sidebar-identity">
       <h2 class="commerce-name">{{ partenaireName }}</h2>
       <span class="commerce-role" *ngIf="!loadingName">Ambassadeur Ecopria</span>
+      <p class="commerce-note">Suivez vos offres, votre visibilité et les retours clients dans un espace plus direct.</p>
     </div>
 
     <nav class="sidebar-nav">
@@ -24,12 +25,20 @@
       </a>
     </nav>
 
+    <div class="sidebar-panel">
+      <span class="panel-label">Priorité</span>
+      <strong>Mettre en avant vos offres les plus consultées</strong>
+    </div>
+
     <a routerLink="/actions" class="back-site">← Retour au site</a>
   </aside>
 
   <div class="partenaire-content">
     <header class="partenaire-topbar">
-      <span class="topbar-commerce">{{ partenaireName }}</span>
+      <div>
+        <span class="topbar-commerce">{{ partenaireName }}</span>
+        <p class="topbar-caption">Espace partenaire Ecopria</p>
+      </div>
       <div class="topbar-user">
         <span class="topbar-name">Camille R.</span>
         <span class="topbar-avatar">CR</span>

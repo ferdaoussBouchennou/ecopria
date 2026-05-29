@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AssociationService } from '../services/association.service';
+import { ActionSummary } from '../../action/models/action.model';
 
 interface CalendarDay {
   date: Date;
   dayNumber: number;
   isCurrentMonth: boolean;
   isToday: boolean;
-  actions: any[];
+  actions: ActionSummary[];
 }
 
 @Component({
@@ -22,6 +23,8 @@ export class CalendrierComponent implements OnInit {
   currentDate: Date = new Date();
   currentMonthLabel: string = '';
   calendarDays: CalendarDay[] = [];
+  actions: ActionSummary[] = [];
+  selectedDay: CalendarDay | null = null;
   loading: boolean = false;
   error: string = '';
 
@@ -105,6 +108,8 @@ export class CalendrierComponent implements OnInit {
         actions: []
       });
     }
+
+    this.selectedDay = this.calendarDays.find((day) => day.isToday && day.isCurrentMonth) ?? this.calendarDays[0] ?? null;
   }
 
   loadActions(): void {
@@ -113,6 +118,12 @@ export class CalendrierComponent implements OnInit {
 
     this.associationService.getMesActions().subscribe({
       next: (actions) => {
+        this.actions = actions;
+
+        this.calendarDays.forEach((day) => {
+          day.actions = [];
+        });
+
         // Distribute actions to calendar days
         actions.forEach(action => {
           const actionDate = new Date(action.dateStart);
@@ -128,6 +139,17 @@ export class CalendrierComponent implements OnInit {
             calendarDay.actions.push(action);
           }
         });
+
+        this.calendarDays.forEach((day) => {
+          day.actions.sort(
+            (a, b) => new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime()
+          );
+        });
+
+        if (this.selectedDay) {
+          const selected = this.calendarDays.find((day) => this.isSameDay(day.date, this.selectedDay!.date));
+          this.selectedDay = selected ?? this.calendarDays[0] ?? null;
+        }
 
         this.loading = false;
       },
@@ -161,5 +183,95 @@ export class CalendrierComponent implements OnInit {
 
   viewAction(actionId: number): void {
     this.router.navigate(['/association/action', actionId]);
+  }
+
+  selectDay(day: CalendarDay): void {
+    this.selectedDay = day;
+  }
+
+  goToToday(): void {
+    this.currentDate = new Date();
+    this.generateCalendar();
+    this.loadActions();
+  }
+
+  getMonthActionsCount(): number {
+    return this.monthActions.length;
+  }
+
+  getMonthPublishedCount(): number {
+    return this.monthActions.filter((action) => action.status === 'PUBLISHED').length;
+  }
+
+  getMonthDraftCount(): number {
+    return this.monthActions.filter((action) => action.status === 'DRAFT').length;
+  }
+
+  getMonthParticipantCount(): number {
+    return this.monthActions.reduce((sum, action) => sum + (action.registeredCount ?? 0), 0);
+  }
+
+  getDayLabel(day: CalendarDay | null): string {
+    if (!day) {
+      return 'Aucune date sélectionnée';
+    }
+    return day.date.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
+    });
+  }
+
+  getDayStatusLabel(action: ActionSummary): string {
+    if (action.status === 'DRAFT') {
+      return 'Brouillon';
+    }
+    if (action.status === 'CANCELLED') {
+      return 'Annulée';
+    }
+    if (new Date(action.dateEnd).getTime() < Date.now()) {
+      return 'Terminée';
+    }
+    return 'Publiée';
+  }
+
+  getDayStatusClass(action: ActionSummary): string {
+    if (action.status === 'DRAFT') {
+      return 'draft';
+    }
+    if (action.status === 'CANCELLED') {
+      return 'cancelled';
+    }
+    if (new Date(action.dateEnd).getTime() < Date.now()) {
+      return 'completed';
+    }
+    return 'published';
+  }
+
+  formatHourRange(action: ActionSummary): string {
+    const start = new Date(action.dateStart).toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    const end = new Date(action.dateEnd).toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    return `${start} - ${end}`;
+  }
+
+  private get monthActions(): ActionSummary[] {
+    const month = this.currentDate.getMonth();
+    const year = this.currentDate.getFullYear();
+    return this.actions.filter((action) => {
+      const date = new Date(action.dateStart);
+      return date.getMonth() === month && date.getFullYear() === year;
+    });
+  }
+
+  private isSameDay(a: Date, b: Date): boolean {
+    return a.getFullYear() === b.getFullYear()
+      && a.getMonth() === b.getMonth()
+      && a.getDate() === b.getDate();
   }
 }

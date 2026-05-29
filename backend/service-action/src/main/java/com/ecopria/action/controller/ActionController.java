@@ -101,6 +101,13 @@ public class ActionController {
         return ResponseEntity.ok(actionService.getMyActions(userId));
     }
 
+    // GET /api/actions/mes-stats
+    @GetMapping("/mes-stats")
+    public ResponseEntity<AssociationStatsDTO> getMyStats(
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(actionService.getMyStats(userId));
+    }
+
     // GET /api/actions/mes-brouillons
     @GetMapping("/mes-brouillons")
     public ResponseEntity<List<ActionSummaryDTO>> getMyDrafts(

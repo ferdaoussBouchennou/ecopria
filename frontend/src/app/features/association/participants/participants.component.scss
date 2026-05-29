@@ -1,6 +1,6 @@
 .participants-container {
-  padding: 2.5rem;
-  max-width: 1400px;
+  padding: 1.75rem;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
@@ -8,22 +8,23 @@
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 
   .header-left {
     display: flex;
-    align-items: center;
-    gap: 1.5rem;
+    align-items: flex-start;
+    gap: 1rem;
   }
 
   .btn-back {
-    padding: 0.625rem 1.25rem;
+    padding: 0.55rem 1rem;
     background: white;
     border: 1px solid #D4D0C8;
-    border-radius: 6px;
+    border-radius: 999px;
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: 0.82rem;
     font-weight: 500;
     color: #57534E;
     transition: all 0.2s;
@@ -35,30 +36,76 @@
   }
 
   .title-section {
+    .section-kicker {
+      display: inline-block;
+      margin-bottom: 0.4rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ec-sage-dark);
+    }
+
     h1 {
       margin: 0;
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       color: #1C1917;
       font-weight: 600;
     }
 
     .action-title {
-      margin: 0.25rem 0 0 0;
-      font-size: 0.875rem;
-      color: #78716C;
+      margin: 0.25rem 0 0;
+      font-size: 0.82rem;
+      color: #5d564f;
+    }
+
+    .header-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+    }
+
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.38rem 0.72rem;
+      border-radius: 999px;
+      background: #f3efea;
+      border: 1px solid #dfd7cf;
+      color: #413a34;
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+
+    .meta-pill--ready {
+      background: #e7f3ee;
+      border-color: #bfd9cf;
+      color: #2f5f50;
     }
   }
 
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .btn-secondary,
   .btn-export {
-    padding: 0.625rem 1.5rem;
+    padding: 0.6rem 1rem;
     background: var(--ec-sage-dark);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 999px;
     cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: 0.82rem;
+    font-weight: 600;
     transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
     &:hover:not(:disabled) {
       background: #6D9488;
@@ -69,25 +116,35 @@
       cursor: not-allowed;
     }
   }
+
+  .btn-secondary {
+    background: white;
+    color: #1C1917;
+    border: 1px solid #D4D0C8;
+
+    &:hover {
+      border-color: var(--ec-sage-dark);
+      background: #F8FAF9;
+    }
+  }
 }
 
-// Statistiques
 .stats-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1rem;
 }
 
 .stat-card {
   background: white;
-  padding: 1.25rem;
-  border-radius: 8px;
+  padding: 1rem;
+  border-radius: 12px;
   border: 1px solid #E7E5E4;
 
   .stat-label {
-    font-size: 0.75rem;
-    color: #78716C;
+    font-size: 0.7rem;
+    color: #5d564f;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -95,7 +152,7 @@
   }
 
   .stat-value {
-    font-size: 1.875rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: #1C1917;
   }
@@ -108,10 +165,10 @@
 // Filtres
 .filters-section {
   background: white;
-  padding: 1.25rem;
-  border-radius: 8px;
+  padding: 1rem;
+  border-radius: 12px;
   border: 1px solid #E7E5E4;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .search-box {
@@ -119,10 +176,10 @@
 
   input {
     width: 100%;
-    padding: 0.625rem 1rem;
+    padding: 0.6rem 0.9rem;
     border: 1px solid #E7E5E4;
-    border-radius: 6px;
-    font-size: 0.875rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
     background: #FAFAF9;
 
     &:focus {
@@ -144,12 +201,12 @@
 }
 
 .filter-btn {
-  padding: 0.5rem 1rem;
+  padding: 0.45rem 0.85rem;
   background: #FAFAF9;
   border: 1px solid #E7E5E4;
-  border-radius: 6px;
+  border-radius: 999px;
   cursor: pointer;
-  font-size: 0.8125rem;
+  font-size: 0.76rem;
   font-weight: 500;
   color: #57534E;
   transition: all 0.2s;
@@ -183,22 +240,22 @@
 // Résultats
 .results-info {
   margin-bottom: 0.75rem;
-  font-size: 0.8125rem;
-  color: #78716C;
+  font-size: 0.76rem;
+  color: #5d564f;
   font-weight: 500;
 }
 
 // Loading
 .loading {
   text-align: center;
-  padding: 3rem 2rem;
+  padding: 2.25rem 1.5rem;
   background: white;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #E7E5E4;
 
   .spinner {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     border: 3px solid #E7E5E4;
     border-top-color: var(--ec-sage-dark);
     border-radius: 50%;
@@ -207,8 +264,8 @@
   }
 
   p {
-    color: #78716C;
-    font-size: 0.875rem;
+    color: #5d564f;
+    font-size: 0.82rem;
     margin: 0;
   }
 }
@@ -221,18 +278,19 @@
 .error-message {
   background: #FEE2E2;
   color: #991B1B;
-  padding: 1rem 1.25rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  margin-bottom: 1.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  margin-bottom: 1rem;
 }
 
 // Tableau
 .table-container {
   background: white;
-  border-radius: 8px;
+  border-radius: 14px;
   border: 1px solid #E7E5E4;
   overflow: hidden;
+  box-shadow: var(--ec-shadow-soft);
 }
 
 .participants-table {
@@ -244,11 +302,11 @@
     border-bottom: 1px solid #E7E5E4;
 
     th {
-      padding: 0.875rem 1rem;
+      padding: 0.75rem 0.85rem;
       text-align: left;
-      font-size: 0.75rem;
+      font-size: 0.68rem;
       font-weight: 600;
-      color: #57534E;
+      color: #453f39;
       text-transform: uppercase;
       letter-spacing: 0.05em;
 
@@ -282,8 +340,8 @@
     }
 
     td {
-      padding: 0.875rem 1rem;
-      font-size: 0.875rem;
+      padding: 0.75rem 0.85rem;
+      font-size: 0.82rem;
       color: #1C1917;
     }
   }
@@ -291,8 +349,8 @@
 
 // Avatar
 .avatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--ec-sage-dark);
   color: white;
@@ -300,12 +358,12 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
 }
 
 .avatar-img {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -316,7 +374,7 @@
 }
 
 .email-cell {
-  color: #78716C;
+  color: #5d564f;
 }
 
 .points-cell {
@@ -327,9 +385,9 @@
 // Badges
 .badge {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
   font-weight: 600;
 
   &.statut-confirme {
@@ -351,23 +409,23 @@
 // Aucun résultat
 .no-results {
   text-align: center;
-  padding: 3rem 2rem;
+  padding: 2.25rem 1.5rem;
 
   p {
-    color: #78716C;
-    font-size: 1rem;
-    margin: 0 0 1.25rem 0;
+    color: #5d564f;
+    font-size: 0.92rem;
+    margin: 0 0 1rem 0;
   }
 
   .btn-reset {
-    padding: 0.625rem 1.5rem;
+    padding: 0.6rem 1rem;
     background: var(--ec-sage-dark);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 999px;
     cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: 0.82rem;
+    font-weight: 600;
 
     &:hover {
       background: #6D9488;
@@ -377,13 +435,13 @@
 
 // Bouton de validation manuelle
 .btn-valider {
-  padding: 0.5rem 1rem;
+  padding: 0.42rem 0.85rem;
   background: var(--ec-sage-dark);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 999px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   transition: all 0.2s;
 
@@ -400,18 +458,18 @@
 // Responsive
 @media (max-width: 1200px) {
   .participants-table {
-    font-size: 0.8125rem;
+    font-size: 0.78rem;
 
     thead th,
     tbody td {
-      padding: 0.75rem 0.875rem;
+      padding: 0.68rem 0.75rem;
     }
   }
 }
 
 @media (max-width: 768px) {
   .participants-container {
-    padding: 1.25rem;
+    padding: 1rem;
   }
 
   .header {
@@ -425,6 +483,16 @@
       width: 100%;
     }
 
+    .header-actions {
+      width: 100%;
+      flex-direction: column;
+    }
+
+    .title-section .header-meta {
+      width: 100%;
+    }
+
+    .btn-secondary,
     .btn-export {
       width: 100%;
     }

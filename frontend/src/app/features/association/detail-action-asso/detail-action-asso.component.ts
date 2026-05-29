@@ -26,6 +26,7 @@ export class DetailActionAssoComponent implements OnInit {
   error: string | null = null;
   
   qrCodeDataUrl: string | null = null;
+  pinCode: string | null = null;
   loadingQR = false;
 
   constructor(
@@ -71,6 +72,7 @@ export class DetailActionAssoComponent implements OnInit {
     this.associationService.getQRCode(actionId).subscribe({
       next: (response) => {
         this.qrCodeDataUrl = response.qrCode;
+        this.pinCode = response.pinCode;
         this.loadingQR = false;
       },
       error: (err) => {
@@ -164,13 +166,13 @@ export class DetailActionAssoComponent implements OnInit {
   }
 
   modifierAction(): void {
-    if (this.action) {
+    if (this.action && this.canModifyAction()) {
       this.router.navigate(['/association/modifier', this.action.id]);
     }
   }
 
   annulerAction(): void {
-    if (!this.action) return;
+    if (!this.action || !this.canCancelAction()) return;
     
     const raison = prompt('Raison de l\'annulation (optionnel) :');
     if (raison !== null) {
@@ -203,6 +205,110 @@ export class DetailActionAssoComponent implements OnInit {
       100,
       Math.round((this.action.registeredCount / this.action.maxParticipants) * 100)
     );
+  }
+
+  getRemainingPlaces(): number {
+    if (!this.action) {
+      return 0;
+    }
+    if (typeof this.action.availablePlaces === 'number') {
+      return Math.max(0, this.action.availablePlaces);
+    }
+    return Math.max(0, this.action.maxParticipants - this.action.registeredCount);
+  }
+
+  getStatusLabel(): string {
+    if (!this.action) {
+      return '';
+    }
+
+    if (this.action.status === 'CANCELLED') {
+      return 'Annulée';
+    }
+    if (this.action.status === 'DRAFT') {
+      return 'Brouillon';
+    }
+    if (this.isPastAction()) {
+      return 'Terminée';
+    }
+    if (this.getRegistrationPercent() >= 100) {
+      return 'Complet';
+    }
+    return 'Publiée';
+  }
+
+  getStatusClass(): string {
+    if (!this.action) {
+      return '';
+    }
+
+    if (this.action.status === 'CANCELLED') {
+      return 'status-cancelled';
+    }
+    if (this.action.status === 'DRAFT') {
+      return 'status-draft';
+    }
+    if (this.isPastAction()) {
+      return 'status-completed';
+    }
+    if (this.getRegistrationPercent() >= 80) {
+      return 'status-warning';
+    }
+    return 'status-published';
+  }
+
+  getHeroImage(): string {
+    if (this.action?.photoUrls?.length) {
+      return this.action.photoUrls[0];
+    }
+    return this.action?.associationLogoUrl || '/assets/placeholder-action.jpg';
+  }
+
+  getGalleryImages(): string[] {
+    return this.action?.photoUrls?.slice(1) ?? [];
+  }
+
+  getScheduleLabel(): string {
+    if (!this.action) {
+      return '';
+    }
+    return `${this.formatDate(this.action.dateStart)} · ${this.formatTime(this.action.dateStart, this.action.dateEnd)}`;
+  }
+
+  getMapsUrl(): string | null {
+    if (!this.action) {
+      return null;
+    }
+
+    if (this.action.latitude != null && this.action.longitude != null) {
+      return `https://www.google.com/maps/search/?api=1&query=${this.action.latitude},${this.action.longitude}`;
+    }
+
+    const query = encodeURIComponent(`${this.action.address}, ${this.action.city}`);
+    return `https://www.google.com/maps/search/?api=1&query=${query}`;
+  }
+
+  hasCoordinates(): boolean {
+    return !!(this.action && this.action.latitude != null && this.action.longitude != null);
+  }
+
+  getParticipationLabel(): string {
+    if (!this.action) {
+      return '';
+    }
+    return `${this.action.registeredCount} / ${this.action.maxParticipants} inscrits`;
+  }
+
+  canModifyAction(): boolean {
+    return !!this.action && (this.action.status === 'DRAFT' || (this.action.status === 'PUBLISHED' && !this.isPastAction()));
+  }
+
+  canCancelAction(): boolean {
+    return !!this.action && this.action.status === 'PUBLISHED' && !this.isPastAction();
+  }
+
+  isPastAction(): boolean {
+    return !!this.action && new Date(this.action.dateEnd).getTime() < Date.now();
   }
 
   formatDate = formatActionDate;

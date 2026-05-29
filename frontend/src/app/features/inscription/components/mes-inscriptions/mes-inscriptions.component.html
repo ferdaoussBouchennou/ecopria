@@ -28,7 +28,6 @@
         <p class="page-sub">Gerez vos participations aux actions Ecopria</p>
       </div>
       <div class="header-actions">
-        <a routerLink="/espace/qr" class="btn btn--secondary">Mes QR codes</a>
         <a routerLink="/actions" class="btn btn--primary">+ Decouvrir des actions</a>
       </div>
     </div>
@@ -96,10 +95,11 @@
             </div>
           </div>
 
-          <!-- QR Code si CONFIRMEE -->
+          <!-- Inscription CONFIRMEE -->
           <div class="qr-block" *ngIf="insc.statut === 'CONFIRMEE'">
-            <span class="qr-label">Code d'acces (presente le jour J)</span>
-            <span class="qr-code">{{ insc.qrCode || 'En cours de génération…' }}</span>
+            <span class="qr-label">Inscription confirmée</span>
+            <span class="qr-hint" style="margin-bottom: 10px; display: block;">N'oubliez pas de faire valider votre présence le jour de l'action.</span>
+            <a [routerLink]="['/valider-presence', insc.actionId]" class="btn btn--primary btn--sm" style="width: 100%; text-align: center;">Valider ma présence</a>
           </div>
 
           <!-- Message si EN_ATTENTE -->

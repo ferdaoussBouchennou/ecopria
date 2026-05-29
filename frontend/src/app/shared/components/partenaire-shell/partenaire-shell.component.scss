@@ -1,6 +1,6 @@
 .partenaire-layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 236px 1fr;
   min-height: 100vh;
   background: var(--ec-cream);
 }
@@ -8,10 +8,10 @@
 .partenaire-sidebar {
   background: var(--ec-card);
   border-right: 1px solid var(--ec-border);
-  padding: 1.5rem 1.25rem;
+  padding: 1.15rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   position: sticky;
   top: 0;
   height: 100vh;
@@ -20,7 +20,7 @@
 .sidebar-brand {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.55rem;
 }
 
 .brand {
@@ -39,7 +39,7 @@
 
 .brand-mark {
   font-family: var(--ec-font-serif);
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: var(--ec-sage-dark);
   text-transform: lowercase;
@@ -53,13 +53,13 @@
 }
 
 .sidebar-identity {
-  padding-bottom: 1rem;
+  padding-bottom: 0.85rem;
   border-bottom: 1px solid var(--ec-border);
 }
 
 .commerce-name {
   font-family: var(--ec-font-serif);
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   font-weight: 600;
   margin: 0 0 0.25rem;
   color: var(--ec-text);
@@ -67,9 +67,16 @@
 }
 
 .commerce-role {
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   color: var(--ec-sage);
   font-weight: 500;
+}
+
+.commerce-note {
+  margin: 0.45rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ec-text-muted);
 }
 
 .sidebar-nav {
@@ -80,10 +87,10 @@
 }
 
 .nav-link {
-  padding: 0.65rem 0.85rem;
+  padding: 0.55rem 0.75rem;
   border-radius: 8px;
   text-decoration: none;
-  font-size: 0.875rem;
+  font-size: 0.82rem;
   font-weight: 500;
   color: var(--ec-text-soft);
   transition: background 0.15s, color 0.15s;
@@ -99,11 +106,34 @@
   }
 }
 
-.back-site {
+.sidebar-panel {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.8rem;
+  border-radius: 12px;
+  background: var(--ec-mint);
+  border: 1px solid #d5e6df;
+  color: var(--ec-sage-dark);
+}
+
+.panel-label {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ec-text-muted);
+  font-weight: 700;
+}
+
+.sidebar-panel strong {
   font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.back-site {
+  font-size: 0.74rem;
   color: var(--ec-text-muted);
   text-decoration: none;
-  padding-top: 1rem;
+  padding-top: 0.85rem;
   border-top: 1px solid var(--ec-border);
 
   &:hover {
@@ -121,16 +151,24 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 2.5rem;
+  padding: 1rem 1.75rem;
   background: var(--ec-cream);
   border-bottom: 1px solid var(--ec-border);
 }
 
 .topbar-commerce {
   font-family: var(--ec-font-serif);
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--ec-text);
+}
+
+.topbar-caption {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ec-text-muted);
 }
 
 .topbar-user {
@@ -140,17 +178,17 @@
 }
 
 .topbar-name {
-  font-size: 0.875rem;
+  font-size: 0.82rem;
   color: var(--ec-text-soft);
 }
 
 .topbar-avatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--ec-mint);
   color: var(--ec-sage-dark);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -158,8 +196,8 @@
 }
 
 .partenaire-main {
-  padding: 2rem 2.5rem 4rem;
-  max-width: 1100px;
+  padding: 1.5rem 1.75rem 3rem;
+  max-width: 1040px;
   width: 100%;
 }
 

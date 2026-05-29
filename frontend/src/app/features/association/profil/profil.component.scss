@@ -125,6 +125,42 @@
   overflow: hidden;
 }
 
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 2rem 2rem 0;
+}
+
+.overview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 1.2rem;
+  border: 1px solid #E7E5E4;
+  border-radius: 12px;
+  background: #FAFAF9;
+}
+
+.overview-kicker {
+  color: #78716C;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.overview-card strong {
+  font-family: var(--ec-font-serif);
+  font-size: 1.4rem;
+  color: #1C1917;
+}
+
+.overview-card span:last-child {
+  color: #78716C;
+  font-size: 0.86rem;
+}
+
 // Logo Section
 .logo-section {
   background: #FAFAF9;
@@ -218,6 +254,40 @@
     color: #DC2626;
     text-align: center;
   }
+}
+
+.identity-summary {
+  max-width: 680px;
+  text-align: center;
+}
+
+.identity-summary h2 {
+  margin: 0;
+  color: #1C1917;
+  font-size: 1.5rem;
+}
+
+.identity-summary p {
+  margin: 0.75rem 0 0;
+  color: #57534E;
+  line-height: 1.6;
+}
+
+.identity-tags {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.identity-tags span {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: white;
+  border: 1px solid #E7E5E4;
+  color: #57534E;
+  font-size: 0.84rem;
 }
 
 // Form Section
@@ -402,6 +472,11 @@
 
   .logo-section {
     padding: 1.5rem;
+  }
+
+  .overview-grid {
+    grid-template-columns: 1fr;
+    padding: 1.5rem 1.5rem 0;
   }
 
   .form-section {

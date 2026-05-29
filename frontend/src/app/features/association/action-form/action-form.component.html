@@ -9,6 +9,29 @@
     </div>
   </header>
 
+  <section class="overview-strip">
+    <div class="overview-card">
+      <span class="overview-kicker">Mode</span>
+      <strong>{{ isEditMode ? 'Modification' : 'Création' }}</strong>
+      <span>{{ currentStep }} / {{ totalSteps }} étapes</span>
+    </div>
+    <div class="overview-card">
+      <span class="overview-kicker">Catégorie</span>
+      <strong>{{ currentCategoryName }}</strong>
+      <span>thématique actuellement choisie</span>
+    </div>
+    <div class="overview-card">
+      <span class="overview-kicker">Durée</span>
+      <strong>{{ actionDurationLabel }}</strong>
+      <span>selon les dates indiquées</span>
+    </div>
+    <div class="overview-card">
+      <span class="overview-kicker">Impact max</span>
+      <strong>+{{ estimatedImpactPoints }}</strong>
+      <span>points potentiellement distribués</span>
+    </div>
+  </section>
+
   <!-- Stepper Progress -->
   <div class="stepper-container">
     <div class="stepper">
@@ -120,6 +143,12 @@
         }
       </div>
     </div>
+
+    @if (actionDurationLabel === 'Dates invalides') {
+      <div class="inline-warning">
+        La date de fin doit être postérieure à la date de début.
+      </div>
+    }
   </section>
 
   <section class="form-section">
@@ -205,6 +234,14 @@
       </p>
     </div>
 
+    <div class="location-status" [class.ready]="isLocationReady">
+      @if (isLocationReady) {
+        <span>Position prête pour le backend: latitude et longitude renseignées.</span>
+      } @else {
+        <span>La position GPS n'est pas encore définie. Elle est obligatoire pour enregistrer l'action.</span>
+      }
+    </div>
+
     <div class="map-container" id="locationMap"></div>
   </section>
   }
@@ -235,6 +272,13 @@
         @if (isFieldInvalid('points')) {
         <span class="error-message">{{ getFieldError('points') }}</span>
         }
+      </div>
+    </div>
+
+    <div class="impact-box">
+      <div>
+        <strong>Projection d'impact</strong>
+        <p>Si l'action est complète, vous distribuerez jusqu'à {{ estimatedImpactPoints }} points.</p>
       </div>
     </div>
   </section>
@@ -351,7 +395,7 @@
       <div class="review-item">
         <h3 class="review-label">Catégorie</h3>
         <p class="review-value">
-          {{ getCategoryName(actionForm.get('categoryId')?.value) }}
+          {{ currentCategoryName }}
         </p>
       </div>
 
@@ -359,7 +403,8 @@
         <h3 class="review-label">Date et heure</h3>
         <p class="review-value">
           Du {{ actionForm.get('dateStart')?.value | date:'dd/MM/yyyy HH:mm' }}<br>
-          au {{ actionForm.get('dateEnd')?.value | date:'dd/MM/yyyy HH:mm' }}
+          au {{ actionForm.get('dateEnd')?.value | date:'dd/MM/yyyy HH:mm' }}<br>
+          <span class="review-muted">Durée estimée: {{ actionDurationLabel }}</span>
         </p>
       </div>
 
@@ -378,7 +423,10 @@
 
       <div class="review-item">
         <h3 class="review-label">Points</h3>
-        <p class="review-value">{{ actionForm.get('points')?.value }} points</p>
+        <p class="review-value">
+          {{ actionForm.get('points')?.value }} points<br>
+          <span class="review-muted">Impact maximal: +{{ estimatedImpactPoints }} points</span>
+        </p>
       </div>
 
       @if (programArray.length > 0) {

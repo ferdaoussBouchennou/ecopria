@@ -28,6 +28,7 @@ export const routes: Routes = [
       { path: 'action/:id', component: DetailActionComponent },
       { path: 'inscription/:actionId', component: InscriptionFormComponent },
       { path: 'mes-inscriptions', component: MesInscriptionsComponent },
+      { path: 'valider-presence/:actionId', loadComponent: () => import('./features/inscription/components/scan-participant/scan-participant.component').then(m => m.ScanParticipantComponent) },
     ],
   },
   

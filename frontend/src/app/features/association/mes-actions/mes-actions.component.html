@@ -1,11 +1,17 @@
 <div class="mes-actions-page">
-  <!-- Main Content -->
   <main class="main-content">
-    <header class="content-header">
-      <div class="title-section">
+    <header class="hero-header">
+      <div class="hero-copy">
+        <p class="hero-eyebrow">Espace association</p>
         <h1>Mes actions</h1>
-        <p class="subtitle">Gérez vos actions environnementales et suivez leur progression</p>
+        <p class="subtitle">
+          Gérez votre programmation, priorisez les actions les plus sensibles
+          et gardez un oeil sur votre impact.
+        </p>
       </div>
+      <button type="button" class="btn-create" (click)="creerAction()">
+        Créer une action
+      </button>
     </header>
 
     @if (loading) {
@@ -23,97 +29,247 @@
     }
 
     @if (!loading && !error) {
-      <!-- Stats Cards -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-number">{{ actionsPubliees.length }}</div>
-          <div class="stat-label">actions à venir</div>
+      <section class="overview-grid">
+        <div class="overview-card">
+          <span class="overview-kicker">Programmation</span>
+          <div class="overview-value">{{ totalPublishedActions }}</div>
+          <div class="overview-label">actions publiées ou réalisées</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ getTotalInscrits() }}</div>
-          <div class="stat-label">inscrits ce mois</div>
+        <div class="overview-card">
+          <span class="overview-kicker">Mobilisation</span>
+          <div class="overview-value">{{ totalMobilizedParticipants }}</div>
+          <div class="overview-label">participants mobilisés</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ getAverageFillRate() }}%</div>
-          <div class="stat-label">taux de remplissage</div>
+        <div class="overview-card">
+          <span class="overview-kicker">Préparation</span>
+          <div class="overview-value">{{ brouillons.length }}</div>
+          <div class="overview-label">brouillons à finaliser</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ getTotalPoints() }}</div>
-          <div class="stat-label">points distribués</div>
+        <div class="overview-card">
+          <span class="overview-kicker">Attention</span>
+          <div class="overview-value">{{ urgentActionsCount }}</div>
+          <div class="overview-label">actions prioritaires</div>
         </div>
-      </div>
+      </section>
 
-      <!-- Actions Section -->
-      <section class="actions-section">
-        <div class="section-header">
-          <h2 class="section-title">Actions à venir</h2>
-          <button type="button" class="btn-create" (click)="creerAction()">
-            Créer une action
+      <section class="insights-grid">
+        <div class="insight-card insight-card--hero">
+          <span class="insight-label">{{ agendaEyebrow }}</span>
+          <h2>{{ agendaTitle }}</h2>
+          <p>{{ agendaDescription }}</p>
+          <div class="insight-tags">
+            @if (agendaAction) {
+              <span class="insight-chip">{{ agendaAction.city }}</span>
+              <span class="insight-chip">{{ getStatusLabel(agendaAction) }}</span>
+            }
+            @if (agendaSecondaryInfo) {
+              <span class="insight-chip">{{ agendaSecondaryInfo }}</span>
+            }
+          </div>
+          <button type="button" class="btn-agenda" (click)="agendaActionClick()">
+            {{ agendaActionLabel }}
           </button>
         </div>
+        <div class="insight-card">
+          <span class="insight-label">Ce mois-ci</span>
+          <div class="insight-metric">{{ getMonthActionsCount() }}</div>
+          <p>{{ getMonthActionsCount() > 1 ? 'actions programmées' : 'action programmée' }}</p>
+          <small>{{ getRemainingPlacesTotal() }} places encore disponibles sur vos actions à venir</small>
+        </div>
+        <div class="insight-card">
+          <span class="insight-label">Impact cumulé</span>
+          <div class="insight-metric">+{{ totalPointsDistributed }}</div>
+          <p>points distribués</p>
+          <small>Taux de remplissage moyen: {{ getAverageFillRate() }}%</small>
+        </div>
+      </section>
 
-        @if (actionsPubliees.length === 0) {
-          <div class="empty-state">
-            <p>Vous n'avez pas encore d'actions publiées.</p>
-            <button type="button" class="btn-create" (click)="creerAction()">
-              Créer votre première action
+      <section class="filters-section">
+        <div class="view-switcher" role="tablist" aria-label="Filtrer mes actions">
+          @for (view of viewOptions; track view) {
+            <button
+              type="button"
+              class="view-pill"
+              [class.active]="selectedView === view"
+              (click)="setSelectedView(view)"
+            >
+              <span>{{ getViewLabel(view) }}</span>
+              <strong>{{ getViewCount(view) }}</strong>
             </button>
-          </div>
-        }
-
-        <div class="actions-list">
-          @for (action of actionsPubliees; track action.id) {
-            <article class="action-item" (click)="voirDetails(action.id)">
-              <div class="action-image">
-                <img [src]="getActionImage(action)" [alt]="action.title" />
-              </div>
-              
-              <div class="action-content">
-                <div class="action-header">
-                  <span class="action-category">{{ action.categoryName }}</span>
-                  <span class="action-status" [class]="getStatutClass(action)">
-                    {{ getStatutLabel(action) }}
-                  </span>
-                </div>
-                
-                <h3 class="action-title">{{ action.title }}</h3>
-                
-                <div class="action-meta">
-                  <span class="meta-date">{{ formatDate(action.dateStart) }}</span>
-                  <span class="meta-separator">•</span>
-                  <span class="meta-location">{{ action.city }}</span>
-                  <span class="meta-separator">•</span>
-                  <span class="meta-points">{{ action.points }} points</span>
-                </div>
-              </div>
-
-              <div class="action-aside">
-                <div class="action-participants">
-                  <div class="participants-count">{{ action.registeredCount }}/{{ action.maxParticipants }}</div>
-                  <div class="participants-label">Inscrits</div>
-                </div>
-              </div>
-            </article>
           }
         </div>
       </section>
 
-      <!-- Brouillons Section -->
-      @if (brouillons.length > 0) {
-        <section class="drafts-section">
-          <h2 class="section-title">Brouillons</h2>
-          <div class="drafts-list">
-            @for (brouillon of brouillons; track brouillon.id) {
-              <div class="draft-item" (click)="modifierAction(brouillon.id)">
-                <div class="draft-content">
-                  <span class="draft-badge">Brouillon</span>
-                  <h4 class="draft-title">{{ brouillon.title }}</h4>
-                  <p class="draft-date">{{ formatDate(brouillon.dateStart) }}</p>
+      <section class="actions-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">{{ getSectionTitle() }}</h2>
+            <p class="section-description">{{ getSectionDescription() }}</p>
+          </div>
+        </div>
+
+        @if (filteredActions.length === 0) {
+          <div class="empty-state">
+            <h3>{{ getEmptyTitle() }}</h3>
+            <p>{{ getEmptyDescription() }}</p>
+            <button type="button" class="btn-create" (click)="creerAction()">
+              Créer une action
+            </button>
+          </div>
+        } @else {
+          <div class="actions-list">
+            @for (action of paginatedActions; track action.id) {
+              <article class="action-card">
+                <div class="action-image">
+                  <img [src]="getActionImage(action)" [alt]="action.title" />
+                  <span class="timeline-chip">{{ getTimelineLabel(action) }}</span>
                 </div>
-                <button type="button" class="btn-publish-small" (click)="publierBrouillon(brouillon.id); $event.stopPropagation()">
-                  Publier
+
+                <div class="action-content">
+                  <div class="action-topline">
+                    <span class="action-category">{{ action.categoryName }}</span>
+                    <span class="action-status" [ngClass]="getStatusClass(action)">
+                      {{ getStatusLabel(action) }}
+                    </span>
+                  </div>
+
+                  <h3 class="action-title">{{ action.title }}</h3>
+
+                  <div class="action-meta">
+                    <span>{{ formatDateRange(action) }}</span>
+                    <span class="meta-separator">•</span>
+                    <span>{{ action.city }}</span>
+                    <span class="meta-separator">•</span>
+                    <span>{{ action.points }} points</span>
+                    @if (action.isFixed) {
+                      <span class="meta-separator">•</span>
+                      <span>Action fixe</span>
+                    }
+                  </div>
+
+                  <div class="progress-panel">
+                    <div class="progress-copy">
+                      <strong>
+                        @if (hasCapacity(action)) {
+                          {{ action.registeredCount }}/{{ action.maxParticipants }} inscrits
+                        } @else {
+                          Participation ouverte
+                        }
+                      </strong>
+                      <span>{{ getCapacityLabel(action) }}</span>
+                    </div>
+
+                    @if (hasCapacity(action)) {
+                      <div class="progress-bar" aria-hidden="true">
+                        <div class="progress-value" [style.width.%]="getFillRate(action)"></div>
+                      </div>
+                    }
+                  </div>
+
+                  @if (isActionUrgent(action)) {
+                    <div class="action-note action-note--warning">
+                      Priorité de suivi: cette action approche de sa capacité maximale.
+                    </div>
+                  } @else if (selectedView === 'drafts') {
+                    <div class="action-note">
+                      Ce brouillon n'est pas encore visible par les participants.
+                    </div>
+                  } @else if (selectedView === 'history') {
+                    <div class="action-note">
+                      Cette action a déjà contribué à votre impact cumulé.
+                    </div>
+                  } @else if (selectedView === 'cancelled') {
+                    <div class="action-note action-note--muted">
+                      Action conservée dans l'historique pour garder une trace organisationnelle.
+                    </div>
+                  }
+                </div>
+
+                <div class="action-side">
+                  <div class="action-side-stat">
+                    <span class="side-label">Remplissage</span>
+                    <strong>
+                      @if (hasCapacity(action)) {
+                        {{ getFillRate(action) }}%
+                      } @else {
+                        --
+                      }
+                    </strong>
+                  </div>
+
+                  <div class="action-buttons">
+                    <button type="button" class="btn-secondary" (click)="voirDetails(action.id)">
+                      Voir
+                    </button>
+                    @if (canEdit(action)) {
+                      <button type="button" class="btn-secondary" (click)="modifierAction(action.id)">
+                        Modifier
+                      </button>
+                    }
+                    @if (selectedView === 'drafts') {
+                      <button type="button" class="btn-primary" (click)="publierBrouillon(action.id)">
+                        Publier
+                      </button>
+                    } @else if (canCancel(action)) {
+                      <button type="button" class="btn-danger" (click)="annulerAction(action.id)">
+                        Annuler
+                      </button>
+                    }
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+
+          @if (filteredActions.length > pageSize) {
+            <div class="pagination-bar">
+              <span class="pagination-label">{{ paginationLabel }}</span>
+              <div class="pagination-actions">
+                <button type="button" class="btn-secondary" (click)="previousPage()" [disabled]="currentPage === 1">
+                  Précédent
+                </button>
+                <span class="pagination-page">Page {{ currentPage }} / {{ totalPages }}</span>
+                <button type="button" class="btn-secondary" (click)="nextPage()" [disabled]="currentPage === totalPages">
+                  Suivant
                 </button>
               </div>
+            </div>
+          }
+        }
+      </section>
+
+      @if (brouillons.length > 0 && selectedView !== 'drafts') {
+        <section class="drafts-preview">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Brouillons récents</h2>
+              <p class="section-description">Reprenez rapidement vos actions en préparation.</p>
+            </div>
+            <button type="button" class="btn-secondary" (click)="setSelectedView('drafts')">
+              Voir les brouillons
+            </button>
+          </div>
+
+          <div class="drafts-list">
+            @for (brouillon of brouillons.slice(0, 3); track brouillon.id) {
+              <article class="draft-card">
+                <div>
+                  <span class="draft-badge">Brouillon</span>
+                  <h3 class="draft-title">{{ brouillon.title }}</h3>
+                  <p class="draft-meta">
+                    {{ formatDateRange(brouillon) }} · {{ brouillon.city }}
+                  </p>
+                </div>
+
+                <div class="draft-actions">
+                  <button type="button" class="btn-secondary" (click)="modifierAction(brouillon.id)">
+                    Continuer
+                  </button>
+                  <button type="button" class="btn-primary" (click)="publierBrouillon(brouillon.id)">
+                    Publier
+                  </button>
+                </div>
+              </article>
             }
           </div>
         </section>

@@ -32,6 +32,29 @@
 
   <!-- Contenu -->
   <div class="content" *ngIf="!loading && profile">
+    <section class="overview-grid">
+      <div class="overview-card">
+        <span class="overview-kicker">Profil</span>
+        <strong>{{ profileCompletion }}%</strong>
+        <span>complété</span>
+      </div>
+      <div class="overview-card">
+        <span class="overview-kicker">Ville</span>
+        <strong>{{ editedProfile.city || 'À renseigner' }}</strong>
+        <span>territoire d'action</span>
+      </div>
+      <div class="overview-card">
+        <span class="overview-kicker">Contact</span>
+        <strong>{{ editedProfile.email || 'À renseigner' }}</strong>
+        <span>{{ contactSummary }}</span>
+      </div>
+      <div class="overview-card">
+        <span class="overview-kicker">Membre depuis</span>
+        <strong>{{ formatDate(profile.createdAt) }}</strong>
+        <span>ID #{{ profile.id }}</span>
+      </div>
+    </section>
+
     <!-- Logo Section -->
     <div class="logo-section">
       <div class="logo-container">
@@ -44,6 +67,15 @@
           />
           <div *ngIf="!logoPreview" class="logo-placeholder">
             <p>Aucun logo</p>
+          </div>
+        </div>
+
+        <div class="identity-summary">
+          <h2>{{ editedProfile.name || 'Association' }}</h2>
+          <p>{{ editedProfile.description || 'Ajoutez une description claire pour présenter votre mission, votre ancrage local et vos actions.' }}</p>
+          <div class="identity-tags">
+            <span>{{ editedProfile.city || 'Ville à compléter' }}</span>
+            <span>{{ editedProfile.phone || 'Téléphone non renseigné' }}</span>
           </div>
         </div>
         
@@ -181,6 +213,10 @@
           <div class="info-row">
             <span class="info-label">ID Association</span>
             <span class="info-value">#{{ profile.id }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Complétude du profil</span>
+            <span class="info-value">{{ profileCompletion }}%</span>
           </div>
         </div>
 

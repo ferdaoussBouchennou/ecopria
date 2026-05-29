@@ -17,13 +17,12 @@
     <h2>Inscription confirmee !</h2>
     <p class="result-sub">
       Vous etes inscrit a <strong>{{ action?.titre }}</strong>.<br>
-      Un email avec votre QR Code vous a ete envoye par Sanae (service-notification).
+      Un email de confirmation vous a ete envoye par Sanae (service-notification).
     </p>
 
     <div class="qr-block" *ngIf="inscription">
-      <span class="qr-label">Votre code d'acces</span>
-      <span class="qr-code">{{ inscription.qrCode }}</span>
-      <span class="qr-hint">Presentez ce code le jour de l'evenement</span>
+      <span class="qr-label">Inscription enregistrée</span>
+      <span class="qr-hint">Votre participation a bien été prise en compte.</span>
     </div>
 
     <div class="badge badge--green" *ngIf="inscription">
@@ -172,13 +171,7 @@
               <span class="field-error" *ngIf="hasError('age', 'min')">Vous devez avoir au moins 16 ans.</span>
             </div>
 
-            <!-- Accompagnants -->
-            <div class="form-field">
-              <label for="accompagnants">ACCOMPAGNANTS</label>
-              <select id="accompagnants" formControlName="accompagnants">
-                <option *ngFor="let n of accompagnantsOptions" [value]="n">{{ n }}</option>
-              </select>
-            </div>
+
             
             <!-- Motivation -->
             <div class="form-field form-field--full">

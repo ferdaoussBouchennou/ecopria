@@ -2,10 +2,7 @@
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-header">
-      <div class="association-badge">
-        <span class="badge-dot"></span>
-        <span class="badge-text">association</span>
-      </div>
+      <img class="sidebar-logo" src="assets/logo.png" alt="Ecopria" />
       <h2 class="association-name">{{ associationName }}</h2>
     </div>
 
@@ -86,6 +83,10 @@
     </nav>
 
     <div class="sidebar-footer">
+      <div class="sidebar-footnote">
+        <span class="footnote-label">Suivi</span>
+        <strong>{{ unreadCount }} notification{{ unreadCount > 1 ? 's' : '' }} en attente</strong>
+      </div>
       <button type="button" class="btn-logout" (click)="logout()">
         Déconnexion
       </button>
@@ -97,9 +98,15 @@
     <!-- Top Navbar -->
     <header class="top-navbar">
       <div class="navbar-left">
-        <h1 class="navbar-brand">ecopria</h1>
+        <div>
+
+          <p class="navbar-caption">Tableau de pilotage association</p>
+        </div>
       </div>
       <div class="navbar-right">
+        <button type="button" class="navbar-link" (click)="navigateTo('/association/participants')">
+          Participants
+        </button>
         <button type="button" class="navbar-btn" (click)="toggleNotifications()">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M10 2C7.23858 2 5 4.23858 5 7V10.5858L3.70711 11.8787C3.07714 12.5087 3.52331 13.6 4.41421 13.6H15.5858C16.4767 13.6 16.9229 12.5087 16.2929 11.8787L15 10.5858V7C15 4.23858 12.7614 2 10 2Z" stroke="currentColor" stroke-width="1.5"/>
@@ -131,6 +138,9 @@
             </button>
           }
         </div>
+        @if (notificationsError) {
+          <div class="notifications-error">{{ notificationsError }}</div>
+        }
         <div class="notifications-list">
           @if (notifications.length === 0) {
             <div class="no-notifications">

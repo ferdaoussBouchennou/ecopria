@@ -15,6 +15,12 @@ export interface InscriptionResponse {
   dateInscription: string;
   statut: 'CONFIRMEE' | 'EN_ATTENTE' | 'ANNULEE';
   pointsAction: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  city?: string;
+  photoUrl?: string;
   /** Rempli côté front via service-presence si disponible */
   qrCode?: string;
 }

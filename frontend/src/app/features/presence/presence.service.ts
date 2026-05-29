@@ -39,6 +39,16 @@ export class PresenceService {
       );
   }
 
+  /** Validation présence par code PIN */
+  validerParPin(pinCode: string, userId: number): Observable<PresenceValidationResult> {
+    return this.http
+      .post<PresenceResponse>(`${API_PRESENCES}/valider/pin`, { pinCode, userId })
+      .pipe(
+        map((res) => this.toValidationResult(res, 'VALIDE', 'Présence validée avec succès via le code PIN.')),
+        catchError((err) => throwError(() => new Error(this.mapValidationError(err))))
+      );
+  }
+
   /** Participants inscrits à une action (service-inscription) */
   getParticipants(actionId: number): Observable<ParticipantRow[]> {
     return this.http

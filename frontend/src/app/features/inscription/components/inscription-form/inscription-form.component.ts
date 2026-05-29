@@ -64,7 +64,6 @@ export class InscriptionFormComponent implements OnInit {
       email:         ['', [Validators.required, Validators.email]],
       telephone:     ['', [Validators.required, Validators.pattern(/^[0-9+\s]{8,15}$/)]],
       age:           ['', [Validators.required, Validators.min(16), Validators.max(99)]],
-      accompagnants: [0,  [Validators.required, Validators.min(0),  Validators.max(10)]],
       motivation:    [''],
       conditions:    [''],
       rulesAccepted: [false, Validators.requiredTrue],
@@ -135,7 +134,7 @@ export class InscriptionFormComponent implements OnInit {
           return this.inscriptionService.inscrire({
             userId:   this.userId,
             actionId: this.actionId,
-            accompagnants: formData.accompagnants,
+            accompagnants: 0,
             motivation: formData.motivation,
             conditions: formData.conditions,
             imageRights: formData.imageRights,
@@ -159,7 +158,7 @@ export class InscriptionFormComponent implements OnInit {
   recommencer(): void {
     this.statut = 'idle';
     this.erreurMessage = '';
-    this.form.reset({ accompagnants: 0 });
+    this.form.reset();
   }
 
   // Verifie si un champ a une erreur specifique (apres avoir ete touche)
@@ -191,9 +190,7 @@ export class InscriptionFormComponent implements OnInit {
     });
   }
 
-  get accompagnantsOptions(): number[] {
-    return [0, 1, 2, 3, 4, 5];
-  }
+
 
   get isFixedAction(): boolean {
     return this.action?.isFixed ?? false;

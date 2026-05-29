@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AssociationService } from '../services/association.service';
 import { ActionSummary } from '../../action/models/action.model';
@@ -11,12 +12,14 @@ interface ActionWithParticipants extends ActionSummary {
 @Component({
   selector: 'app-liste-participants',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './liste-participants.component.html',
   styleUrls: ['./liste-participants.component.scss']
 })
 export class ListeParticipantsComponent implements OnInit {
   actions: ActionWithParticipants[] = [];
+  searchTerm = '';
+  statusFilter = 'TOUS';
   loading = true;
   error = '';
 
@@ -63,6 +66,37 @@ export class ListeParticipantsComponent implements OnInit {
       month: 'long',
       year: 'numeric'
     });
+  }
+
+  get filteredActions(): ActionWithParticipants[] {
+    return this.actions.filter((action) => {
+      const matchesSearch = !this.searchTerm.trim()
+        || action.title.toLowerCase().includes(this.searchTerm.toLowerCase())
+        || (action.city ?? '').toLowerCase().includes(this.searchTerm.toLowerCase());
+
+      const matchesStatus = this.statusFilter === 'TOUS' || action.status === this.statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }
+
+  get totalParticipants(): number {
+    return this.actions.reduce((sum, action) => sum + action.participantsCount, 0);
+  }
+
+  get publishedActions(): number {
+    return this.actions.filter((action) => action.status === 'PUBLISHED').length;
+  }
+
+  get upcomingActions(): number {
+    const now = Date.now();
+    return this.actions.filter((action) => new Date(action.dateEnd).getTime() >= now).length;
+  }
+
+  getFillRate(action: ActionWithParticipants): number {
+    if (!action.maxParticipants) {
+      return 0;
+    }
+    return Math.min(100, Math.round((action.participantsCount / action.maxParticipants) * 100));
   }
 
   getStatusClass(status: string): string {

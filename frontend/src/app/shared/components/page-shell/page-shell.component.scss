@@ -2,9 +2,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2rem;
-  padding: 1.1rem 2.5rem;
-  max-width: 1280px;
+  gap: 1.5rem;
+  padding: 0.9rem clamp(1rem, 3vw, 2rem);
+  max-width: 1200px;
   margin: 0 auto;
   border-bottom: 1px solid var(--ec-border);
   background: var(--ec-cream);
@@ -28,7 +28,7 @@
 
 .brand-mark {
   font-family: var(--ec-font-serif);
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--ec-sage-dark);
@@ -40,13 +40,13 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 1.75rem;
+  gap: 1.2rem;
   flex: 1;
 
   a {
     color: var(--ec-text-soft);
     text-decoration: none;
-    font-size: 0.875rem;
+    font-size: 0.82rem;
     font-weight: 500;
     letter-spacing: 0.01em;
     transition: color 0.2s;
@@ -64,18 +64,18 @@
 }
 
 .site-footer {
-  margin-top: 4rem;
-  padding: 3rem 2.5rem 2rem;
+  margin-top: 3rem;
+  padding: 2.25rem clamp(1rem, 3vw, 2rem) 1.5rem;
   background: var(--ec-cream);
   border-top: 1px solid var(--ec-border);
 }
 
 .footer-inner {
-  max-width: 1280px;
-  margin: 0 auto 2.5rem;
+  max-width: 1200px;
+  margin: 0 auto 1.75rem;
   display: grid;
   grid-template-columns: 1.4fr 1fr 1fr;
-  gap: 3rem;
+  gap: 2rem;
 }
 
 .footer-col h4 {
@@ -113,17 +113,17 @@
 }
 
 .footer-brand p {
-  font-size: 0.875rem;
-  line-height: 1.7;
-  max-width: 340px;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  max-width: 320px;
   color: var(--ec-text-muted);
   margin: 0;
 }
 
 .footer-copy {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--ec-text-muted);
   text-align: center;
 }

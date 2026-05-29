@@ -1,21 +1,29 @@
 <div class="participants-container">
-  <!-- Header -->
   <div class="header">
     <div class="header-left">
       <button class="btn-back" (click)="goBack()">
         ← Retour
       </button>
       <div class="title-section">
+        <span class="section-kicker">Pilotage participants</span>
         <h1>Liste des Participants</h1>
         <p class="action-title">{{ actionTitle }}</p>
+        <div class="header-meta">
+          <span class="meta-pill">{{ stats.total }} inscrit(s)</span>
+          <span class="meta-pill" [class.meta-pill--ready]="!!pinCode">{{ pinCode ? 'PIN disponible' : 'PIN indisponible' }}</span>
+        </div>
       </div>
     </div>
-    <button class="btn-export" (click)="exportCSV()" [disabled]="filteredParticipants.length === 0">
-      Exporter CSV
-    </button>
+    <div class="header-actions">
+      <a class="btn-secondary" [routerLink]="['/valider-presence', actionId]">
+        Scanner les présences
+      </a>
+      <button class="btn-export" (click)="exportCSV()" [disabled]="filteredParticipants.length === 0">
+        Exporter CSV
+      </button>
+    </div>
   </div>
 
-  <!-- Statistiques -->
   <div class="stats-cards">
     <div class="stat-card">
       <div class="stat-label">Total</div>
@@ -33,9 +41,12 @@
       <div class="stat-label">Annulés</div>
       <div class="stat-value">{{ stats.annules }}</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-label">Points</div>
+      <div class="stat-value">+{{ getTotalPoints() }}</div>
+    </div>
   </div>
 
-  <!-- Filtres et recherche -->
   <div class="filters-section">
     <div class="search-box">
       <input 
@@ -78,23 +89,19 @@
     </div>
   </div>
 
-  <!-- Résultats -->
   <div class="results-info" *ngIf="!loading">
     {{ filteredParticipants.length }} participant(s) trouvé(s)
   </div>
 
-  <!-- Loading -->
   <div class="loading" *ngIf="loading">
     <div class="spinner"></div>
     <p>Chargement des participants...</p>
   </div>
 
-  <!-- Erreur -->
   <div class="error-message" *ngIf="error && !loading">
     {{ error }}
   </div>
 
-  <!-- Tableau des participants -->
   <div class="table-container" *ngIf="!loading && !error">
     <table class="participants-table">
       <thead>
@@ -164,7 +171,6 @@
       </tbody>
     </table>
 
-    <!-- Message si aucun résultat -->
     <div class="no-results" *ngIf="filteredParticipants.length === 0">
       <p>Aucun participant trouvé</p>
       <button class="btn-reset" (click)="searchTerm = ''; statutFilter = 'TOUS'; applyFilters()">

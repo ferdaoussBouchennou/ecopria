@@ -199,6 +199,45 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
     return this.actionForm.get('practicalInfos') as FormArray;
   }
 
+  get isLocationReady(): boolean {
+    return !!(this.actionForm.get('latitude')?.value && this.actionForm.get('longitude')?.value);
+  }
+
+  get estimatedImpactPoints(): number {
+    const maxParticipants = Number(this.actionForm.get('maxParticipants')?.value || 0);
+    const points = Number(this.actionForm.get('points')?.value || 0);
+    return maxParticipants * points;
+  }
+
+  get actionDurationLabel(): string {
+    const start = this.actionForm.get('dateStart')?.value;
+    const end = this.actionForm.get('dateEnd')?.value;
+
+    if (!start || !end) {
+      return 'À définir';
+    }
+
+    const durationMs = new Date(end).getTime() - new Date(start).getTime();
+    if (durationMs <= 0) {
+      return 'Dates invalides';
+    }
+
+    const hours = Math.floor(durationMs / 3600000);
+    const minutes = Math.round((durationMs % 3600000) / 60000);
+
+    if (hours === 0) {
+      return `${minutes} min`;
+    }
+    if (minutes === 0) {
+      return `${hours} h`;
+    }
+    return `${hours} h ${minutes} min`;
+  }
+
+  get currentCategoryName(): string {
+    return this.getCategoryName(this.actionForm.get('categoryId')?.value);
+  }
+
   addProgramItem(): void {
     this.programArray.push(this.fb.control(''));
   }
@@ -312,6 +351,11 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
       });
 
       this.error = 'Veuillez remplir tous les champs obligatoires';
+      return;
+    }
+
+    if (!this.hasValidDateRange()) {
+      this.error = 'La date de fin doit être postérieure à la date de début';
       return;
     }
 
@@ -730,7 +774,14 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
 
       case 2: // Date et localisation
         const step2Fields = ['dateStart', 'dateEnd', 'address', 'city'];
-        return this.validateFields(step2Fields, 'Veuillez remplir tous les champs obligatoires');
+        if (!this.validateFields(step2Fields, 'Veuillez remplir tous les champs obligatoires')) {
+          return false;
+        }
+        if (!this.hasValidDateRange()) {
+          this.error = 'La date de fin doit être postérieure à la date de début';
+          return false;
+        }
+        return true;
 
       case 3: // Participants et récompenses
         const step3Fields = ['maxParticipants', 'points'];
@@ -766,7 +817,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
       case 2:
         return ['dateStart', 'dateEnd', 'address', 'city'].every(field =>
           this.actionForm.get(field)?.valid
-        );
+        ) && this.hasValidDateRange();
       case 3:
         return ['maxParticipants', 'points'].every(field =>
           this.actionForm.get(field)?.valid
@@ -787,5 +838,16 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
       'Révision et publication'
     ];
     return titles[step] || '';
+  }
+
+  private hasValidDateRange(): boolean {
+    const start = this.actionForm.get('dateStart')?.value;
+    const end = this.actionForm.get('dateEnd')?.value;
+
+    if (!start || !end) {
+      return true;
+    }
+
+    return new Date(end).getTime() > new Date(start).getTime();
   }
 }

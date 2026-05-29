@@ -1,30 +1,63 @@
 <div class="liste-participants-container">
-  <!-- Header -->
   <div class="header">
     <div class="title-section">
+      <span class="section-kicker">Pilotage global</span>
       <h1>Gestion des Participants</h1>
-      <p class="subtitle">Consultez les participants de toutes vos actions</p>
+      <p class="subtitle">Retrouvez rapidement les actions qui mobilisent le plus et ouvrez leur liste détaillée.</p>
     </div>
   </div>
 
-  <!-- Loading -->
+  <div class="summary-grid" *ngIf="!loading && !error">
+    <div class="summary-card">
+      <span class="summary-label">Actions suivies</span>
+      <strong>{{ actions.length }}</strong>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Participants cumulés</span>
+      <strong>{{ totalParticipants }}</strong>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Actions publiées</span>
+      <strong>{{ publishedActions }}</strong>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Actions à venir</span>
+      <strong>{{ upcomingActions }}</strong>
+    </div>
+  </div>
+
+  <div class="toolbar" *ngIf="!loading && !error">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Rechercher une action ou une ville..."
+      />
+    </div>
+
+    <div class="filter-group">
+      <button type="button" class="filter-btn" [class.active]="statusFilter === 'TOUS'" (click)="statusFilter = 'TOUS'">Tous</button>
+      <button type="button" class="filter-btn" [class.active]="statusFilter === 'PUBLISHED'" (click)="statusFilter = 'PUBLISHED'">Publiées</button>
+      <button type="button" class="filter-btn" [class.active]="statusFilter === 'DRAFT'" (click)="statusFilter = 'DRAFT'">Brouillons</button>
+      <button type="button" class="filter-btn" [class.active]="statusFilter === 'CANCELLED'" (click)="statusFilter = 'CANCELLED'">Annulées</button>
+    </div>
+  </div>
+
   <div class="loading" *ngIf="loading">
     <div class="spinner"></div>
     <p>Chargement des actions...</p>
   </div>
 
-  <!-- Erreur -->
   <div class="error-message" *ngIf="error && !loading">
     {{ error }}
   </div>
 
-  <!-- Liste des actions -->
   <div class="actions-grid" *ngIf="!loading && !error">
-    <div class="action-card" *ngFor="let action of actions" (click)="voirParticipants(action.id)">
+    <div class="action-card" *ngFor="let action of filteredActions" (click)="voirParticipants(action.id)">
       <div class="card-header">
         <div class="action-info">
           <h3 class="action-title">{{ action.title }}</h3>
-          <p class="action-date">{{ formatDate(action.dateStart) }}</p>
+          <p class="action-date">{{ formatDate(action.dateStart) }} · {{ action.city }}</p>
         </div>
         <span class="status-badge" [ngClass]="getStatusClass(action.status)">
           {{ getStatusLabel(action.status) }}
@@ -47,13 +80,17 @@
               <path d="M3 6C3 4.89543 3.89543 4 5 4H15C16.1046 4 17 4.89543 17 6V14C17 15.1046 16.1046 16 15 16H5C3.89543 16 3 15.1046 3 14V6Z" stroke="currentColor" stroke-width="1.5"/>
               <path d="M7 2V6M13 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
-            <span class="stat-label">Places</span>
-            <span class="stat-value">{{ action.availablePlaces }}/{{ action.maxParticipants }}</span>
+            <span class="stat-label">Capacité</span>
+            <span class="stat-value">{{ action.participantsCount }}/{{ action.maxParticipants }}</span>
           </div>
         </div>
 
+        <div class="occupancy-row">
+          <span class="occupancy-label">Taux de remplissage</span>
+          <strong>{{ getFillRate(action) }}%</strong>
+        </div>
         <div class="progress-bar">
-          <div class="progress-fill" [style.width.%]="(action.participantsCount / action.maxParticipants) * 100"></div>
+          <div class="progress-fill" [style.width.%]="getFillRate(action)"></div>
         </div>
       </div>
 
@@ -67,13 +104,12 @@
       </div>
     </div>
 
-    <!-- Message si aucune action -->
-    <div class="no-actions" *ngIf="actions.length === 0">
+    <div class="no-actions" *ngIf="filteredActions.length === 0">
       <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
         <circle cx="32" cy="32" r="30" stroke="#E5E7EB" stroke-width="4"/>
         <path d="M32 20V32M32 44H32.02" stroke="#9CA3AF" stroke-width="4" stroke-linecap="round"/>
       </svg>
-      <p>Aucune action trouvée</p>
+      <p>Aucune action ne correspond à ce filtre</p>
       <button class="btn-create" (click)="creerAction()">
         Créer une action
       </button>

@@ -15,6 +15,11 @@
   --ec-card: #ffffff;
   --ec-font-serif: 'Cormorant Garamond', Georgia, serif;
   --ec-font-sans: 'DM Sans', system-ui, sans-serif;
+  --ec-page-padding: clamp(1rem, 2vw, 1.75rem);
+  --ec-section-gap: clamp(1rem, 1.8vw, 1.5rem);
+  --ec-radius-md: 10px;
+  --ec-radius-lg: 14px;
+  --ec-shadow-soft: 0 10px 24px rgba(28, 25, 23, 0.05);
 }
 
 *,
@@ -29,7 +34,7 @@ body {
   padding: 0;
   min-height: 100%;
   font-family: var(--ec-font-sans);
-  font-size: 16px;
+  font-size: 15px;
   color: var(--ec-text);
   background: #FAF8F5;
   -webkit-font-smoothing: antialiased;
@@ -62,6 +67,27 @@ img.leaflet-tile {
 
 button {
   font-family: inherit;
+}
+
+input,
+select,
+textarea,
+button {
+  font-size: 0.95rem;
+}
+
+input,
+select,
+textarea {
+  line-height: 1.4;
+}
+
+:where(.page-title, .hero-title, .section-title) {
+  letter-spacing: -0.02em;
+}
+
+:where(.page-sub, .subtitle, .section-description) {
+  line-height: 1.55;
 }
 
 /* Fix pour Leaflet - s'assurer que les images des tuiles se chargent correctement */

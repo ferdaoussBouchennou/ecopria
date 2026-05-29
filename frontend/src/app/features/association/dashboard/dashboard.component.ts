@@ -53,6 +53,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   categoriesData: CategoryData[] = [];
   topActions: TopAction[] = [];
+  globalStats: any = null;
   private actions: ActionSummary[] = [];
 
   private evolutionChart?: Chart;
@@ -74,6 +75,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   loadDashboardData(): void {
     this.loading = true;
+
+    this.associationService.getMesStats().subscribe({
+      next: (stats) => {
+        this.globalStats = stats;
+      },
+      error: (err) => console.error('Erreur chargement stats:', err)
+    });
 
     this.associationService.getMesActions().subscribe({
       next: (actions) => {
@@ -131,11 +139,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   calculateCategories(actions: ActionSummary[]): void {
     const categoryColors = [
-      '#7FA99B', // Vert sage
-      '#1C1917', // Noir
-      '#D4A574', // Beige/marron
-      '#6B7280', // Gris
-      '#A8C5BC'  // Vert clair
+      '#2E4A3A', // vert forêt foncé
+      '#7FA99B', // sage
+      '#A8C5BC', // sage clair
+      '#D4A574', // beige/ambre
+      '#57534E'  // gris chaud
     ];
 
     const categoryMap = new Map<string, number>();
@@ -183,6 +191,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const ctx = this.evolutionChartRef.nativeElement.getContext('2d');
     if (!ctx) return;
 
+    // Gradient fill under the line
+    const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+    gradient.addColorStop(0, 'rgba(46, 74, 58, 0.15)');
+    gradient.addColorStop(1, 'rgba(46, 74, 58, 0.00)');
+
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jui', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
     const data = this.buildMonthlyInscriptions(this.actions);
 
@@ -193,14 +206,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         datasets: [{
           label: 'Inscriptions',
           data: data,
-          borderColor: '#1C1917',
-          backgroundColor: 'transparent',
-          borderWidth: 2,
-          pointRadius: 6,
-          pointBackgroundColor: '#1C1917',
+          borderColor: '#2E4A3A',
+          backgroundColor: gradient,
+          fill: true,
+          borderWidth: 2.5,
+          pointRadius: 5,
+          pointBackgroundColor: '#2E4A3A',
           pointBorderColor: '#fff',
           pointBorderWidth: 2,
-          pointHoverRadius: 8,
+          pointHoverRadius: 7,
           tension: 0.4
         }]
       },
@@ -208,47 +222,28 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: {
-            display: false
-          },
+          legend: { display: false },
           tooltip: {
-            backgroundColor: '#1C1917',
+            backgroundColor: '#1C2B24',
             padding: 12,
             titleColor: '#fff',
-            bodyColor: '#fff',
-            borderColor: '#E7E5E4',
-            borderWidth: 1
+            bodyColor: 'rgba(255,255,255,0.7)',
+            borderColor: 'rgba(127,169,155,0.3)',
+            borderWidth: 1,
+            cornerRadius: 8
           }
         },
         scales: {
           y: {
             beginAtZero: true,
-            grid: {
-              color: '#F5F5F4'
-            },
-            ticks: {
-              color: '#78716C',
-              font: {
-                size: 12
-              }
-            },
-            border: {
-              display: false
-            }
+            grid: { color: '#F0EFED' },
+            ticks: { color: '#A8A29E', font: { size: 11 } },
+            border: { display: false }
           },
           x: {
-            grid: {
-              display: false
-            },
-            ticks: {
-              color: '#78716C',
-              font: {
-                size: 12
-              }
-            },
-            border: {
-              display: false
-            }
+            grid: { display: false },
+            ticks: { color: '#A8A29E', font: { size: 11 } },
+            border: { display: false }
           }
         }
       }
@@ -270,22 +265,23 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         datasets: [{
           data: this.categoriesData.map(c => c.count),
           backgroundColor: this.categoriesData.map(c => c.color),
-          borderWidth: 0,
-          hoverOffset: 10
+          borderWidth: 3,
+          borderColor: '#fff',
+          hoverOffset: 8
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        cutout: '68%',
         plugins: {
-          legend: {
-            display: false
-          },
+          legend: { display: false },
           tooltip: {
-            backgroundColor: '#1C1917',
+            backgroundColor: '#1C2B24',
             padding: 12,
             titleColor: '#fff',
-            bodyColor: '#fff'
+            bodyColor: 'rgba(255,255,255,0.7)',
+            cornerRadius: 8
           }
         }
       } as any
@@ -310,25 +306,24 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         datasets: [{
           label: 'Taux de remplissage (%)',
           data: data,
-          backgroundColor: '#D9EDE5',
+          backgroundColor: 'rgba(127, 169, 155, 0.25)',
           borderColor: '#7FA99B',
-          borderWidth: 1,
-          borderRadius: 4,
-          hoverBackgroundColor: '#C5E0D8'
+          borderWidth: 0,
+          borderRadius: 6,
+          hoverBackgroundColor: 'rgba(46, 74, 58, 0.35)'
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: {
-            display: false
-          },
+          legend: { display: false },
           tooltip: {
-            backgroundColor: '#1C1917',
+            backgroundColor: '#1C2B24',
             padding: 12,
             titleColor: '#fff',
-            bodyColor: '#fff',
+            bodyColor: 'rgba(255,255,255,0.7)',
+            cornerRadius: 8,
             callbacks: {
               label: (context) => `${context.parsed.y}%`
             }
@@ -338,33 +333,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           y: {
             beginAtZero: true,
             max: 100,
-            grid: {
-              color: '#F5F5F4'
-            },
+            grid: { color: '#F0EFED' },
             ticks: {
-              color: '#78716C',
-              font: {
-                size: 12
-              },
+              color: '#A8A29E',
+              font: { size: 11 },
               callback: (value) => `${value}%`
             },
-            border: {
-              display: false
-            }
+            border: { display: false }
           },
           x: {
-            grid: {
-              display: false
-            },
-            ticks: {
-              color: '#78716C',
-              font: {
-                size: 12
-              }
-            },
-            border: {
-              display: false
-            }
+            grid: { display: false },
+            ticks: { color: '#A8A29E', font: { size: 11 } },
+            border: { display: false }
           }
         }
       }

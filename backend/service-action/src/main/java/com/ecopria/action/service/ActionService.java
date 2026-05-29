@@ -236,6 +236,30 @@ public class ActionService {
                 .stream().map(this::toSummaryDTO).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public AssociationStatsDTO getMyStats(Long userId) {
+        Association association = associationRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+                
+        List<Action> actions = actionRepository.findByAssociationId(association.getId());
+        
+        int totalActions = actions.size();
+        int totalPublished = (int) actions.stream()
+                .filter(a -> a.getStatus() == ActionStatus.PUBLISHED || a.getStatus() == ActionStatus.COMPLETED)
+                .count();
+        int totalParticipants = actions.stream().mapToInt(Action::getRegisteredCount).sum();
+        int totalPlaces = actions.stream().mapToInt(Action::getMaxParticipants).sum();
+        int totalPoints = actions.stream().mapToInt(a -> a.getPoints() * a.getRegisteredCount()).sum();
+        
+        return AssociationStatsDTO.builder()
+                .totalActions(totalActions)
+                .totalPublished(totalPublished)
+                .totalParticipants(totalParticipants)
+                .totalPlaces(totalPlaces)
+                .totalPoints(totalPoints)
+                .build();
+    }
+
     /** Actions publiées d'une association (page publique /api/associations/{id}/actions). */
     @Transactional(readOnly = true)
     public List<ActionSummaryDTO> getPublishedActionsByAssociationId(Long associationId) {

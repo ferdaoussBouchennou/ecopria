@@ -1,26 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin, of } from 'rxjs';
-import { map, catchError, switchMap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { Participant, ParticipantsStats } from '../models/participant.model';
 import { InscriptionResponse } from '../../inscription/models/inscription.model';
-
-interface CitizenProfile {
-  firstName: string;
-  lastName: string;
-  email?: string;
-  phone?: string;
-  photo?: string;
-  city?: string;
-}
 
 @Injectable({
   providedIn: 'root'
 })
 export class ParticipantsService {
   private readonly apiInscriptions = environment.inscriptionApi;
-  private readonly apiUsers = environment.userApi;
 
   constructor(private http: HttpClient) {}
 
@@ -28,20 +18,7 @@ export class ParticipantsService {
     return this.http
       .get<InscriptionResponse[]>(`${this.apiInscriptions}/action/${actionId}`)
       .pipe(
-        switchMap((inscriptions) => {
-          if (inscriptions.length === 0) {
-            return of([]);
-          }
-          const profileCalls = inscriptions.map((inscription) =>
-            this.http
-              .get<CitizenProfile>(`${this.apiUsers}/${inscription.userId}/participant-profile`)
-              .pipe(
-                map((profile) => this.toParticipant(inscription, profile)),
-                catchError(() => of(this.toParticipant(inscription, null)))
-              )
-          );
-          return forkJoin(profileCalls);
-        }),
+        map((inscriptions) => inscriptions.map((inscription) => this.toParticipant(inscription))),
         catchError((error) => {
           console.error('Erreur récupération participants:', error);
           return of([]);
@@ -49,10 +26,7 @@ export class ParticipantsService {
       );
   }
 
-  private toParticipant(
-    inscription: InscriptionResponse,
-    profile: CitizenProfile | null
-  ): Participant {
+  private toParticipant(inscription: InscriptionResponse): Participant {
     return {
       inscriptionId: inscription.id,
       userId: inscription.userId,
@@ -60,12 +34,12 @@ export class ParticipantsService {
       dateInscription: inscription.dateInscription,
       statut: inscription.statut,
       pointsAction: inscription.pointsAction,
-      firstName: profile?.firstName ?? 'Citoyen',
-      lastName: profile?.lastName ?? `#${inscription.userId}`,
-      email: profile?.email ?? '—',
-      phone: profile?.phone ?? '—',
-      photoUrl: profile?.photo,
-      city: profile?.city ?? '—'
+      firstName: inscription.firstName || 'Citoyen',
+      lastName: inscription.lastName || `#${inscription.userId}`,
+      email: inscription.email || '—',
+      phone: inscription.phone || '—',
+      photoUrl: inscription.photoUrl,
+      city: inscription.city || '—'
     };
   }
 

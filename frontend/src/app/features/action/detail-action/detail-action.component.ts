@@ -26,10 +26,7 @@ export class DetailActionComponent implements OnInit {
   loading = true;
   error: string | null = null;
   
-  // QR Code pour les associations
-  qrCodeDataUrl: string | null = null;
-  loadingQR = false;
-  isAssociationView = false; // TODO: Remplacer par vérification auth réelle
+  isAssociationView = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -57,14 +54,7 @@ export class DetailActionComponent implements OnInit {
         this.action = data;
         this.loading = false;
         
-        // TODO: Vérifier si l'utilisateur connecté est l'association propriétaire
-        // Pour l'instant, on simule avec true pour le développement
-        this.isAssociationView = true;
-        
-        // Charger le QR code si c'est l'association et qu'il y a des inscrits
-        if (this.isAssociationView && data.registeredCount > 0) {
-          this.loadQRCode(id);
-        }
+        this.isAssociationView = false;
       },
       error: () => {
         this.error = "Cette action n'existe pas ou n'est plus disponible.";
@@ -73,102 +63,7 @@ export class DetailActionComponent implements OnInit {
     });
   }
 
-  loadQRCode(actionId: number): void {
-    this.loadingQR = true;
-    this.associationService.getQRCode(actionId).subscribe({
-      next: (response) => {
-        this.qrCodeDataUrl = response.qrCode;
-        this.loadingQR = false;
-      },
-      error: (err) => {
-        console.error('Erreur chargement QR:', err);
-        this.loadingQR = false;
-      }
-    });
-  }
 
-  telechargerQR(): void {
-    if (!this.qrCodeDataUrl || !this.action) return;
-
-    const link = document.createElement('a');
-    link.href = this.qrCodeDataUrl;
-    link.download = `qr-code-${this.action.title.replace(/\s+/g, '-').toLowerCase()}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  imprimerQR(): void {
-    if (!this.qrCodeDataUrl) return;
-
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      alert('Veuillez autoriser les pop-ups pour imprimer le QR code');
-      return;
-    }
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>QR Code - ${this.action?.title || 'Action'}</title>
-          <style>
-            body {
-              margin: 0;
-              padding: 2rem;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              min-height: 100vh;
-            }
-            h1 {
-              font-size: 1.5rem;
-              margin-bottom: 0.5rem;
-              text-align: center;
-            }
-            p {
-              color: #666;
-              margin-bottom: 2rem;
-              text-align: center;
-            }
-            img {
-              max-width: 400px;
-              width: 100%;
-              height: auto;
-            }
-            .footer {
-              margin-top: 2rem;
-              font-size: 0.875rem;
-              color: #999;
-            }
-            @media print {
-              body {
-                padding: 1rem;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <h1>${this.action?.title || 'Action'}</h1>
-          <p>Scannez ce QR code pour valider votre présence</p>
-          <img src="${this.qrCodeDataUrl}" alt="QR Code" />
-          <div class="footer">
-            <p>Ecopria - ${new Date().toLocaleDateString('fr-FR')}</p>
-          </div>
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-              }, 250);
-            };
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-  }
 
   getCategoryColor(): string {
     return this.action

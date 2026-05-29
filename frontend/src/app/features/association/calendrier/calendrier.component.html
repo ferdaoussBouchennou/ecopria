@@ -5,11 +5,35 @@
       <p class="subtitle">Planifiez et gérez vos actions environnementales</p>
     </div>
     <div class="header-controls">
+      <button type="button" class="btn-today" (click)="goToToday()">Aujourd'hui</button>
       <button type="button" class="btn-nav" (click)="previousMonth()">←</button>
       <span class="current-month">{{ currentMonthLabel }}</span>
       <button type="button" class="btn-nav" (click)="nextMonth()">→</button>
     </div>
   </header>
+
+  <section class="overview-grid">
+    <div class="overview-card">
+      <span class="overview-kicker">Ce mois</span>
+      <strong>{{ getMonthActionsCount() }}</strong>
+      <span>{{ getMonthActionsCount() > 1 ? 'actions planifiées' : 'action planifiée' }}</span>
+    </div>
+    <div class="overview-card">
+      <span class="overview-kicker">Publiées</span>
+      <strong>{{ getMonthPublishedCount() }}</strong>
+      <span>déjà visibles pour les participants</span>
+    </div>
+    <div class="overview-card">
+      <span class="overview-kicker">Brouillons</span>
+      <strong>{{ getMonthDraftCount() }}</strong>
+      <span>encore à finaliser</span>
+    </div>
+    <div class="overview-card">
+      <span class="overview-kicker">Participants</span>
+      <strong>{{ getMonthParticipantCount() }}</strong>
+      <span>inscriptions sur ce mois</span>
+    </div>
+  </section>
 
   <div class="legend">
     <div class="legend-item">
@@ -23,6 +47,10 @@
     <div class="legend-item">
       <span class="legend-dot cancelled"></span>
       <span class="legend-label">Annulée</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-dot completed"></span>
+      <span class="legend-label">Terminée</span>
     </div>
   </div>
 
@@ -40,45 +68,92 @@
   }
 
   @if (!loading && !error) {
-    <div class="calendar">
-      <div class="calendar-header">
-        <div class="day-header">LUN</div>
-        <div class="day-header">MAR</div>
-        <div class="day-header">MER</div>
-        <div class="day-header">JEU</div>
-        <div class="day-header">VEN</div>
-        <div class="day-header">SAM</div>
-        <div class="day-header">DIM</div>
+    <div class="calendar-layout">
+      <div class="calendar">
+        <div class="calendar-header">
+          <div class="day-header">LUN</div>
+          <div class="day-header">MAR</div>
+          <div class="day-header">MER</div>
+          <div class="day-header">JEU</div>
+          <div class="day-header">VEN</div>
+          <div class="day-header">SAM</div>
+          <div class="day-header">DIM</div>
+        </div>
+
+        <div class="calendar-grid">
+          @for (day of calendarDays; track day.date) {
+            <button
+              type="button"
+              class="calendar-day"
+              [class.other-month]="!day.isCurrentMonth"
+              [class.today]="day.isToday"
+              [class.selected]="selectedDay?.date?.getTime() === day.date.getTime()"
+              (click)="selectDay(day)"
+            >
+              <div class="day-number">{{ day.dayNumber }}</div>
+
+              @if (day.actions && day.actions.length > 0) {
+                <div class="day-actions">
+                  @for (action of day.actions.slice(0, 3); track action.id) {
+                    <div
+                      class="action-pill"
+                      [class.published]="getDayStatusClass(action) === 'published'"
+                      [class.draft]="getDayStatusClass(action) === 'draft'"
+                      [class.cancelled]="getDayStatusClass(action) === 'cancelled'"
+                      [class.completed]="getDayStatusClass(action) === 'completed'"
+                      [title]="action.title"
+                    >
+                      {{ action.title }}
+                    </div>
+                  }
+                  @if (day.actions.length > 3) {
+                    <div class="action-more">+{{ day.actions.length - 3 }} autre(s)</div>
+                  }
+                </div>
+              }
+            </button>
+          }
+        </div>
       </div>
 
-      <div class="calendar-grid">
-        @for (day of calendarDays; track day.date) {
-          <div 
-            class="calendar-day"
-            [class.other-month]="!day.isCurrentMonth"
-            [class.today]="day.isToday"
-          >
-            <div class="day-number">{{ day.dayNumber }}</div>
-            
-            @if (day.actions && day.actions.length > 0) {
-              <div class="day-actions">
-                @for (action of day.actions; track action.id) {
-                  <div 
-                    class="action-pill"
-                    [class.published]="action.status === 'PUBLISHED'"
-                    [class.draft]="action.status === 'DRAFT'"
-                    [class.cancelled]="action.status === 'CANCELLED'"
-                    (click)="viewAction(action.id)"
-                    [title]="action.titre"
-                  >
-                    {{ action.titre }}
-                  </div>
-                }
-              </div>
+      <aside class="day-panel">
+        <div class="day-panel-card">
+          <span class="panel-kicker">Jour sélectionné</span>
+          <h2>{{ getDayLabel(selectedDay) }}</h2>
+          <p>
+            @if (selectedDay?.actions?.length) {
+              {{ selectedDay?.actions?.length }} action(s) prévue(s) ce jour.
+            } @else {
+              Aucune action programmée pour cette date.
             }
-          </div>
-        }
-      </div>
+          </p>
+        </div>
+
+        <div class="day-panel-card">
+          <h3 class="panel-title">Agenda du jour</h3>
+          @if (selectedDay?.actions?.length) {
+            <div class="day-action-list">
+              @for (action of selectedDay!.actions; track action.id) {
+                <article class="day-action-card">
+                  <div class="day-action-topline">
+                    <span class="mini-status" [class]="getDayStatusClass(action)">{{ getDayStatusLabel(action) }}</span>
+                    <span class="mini-time">{{ formatHourRange(action) }}</span>
+                  </div>
+                  <h4>{{ action.title }}</h4>
+                  <p>{{ action.city }} · {{ action.registeredCount }}/{{ action.maxParticipants }} inscrits</p>
+                  <button type="button" class="btn-open" (click)="viewAction(action.id)">
+                    Ouvrir la fiche
+                  </button>
+                </article>
+              }
+            </div>
+          } @else {
+            <div class="empty-panel">
+              <p>Profitez de cette journée libre pour préparer un nouveau créneau ou finaliser un brouillon.</p>
+            </div>
+          }
+        </div>
+      </aside>
     </div>
   }
 </div>

@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -120,6 +121,17 @@ public class InscriptionService {
         dto.setDateInscription(inscription.getDateInscription());
         dto.setStatut(inscription.getStatut());
         dto.setPointsAction(inscription.getPointsAction());
+        Map<String, Object> profile = utilisateurClient.getParticipantProfile(inscription.getUserId());
+        dto.setFirstName(stringValue(profile.get("firstName")));
+        dto.setLastName(stringValue(profile.get("lastName")));
+        dto.setEmail(stringValue(profile.get("email")));
+        dto.setPhone(stringValue(profile.get("phone")));
+        dto.setCity(stringValue(profile.get("city")));
+        dto.setPhotoUrl(stringValue(profile.get("photo")));
         return dto;
+    }
+
+    private String stringValue(Object value) {
+        return value == null ? null : String.valueOf(value);
     }
 }

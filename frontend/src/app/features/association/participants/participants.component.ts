@@ -22,7 +22,7 @@ import {
 })
 export class ParticipantsComponent implements OnInit {
   actionId!: number;
-  actionTitle: string = '';
+  actionTitle = '';
   
   // Données
   participants: Participant[] = [];
@@ -30,13 +30,13 @@ export class ParticipantsComponent implements OnInit {
   stats: ParticipantsStats = { total: 0, confirmes: 0, enAttente: 0, annules: 0 };
   
   // États
-  loading: boolean = true;
-  error: string = '';
+  loading = true;
+  error = '';
   pinCode: string | null = null;
   validerLoading: Record<number, boolean> = {};
   
   // Filtres et recherche
-  searchTerm: string = '';
+  searchTerm = '';
   statutFilter: StatutFilter = 'TOUS';
   
   // Tri
@@ -198,6 +198,66 @@ export class ParticipantsComponent implements OnInit {
     const first = firstName?.charAt(0) || '';
     const last = lastName?.charAt(0) || '';
     return (first + last).toUpperCase();
+  }
+
+  getParticipationRate(): number {
+    if (this.stats.total === 0) {
+      return 0;
+    }
+    return Math.round((this.stats.confirmes / this.stats.total) * 100);
+  }
+
+  getPendingRate(): number {
+    if (this.stats.total === 0) {
+      return 0;
+    }
+    return Math.round((this.stats.enAttente / this.stats.total) * 100);
+  }
+
+  getTotalPoints(): number {
+    return this.participants.reduce((total, participant) => total + participant.pointsAction, 0);
+  }
+
+  getLatestRegistrationLabel(): string {
+    if (this.participants.length === 0) {
+      return 'Aucune inscription pour le moment';
+    }
+
+    const latest = [...this.participants].sort(
+      (a, b) => new Date(b.dateInscription).getTime() - new Date(a.dateInscription).getTime()
+    )[0];
+
+    return `${latest.firstName} ${latest.lastName}`.trim();
+  }
+
+  getTopCity(): string {
+    const cityCounts = this.participants.reduce<Record<string, number>>((acc, participant) => {
+      const city = participant.city?.trim();
+      if (!city || city === '—') {
+        return acc;
+      }
+      acc[city] = (acc[city] || 0) + 1;
+      return acc;
+    }, {});
+
+    const [city] = Object.entries(cityCounts).sort((a, b) => b[1] - a[1])[0] ?? [];
+    return city || 'Aucune ville dominante';
+  }
+
+  getTopCityCount(): number {
+    const city = this.getTopCity();
+    if (city === 'Aucune ville dominante') {
+      return 0;
+    }
+    return this.participants.filter((participant) => participant.city === city).length;
+  }
+
+  getParticipantSummary(): string {
+    if (this.stats.total === 0) {
+      return "Aucun participant n'est encore inscrit. Activez la communication ou partagez votre action pour lancer la mobilisation.";
+    }
+
+    return `${this.stats.confirmes} participant(s) confirmé(s), ${this.stats.enAttente} en attente et ${this.stats.annules} annulé(s) pour cette action.`;
   }
 
   goBack(): void {

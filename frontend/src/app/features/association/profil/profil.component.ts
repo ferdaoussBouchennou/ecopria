@@ -56,6 +56,30 @@ export class ProfilComponent implements OnInit {
     this.loadProfile();
   }
 
+  get profileCompletion(): number {
+    const values = [
+      this.editedProfile.name,
+      this.editedProfile.email,
+      this.editedProfile.phone,
+      this.editedProfile.address,
+      this.editedProfile.city,
+      this.editedProfile.description,
+      this.editedProfile.logo
+    ];
+    const filled = values.filter((value) => (value ?? '').toString().trim() !== '').length;
+    return Math.round((filled / values.length) * 100);
+  }
+
+  get contactSummary(): string {
+    const parts = [
+      this.editedProfile.email ? 'email' : '',
+      this.editedProfile.phone ? 'téléphone' : '',
+      this.editedProfile.address ? 'adresse' : ''
+    ].filter(Boolean);
+
+    return parts.length > 0 ? parts.join(' · ') : 'Coordonnées à compléter';
+  }
+
   loadProfile(): void {
     this.loading = true;
     this.error = '';
@@ -211,12 +235,11 @@ export class ProfilComponent implements OnInit {
     reader.onload = (e) => {
       this.logoPreview = e.target?.result as string;
       this.editedProfile.logo = this.logoPreview;
+      if (this.editMode) {
+        this.saveProfile();
+      }
     };
     reader.readAsDataURL(file);
-
-    // Upload vers le serveur (mise à jour immédiate)
-    this.editedProfile.logo = this.logoPreview ?? '';
-    this.saveProfile();
   }
 
   removeLogo(): void {

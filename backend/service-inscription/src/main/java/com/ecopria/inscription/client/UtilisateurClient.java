@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -43,6 +44,20 @@ public class UtilisateurClient {
         } catch (RestClientException e) {
             // En cas d'erreur réseau, on accepte (fail-open)
             return 100;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getParticipantProfile(Long userId) {
+        String base = utilisateurServiceUrl.endsWith("/")
+                ? utilisateurServiceUrl.substring(0, utilisateurServiceUrl.length() - 1)
+                : utilisateurServiceUrl;
+        String url = base + "/api/users/" + userId + "/participant-profile";
+        try {
+            Map<String, Object> profile = restTemplate.getForObject(url, Map.class);
+            return profile != null ? profile : Collections.emptyMap();
+        } catch (RestClientException e) {
+            return Collections.emptyMap();
         }
     }
 

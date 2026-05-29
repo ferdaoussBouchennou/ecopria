@@ -13,6 +13,12 @@ export interface InscriptionResponse {
   qrCode?: string;
   statut: 'CONFIRMEE' | 'EN_ATTENTE' | 'ANNULEE';
   pointsAction: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  city?: string;
+  photoUrl?: string;
 }
 
 /** Mappé depuis ActionDetailDTO (service-action) */

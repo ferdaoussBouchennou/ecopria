@@ -7,12 +7,16 @@
       <button type="button" class="btn-primary" (click)="voirParticipants()">
         Voir les participants
       </button>
-      <button type="button" class="btn-secondary" (click)="modifierAction()">
-        Modifier
-      </button>
-      <button type="button" class="btn-danger" (click)="annulerAction()">
-        Annuler l'action
-      </button>
+      @if (canModifyAction()) {
+        <button type="button" class="btn-secondary" (click)="modifierAction()">
+          Modifier
+        </button>
+      }
+      @if (canCancelAction()) {
+        <button type="button" class="btn-danger" (click)="annulerAction()">
+          Annuler l'action
+        </button>
+      }
     </div>
   </header>
 
@@ -31,15 +35,45 @@
   }
 
   @if (!loading && !error && action) {
-    <div class="content-grid">
-      <!-- Colonne principale -->
-      <div class="main-column">
-        <div class="action-header">
+    <section class="hero-card">
+      <div class="hero-media">
+        <img [src]="getHeroImage()" [alt]="action.title" />
+      </div>
+      <div class="hero-content">
+        <div class="hero-topline">
           <span class="action-category">{{ action.categoryName }}</span>
-          <h1 class="action-title">{{ action.title }}</h1>
-          <p class="action-description">{{ action.description }}</p>
+          <span class="status-badge" [ngClass]="getStatusClass()">{{ getStatusLabel() }}</span>
+        </div>
+        <h1 class="action-title">{{ action.title }}</h1>
+        <p class="action-description">{{ action.description }}</p>
+
+        <div class="hero-meta">
+          <span>{{ getScheduleLabel() }}</span>
+          <span class="meta-separator">•</span>
+          <span>{{ formatLieu(action.address, action.city) }}</span>
+          <span class="meta-separator">•</span>
+          <span>{{ action.points }} points</span>
         </div>
 
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-label">Participation</span>
+            <strong>{{ getParticipationLabel() }}</strong>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-label">Places restantes</span>
+            <strong>{{ getRemainingPlaces() }}</strong>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-label">Association</span>
+            <strong>{{ action.associationName || 'Votre association' }}</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="content-grid">
+      <div class="main-column">
         <div class="info-card">
           <h2 class="card-title">Informations</h2>
           <dl class="info-list">
@@ -55,11 +89,41 @@
               <dt>Lieu</dt>
               <dd>{{ formatLieu(action.address, action.city) }}</dd>
             </div>
+            @if (hasCoordinates()) {
+              <div class="info-row">
+                <dt>Coordonnées</dt>
+                <dd>{{ action.latitude }} , {{ action.longitude }}</dd>
+              </div>
+            }
             <div class="info-row">
               <dt>Points</dt>
               <dd class="points-value">{{ action.points }}</dd>
             </div>
+            @if (getMapsUrl(); as mapsUrl) {
+              <div class="info-row">
+                <dt>Itinéraire</dt>
+                <dd><a class="text-link" [href]="mapsUrl" target="_blank" rel="noopener noreferrer">Ouvrir dans Maps</a></dd>
+              </div>
+            }
           </dl>
+        </div>
+
+        <div class="info-card">
+          <h2 class="card-title">Organisation</h2>
+          <div class="association-card">
+            <div class="association-avatar">
+              @if (action.associationLogoUrl) {
+                <img [src]="action.associationLogoUrl" [alt]="action.associationName" />
+              } @else {
+                <span>{{ (action.associationName || 'A').charAt(0) }}</span>
+              }
+            </div>
+            <div class="association-copy">
+              <h3>{{ action.associationName || 'Association organisatrice' }}</h3>
+              <p>{{ action.associationDescription || 'Cette action est organisée par votre structure partenaire sur Ecopria.' }}</p>
+              <small>{{ action.associationCity || action.city }}</small>
+            </div>
+          </div>
         </div>
 
         @if (action.program && action.program.length > 0) {
@@ -83,17 +147,26 @@
             </ul>
           </div>
         }
+
+        @if (action.photoUrls && action.photoUrls.length > 1) {
+          <div class="info-card">
+            <h2 class="card-title">Galerie</h2>
+            <div class="gallery-grid">
+              @for (photo of getGalleryImages(); track photo) {
+                <img [src]="photo" [alt]="action.title" class="gallery-image" />
+              }
+            </div>
+          </div>
+        }
       </div>
 
-      <!-- Colonne latérale -->
       <aside class="side-column">
-        <!-- Statistiques -->
         <div class="stats-card">
           <h2 class="card-title">Statistiques</h2>
-          
+
           <div class="stat-item">
             <div class="stat-label">Inscrits</div>
-            <div class="stat-value">{{ action.registeredCount }} / {{ action.maxParticipants }}</div>
+            <div class="stat-value">{{ getParticipationLabel() }}</div>
           </div>
 
           <div class="progress-bar">
@@ -102,30 +175,39 @@
 
           <div class="stat-item">
             <div class="stat-label">Places disponibles</div>
-            <div class="stat-value">{{ action.availablePlaces }}</div>
+            <div class="stat-value">{{ getRemainingPlaces() }}</div>
           </div>
 
           <div class="stat-item">
             <div class="stat-label">Taux de remplissage</div>
             <div class="stat-value">{{ getRegistrationPercent() }}%</div>
           </div>
+
+          <div class="stat-item">
+            <div class="stat-label">Statut</div>
+            <div class="stat-value">{{ getStatusLabel() }}</div>
+          </div>
         </div>
 
-        <!-- QR Code -->
         @if (action.registeredCount > 0) {
           <div class="qr-card">
             <h2 class="card-title">QR Code de présence</h2>
-            
+
             @if (loadingQR) {
               <div class="qr-loading">
                 <div class="spinner-small"></div>
                 <p>Chargement...</p>
               </div>
             }
-            
+
             @if (!loadingQR && qrCodeDataUrl) {
               <div class="qr-display">
-                <qrcode [qrdata]="qrCodeDataUrl" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
+                <div>
+                  <qrcode [qrdata]="qrCodeDataUrl" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
+                @if (pinCode) {
+                    <p class="pin-code-display">Code PIN : <strong>{{ pinCode }}</strong></p>
+                  }
+                </div>
               </div>
               <div class="qr-actions">
                 <button type="button" class="btn-qr" (click)="telechargerQR()">
@@ -148,6 +230,30 @@
             </p>
           </div>
         }
+
+        <div class="stats-card quick-links-card">
+          <h2 class="card-title">Actions rapides</h2>
+          <div class="quick-links">
+            <button type="button" class="btn-secondary" (click)="voirParticipants()">
+              Consulter les participants
+            </button>
+            @if (canModifyAction()) {
+              <button type="button" class="btn-secondary" (click)="modifierAction()">
+                Mettre à jour la fiche
+              </button>
+            }
+            @if (getMapsUrl(); as mapsUrl) {
+              <a class="btn-secondary btn-link" [href]="mapsUrl" target="_blank" rel="noopener noreferrer">
+                Ouvrir le lieu
+              </a>
+            }
+            @if (canCancelAction()) {
+              <button type="button" class="btn-danger" (click)="annulerAction()">
+                Annuler l'action
+              </button>
+            }
+          </div>
+        </div>
       </aside>
     </div>
   }

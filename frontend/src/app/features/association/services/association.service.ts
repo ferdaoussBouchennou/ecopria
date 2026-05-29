@@ -41,6 +41,13 @@ export class AssociationService {
     );
   }
 
+  getMesStats(): Observable<AssociationStats> {
+    return this.http.get<AssociationStats>(
+      `${this.apiUrl}/actions/mes-stats`,
+      { headers: this.getHeaders() }
+    );
+  }
+
   getAction(actionId: number): Observable<ActionDetail> {
     return this.http.get<ActionDetail>(
       `${this.apiUrl}/actions/${actionId}`,
@@ -144,4 +151,12 @@ export interface QRCodeResponse {
   actionId: number;
   qrCode: string;
   pinCode: string;
+}
+
+export interface AssociationStats {
+  totalActions: number;
+  totalPublished: number;
+  totalParticipants: number;
+  totalPlaces: number;
+  totalPoints: number;
 }
