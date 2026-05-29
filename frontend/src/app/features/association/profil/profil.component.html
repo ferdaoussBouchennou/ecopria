@@ -92,6 +92,14 @@
           </button>
           <button 
             type="button" 
+            class="btn-upload" 
+            (click)="uploadLogo()"
+            *ngIf="selectedFile"
+          >
+            Uploader le logo
+          </button>
+          <button 
+            type="button" 
             class="btn-remove" 
             (click)="removeLogo()"
             *ngIf="logoPreview"
@@ -209,10 +217,6 @@
           <div class="info-row">
             <span class="info-label">Membre depuis</span>
             <span class="info-value">{{ formatDate(profile.createdAt) }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">ID Association</span>
-            <span class="info-value">#{{ profile.id }}</span>
           </div>
           <div class="info-row">
             <span class="info-label">Complétude du profil</span>

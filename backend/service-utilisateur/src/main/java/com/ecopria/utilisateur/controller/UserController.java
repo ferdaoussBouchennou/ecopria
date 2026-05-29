@@ -81,6 +81,14 @@ public class UserController {
         return ResponseEntity.ok(userService.updateAssociationProfile(authId, dto));
     }
 
+    @PostMapping("/association/{authId}/logo")
+    public ResponseEntity<Map<String, String>> uploadAssociationLogo(
+            @PathVariable Long authId,
+            @RequestParam("logo") org.springframework.web.multipart.MultipartFile logo) {
+        String logoUrl = userService.uploadAssociationLogo(authId, logo);
+        return ResponseEntity.ok(Map.of("logoUrl", logoUrl));
+    }
+
     @PutMapping("/partner/{authId}/profile")
     public ResponseEntity<Partner> updatePartnerProfile(
             @PathVariable Long authId,

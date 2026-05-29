@@ -209,43 +209,56 @@ export class ProfilComponent implements OnInit {
     });
   }
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) {
-      return;
+  selectedFile: File | null = null;
+
+    onFileSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) {
+            return;
+        }
+
+        const file = input.files[0];
+
+        // Validation
+        if (!file.type.startsWith('image/')) {
+            this.errors.logo = 'Le fichier doit être une image';
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) { // 2MB
+            this.errors.logo = 'L\'image ne peut pas dépasser 2 Mo';
+            return;
+        }
+
+        this.errors.logo = undefined;
+        this.selectedFile = file;
+
+        // Prévisualisation
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.logoPreview = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
     }
 
-    const file = input.files[0];
+    uploadLogo(): void {
+        if (!this.selectedFile || !this.profile) {
+            return;
+        }
 
-    // Validation
-    if (!file.type.startsWith('image/')) {
-      this.errors.logo = 'Le fichier doit être une image';
-      return;
+        this.associationService.uploadLogo(this.authId, this.selectedFile).subscribe({
+            next: (response) => {
+                this.editedProfile.logo = response.logoUrl;
+                this.logoPreview = response.logoUrl;
+                this.successMessage = 'Logo mis à jour avec succès';
+                setTimeout(() => { this.successMessage = ''; }, 3000);
+            },
+            error: (err) => {
+                this.errors.logo = 'Erreur lors de l\'upload du logo';
+                console.error(err);
+            }
+        });
     }
-
-    if (file.size > 2 * 1024 * 1024) { // 2MB
-      this.errors.logo = 'L\'image ne doit pas dépasser 2 MB';
-      return;
-    }
-
-    this.errors.logo = undefined;
-
-    // Prévisualisation
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.logoPreview = e.target?.result as string;
-      this.editedProfile.logo = this.logoPreview;
-      if (this.editMode) {
-        this.saveProfile();
-      }
-    };
-    reader.readAsDataURL(file);
-  }
-
-  removeLogo(): void {
-    this.logoPreview = null;
-    this.editedProfile.logo = '';
-  }
 
   triggerFileInput(): void {
     const fileInput = document.getElementById('logo-input') as HTMLInputElement;

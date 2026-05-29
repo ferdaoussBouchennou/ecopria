@@ -103,19 +103,52 @@
 }
 
 .insight-card--hero {
-  background: linear-gradient(135deg, #284638 0%, #6d9488 100%);
-  border: none;
-  color: #ffffff;
+  background: linear-gradient(135deg, #A8896A 0%, #8B7355 50%, #736048 100%);
+  border: 1px solid #6B5A45;
+  border-radius: 18px;
+  color: #FFF8F0;
+  position: relative;
+  overflow: hidden;
 }
 
-.insight-card--hero .insight-label,
-.insight-card--hero p,
+.insight-card--hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 248, 240, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.insight-card--hero .insight-label {
+  color: #F0E2D0;
+}
+
+.insight-card.insight-card--hero p {
+  color: #D4F1E0 !important;
+}
+
 .insight-card--hero .insight-chip {
-  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 248, 240, 0.2);
+  color: #FFF8F0;
+  border: 1px solid rgba(255, 248, 240, 0.3);
 }
 
 .insight-card--hero .btn-agenda {
   margin-top: 1.1rem;
+  background: #FFF8F0;
+  border: 1px solid #FFF8F0;
+  color: #736048;
+  transition: all 0.2s ease;
+}
+
+.insight-card--hero .btn-agenda:hover {
+  background: #F0E2D0;
+  border-color: #F0E2D0;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .insight-card h2,
@@ -138,11 +171,8 @@
 }
 
 .insight-card--hero h2,
-.insight-card--hero p,
-.insight-card--hero small,
-.insight-card--hero .insight-label,
-.insight-card--hero .insight-chip {
-  color: rgba(255, 255, 255, 0.94);
+.insight-card--hero small {
+  color: #FFF8F0;
 }
 
 .insight-card small {
@@ -494,19 +524,22 @@
 }
 
 .btn-create,
-.btn-primary,
 .btn-retry,
+.btn-primary,
 .btn-agenda {
   border: none;
-  background: var(--ec-sage-dark);
+  background: #2E4A3A;
   color: #ffffff;
+  transition: all 0.2s ease;
 }
 
 .btn-create:hover,
 .btn-primary:hover,
 .btn-retry:hover,
 .btn-agenda:hover {
-  background: #6d9488;
+  background: #1C2B24;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .btn-secondary {

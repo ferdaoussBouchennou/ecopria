@@ -6,7 +6,13 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +23,9 @@ import com.ecopria.utilisateur.repository.*;
 import com.ecopria.utilisateur.mapper.UserMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -31,6 +39,12 @@ public class UserService {
     private final NotificationPreferenceRepository notificationPreferenceRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final UserMapper userMapper;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
+
+    @Value("${app.base-url:http://localhost:9092}")
+    private String baseUrl;
 
     @Transactional
     public Citizen createCitizen(CitizenDTO citizenDTO) {
@@ -450,5 +464,49 @@ public class UserService {
             return Optional.of(map);
         }
         return Optional.empty();
+    }
+
+    @Transactional
+    public String uploadAssociationLogo(Long authId, org.springframework.web.multipart.MultipartFile logo) {
+        Association association = getAssociation(authId);
+
+        if (logo.isEmpty()) {
+            throw new RuntimeException("Le fichier logo est vide");
+        }
+
+        String contentType = logo.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new RuntimeException("Le fichier doit être une image");
+        }
+
+        if (logo.getSize() > 5 * 1024 * 1024) {
+            throw new RuntimeException("Le logo ne peut pas dépasser 5 Mo");
+        }
+
+        try {
+            Path uploadPath = Paths.get(uploadDir, "associations");
+            Files.createDirectories(uploadPath);
+
+            String originalFilename = logo.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : ".jpg";
+            String filename = "association_" + authId + "_" + UUID.randomUUID().toString() + extension;
+
+            Path filePath = uploadPath.resolve(filename);
+            Files.copy(logo.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            String logoUrl = baseUrl + "/uploads/associations/" + filename;
+
+            association.setLogo(logoUrl);
+            associationRepository.save(association);
+
+            log.info("Logo uploadé pour l'association authId={}: {}", authId, filename);
+            return logoUrl;
+
+        } catch (Exception e) {
+            log.error("Erreur lors de l'upload du logo pour l'association authId={}", authId, e);
+            throw new RuntimeException("Erreur lors de l'upload du logo: " + e.getMessage());
+        }
     }
 }

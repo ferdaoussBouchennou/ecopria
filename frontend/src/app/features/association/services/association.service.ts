@@ -126,6 +126,16 @@ export class AssociationService {
       profile
     );
   }
+
+  uploadLogo(authId: number, file: File): Observable<{ logoUrl: string }> {
+    const formData = new FormData();
+    formData.append('logo', file);
+    return this.http.post<{ logoUrl: string }>(
+      `${environment.userApi}/association/${authId}/logo`,
+      formData,
+      { headers: this.getHeaders() }
+    );
+  }
 }
 
 // DTOs
