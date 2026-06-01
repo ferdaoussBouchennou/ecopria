@@ -1,0 +1,68 @@
+<div class="partenaire-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.sidebar--open]="sidebarOpen">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <span class="brand-dot"></span>
+        <span class="brand-mark">ecopria</span>
+        <span class="brand-sub">partenaire</span>
+      </div>
+      <button class="sidebar-close" (click)="sidebarOpen = false" aria-label="Fermer">✕</button>
+    </div>
+
+    <div class="sidebar-profil" *ngIf="profil">
+      <div class="profil-avatar">
+        <img *ngIf="profil.imageUrl" [src]="profil.imageUrl" [alt]="profil.name" />
+        <span *ngIf="!profil.imageUrl" class="profil-initiale">{{ profil.name[0] }}</span>
+      </div>
+      <div class="profil-info">
+        <strong>{{ profil.name }}</strong>
+        <span>{{ profil.category }}</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a
+        *ngFor="let item of navItems"
+        [routerLink]="item.path"
+        class="nav-item"
+        [class.nav-item--active]="isActive(item.path)"
+      >
+        <span class="nav-icon">{{ item.icon }}</span>
+        <span class="nav-label">{{ item.label }}</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a routerLink="/actions" class="nav-item nav-item--back">
+        <span class="nav-icon">←</span>
+        <span class="nav-label">Retour au site</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Overlay mobile -->
+  <div class="sidebar-overlay" *ngIf="sidebarOpen" (click)="sidebarOpen = false"></div>
+
+  <!-- Contenu principal -->
+  <div class="partenaire-main">
+    <header class="topbar">
+      <button class="topbar-menu" (click)="sidebarOpen = true" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-breadcrumb">Espace partenaire</div>
+      <div class="topbar-right" *ngIf="profil">
+        <span class="topbar-name">{{ profil.name }}</span>
+        <div class="topbar-avatar">
+          <img *ngIf="profil.imageUrl" [src]="profil.imageUrl" [alt]="profil.name" />
+          <span *ngIf="!profil.imageUrl">{{ profil.name[0] }}</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="partenaire-content">
+      <router-outlet />
+    </div>
+  </div>
+</div>

@@ -13,20 +13,26 @@ import { VisibilitePartenaire } from '../../../core/models/recompense.model';
 export class VisibiliteComponent implements OnInit {
   data: VisibilitePartenaire | null = null;
   loading = true;
-  erreur = '';
+  erreur  = '';
 
   constructor(private partenaireService: PartenaireService) {}
 
   ngOnInit(): void {
+    this.charger();
+  }
+
+  charger(): void {
+    this.loading = true;
+    this.erreur  = '';
     this.partenaireService.getVisibilite().subscribe({
-      next: (d) => {
-        this.data = d;
-        this.loading = false;
-      },
-      error: (e: Error) => {
-        this.erreur = e.message;
-        this.loading = false;
-      }
+      next:  (d) => { this.data = d; this.loading = false; },
+      error: (e: Error) => { this.erreur = e.message; this.loading = false; }
     });
+  }
+
+  stars(n: number | undefined | null): number[] {
+    if (!n) return [];
+    const full = Math.floor(n);
+    return Array.from({ length: 5 }, (_, i) => i < full ? 1 : 0);
   }
 }

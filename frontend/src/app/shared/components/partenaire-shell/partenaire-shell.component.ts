@@ -4,7 +4,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { PartenaireService } from '../../../features/recompense/partenaire.service';
 
 @Component({
-  selector: 'app-partenaire-shell',
+  selector: 'app-shared-partenaire-shell',
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './partenaire-shell.component.html',

@@ -8,8 +8,9 @@ import { Injectable } from '@angular/core';
  */
 @Injectable({ providedIn: 'root' })
 export class DevContextService {
-  private readonly KEY_ASSO = 'ecopria.dev.associationAuthId';
+  private readonly KEY_ASSO        = 'ecopria.dev.associationAuthId';
   private readonly KEY_PARTICIPANT = 'ecopria.dev.participantUserId';
+  private readonly KEY_PARTENAIRE  = 'ecopria.dev.partenaireUserId';
 
   /** authId côté service-utilisateur (profil association) */
   getAssociationAuthId(): number {
@@ -24,6 +25,15 @@ export class DevContextService {
   /** Header X-User-Id pour service-action (user_id dans db_action.associations) */
   getAssociationActionUserId(): number {
     return this.getAssociationAuthId();
+  }
+
+  /**
+   * userId partenaire pour l'espace partenaire.
+   * En dev, userId=1 correspond à "Café Botanique" (créé par DemoDataInitializer).
+   * Modifier via : localStorage.setItem('ecopria.dev.partenaireUserId', '1')
+   */
+  getPartenaireUserId(): number {
+    return this.readNumber(this.KEY_PARTENAIRE, 1);
   }
 
   private readNumber(key: string, defaultValue: number): number {

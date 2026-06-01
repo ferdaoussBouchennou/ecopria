@@ -171,8 +171,11 @@ public class RecompenseService {
 
         return DashboardPartenaireDTO.builder()
                 .partenaireName(partenaire.getName())
-                .vuesProfilPublic(partenaire.getVuesProfil())
-                .clicsVersOffres(partenaire.getClicsOffres())
+                .vuesProfil(partenaire.getVuesProfil())
+                .clicsOffres(partenaire.getClicsOffres())
+                .tauxClic(partenaire.getVuesProfil() > 0
+                        ? Math.round((double) partenaire.getClicsOffres() / partenaire.getVuesProfil() * 10000.0) / 100.0
+                        : 0.0)
                 .couponsDistribues(distribues)
                 .couponsUtilises(utilises)
                 .tauxUtilisation(Math.round(taux * 100.0) / 100.0)
@@ -369,22 +372,26 @@ public class RecompenseService {
             throw new RuntimeException("Vous n'êtes pas le propriétaire de cette offre");
         }
 
+        // Mettre à jour tous les champs envoyés
         if (dto.getTitle() != null)
             recompense.setTitle(dto.getTitle());
         if (dto.getDescription() != null)
             recompense.setDescription(dto.getDescription());
-        if (dto.getImageUrl() != null)
-            recompense.setImageUrl(dto.getImageUrl());
+        // imageUrl peut être vidée intentionnellement — on accepte la valeur même vide
+        recompense.setImageUrl(dto.getImageUrl());
         if (dto.getPointsNecessaires() != null)
             recompense.setPointsNecessaires(dto.getPointsNecessaires());
-        if (dto.getStock() != null)
-            recompense.setStock(dto.getStock());
-        if (dto.getDiscountPercentage() != null)
-            recompense.setDiscountPercentage(dto.getDiscountPercentage());
-        if (dto.getValeurDh() != null)
-            recompense.setValeurDh(dto.getValeurDh());
-        if (dto.getDateExpiration() != null)
-            recompense.setDateExpiration(dto.getDateExpiration());
+        // Mettre à jour le type (manquait avant)
+        if (dto.getType() != null)
+            recompense.setType(dto.getType());
+        // Stock : toujours mettre à jour (peut être null pour REDUCTION/SERVICE)
+        recompense.setStock(dto.getStock());
+        // discountPercentage : toujours mettre à jour
+        recompense.setDiscountPercentage(dto.getDiscountPercentage());
+        // valeurDh : toujours mettre à jour
+        recompense.setValeurDh(dto.getValeurDh());
+        // dateExpiration : toujours mettre à jour (peut être null)
+        recompense.setDateExpiration(dto.getDateExpiration());
 
         return toDTO(recompenseRepository.save(recompense));
     }

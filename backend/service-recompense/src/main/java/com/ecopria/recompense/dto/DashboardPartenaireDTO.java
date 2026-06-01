@@ -10,8 +10,9 @@ import java.util.List;
 @Builder
 public class DashboardPartenaireDTO {
     private String partenaireName;
-    private Long vuesProfilPublic;
-    private Long clicsVersOffres;
+    private Long vuesProfil;
+    private Long clicsOffres;
+    private Double tauxClic;
     private Long couponsDistribues;
     private Long couponsUtilises;
     private Double tauxUtilisation;

@@ -20,6 +20,18 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { VerifyEmailComponent } from './features/auth/verify-email/verify-email.component';
 import { AccueilComponent } from './features/accueil/accueil.component';
 
+
+// Espace Partenaire
+import { PartenaireShellComponent } from './features/recompense/partenaire-shell/partenaire-shell.component';
+import { DashboardPartenaireComponent } from './features/recompense/dashboard-partenaire/dashboard-partenaire.component';
+import { ProfilPublicComponent } from './features/recompense/profil-public/profil-public.component';
+import { MesOffresComponent } from './features/recompense/mes-offres/mes-offres.component';
+import { CreerOffreComponent } from './features/recompense/creer-offre/creer-offre.component';
+import { ScannerCouponComponent } from './features/recompense/scanner-coupon/scanner-coupon.component';
+import { AvisClientsComponent } from './features/recompense/avis-clients/avis-clients.component';
+import { VisibiliteComponent } from './features/recompense/visibilite/visibilite.component';
+import { CommissionsComponent } from './features/recompense/commissions/commissions.component';
+
 export const routes: Routes = [
   // Routes publiques avec navbar/footer
   {
@@ -41,6 +53,27 @@ export const routes: Routes = [
   },
   
   // Routes association avec sidebar (sans navbar/footer)
+
+
+
+  // ── Espace Partenaire ─────────────────────────────────────────
+  {
+    path: 'partenaire',
+    component: PartenaireShellComponent,
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard',             component: DashboardPartenaireComponent },
+      { path: 'profil',                component: ProfilPublicComponent },
+      { path: 'offres',                component: MesOffresComponent },
+      { path: 'offres/nouvelle',       component: CreerOffreComponent },
+      { path: 'offres/modifier/:id',   component: CreerOffreComponent },
+      { path: 'scanner',               component: ScannerCouponComponent },
+      { path: 'avis',                  component: AvisClientsComponent },
+      { path: 'visibilite',            component: VisibiliteComponent },
+      { path: 'commissions',           component: CommissionsComponent },
+    ],
+  },
+
   {
     path: 'association',
     component: AssociationShellComponent,

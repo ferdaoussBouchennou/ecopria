@@ -39,7 +39,7 @@ public class CreateRecompenseDTO {
     // valeur en Dirham pour calculer la commission
     private Double valeurDh;
 
-    // date d'expiration de l'offre (optionnelle)
+    // date d'expiration de l'offre (optionnelle) — accepte format ISO 8601
     private LocalDateTime dateExpiration;
 
     // ── BOÎTE MYSTÈRE (optionnelle) ──────────────────────────
@@ -54,4 +54,4 @@ public class CreateRecompenseDTO {
     // La somme des probabilités doit égaler 100
     @Valid
     private List<MystereBoxItemDTO> mystereBoxItems;
-}
+}

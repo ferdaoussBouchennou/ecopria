@@ -1,0 +1,10 @@
+{
+  "title": "Café & pâtisserie maison",
+  "description": "Un café ou une pâtisserie au choix",
+  "imageUrl": "https://images.unsplash.com/photo-1515823064-24b604696a43?w=400",
+  "pointsNecessaires": 150,
+  "type": "STOCK",
+  "stock": 77,
+  "valeurDh": 35.0,
+  "hasMystereBox": false
+}

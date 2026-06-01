@@ -1,37 +1,162 @@
 @import '../partenaire-shared';
 
+.avis-page { }
+
+.header-badge {
+  text-align: right;
+}
+
+.kpi-large {
+  display: block;
+  font-family: var(--p-font-serif);
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: var(--p-text);
+  line-height: 1;
+}
+
+.kpi-sub {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--p-text-muted);
+}
+
+// ─── Avis List ────────────────────────────────────────────────
 .avis-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.avis-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1rem;
-  margin-bottom: 0.5rem;
-}
+.avis-card {
+  background: #fff;
+  border: 1px solid var(--p-border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  transition: box-shadow 0.15s;
 
-.avis-stars { color: #b8860b; }
-.avis-date { font-size: 0.8rem; color: var(--ec-text-muted); margin-left: auto; }
-.avis-comment { margin: 0 0 0.75rem; line-height: 1.5; }
-.avis-reponse { margin: 0 0 0.75rem; font-size: 0.875rem; color: var(--ec-sage-dark); }
-
-.avis-reply-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-
-  textarea {
-    width: 100%;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--ec-border);
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 0.875rem;
+  &:hover {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
   }
 }
 
-.btn--sm { padding: 0.45rem 0.9rem; font-size: 0.8rem; align-self: flex-start; }
+.avis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.avis-author {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.author-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--p-mint);
+  color: var(--p-sage-dark);
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.author-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--p-text);
+  display: block;
+}
+
+.avis-date {
+  font-size: 0.75rem;
+  color: var(--p-text-muted);
+  display: block;
+}
+
+.avis-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.star {
+  color: #D1D5DB;
+  font-size: 1rem;
+  transition: color 0.1s;
+
+  &.filled { color: #F59E0B; }
+}
+
+.rating-num {
+  font-size: 0.75rem;
+  color: var(--p-text-muted);
+  margin-left: 0.25rem;
+}
+
+.avis-comment {
+  font-size: 0.875rem;
+  color: var(--p-text-soft);
+  line-height: 1.6;
+  margin: 0 0 1rem;
+}
+
+// ─── Réponse ──────────────────────────────────────────────────
+.avis-reponse {
+  background: var(--p-cream);
+  border-left: 3px solid var(--p-sage-light);
+  border-radius: 0 8px 8px 0;
+  padding: 0.75rem 1rem;
+  margin: 0 0 0.75rem;
+
+  .reponse-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--p-sage);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: var(--p-text-soft);
+    margin: 0 0 0.5rem;
+    line-height: 1.6;
+  }
+}
+
+.reponse-form {
+  background: var(--p-cream);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 0.75rem;
+
+  .form-label { margin-bottom: 0.5rem; }
+}
+
+.reponse-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.spinner-sm {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}

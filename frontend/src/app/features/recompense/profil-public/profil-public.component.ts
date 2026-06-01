@@ -19,6 +19,12 @@ export class ProfilPublicComponent implements OnInit {
   erreur = '';
   succes = '';
 
+  categories = [
+    'Restauration', 'Épicerie & alimentation', 'Bien-être & santé',
+    'Artisanat & culture', 'Mode & textile', 'Éducation',
+    'Sport & loisirs', 'Services', 'Agriculture & jardinage', 'Autre'
+  ];
+
   constructor(private partenaireService: PartenaireService) {}
 
   ngOnInit(): void {
@@ -26,12 +32,12 @@ export class ProfilPublicComponent implements OnInit {
       next: (p) => {
         this.profil = p;
         this.form = {
-          name: p.name,
-          category: p.category,
-          address: p.address,
-          city: p.city,
+          name:        p.name,
+          category:    p.category,
+          address:     p.address,
+          city:        p.city,
           description: p.description,
-          imageUrl: p.imageUrl
+          imageUrl:    p.imageUrl
         };
         this.loading = false;
       },
@@ -43,19 +49,35 @@ export class ProfilPublicComponent implements OnInit {
   }
 
   enregistrer(): void {
-    this.saving = true;
-    this.succes = '';
-    this.erreur = '';
+    if (!this.form.name?.trim()) {
+      this.erreur = 'Le nom de l\'enseigne est obligatoire.';
+      return;
+    }
+    this.saving  = true;
+    this.succes  = '';
+    this.erreur  = '';
     this.partenaireService.updateProfil(this.form).subscribe({
       next: (p) => {
         this.profil = p;
-        this.succes = 'Profil enregistré.';
+        this.succes = 'Profil enregistré avec succès !';
         this.saving = false;
+        setTimeout(() => (this.succes = ''), 4000);
       },
       error: (e: Error) => {
-        this.erreur = e.message;
-        this.saving = false;
+        this.erreur  = e.message;
+        this.saving  = false;
       }
     });
+  }
+
+  voirPagePublique(): void {
+    if (this.profil) {
+      window.open(`/api/recompenses/public/partenaire/${this.profil.userId}`, '_blank');
+    }
+  }
+
+  onImgError(event: Event): void {
+    const el = event.target as HTMLImageElement;
+    el.style.display = 'none';
   }
 }

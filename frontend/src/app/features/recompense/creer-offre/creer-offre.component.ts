@@ -27,9 +27,9 @@ export class CreerOffreComponent implements OnInit {
   editId: number | null = null;
 
   readonly types: { value: RecompenseType; label: string }[] = [
-    { value: 'STOCK', label: 'Stock (objet physique)' },
-    { value: 'REDUCTION', label: 'Réduction (%)' },
-    { value: 'SERVICE', label: 'Service / prestation' },
+    { value: 'STOCK',      label: 'Stock (objet physique)' },
+    { value: 'REDUCTION',  label: 'Réduction (%)' },
+    { value: 'SERVICE',    label: 'Service / prestation' },
     { value: 'EXPERIENCE', label: 'Expérience' }
   ];
 
@@ -42,18 +42,18 @@ export class CreerOffreComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      title: ['', [Validators.required, Validators.maxLength(200)]],
-      description: [''],
-      imageUrl: [''],
+      title:             ['', [Validators.required, Validators.maxLength(200)]],
+      description:       [''],
+      imageUrl:          [''],
       pointsNecessaires: [150, [Validators.required, Validators.min(1)]],
-      type: ['STOCK' as RecompenseType, Validators.required],
-      stock: [10, [Validators.min(1)]],
-      discountPercentage: [null as number | null],
-      valeurDh: [null as number | null],
-      dateExpiration: [''],
-      hasMystereBox: [false],
-      mystereBoxPoints: [80, [Validators.min(1)]],
-      mystereBoxItems: this.fb.array([])
+      type:              ['STOCK' as RecompenseType, Validators.required],
+      stock:             [10],
+      discountPercentage:[null as number | null],
+      valeurDh:          [null as number | null],
+      dateExpiration:    [''],
+      hasMystereBox:     [false],
+      mystereBoxPoints:  [80],
+      mystereBoxItems:   this.fb.array([])
     });
 
     const id = this.route.snapshot.paramMap.get('id');
@@ -61,6 +61,7 @@ export class CreerOffreComponent implements OnInit {
       this.editId = Number(id);
       this.chargerOffre(this.editId);
     } else {
+      // Pré-remplir 2 items pour la boîte mystère (désactivés par défaut)
       this.ajouterItemMystere();
       this.ajouterItemMystere();
     }
@@ -72,8 +73,7 @@ export class CreerOffreComponent implements OnInit {
 
   get probaTotal(): number {
     return this.mystereItems.controls.reduce(
-      (sum, c) => sum + (Number(c.get('probabilite')?.value) || 0),
-      0
+      (sum, c) => sum + (Number(c.get('probabilite')?.value) || 0), 0
     );
   }
 
@@ -84,6 +84,10 @@ export class CreerOffreComponent implements OnInit {
 
   get showReduction(): boolean {
     return this.form.get('type')?.value === 'REDUCTION';
+  }
+
+  get hasMystereBoxValue(): boolean {
+    return !!this.form.get('hasMystereBox')?.value;
   }
 
   private chargerOffre(id: number): void {
@@ -97,17 +101,17 @@ export class CreerOffreComponent implements OnInit {
           return;
         }
         this.form.patchValue({
-          title: o.title,
-          description: o.description ?? '',
-          imageUrl: o.imageUrl ?? '',
+          title:             o.title,
+          description:       o.description ?? '',
+          imageUrl:          o.imageUrl ?? '',
           pointsNecessaires: o.pointsNecessaires,
-          type: o.type,
-          stock: o.stock,
-          discountPercentage: o.discountPercentage,
-          valeurDh: o.valeurDh,
-          dateExpiration: o.dateExpiration ? o.dateExpiration.slice(0, 16) : '',
-          hasMystereBox: o.hasMystereBox ?? false,
-          mystereBoxPoints: o.mystereBoxPoints ?? 80
+          type:              o.type,
+          stock:             o.stock ?? 0,
+          discountPercentage:o.discountPercentage ?? null,
+          valeurDh:          o.valeurDh ?? null,
+          dateExpiration:    o.dateExpiration ? o.dateExpiration.slice(0, 16) : '',
+          hasMystereBox:     o.hasMystereBox ?? false,
+          mystereBoxPoints:  o.mystereBoxPoints ?? 80
         });
         this.mystereItems.clear();
         if (o.mystereBoxItems?.length) {
@@ -127,9 +131,9 @@ export class CreerOffreComponent implements OnInit {
 
   private creerItemGroup(item?: { titre: string; description?: string; probabilite: number }): FormGroup {
     return this.fb.group({
-      titre: [item?.titre ?? '', Validators.required],
+      titre:       [item?.titre ?? ''],
       description: [item?.description ?? ''],
-      probabilite: [item?.probabilite ?? 50, [Validators.required, Validators.min(1), Validators.max(100)]]
+      probabilite: [item?.probabilite ?? 50]
     });
   }
 
@@ -144,7 +148,7 @@ export class CreerOffreComponent implements OnInit {
   }
 
   onMystereToggle(): void {
-    if (this.form.get('hasMystereBox')?.value && this.mystereItems.length < 2) {
+    if (this.hasMystereBoxValue && this.mystereItems.length < 2) {
       while (this.mystereItems.length < 2) {
         this.ajouterItemMystere();
       }
@@ -155,10 +159,18 @@ export class CreerOffreComponent implements OnInit {
     this.erreur = '';
     this.succes = '';
 
-    if (this.form.get('hasMystereBox')?.value) {
-      if (this.mystereItems.length < 2) {
+    // Validation manuelle boîte mystère
+    if (this.hasMystereBoxValue) {
+      const items = this.mystereItems.controls;
+      if (items.length < 2) {
         this.erreur = 'La boîte mystère doit contenir au moins 2 options.';
         return;
+      }
+      for (const item of items) {
+        if (!item.get('titre')?.value?.trim()) {
+          this.erreur = 'Chaque option de la boîte mystère doit avoir un titre.';
+          return;
+        }
       }
       if (this.probaTotal !== 100) {
         this.erreur = `La somme des probabilités doit être 100 % (actuel : ${this.probaTotal} %).`;
@@ -166,43 +178,63 @@ export class CreerOffreComponent implements OnInit {
       }
     }
 
-    if (this.form.invalid) {
+    // Validation du formulaire principal
+    if (this.form.get('title')?.invalid) {
+      this.erreur = 'Le titre est obligatoire.';
       this.form.markAllAsTouched();
+      return;
+    }
+    if (this.form.get('pointsNecessaires')?.invalid) {
+      this.erreur = 'Les points requis doivent être supérieurs à 0.';
+      this.form.markAllAsTouched();
+      return;
+    }
+    if (this.showStock && (!this.form.get('stock')?.value || this.form.get('stock')?.value < 1)) {
+      this.erreur = 'Le stock doit être supérieur à 0.';
+      return;
+    }
+    if (this.showReduction && !this.form.get('discountPercentage')?.value) {
+      this.erreur = 'Le pourcentage de réduction est obligatoire.';
       return;
     }
 
     const raw = this.form.getRawValue();
+
     const dto: CreateRecompenseRequest = {
-      title: raw.title,
-      description: raw.description || undefined,
-      imageUrl: raw.imageUrl || undefined,
+      title:             raw.title.trim(),
+      description:       raw.description?.trim() || undefined,
+      imageUrl:          raw.imageUrl?.trim() || undefined,
       pointsNecessaires: Number(raw.pointsNecessaires),
-      type: raw.type,
-      stock: this.showStock ? Number(raw.stock) : undefined,
-      discountPercentage: this.showReduction ? Number(raw.discountPercentage) : undefined,
-      valeurDh: raw.valeurDh != null && raw.valeurDh !== '' ? Number(raw.valeurDh) : undefined,
-      dateExpiration: raw.dateExpiration ? new Date(raw.dateExpiration).toISOString() : undefined,
-      hasMystereBox: !!raw.hasMystereBox,
-      mystereBoxPoints: raw.hasMystereBox ? Number(raw.mystereBoxPoints) : undefined,
-      mystereBoxItems: raw.hasMystereBox
+      type:              raw.type,
+      stock:             this.showStock ? Number(raw.stock) : undefined,
+      discountPercentage:this.showReduction ? Number(raw.discountPercentage) : undefined,
+      valeurDh:          (raw.valeurDh !== null && raw.valeurDh !== '' && raw.valeurDh !== undefined)
+                           ? Number(raw.valeurDh) : undefined,
+      dateExpiration:    raw.dateExpiration ? raw.dateExpiration : undefined,
+      hasMystereBox:     !!raw.hasMystereBox,
+      mystereBoxPoints:  raw.hasMystereBox ? Number(raw.mystereBoxPoints) : undefined,
+      mystereBoxItems:   raw.hasMystereBox
         ? raw.mystereBoxItems.map((i: { titre: string; description?: string; probabilite: number }) => ({
-            titre: i.titre,
-            description: i.description || undefined,
+            titre:       i.titre.trim(),
+            description: i.description?.trim() || undefined,
             probabilite: Number(i.probabilite)
           }))
         : undefined
     };
 
     this.loading = true;
+
     const req = this.editId
       ? this.partenaireService.modifierOffre(this.editId, dto)
       : this.partenaireService.creerOffre(dto);
 
     req.subscribe({
-      next: () => {
-        this.succes = this.editId ? 'Offre mise à jour.' : 'Offre créée avec succès.';
+      next: (result) => {
+        this.succes = this.editId
+          ? `✓ Offre "${result.title}" mise à jour avec succès.`
+          : `✓ Offre "${result.title}" créée avec succès.`;
         this.loading = false;
-        setTimeout(() => this.router.navigate(['/partenaire/offres']), 1200);
+        setTimeout(() => this.router.navigate(['/partenaire/offres']), 1500);
       },
       error: (e: Error) => {
         this.erreur = e.message;
@@ -212,6 +244,6 @@ export class CreerOffreComponent implements OnInit {
   }
 
   get pageTitle(): string {
-    return this.editId ? 'Modifier l\'offre' : 'Nouvelle offre';
+    return this.editId ? "Modifier l'offre" : 'Nouvelle offre';
   }
 }
