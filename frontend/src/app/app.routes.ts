@@ -12,9 +12,14 @@ import { DetailActionAssoComponent } from './features/association/detail-action-
 import { ParticipantsComponent } from './features/association/participants/participants.component';
 import { ProfilComponent } from './features/association/profil/profil.component';
 import { ListeParticipantsComponent } from './features/association/liste-participants/liste-participants.component';
-
-import { DashboardComponent } from './features/association/dashboard/dashboard.component';
+import { DashboardComponent as AssociationDashboardComponent } from './features/association/dashboard/dashboard.component';
 import { CalendrierComponent } from './features/association/calendrier/calendrier.component';
+import { EspaceShellComponent } from './features/utilisateur/espace-shell/espace-shell.component';
+import { DashboardComponent } from './features/utilisateur/dashboard/dashboard.component';
+import { ActionsComponent } from './features/utilisateur/actions/actions.component';
+import { LeaderboardComponent } from './features/utilisateur/leaderboard/leaderboard.component';
+import { RecompensesComponent } from './features/utilisateur/recompenses/recompenses.component';
+import { SettingsComponent } from './features/utilisateur/settings/settings.component';
 
 export const routes: Routes = [
   // Routes publiques avec navbar/footer
@@ -38,7 +43,7 @@ export const routes: Routes = [
     component: AssociationShellComponent,
     children: [
       { path: '', redirectTo: 'tableau-de-bord', pathMatch: 'full' },
-      { path: 'tableau-de-bord', component: DashboardComponent },
+      { path: 'tableau-de-bord', component: AssociationDashboardComponent },
       { path: 'mes-actions', component: MesActionsComponent },
       { path: 'calendrier', component: CalendrierComponent },
       { path: 'creer', component: ActionFormComponent },
@@ -47,7 +52,20 @@ export const routes: Routes = [
       { path: 'action/:id/participants', component: ParticipantsComponent },
       { path: 'participants', component: ListeParticipantsComponent },
       { path: 'profil', component: ProfilComponent },
-      // TODO: Ajouter les routes pour notifications
+    ],
+  },
+
+  // Routes utilisateur/espace personnel
+  {
+    path: 'espace',
+    component: EspaceShellComponent,
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: DashboardComponent },
+      { path: 'actions', component: ActionsComponent },
+      { path: 'recompenses', component: RecompensesComponent },
+      { path: 'classement', component: LeaderboardComponent },
+      { path: 'parametres', component: SettingsComponent },
     ],
   },
   
