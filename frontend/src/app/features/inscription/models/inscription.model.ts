@@ -21,6 +21,15 @@ export interface InscriptionResponse {
   photoUrl?: string;
 }
 
+export interface MonInscriptionDto {
+  inscriptionId: number;
+  actionId: number;
+  userId: number;
+  statut: 'INSCRIT' | 'VALIDE' | 'ABSENT';
+  dateAction: string;
+  qrCodeUrl?: string;
+}
+
 /** Mappé depuis ActionDetailDTO (service-action) */
 export interface ActionDTO {
   id: number;

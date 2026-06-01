@@ -6,11 +6,14 @@ import {
   InscriptionRequest,
   InscriptionResponse
 } from '../../core/models/inscription.model';
-import { ActionDetail } from '../action/models/action.model';
+import { ActionDetail, ActionSummary } from '../action/models/action.model';
 import { ActionDTO } from './models/inscription.model';
+import { MonInscriptionDto } from './models/inscription.model';
 
 const API_INSCRIPTION = '/api/inscriptions';
 const API_ACTION = '/api/actions';
+
+
 
 @Injectable({ providedIn: 'root' })
 export class InscriptionService {
@@ -29,6 +32,15 @@ export class InscriptionService {
       .pipe(catchError(this.handleError));
   }
 
+  getMesActions(userId: number): Observable<MonInscriptionDto[]> {
+    return this.http
+      .get<InscriptionResponse[]>(`${API_INSCRIPTION}/user/${userId}`)
+      .pipe(
+        map((responses) => responses.map((r) => this.mapToMonInscriptionDto(r))),
+        catchError(this.handleError)
+      );
+  }
+
   getInscription(id: number): Observable<InscriptionResponse> {
     return this.http
       .get<InscriptionResponse>(`${API_INSCRIPTION}/${id}`)
@@ -44,6 +56,12 @@ export class InscriptionService {
   getAction(actionId: number): Observable<ActionDTO> {
     return this.http.get<ActionDetail>(`${API_ACTION}/${actionId}`).pipe(
       map((detail) => this.mapToActionDTO(detail)),
+      catchError(this.handleError)
+    );
+  }
+
+  getActionSummary(actionId: number): Observable<ActionSummary> {
+    return this.http.get<ActionSummary>(`${API_ACTION}/${actionId}`).pipe(
       catchError(this.handleError)
     );
   }
@@ -82,6 +100,29 @@ export class InscriptionService {
       associationName: detail.associationName,
       associationCity: detail.associationCity,
       associationLogoUrl: detail.associationLogoUrl,
+    };
+  }
+
+  private mapToMonInscriptionDto(response: InscriptionResponse): MonInscriptionDto {
+    let statut: 'INSCRIT' | 'VALIDE' | 'ABSENT';
+    switch (response.statut) {
+      case 'CONFIRMEE':
+        statut = 'INSCRIT';
+        break;
+      case 'EN_ATTENTE':
+        statut = 'INSCRIT';
+        break;
+      default:
+        statut = 'ABSENT';
+    }
+
+    return {
+      inscriptionId: response.id,
+      actionId: response.actionId,
+      userId: response.userId,
+      statut: statut,
+      dateAction: response.dateInscription,
+      qrCodeUrl: response.qrCode,
     };
   }
 
