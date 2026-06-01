@@ -1,55 +1,115 @@
-<div *ngIf="loading" class="loading-block">
+<!-- ─── LOADING ─────────────────────────────────────────────── -->
+<div *ngIf="loading" class="loading-page">
   <div class="spinner"></div>
+  <p>Chargement des commissions…</p>
 </div>
 
-<div *ngIf="!loading" class="commissions-page">
-  <header>
-    <span class="page-label">Facturation Ecopria</span>
-    <h1 class="page-title">Commissions.</h1>
-  </header>
+<!-- ─── ERREUR ─────────────────────────────────────────────── -->
+<div *ngIf="!loading && erreur" class="alert alert--error">
+  <div class="alert-inner">
+    <span class="alert-icon">⚠️</span>
+    <div><strong>Erreur</strong><p>{{ erreur }}</p></div>
+  </div>
+  <button class="btn btn--outline btn--sm" (click)="charger()">Réessayer</button>
+</div>
 
-  <div *ngIf="erreur" class="alert alert--error">{{ erreur }}</div>
+<!-- ─── CONTENU ───────────────────────────────────────────── -->
+<div *ngIf="!loading && !erreur" class="commissions-page">
 
-  <div class="summary-row">
-    <div class="pay-card">
-      <span class="pay-label">À régler ce mois</span>
-      <span class="pay-amount">{{ aRegler | number:'1.0-0' }} €</span>
-      <button type="button" class="btn btn--pay" disabled title="Paiement — à brancher (Stripe / virement)">
-        Régler maintenant
-      </button>
-    </div>
-
-    <div class="info-card card">
-      <span class="info-label">Mécanisme</span>
-      <p>
-        Une commission de <strong>15 %</strong> est appliquée sur chaque coupon validé en magasin.
-        Elle reflète le service rendu : vous apporter une clientèle qualifiée, engagée pour le vivant.
-      </p>
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <span class="page-eyebrow">— COMMISSIONS</span>
+      <h1 class="page-title">Commissions.</h1>
+      <p class="page-sub">Historique mensuel des commissions générées par les échanges de coupons.</p>
     </div>
   </div>
 
-  <section>
-    <h2 class="section-title">Historique mensuel</h2>
-    <div class="card table-wrap" *ngIf="commissions.length > 0">
+  <!-- Banner à régler -->
+  <div class="banner-aregler" *ngIf="aRegler > 0">
+    <span class="banner-icon">💰</span>
+    <div>
+      <strong>{{ aRegler | number:'1.0-0' }} DH à régler ce mois</strong>
+      <p>Les commissions sont calculées sur la base de vos offres échangées et validées.</p>
+    </div>
+  </div>
+
+  <!-- Totaux -->
+  <div class="totaux-grid" *ngIf="commissions.length > 0">
+    <div class="total-card">
+      <span class="total-value">{{ totalCoupons | number }}</span>
+      <span class="total-label">Total coupons utilisés</span>
+    </div>
+    <div class="total-card">
+      <span class="total-value">{{ totalCa | number:'1.0-0' }} DH</span>
+      <span class="total-label">CA total généré</span>
+    </div>
+    <div class="total-card total-card--accent">
+      <span class="total-value">{{ totalCommissions | number:'1.0-2' }} DH</span>
+      <span class="total-label">Total commissions</span>
+    </div>
+  </div>
+
+  <!-- Tableau mensuel -->
+  <div class="card table-container" *ngIf="commissions.length > 0">
+    <div class="table-head-bar">
+      <h2 class="table-title">Historique mensuel</h2>
+    </div>
+    <div class="table-wrap">
       <table class="data-table">
         <thead>
           <tr>
             <th>Mois</th>
             <th>Coupons utilisés</th>
-            <th>CA généré</th>
-            <th>Commission</th>
+            <th>CA généré (DH)</th>
+            <th>Commission (DH)</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let c of commissions">
-            <td>{{ formatMois(c.mois) }}</td>
-            <td>{{ c.couponsUtilises }}</td>
-            <td>{{ c.caGenere | number:'1.0-0' }} €</td>
-            <td><strong>{{ c.commission | number:'1.0-0' }} €</strong></td>
+            <td class="mois-cell">{{ formatMois(c.mois) }}</td>
+            <td class="num-cell">{{ c.couponsUtilises | number }}</td>
+            <td class="num-cell">{{ c.caGenere | number:'1.0-2' }}</td>
+            <td class="num-cell commission-cell">
+              <strong>{{ c.commission | number:'1.0-2' }}</strong>
+            </td>
           </tr>
         </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td><strong>Total</strong></td>
+            <td class="num-cell"><strong>{{ totalCoupons | number }}</strong></td>
+            <td class="num-cell"><strong>{{ totalCa | number:'1.0-2' }}</strong></td>
+            <td class="num-cell commission-cell"><strong>{{ totalCommissions | number:'1.0-2' }}</strong></td>
+          </tr>
+        </tfoot>
       </table>
     </div>
-    <p *ngIf="commissions.length === 0 && !erreur" class="empty-hint">Aucune commission enregistrée pour le moment.</p>
-  </section>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="commissions.length === 0" class="empty-state">
+    <span class="empty-icon">📊</span>
+    <p class="empty-title">Aucune commission enregistrée</p>
+    <p class="empty-text">
+      Les commissions sont générées lorsque vos clients font valider leurs coupons.
+      Commencez par créer des offres !
+    </p>
+    <a routerLink="/partenaire/offres/nouvelle" class="btn btn--primary">Créer une offre</a>
+  </div>
+
+  <!-- Explication calcul -->
+  <div class="alert alert--info" style="margin-top:1.5rem">
+    <div class="alert-inner">
+      <span class="alert-icon">ℹ️</span>
+      <div>
+        <strong>Comment sont calculées les commissions ?</strong>
+        <p style="margin-top:0.25rem">
+          Pour les offres avec réduction (%) : <code>valeur remise × % commission</code>.
+          Pour les offres de type RÉDUCTION : <code>valeurDh × taux commission</code>.
+          Les offres entièrement gratuites (sans valeur monétaire) ne génèrent pas de commission.
+        </p>
+      </div>
+    </div>
+  </div>
 </div>

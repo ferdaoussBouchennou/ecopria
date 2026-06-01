@@ -1,60 +1,124 @@
-<div class="scanner-page">
-  <header>
-    <span class="page-label">Validation en magasin</span>
-    <h1 class="page-title">Scanner un coupon.</h1>
-    <p class="page-sub">
-      Saisissez le code ECO-XXXX affiché sur le téléphone du client.
-      La commission est calculée automatiquement si l'offre inclut une remise monétaire.
-    </p>
-  </header>
+<!-- ─── LOADING ─────────────────────────────────────────────── -->
+<div *ngIf="loading" class="loading-page">
+  <div class="spinner"></div>
+  <p>Chargement…</p>
+</div>
 
-  <div class="scanner-panel card">
-    <label for="code">Code coupon</label>
-    <div class="scan-row">
-      <input
-        id="code"
-        type="text"
-        [(ngModel)]="code"
-        placeholder="ECO-2025-XXXXX"
-        class="code-input"
-        (keyup.enter)="valider()"
-        [disabled]="loading" />
-      <button type="button" class="btn btn--primary" (click)="valider()" [disabled]="loading || !code.trim()">
-        {{ loading ? 'Vérification…' : 'Valider' }}
-      </button>
+<!-- ─── ERREUR ─────────────────────────────────────────────── -->
+<div *ngIf="!loading && erreur" class="alert alert--error">
+  <div class="alert-inner">
+    <span class="alert-icon">⚠️</span>
+    <div><strong>Erreur</strong><p>{{ erreur }}</p></div>
+  </div>
+</div>
+
+<!-- ─── CONTENU ───────────────────────────────────────────── -->
+<div *ngIf="!loading" class="scanner-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <span class="page-eyebrow">— SCANNER COUPON</span>
+      <h1 class="page-title">Scanner.</h1>
+      <p class="page-sub">Saisissez le code coupon présenté par votre client pour le valider.</p>
     </div>
   </div>
 
-  <div *ngIf="erreur" class="alert alert--error">{{ erreur }}</div>
-
-  <div *ngIf="coupon" class="result card result--success">
-    <div class="result-icon">✓</div>
-    <h2>Coupon validé</h2>
-    <p><strong>{{ coupon.recompenseTitle }}</strong></p>
-    <p class="result-code">{{ coupon.code }}</p>
-    <p class="result-meta">{{ coupon.pointsUtilises }} points · {{ formatDate(coupon.valideLe) }}</p>
-    <p class="result-note">Commission enregistrée si applicable (offre avec valeur DH).</p>
+  <!-- Succès dernier scan -->
+  <div *ngIf="coupon && !erreur" class="alert alert--success">
+    <div class="alert-inner">
+      <span class="alert-icon">✅</span>
+      <div>
+        <strong>Coupon validé !</strong>
+        <p><code>{{ coupon.code }}</code> — {{ coupon.recompenseTitle }}</p>
+      </div>
+    </div>
   </div>
 
-  <section *ngIf="history.length > 0" class="history">
-    <h2 class="section-title">Validations de cette session</h2>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Code</th>
-          <th>Offre</th>
-          <th>Points</th>
-          <th>Statut</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let h of history">
-          <td><code>{{ h.code }}</code></td>
-          <td>{{ h.recompenseTitle }}</td>
-          <td>{{ h.pointsUtilises }}</td>
-          <td><span class="badge badge--green">Utilisé</span></td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
+  <!-- Zone de scan -->
+  <div class="scan-card card">
+    <div class="scan-icon-area">
+      <span class="scan-icon">📱</span>
+    </div>
+    <h2 class="scan-title">Entrez le code coupon</h2>
+    <p class="scan-hint">Le client vous présente un code du type ECO-2025-XXXX</p>
+
+    <div class="scan-form">
+      <input
+        type="text"
+        id="code-coupon"
+        class="form-control code-input"
+        [(ngModel)]="code"
+        placeholder="ECO-2025-XXXX"
+        (keyup.enter)="valider()"
+        [class.is-invalid]="erreur"
+        autocomplete="off"
+        autofocus
+        spellcheck="false"
+      />
+      <button
+        class="btn btn--primary btn--lg scan-btn"
+        (click)="valider()"
+        [disabled]="loading || !code.trim()"
+      >
+        <span *ngIf="loading" class="spinner-sm"></span>
+        <span *ngIf="!loading">✔</span>
+        {{ loading ? 'Validation…' : 'Valider' }}
+      </button>
+    </div>
+
+    <p class="scan-error" *ngIf="erreur">⚠️ {{ erreur }}</p>
+  </div>
+
+  <!-- Résultat du coupon validé -->
+  <div class="coupon-result card" *ngIf="coupon">
+    <h2 class="result-title">Détail du coupon validé</h2>
+    <div class="coupon-detail-grid">
+      <div class="coupon-field">
+        <span class="field-label">Code</span>
+        <code class="field-value code-mono">{{ coupon.code }}</code>
+      </div>
+      <div class="coupon-field">
+        <span class="field-label">Offre</span>
+        <span class="field-value">{{ coupon.recompenseTitle }}</span>
+      </div>
+      <div class="coupon-field">
+        <span class="field-label">Points dépensés</span>
+        <span class="field-value">{{ coupon.pointsUtilises }} pts</span>
+      </div>
+      <div class="coupon-field">
+        <span class="field-label">Statut</span>
+        <span class="badge badge--green">Utilisé</span>
+      </div>
+      <div class="coupon-field" *ngIf="coupon.valideLe">
+        <span class="field-label">Validé le</span>
+        <span class="field-value">{{ formatDate(coupon.valideLe) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historique session -->
+  <div class="historique card" *ngIf="history.length > 0">
+    <h2 class="hist-title">Historique de la session</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Offre</th>
+            <th>Points</th>
+            <th>Heure</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of history">
+            <td><code class="coupon-mono">{{ c.code }}</code></td>
+            <td>{{ c.recompenseTitle }}</td>
+            <td style="text-align:right">{{ c.pointsUtilises }} pts</td>
+            <td style="text-align:right">{{ formatDate(c.valideLe || c.createdAt) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>

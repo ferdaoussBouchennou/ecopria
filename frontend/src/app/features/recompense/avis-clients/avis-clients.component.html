@@ -1,37 +1,100 @@
-<div *ngIf="loading" class="loading-block"><div class="spinner"></div></div>
+<!-- ─── LOADING ─────────────────────────────────────────────── -->
+<div *ngIf="loading" class="loading-page">
+  <div class="spinner"></div>
+  <p>Chargement des avis…</p>
+</div>
 
-<div *ngIf="!loading" class="avis-page">
-  <header>
-    <span class="page-label">Relation client</span>
-    <h1 class="page-title">Avis clients.</h1>
-    <p class="page-sub" *ngIf="moyenne() as m">
-      Note moyenne ★ {{ m }} — {{ avis.length }} avis reçus.
-    </p>
-  </header>
+<!-- ─── ERREUR ─────────────────────────────────────────────── -->
+<div *ngIf="!loading && erreur" class="alert alert--error">
+  <div class="alert-inner">
+    <span class="alert-icon">⚠️</span>
+    <div><strong>Erreur</strong><p>{{ erreur }}</p></div>
+  </div>
+  <button class="btn btn--outline btn--sm" (click)="charger()">Réessayer</button>
+</div>
 
-  <div *ngIf="erreur" class="alert alert--error">{{ erreur }}</div>
+<!-- ─── CONTENU ───────────────────────────────────────────── -->
+<div *ngIf="!loading && !erreur" class="avis-page">
 
-  <div class="avis-list" *ngIf="avis.length > 0">
-    <article class="card avis-card" *ngFor="let a of avis">
-      <div class="avis-head">
-        <strong>{{ a.authorName }}</strong>
-        <span class="avis-stars">
-          <span *ngFor="let s of [].constructor(a.rating)">★</span>
-        </span>
-        <span class="avis-date">{{ formatDate(a.createdAt) }}</span>
-      </div>
-      <p class="avis-comment" *ngIf="a.comment">{{ a.comment }}</p>
-      <p class="avis-reponse" *ngIf="a.reponse"><em>Votre réponse :</em> {{ a.reponse }}</p>
-      <div class="avis-reply-form">
-        <textarea rows="2" [(ngModel)]="reponseDraft[a.id]" placeholder="Répondre à cet avis…"></textarea>
-        <button type="button" class="btn btn--primary btn--sm"
-          [disabled]="savingId === a.id"
-          (click)="publierReponse(a)">
-          {{ savingId === a.id ? '…' : 'Publier la réponse' }}
-        </button>
-      </div>
-    </article>
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <span class="page-eyebrow">— AVIS CLIENTS</span>
+      <h1 class="page-title">Avis clients.</h1>
+      <p class="page-sub">
+        Consultez et répondez aux avis laissés par vos clients Ecopria.
+        <span *ngIf="noteMoyenne">Note moyenne : <strong>★ {{ noteMoyenne }}</strong> / 5</span>
+      </p>
+    </div>
+    <div class="header-badge" *ngIf="avis.length > 0">
+      <span class="kpi-large">{{ avis.length }}</span>
+      <span class="kpi-sub">avis au total</span>
+    </div>
   </div>
 
-  <p *ngIf="avis.length === 0 && !erreur" class="empty-hint">Aucun avis pour le moment.</p>
+  <!-- Liste vide -->
+  <div *ngIf="avis.length === 0" class="empty-state">
+    <span class="empty-icon">⭐</span>
+    <p class="empty-title">Aucun avis pour l'instant</p>
+    <p class="empty-text">Les avis de vos clients apparaîtront ici après leurs visites.</p>
+  </div>
+
+  <!-- Avis list -->
+  <div class="avis-list" *ngIf="avis.length > 0">
+    <div class="avis-card" *ngFor="let a of avis">
+
+      <!-- En-tête avis -->
+      <div class="avis-header">
+        <div class="avis-author">
+          <div class="author-avatar">{{ a.authorName[0].toUpperCase() }}</div>
+          <div>
+            <strong class="author-name">{{ a.authorName }}</strong>
+            <span class="avis-date">{{ formatDate(a.createdAt) }}</span>
+          </div>
+        </div>
+        <div class="avis-rating">
+          <span class="star" *ngFor="let i of [1,2,3,4,5]"
+            [class.filled]="i <= a.rating">★</span>
+          <span class="rating-num">{{ a.rating }}/5</span>
+        </div>
+      </div>
+
+      <!-- Commentaire -->
+      <p class="avis-comment" *ngIf="a.comment">{{ a.comment }}</p>
+
+      <!-- Réponse existante -->
+      <div class="avis-reponse" *ngIf="a.reponse && editingId !== a.id">
+        <span class="reponse-label">Votre réponse :</span>
+        <p>{{ a.reponse }}</p>
+        <button class="btn btn--ghost btn--sm" (click)="startEdit(a)">✏️ Modifier</button>
+      </div>
+
+      <!-- Formulaire réponse -->
+      <div class="reponse-form" *ngIf="editingId === a.id || (!a.reponse && expandedId === a.id)">
+        <label class="form-label" [for]="'rep-' + a.id">Votre réponse</label>
+        <textarea
+          [id]="'rep-' + a.id"
+          class="form-control"
+          rows="3"
+          [(ngModel)]="reponseTexte"
+          placeholder="Répondez publiquement à cet avis…"
+        ></textarea>
+        <div class="reponse-actions">
+          <button class="btn btn--primary btn--sm" (click)="enregistrerReponse(a.id)" [disabled]="saving">
+            <span *ngIf="saving" class="spinner-sm"></span>
+            {{ saving ? 'Envoi…' : 'Enregistrer' }}
+          </button>
+          <button class="btn btn--ghost btn--sm" (click)="cancelEdit()">Annuler</button>
+        </div>
+      </div>
+
+      <!-- Bouton répondre si pas de réponse -->
+      <div *ngIf="!a.reponse && editingId !== a.id && expandedId !== a.id">
+        <button class="btn btn--outline btn--sm" (click)="expandedId = a.id; reponseTexte = ''">
+          💬 Répondre
+        </button>
+      </div>
+
+    </div>
+  </div>
 </div>

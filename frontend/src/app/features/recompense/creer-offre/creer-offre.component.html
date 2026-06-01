@@ -1,176 +1,214 @@
-<div *ngIf="loadingOffre" class="loading-block">
+<!-- ─── LOADING offre ─────────────────────────────────────────── -->
+<div *ngIf="loadingOffre" class="loading-page">
   <div class="spinner"></div>
   <p>Chargement de l'offre…</p>
 </div>
 
+<!-- ─── FORM ──────────────────────────────────────────────────── -->
 <div *ngIf="!loadingOffre" class="creer-page">
-  <header class="page-header-row">
-    <div>
-      <span class="page-label">{{ editId ? 'Modifier' : 'Créer' }}</span>
-      <h1 class="page-title">{{ pageTitle }}.</h1>
-      <p class="page-sub">Configurez votre récompense. Les modifications sont sauvegardées en base de données.</p>
-    </div>
-    <a routerLink="/partenaire/offres" class="btn btn--outline">← Retour aux offres</a>
-  </header>
 
-  <div *ngIf="erreur" class="alert alert--error">⚠ {{ erreur }}</div>
-  <div *ngIf="succes" class="alert alert--success">✓ {{ succes }}</div>
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <span class="page-eyebrow">— {{ editId ? 'MODIFIER OFFRE' : 'NOUVELLE OFFRE' }}</span>
+      <h1 class="page-title">{{ pageTitle }}.</h1>
+      <p class="page-sub">
+        {{ editId ? 'Modifiez les informations de votre offre.' : 'Créez une nouvelle offre pour vos clients Ecopria.' }}
+      </p>
+    </div>
+    <a routerLink="/partenaire/offres" class="btn btn--ghost">
+      ← Retour aux offres
+    </a>
+  </div>
+
+  <!-- Alerts -->
+  <div *ngIf="succes" class="alert alert--success">
+    <div class="alert-inner">
+      <span class="alert-icon">✅</span>
+      <div><strong>{{ succes }}</strong></div>
+    </div>
+  </div>
+  <div *ngIf="erreur" class="alert alert--error">
+    <div class="alert-inner">
+      <span class="alert-icon">⚠️</span>
+      <div><strong>Erreur</strong><p>{{ erreur }}</p></div>
+    </div>
+  </div>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="form-layout">
 
-    <!-- Section principale -->
-    <section class="card form-section">
-      <h2 class="section-title">Informations générales</h2>
+    <!-- ─── Colonne principale ─────────────────────────────────── -->
+    <div class="form-main">
 
-      <div class="field">
-        <label for="title">Titre de l'offre *</label>
-        <input id="title" type="text" formControlName="title"
-          placeholder="Ex: Café & pâtisserie maison"
-          [class.field-error]="form.get('title')?.invalid && form.get('title')?.touched" />
-        <span class="field-hint error" *ngIf="form.get('title')?.touched && form.get('title')?.hasError('required')">
-          Le titre est obligatoire
-        </span>
-      </div>
+      <!-- Infos générales -->
+      <div class="card form-section">
+        <h2 class="section-head">Informations générales</h2>
 
-      <div class="field">
-        <label for="description">Description</label>
-        <textarea id="description" formControlName="description" rows="3"
-          placeholder="Décrivez votre offre en quelques mots…"></textarea>
-      </div>
+        <div class="form-group">
+          <label class="form-label" for="title">Titre de l'offre <span class="req">*</span></label>
+          <input id="title" type="text" class="form-control"
+            formControlName="title"
+            placeholder="Ex : Café & pâtisserie maison"
+            [class.is-invalid]="form.get('title')?.invalid && form.get('title')?.touched" />
+          <span class="form-error" *ngIf="form.get('title')?.errors?.['required'] && form.get('title')?.touched">
+            Le titre est obligatoire.
+          </span>
+          <span class="form-error" *ngIf="form.get('title')?.errors?.['maxlength']">
+            Maximum 200 caractères.
+          </span>
+        </div>
 
-      <div class="field">
-        <label for="imageUrl">URL de l'image</label>
-        <input id="imageUrl" type="url" formControlName="imageUrl"
-          placeholder="https://images.unsplash.com/..." />
-        <div class="img-preview" *ngIf="form.get('imageUrl')?.value">
-          <img [src]="form.get('imageUrl')?.value" alt="Aperçu" />
+        <div class="form-group">
+          <label class="form-label" for="description">Description</label>
+          <textarea id="description" class="form-control" rows="3"
+            formControlName="description"
+            placeholder="Décrivez votre offre en quelques mots…"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="imageUrl">URL de l'image</label>
+          <input id="imageUrl" type="url" class="form-control"
+            formControlName="imageUrl"
+            placeholder="https://images.unsplash.com/…" />
+          <span class="form-hint">Image illustrant l'offre (recommandé : format carré ou 4:3)</span>
         </div>
       </div>
 
-      <div class="field-row">
-        <div class="field">
-          <label for="points">Points requis *</label>
-          <input id="points" type="number" formControlName="pointsNecessaires" min="1"
-            [class.field-error]="form.get('pointsNecessaires')?.invalid && form.get('pointsNecessaires')?.touched" />
-        </div>
-        <div class="field">
-          <label for="type">Type d'offre *</label>
-          <select id="type" formControlName="type">
-            <option *ngFor="let t of types" [value]="t.value">{{ t.label }}</option>
-          </select>
-        </div>
-      </div>
+      <!-- Type et points -->
+      <div class="card form-section">
+        <h2 class="section-head">Type et points</h2>
 
-      <!-- Stock (STOCK / EXPERIENCE) -->
-      <div class="field-row" *ngIf="showStock">
-        <div class="field">
-          <label for="stock">Stock disponible *</label>
-          <input id="stock" type="number" formControlName="stock" min="1"
-            [class.field-error]="form.get('stock')?.invalid && form.get('stock')?.touched" />
-          <span class="field-hint">Nombre d'unités disponibles</span>
-        </div>
-        <div class="field">
-          <label for="valeurDhStock">Valeur en DH (pour commission)</label>
-          <input id="valeurDhStock" type="number" formControlName="valeurDh" min="0" step="0.01" />
-        </div>
-      </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="type">Type d'offre <span class="req">*</span></label>
+            <select id="type" class="form-control" formControlName="type">
+              <option *ngFor="let t of types" [value]="t.value">{{ t.label }}</option>
+            </select>
+          </div>
 
-      <!-- Réduction -->
-      <div class="field-row" *ngIf="showReduction">
-        <div class="field">
-          <label for="discount">Réduction (%) *</label>
-          <input id="discount" type="number" formControlName="discountPercentage" min="1" max="100" />
-        </div>
-        <div class="field">
-          <label for="valeurDhRed">Valeur de la remise (DH) *</label>
-          <input id="valeurDhRed" type="number" formControlName="valeurDh" min="0" step="0.01" />
-        </div>
-      </div>
-
-      <!-- Service -->
-      <div class="field" *ngIf="form.get('type')?.value === 'SERVICE'">
-        <label for="valeurDhSvc">Valeur prestation (DH)</label>
-        <input id="valeurDhSvc" type="number" formControlName="valeurDh" min="0" step="0.01" />
-      </div>
-
-      <div class="field">
-        <label for="exp">Date d'expiration (optionnel)</label>
-        <input id="exp" type="datetime-local" formControlName="dateExpiration" />
-        <span class="field-hint">Laissez vide pour une offre sans limite de temps</span>
-      </div>
-    </section>
-
-    <!-- Boîte mystère -->
-    <section class="card form-section mystere-section">
-      <div class="mystere-head">
-        <div>
-          <h2 class="section-title">🎁 Boîte mystère <span class="optional-badge">optionnel</span></h2>
-          <p class="mystere-desc">
-            Le client peut choisir d'ouvrir la boîte au lieu de l'offre classique.
-            Un tirage aléatoire pondéré détermine le prix gagné.
-          </p>
-        </div>
-        <label class="toggle-label">
-          <input type="checkbox" formControlName="hasMystereBox" (change)="onMystereToggle()" />
-          <span class="toggle-text">Activer</span>
-        </label>
-      </div>
-
-      <div *ngIf="form.get('hasMystereBox')?.value" class="mystere-body">
-        <div class="field">
-          <label for="mbPoints">Coût en points (boîte) *</label>
-          <input id="mbPoints" type="number" formControlName="mystereBoxPoints" min="1" />
-          <span class="field-hint">Souvent moins cher que l'offre normale pour inciter au jeu</span>
-        </div>
-
-        <div class="proba-bar" [class.proba-bar--ok]="probaTotal === 100" [class.proba-bar--err]="probaTotal !== 100 && probaTotal > 0">
-          Total probabilités : <strong>{{ probaTotal }}%</strong>
-          <span *ngIf="probaTotal !== 100 && probaTotal > 0"> — doit être exactement 100%</span>
-          <span *ngIf="probaTotal === 100"> ✓</span>
-        </div>
-
-        <div formArrayName="mystereBoxItems" class="mystere-items">
-          <div *ngFor="let item of mystereItems.controls; let i = index"
-            [formGroupName]="i" class="mystere-item card">
-            <div class="mystere-item-head">
-              <span class="item-num">Option {{ i + 1 }}</span>
-              <button type="button" class="btn btn--danger btn--sm"
-                (click)="supprimerItemMystere(i)"
-                [disabled]="mystereItems.length <= 2">
-                Supprimer
-              </button>
-            </div>
-            <div class="field-row">
-              <div class="field">
-                <label>Titre du prix *</label>
-                <input type="text" formControlName="titre" placeholder="Ex: Dessert offert" />
-              </div>
-              <div class="field">
-                <label>Probabilité (%) *</label>
-                <input type="number" formControlName="probabilite" min="1" max="100" />
-              </div>
-            </div>
-            <div class="field">
-              <label>Description</label>
-              <input type="text" formControlName="description" placeholder="Détails optionnels" />
-            </div>
+          <div class="form-group">
+            <label class="form-label" for="points">Points nécessaires <span class="req">*</span></label>
+            <input id="points" type="number" class="form-control" min="1"
+              formControlName="pointsNecessaires"
+              [class.is-invalid]="form.get('pointsNecessaires')?.invalid && form.get('pointsNecessaires')?.touched" />
           </div>
         </div>
 
-        <button type="button" class="btn btn--outline btn--sm" (click)="ajouterItemMystere()">
-          + Ajouter une option
-        </button>
-      </div>
-    </section>
+        <!-- Stock (STOCK ou EXPERIENCE) -->
+        <div class="form-group" *ngIf="showStock">
+          <label class="form-label" for="stock">Stock disponible <span class="req">*</span></label>
+          <input id="stock" type="number" class="form-control" min="1"
+            formControlName="stock"
+            placeholder="Ex : 30" />
+          <span class="form-hint">Nombre d'unités disponibles à l'échange</span>
+        </div>
 
-    <!-- Actions -->
-    <div class="form-actions">
-      <button type="submit" class="btn btn--primary btn--lg" [disabled]="loading">
-        <span *ngIf="!loading">{{ editId ? '💾 Enregistrer les modifications' : '🚀 Publier l\'offre' }}</span>
-        <span *ngIf="loading">Enregistrement…</span>
-      </button>
-      <a routerLink="/partenaire/offres" class="btn btn--outline">Annuler</a>
+        <!-- Réduction (REDUCTION) -->
+        <div *ngIf="showReduction" class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="discount">Réduction (%) <span class="req">*</span></label>
+            <input id="discount" type="number" class="form-control" min="1" max="100"
+              formControlName="discountPercentage"
+              placeholder="Ex : 15" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="valeurDh">Valeur de la remise (DH) <span class="req">*</span></label>
+            <input id="valeurDh" type="number" class="form-control" min="0"
+              formControlName="valeurDh"
+              placeholder="Ex : 50" />
+            <span class="form-hint">Montant moyen de la remise accordée</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="expiration">Date d'expiration</label>
+          <input id="expiration" type="datetime-local" class="form-control"
+            formControlName="dateExpiration" />
+        </div>
+      </div>
+
+      <!-- Boîte mystère -->
+      <div class="card form-section">
+        <div class="mysterebox-header">
+          <div>
+            <h2 class="section-head" style="margin:0">Boîte mystère</h2>
+            <p class="section-sub">Option surprise pour vos clients — ils ne savent pas ce qu'ils gagnent !</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" formControlName="hasMystereBox" (change)="onMystereToggle()" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div *ngIf="form.get('hasMystereBox')?.value" class="mystere-body">
+          <div class="form-group">
+            <label class="form-label" for="mbPoints">Coût en points (boîte mystère)</label>
+            <input id="mbPoints" type="number" class="form-control" min="1"
+              formControlName="mystereBoxPoints" />
+            <span class="form-hint">Points à dépenser pour ouvrir la boîte mystère</span>
+          </div>
+
+          <div class="mystere-items-header">
+            <span class="form-label" style="margin:0">Lots possibles</span>
+            <span class="proba-total" [class.ok]="probaTotal === 100" [class.nok]="probaTotal !== 100">
+              Total : {{ probaTotal }}% / 100%
+            </span>
+          </div>
+
+          <div formArrayName="mystereBoxItems" class="items-list">
+            <div
+              *ngFor="let item of mystereItems.controls; let i = index"
+              [formGroupName]="i"
+              class="item-row"
+            >
+              <div class="item-num">{{ i + 1 }}</div>
+              <div class="item-fields">
+                <input type="text" class="form-control" formControlName="titre"
+                  placeholder="Nom du lot" />
+                <input type="text" class="form-control" formControlName="description"
+                  placeholder="Description (optionnel)" />
+              </div>
+              <div class="item-proba">
+                <input type="number" class="form-control proba-input"
+                  formControlName="probabilite" min="1" max="100" />
+                <span class="proba-pct">%</span>
+              </div>
+              <button type="button" class="btn btn--danger btn--sm item-del"
+                (click)="supprimerItemMystere(i)"
+                [disabled]="mystereItems.length <= 2"
+                title="Supprimer">✕</button>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn--ghost btn--sm" (click)="ajouterItemMystere()">
+            + Ajouter un lot
+          </button>
+        </div>
+      </div>
     </div>
+
+    <!-- ─── Sidebar droite ─────────────────────────────────────── -->
+    <aside class="form-sidebar">
+      <!-- Aperçu image -->
+      <div class="card preview-card" *ngIf="form.get('imageUrl')?.value">
+        <h3 class="preview-title">Aperçu</h3>
+        <img [src]="form.get('imageUrl')?.value" alt="Aperçu"
+          class="preview-img"
+          (error)="$any($event.target).style.display='none'" />
+      </div>
+
+      <!-- Submit -->
+      <div class="card submit-card">
+        <button type="submit" class="btn btn--primary btn--lg w-full"
+          [disabled]="loading">
+          <span *ngIf="loading" class="spinner-sm"></span>
+          {{ loading ? 'Enregistrement…' : (editId ? 'Mettre à jour' : 'Créer l\'offre') }}
+        </button>
+        <a routerLink="/partenaire/offres" class="btn btn--ghost w-full" style="margin-top:0.5rem">
+          Annuler
+        </a>
+      </div>
+    </aside>
 
   </form>
 </div>
