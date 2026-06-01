@@ -8,7 +8,7 @@ export interface MystereBoxItem {
   probabilite: number;
 }
 
-export interface Recompense {
+export interface RecompenseItemDto {
   id: number;
   partenaireId: number;
   partenaireName: string;
@@ -46,7 +46,7 @@ export interface CreateRecompenseRequest {
   mystereBoxItems?: MystereBoxItem[];
 }
 
-export interface Coupon {
+export interface CouponDto {
   id: number;
   code: string;
   recompenseTitle: string;
@@ -57,6 +57,11 @@ export interface Coupon {
   expireLe?: string;
   valideLe?: string;
   createdAt?: string;
+}
+
+export interface CouponViewModel extends CouponDto {
+  qrCodeUrl?: string;
+  isExpired: boolean;
 }
 
 export interface DashboardPartenaire {
@@ -70,8 +75,8 @@ export interface DashboardPartenaire {
   nombreAvis?: number;
   commissionsARegler: number;
   badgeActuel?: string;
-  offresActives: Recompense[];
-  echangesRecents: Coupon[];
+  offresActives: RecompenseItemDto[];
+  echangesRecents: CouponDto[];
 }
 
 export interface PartenaireProfil {
@@ -134,5 +139,9 @@ export interface ResultatMystereBox {
   titrePrix: string;
   descriptionPrix?: string;
   probabilite: number;
-  coupon: Coupon;
+  coupon: CouponDto;
+}
+
+export interface EchangerRecompenseDto {
+  recompenseId: number;
 }
