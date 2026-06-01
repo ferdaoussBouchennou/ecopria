@@ -35,6 +35,9 @@ public class UserConsumer {
             dto.setLastName(readRequiredString(event, "last_name", "lastName"));
             dto.setFirstName(readRequiredString(event, "first_name", "firstName"));
             dto.setEmail(readOptionalString(event, "email"));
+            dto.setPhone(readOptionalString(event, "phone"));
+            dto.setAddress(readOptionalString(event, "address"));
+            dto.setCity(readOptionalString(event, "city"));
             userService.syncCitizenFromKafka(dto);
         } catch (Exception e) {
             log.error("Erreur conversion CitizenDTO : {}", e.getMessage());

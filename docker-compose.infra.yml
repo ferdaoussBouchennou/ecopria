@@ -86,8 +86,27 @@ services:
       - "8888:80"
     environment:
       PMA_HOSTS: mysql-auth,mysql-utilisateur,mysql-action,mysql-inscription,mysql-presence,mysql-recompense,mysql-admin,mysql-notification
+      # Required with PMA_HOSTS — without this, phpMyAdmin can misconfigure ports → "Connection refused"
+      PMA_PORTS: 3306,3306,3306,3306,3306,3306,3306,3306
       PMA_USER: ecopria
       PMA_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      mysql-auth:
+        condition: service_healthy
+      mysql-utilisateur:
+        condition: service_healthy
+      mysql-action:
+        condition: service_healthy
+      mysql-inscription:
+        condition: service_healthy
+      mysql-presence:
+        condition: service_healthy
+      mysql-recompense:
+        condition: service_healthy
+      mysql-admin:
+        condition: service_healthy
+      mysql-notification:
+        condition: service_healthy
 
   mysql-auth:
     image: mysql:8.0

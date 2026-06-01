@@ -12,4 +12,9 @@ public class KafkaConfig {
     public NewTopic topicUserInscrit() {
         return new NewTopic("user.inscrit", 1, (short) 1);
     }
+
+    @Bean
+    public NewTopic topicEmailVerification() {
+        return new NewTopic("email.verification", 3, (short) 1);
+    }
 }

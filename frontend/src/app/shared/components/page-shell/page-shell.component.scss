@@ -35,6 +35,43 @@
   text-transform: lowercase;
 }
 
+.btn-header {
+  flex-shrink: 0;
+  padding: 0.55rem 1.15rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+
+  &--space {
+    background: var(--ec-sage);
+    color: #fff;
+
+    &:hover {
+      background: #245a43;
+    }
+  }
+
+  &--join {
+    background: var(--ec-sage);
+    color: #fff;
+
+    &:hover {
+      background: #245a43;
+    }
+  }
+}
+
+.footer-palette {
+  display: block;
+  margin-top: 0.35rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 0.62rem;
+}
+
 .site-nav {
   display: flex;
   flex-wrap: wrap;

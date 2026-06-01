@@ -1,0 +1,60 @@
+<section class="auth-page">
+  <div class="auth-layout auth-layout--login">
+    <div class="auth-visual" aria-hidden="true">
+      <div class="auth-visual__frame auth-visual__frame--login"></div>
+    </div>
+
+    <div class="auth-form-col">
+      <p class="auth-eyebrow"><span class="eyebrow-line"></span> Bon retour</p>
+      <h1 class="auth-title">Se connecter.</h1>
+      <p class="auth-sub">Reprenez votre parcours là où vous l'aviez laissé.</p>
+
+      <div *ngIf="error" class="alert alert--error" role="alert">{{ error }}</div>
+
+      <form class="auth-form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input
+            id="login-email"
+            type="email"
+            name="email"
+            [(ngModel)]="email"
+            required
+            placeholder="vous@exemple.com"
+            autocomplete="email"
+          />
+        </div>
+
+        <div class="field">
+          <label for="login-password">Mot de passe</label>
+          <input
+            id="login-password"
+            type="password"
+            name="password"
+            [(ngModel)]="password"
+            required
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
+        </div>
+
+        <div class="form-row-options">
+          <label class="remember-me">
+            <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" />
+            <span>Se souvenir</span>
+          </label>
+          <a routerLink="/connexion" class="forgot-link" title="Bientôt disponible">Mot de passe oublié ?</a>
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="submitting">
+          {{ submitting ? 'Connexion…' : 'Se connecter' }}
+        </button>
+
+        <p class="auth-footer-hint">
+          Pas encore de compte ?
+          <a routerLink="/creer-compte">Créer un compte</a>
+        </p>
+      </form>
+    </div>
+  </div>
+</section>

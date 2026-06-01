@@ -1,0 +1,5 @@
+# mvn spring-boot:run -Dspring-boot.run.profiles=local
+# Prérequis : docker compose -f docker-compose.infra.yml up -d mysql-auth kafka
+spring:
+  kafka:
+    bootstrap-servers: localhost:29092

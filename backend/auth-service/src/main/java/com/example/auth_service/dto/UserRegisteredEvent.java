@@ -13,6 +13,10 @@ public class UserRegisteredEvent {
     private Long userId;
     private String firstName;
     private String lastName;
+    private String email;
+    private String phone;
+    private String address;
+    private String city;
     private String nom;
     private String document;
     private String role;

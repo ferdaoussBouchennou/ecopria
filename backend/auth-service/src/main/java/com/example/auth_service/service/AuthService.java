@@ -1,6 +1,7 @@
 package com.example.auth_service.service;
 
 import com.example.auth_service.dto.*;
+import com.example.auth_service.entity.RegistrationProfile;
 import com.example.auth_service.entity.*;
 import com.example.auth_service.repository.*;
 import com.example.auth_service.security.JwtUtil;
@@ -27,21 +28,26 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final KafkaProducerService kafkaProducer;
+    private final TurnstileService turnstileService;
+    private final EmailVerificationService emailVerificationService;
 
     @Value("${jwt.refresh-expiration}")
     private long refreshExpiration;
 
     // ── REGISTER ──────────────────────────────────────────
-    public AuthResponse register(RegisterRequest request) {
+    public RegistrationResponse register(RegisterRequest request) {
+        turnstileService.verifyToken(request.getCaptchaToken());
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String email = normalizeEmail(request.getEmail());
+        if (userRepository.existsByEmail(email)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already used");
         }
 
         User.Role role = resolveRegisterRole(request.getRole());
+        validateRolePayload(role, request);
 
         User user = User.builder()
-                .email(request.getEmail())
+                .email(email)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(role)
                 .isActive(role == User.Role.USER)
@@ -50,64 +56,58 @@ public class AuthService {
                 .build();
 
         user = userRepository.save(user);
+        emailVerificationService.saveRegistrationProfile(user.getUserId(), request);
 
-        validateRolePayload(role, request);
+        String firstNameHint = request.getFirstName() != null ? request.getFirstName() : request.getNom();
+        emailVerificationService.issueAndSendCode(user, firstNameHint);
 
-        if (role == User.Role.USER) {
-            kafkaProducer.publishUserRegistered(UserRegisteredEvent.builder()
-                    .userId(user.getUserId())
-                    .firstName(request.getFirstName())
-                    .lastName(request.getLastName())
-                    .role(user.getRole().name())
-                    .build());
-        } else {
-            kafkaProducer.publishAssociationPending(UserRegisteredEvent.builder()
-                    .userId(user.getUserId())
-                    .nom(request.getNom())
-                    .document(request.getDocument())
-                    .role(user.getRole().name())
-                    .build());
-        }
-
-        String accessToken = jwtUtil.generateToken(
-                user.getUserId(), user.getEmail(), user.getRole().name());
-        String refreshToken = createRefreshToken(user.getUserId());
-
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .role(user.getRole().name())
+        return RegistrationResponse.builder()
+                .requiresEmailVerification(true)
                 .userId(user.getUserId())
+                .email(user.getEmail())
+                .message("Un code de vérification a été envoyé à votre adresse e-mail.")
                 .build();
+    }
+
+    // ── VERIFY EMAIL ───────────────────────────────────────
+    public AuthResponse verifyEmail(VerifyEmailRequest request) {
+        String email = normalizeEmail(request.getEmail());
+        User user = emailVerificationService.verifyCode(email, request.getCode());
+        completeRegistrationAfterEmailVerified(user);
+        return buildAuthResponse(user);
+    }
+
+    public void resendVerificationEmail(ResendVerificationRequest request) {
+        emailVerificationService.resendCode(normalizeEmail(request.getEmail()));
     }
 
     // ── LOGIN ──────────────────────────────────────────────
     public AuthResponse login(LoginRequest request) {
-
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+        String email = normalizeEmail(request.getEmail());
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Identifiants invalides"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
-        }
-        if (!user.getIsActive()) {
-            throw new RuntimeException("Your account has been banned");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Identifiants invalides");
         }
 
-        if (!Boolean.TRUE.equals(user.getIsActive())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account pending admin verification");
+        if (!Boolean.TRUE.equals(user.getIsVerified())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "EMAIL_NOT_VERIFIED");
         }
 
-        String accessToken = jwtUtil.generateToken(
-                user.getUserId(), user.getEmail(), user.getRole().name());
-        String refreshToken = createRefreshToken(user.getUserId());
+        if (user.getRole() != User.Role.USER && !Boolean.TRUE.equals(user.getIsActive())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Account pending admin verification");
+        }
 
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .role(user.getRole().name())
-                .userId(user.getUserId())
-                .build();
+        if (user.getRole() == User.Role.USER && !Boolean.TRUE.equals(user.getIsActive())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Votre compte a été désactivé");
+        }
+
+        return buildAuthResponse(user);
     }
 
     // ── REFRESH TOKEN ──────────────────────────────────────
@@ -173,6 +173,49 @@ public class AuthService {
         }
     }
 
+    private void completeRegistrationAfterEmailVerified(User user) {
+        RegistrationProfile profile = emailVerificationService.getProfile(user.getUserId());
+
+        if (user.getRole() == User.Role.USER) {
+            kafkaProducer.publishUserRegistered(UserRegisteredEvent.builder()
+                    .userId(user.getUserId())
+                    .firstName(profile.getFirstName())
+                    .lastName(profile.getLastName())
+                    .email(user.getEmail())
+                    .phone(profile.getPhone())
+                    .address(profile.getAddress())
+                    .city(profile.getCity())
+                    .role(user.getRole().name())
+                    .build());
+        } else {
+            kafkaProducer.publishAssociationPending(UserRegisteredEvent.builder()
+                    .userId(user.getUserId())
+                    .nom(profile.getNom())
+                    .document(profile.getDocument())
+                    .role(user.getRole().name())
+                    .build());
+        }
+
+        emailVerificationService.deleteProfile(user.getUserId());
+    }
+
+    private AuthResponse buildAuthResponse(User user) {
+        String accessToken = jwtUtil.generateToken(
+                user.getUserId(), user.getEmail(), user.getRole().name());
+        String refreshToken = createRefreshToken(user.getUserId());
+
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .role(user.getRole().name())
+                .userId(user.getUserId())
+                .build();
+    }
+
+    private static String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase();
+    }
+
     // ── HELPER ────────────────────────────────────────────
     private String createRefreshToken(Long userId) {
         String token = UUID.randomUUID().toString();
@@ -202,6 +245,9 @@ public class AuthService {
         if (role == User.Role.USER) {
             if (!StringUtils.hasText(request.getFirstName()) || !StringUtils.hasText(request.getLastName())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "USER requires first_name and last_name");
+            }
+            if (!StringUtils.hasText(request.getCity())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "USER requires city");
             }
             return;
         }

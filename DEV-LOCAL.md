@@ -136,3 +136,12 @@ docker compose up -d
 ```
 
 Utilise le `docker-compose.yml` complet (microservices + gateway + frontend).
+
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:4200 |
+| API Gateway | http://localhost:8088 (8080 souvent occupé par Jenkins) |
+| Kafka UI | http://localhost:8090 |
+| phpMyAdmin | http://localhost:8888 |
+
+> Si vous utilisez `ng serve` avec les backends Docker, le proxy (`proxy.conf.json`) pointe déjà vers **8088**.

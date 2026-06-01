@@ -1,11 +1,30 @@
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-page-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './page-shell.component.html',
   styleUrl: './page-shell.component.scss',
 })
-export class PageShellComponent {}
+export class PageShellComponent {
+  constructor(public auth: AuthService) {}
+
+  get isLoggedIn(): boolean {
+    return this.auth.isLoggedIn();
+  }
+
+  get monEspaceLink(): string[] {
+    const role = this.auth.getRole();
+    if (role === 'ASSOCIATION') {
+      return ['/association'];
+    }
+    if (role === 'PARTNER') {
+      return ['/partenaire'];
+    }
+    return ['/mes-inscriptions'];
+  }
+}

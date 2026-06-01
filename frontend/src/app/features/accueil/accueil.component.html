@@ -1,0 +1,171 @@
+<div class="accueil">
+  <!-- Hero -->
+  <section class="accueil-hero">
+    <div class="accueil-hero__text">
+      <p class="accueil-eyebrow"><span class="eyebrow-line"></span> Édition printemps 2025</p>
+      <h1 class="accueil-hero__title">L'éco-action, cultivée comme un art de vivre.</h1>
+      <p class="accueil-hero__lead">
+        Ecopria rassemble associations, citoyens et artisans autour d'actions concrètes pour le vivant.
+        Chaque geste compte, chaque geste se récompense.
+      </p>
+      <div class="accueil-hero__cta">
+        <a routerLink="/carte" class="btn btn--primary">Explorer la carte</a>
+        <a routerLink="/accueil" fragment="comment-ca-marche" class="btn btn--outline">Comment ça marche</a>
+      </div>
+      <div class="accueil-stats">
+        @for (stat of stats; track stat.label) {
+          <div class="accueil-stat">
+            <span class="accueil-stat__value">{{ stat.value }}</span>
+            <span class="accueil-stat__label">{{ stat.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+    <div class="accueil-hero__visual">
+      <div
+        class="accueil-hero__image"
+        role="img"
+        aria-label="Bénévoles plantant des arbres en pleine nature"
+      ></div>
+      @if (spotlightAction) {
+        <div class="accueil-spotlight">
+          <span class="accueil-spotlight__tag">Cette semaine</span>
+          <p class="accueil-spotlight__title">{{ spotlightAction.title }}</p>
+        </div>
+      } @else {
+        <div class="accueil-spotlight">
+          <span class="accueil-spotlight__tag">Cette semaine</span>
+          <p class="accueil-spotlight__title">Plantation de 200 chênes, Sénart</p>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Catégories -->
+  <section class="accueil-section" id="familles-actions">
+    <div class="accueil-section__head">
+      <div>
+        <p class="accueil-eyebrow"><span class="eyebrow-line"></span> Cinq familles d'actions</p>
+        <h2 class="accueil-section__title">Choisir sa façon d'agir.</h2>
+      </div>
+      <a routerLink="/actions" class="accueil-link-arrow">Toutes les actions →</a>
+    </div>
+    <div class="accueil-categories">
+      @for (card of categoryCards; track card.name) {
+        <a
+          class="accueil-category"
+          routerLink="/actions"
+          [queryParams]="categoryQuery(card.meta.slug)"
+        >
+          <img [src]="card.imageUrl" [alt]="card.name" loading="lazy" />
+          <div class="accueil-category__overlay">
+            <h3>{{ card.name }}</h3>
+            <p>{{ card.meta.subtitle | uppercase }}</p>
+          </div>
+        </a>
+      }
+    </div>
+  </section>
+
+  <!-- À l'affiche -->
+  <section class="accueil-section accueil-featured">
+    <p class="accueil-eyebrow"><span class="eyebrow-line"></span> À l'affiche</p>
+    <h2 class="accueil-section__title">Trois rendez-vous proches de chez vous.</h2>
+
+    @if (loadingFeatured) {
+      <p class="accueil-muted">Chargement des actions…</p>
+    } @else {
+      <div class="accueil-events">
+        @for (action of featuredActions; track $index) {
+          <article class="accueil-event-card">
+            <a [routerLink]="featuredActionLink(action)" class="accueil-event-card__link">
+              <div class="accueil-event-card__image">
+                <img
+                  [src]="getFeaturedCardImage(action, $index)"
+                  [alt]="action.title"
+                  loading="lazy"
+                />
+                <span class="badge badge--cat">{{ action.categoryName | uppercase }}</span>
+                <span class="badge badge--places" [class.badge--full]="isFull(action)">
+                  {{ formatPlaces(action.availablePlaces, action.maxParticipants) }}
+                </span>
+              </div>
+              <div class="accueil-event-card__body">
+                <p class="accueil-event-card__city">{{ action.city | uppercase }}</p>
+                <h3>{{ action.title }}</h3>
+                <div class="accueil-event-card__footer">
+                  <div class="accueil-event-card__datetime">
+                    <span>{{ formatDate(action.dateStart) }}</span>
+                    <span class="accueil-event-card__time">{{
+                      formatTime(action.dateStart, action.dateEnd)
+                    }}</span>
+                  </div>
+                  <div class="accueil-event-card__points">
+                    <span class="accueil-event-card__points-num">{{ action.points }}</span>
+                    <span class="accueil-event-card__points-label">points</span>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Comment ça marche -->
+  <section class="accueil-section accueil-how" id="comment-ca-marche">
+    <div class="accueil-how__visual">
+      <div class="accueil-how__image" role="img" aria-label="Smartphone affichant un QR code"></div>
+    </div>
+    <div class="accueil-how__text">
+      <p class="accueil-eyebrow"><span class="eyebrow-line"></span> Comment ça marche</p>
+      <h2 class="accueil-section__title">Trois pas. Et un geste réel.</h2>
+      <ol class="accueil-steps">
+        <li>
+          <span class="accueil-steps__num">01</span>
+          <div>
+            <strong>Choisir</strong>
+            <p>Parcourez les actions près de chez vous, par catégorie ou par date.</p>
+          </div>
+        </li>
+        <li>
+          <span class="accueil-steps__num">02</span>
+          <div>
+            <strong>Participer</strong>
+            <p>Inscrivez-vous en un clic. Un QR code unique vous est envoyé.</p>
+          </div>
+        </li>
+        <li>
+          <span class="accueil-steps__num">03</span>
+          <div>
+            <strong>Gagner</strong>
+            <p>Présentez-vous, scannez. Vos points sont crédités, à échanger chez nos partenaires.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Communauté -->
+  <section class="accueil-section accueil-community">
+    <div class="accueil-community__text">
+      <p class="accueil-eyebrow"><span class="eyebrow-line"></span> Communauté</p>
+      <h2 class="accueil-section__title">Mille mains. Une même attention.</h2>
+      <p class="accueil-community__lead">
+        Associations locales, jeunes actifs, familles, retraités : chacun y trouve sa place. Ecopria se veut
+        une maison commune, simple à habiter.
+      </p>
+      @if (!isLoggedIn) {
+        <a routerLink="/creer-compte" class="btn btn--primary btn--lg">Rejoindre Ecopria</a>
+      }
+    </div>
+    <div class="accueil-community__visual">
+      <div
+        class="accueil-community__image"
+        role="img"
+        aria-label="Groupe de personnes souriantes dans un jardin"
+      ></div>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,58 @@
+<section class="auth-page">
+  <div class="auth-layout auth-layout--narrow">
+    <div class="auth-form-col">
+      <p class="auth-eyebrow"><span class="eyebrow-line"></span> Vérification</p>
+      <h1 class="auth-title">Vérifiez votre e-mail</h1>
+      <p class="auth-sub">
+        Nous avons envoyé un code à 6 chiffres à
+        <strong>{{ email || 'votre adresse' }}</strong>.
+      </p>
+
+      @if (showDevHint) {
+        <div class="alert alert--success dev-code-hint" role="note">
+          <strong>En développement :</strong> si aucun e-mail n’arrive, le code est aussi affiché dans la
+          console du service <strong>auth</strong> (ligne
+          <code>[DEV] Code de vérification pour …</code>). Vérifiez aussi que Docker (Kafka) et
+          <strong>service-notification</strong> tournent pour l’envoi réel.
+        </div>
+      }
+
+      <form (ngSubmit)="submit()" class="auth-form">
+        <label class="field">
+          <span>Code de vérification</span>
+          <input
+            type="text"
+            name="code"
+            [(ngModel)]="code"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength="6"
+            placeholder="000000"
+            class="code-input"
+          />
+        </label>
+
+        @if (error) {
+          <div class="alert alert--error" role="alert">{{ error }}</div>
+        }
+        @if (info) {
+          <div class="alert alert--success" role="status">{{ info }}</div>
+        }
+
+        <button type="submit" class="btn-submit" [disabled]="submitting">
+          {{ submitting ? 'Vérification…' : 'Confirmer mon compte' }}
+        </button>
+
+        <p class="auth-footer-hint">
+          Pas reçu ?
+          <button type="button" class="link-btn" (click)="resend()" [disabled]="resending">
+            {{ resending ? 'Envoi…' : 'Renvoyer le code' }}
+          </button>
+        </p>
+        <p class="auth-footer-hint">
+          <a routerLink="/connexion">Retour à la connexion</a>
+        </p>
+      </form>
+    </div>
+  </div>
+</section>

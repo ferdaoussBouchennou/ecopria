@@ -23,6 +23,12 @@ public class RegisterRequest {
     @JsonProperty("last_name")
     private String lastName;
 
+    private String phone;
+
+    private String address;
+
+    private String city;
+
     private String nom;
 
     private String document;
@@ -30,4 +36,7 @@ public class RegisterRequest {
     @NotBlank
     @Pattern(regexp = "(?i)USER|ASSOCIATION|PARTNER")
     private String role = "USER";
+
+    @JsonProperty("captcha_token")
+    private String captchaToken;
 }

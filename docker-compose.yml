@@ -91,8 +91,26 @@ services:
       - "8888:80"
     environment:
       PMA_HOSTS: mysql-auth,mysql-utilisateur,mysql-action,mysql-inscription,mysql-presence,mysql-recompense,mysql-admin,mysql-notification
+      PMA_PORTS: 3306,3306,3306,3306,3306,3306,3306,3306
       PMA_USER: ecopria
       PMA_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      mysql-auth:
+        condition: service_healthy
+      mysql-utilisateur:
+        condition: service_healthy
+      mysql-action:
+        condition: service_healthy
+      mysql-inscription:
+        condition: service_healthy
+      mysql-presence:
+        condition: service_healthy
+      mysql-recompense:
+        condition: service_healthy
+      mysql-admin:
+        condition: service_healthy
+      mysql-notification:
+        condition: service_healthy
 
   # ─────────────────────────────────────────────────────────
   #  BASES DE DONNÉES MySQL — une par microservice
@@ -276,10 +294,11 @@ services:
     ports:
       - "4200:80"
     depends_on:
-      - api-gateway
+      api-gateway:
+        condition: service_healthy
 
   # ─────────────────────────────────────────────────────────
-  #  API GATEWAY → http://localhost:8080
+  #  API GATEWAY → http://localhost:8088 (8080 souvent pris par Jenkins/autre)
   # ─────────────────────────────────────────────────────────
   api-gateway:
     build: ./backend/api-gateway
@@ -287,7 +306,7 @@ services:
     networks:
       - ecopria-network
     ports:
-      - "8080:8080"
+      - "8088:8080"
     environment:
       GATEWAY_AUTH_URI: http://service-auth-backend:8081
       GATEWAY_ADMIN_URI: http://admin-service-backend:8087
@@ -333,17 +352,23 @@ services:
     ports:
       - "8081:8081"
     environment:
+      SERVER_PORT: 8081
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-auth:3306/db_auth?useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: ecopria
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-1x0000000000000000000000000000000AA}
+      TURNSTILE_ENABLED: ${TURNSTILE_ENABLED:-true}
+      LOG_VERIFICATION_CODE: ${LOG_VERIFICATION_CODE:-true}
+      SERVICE_NOTIFICATION_URL: http://service-notification-backend:8086
+      EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS: ${EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS:-30}
     restart: on-failure
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 20s
       timeout: 10s
       retries: 10
-      start_period: 60s
+      start_period: 120s
     depends_on:
       mysql-auth:
         condition: service_healthy
@@ -361,6 +386,7 @@ services:
     ports:
       - "8082:8082"
     environment:
+      SERVER_PORT: 8082
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-utilisateur:3306/db_utilisateur?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: ecopria
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
@@ -389,17 +415,20 @@ services:
     ports:
       - "8086:8086"
     environment:
+      SERVER_PORT: 8086
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-notification:3306/db_notification?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: ecopria
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       EMAIL_USERNAME: ${EMAIL_USERNAME}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      MAIL_ENFORCE: ${MAIL_ENFORCE:-false}
+      MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
       SERVICE_UTILISATEUR_URL: http://service-utilisateur-backend:8082
       SERVICE_INSCRIPTION_URL: http://service-inscription-backend:8084
     restart: on-failure
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health/liveness"]
       interval: 20s
       timeout: 10s
       retries: 10

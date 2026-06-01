@@ -10,4 +10,6 @@ export const environment = {
   inscriptionApi: '/api/inscriptions',
   recompenseApi: '/api/recompenses',
   presenceApi: '/api/presences',
+  turnstileSiteKey: '1x00000000000000000000AA',
+  turnstileDevBypass: true,
 };

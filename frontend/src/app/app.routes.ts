@@ -15,6 +15,10 @@ import { ListeParticipantsComponent } from './features/association/liste-partici
 
 import { DashboardComponent } from './features/association/dashboard/dashboard.component';
 import { CalendrierComponent } from './features/association/calendrier/calendrier.component';
+import { RegisterComponent } from './features/auth/register/register.component';
+import { LoginComponent } from './features/auth/login/login.component';
+import { VerifyEmailComponent } from './features/auth/verify-email/verify-email.component';
+import { AccueilComponent } from './features/accueil/accueil.component';
 
 export const routes: Routes = [
   // Routes publiques avec navbar/footer
@@ -22,12 +26,16 @@ export const routes: Routes = [
     path: '',
     component: PageShellComponent,
     children: [
-      { path: '', redirectTo: 'actions', pathMatch: 'full' },
+      { path: '', component: AccueilComponent },
+      { path: 'accueil', component: AccueilComponent },
       { path: 'actions', component: ListeActionsComponent },
       { path: 'carte', component: CarteActionsComponent },
       { path: 'action/:id', component: DetailActionComponent },
       { path: 'inscription/:actionId', component: InscriptionFormComponent },
       { path: 'mes-inscriptions', component: MesInscriptionsComponent },
+      { path: 'creer-compte', component: RegisterComponent },
+      { path: 'verifier-email', component: VerifyEmailComponent },
+      { path: 'connexion', component: LoginComponent },
       { path: 'valider-presence/:actionId', loadComponent: () => import('./features/inscription/components/scan-participant/scan-participant.component').then(m => m.ScanParticipantComponent) },
     ],
   },
@@ -51,5 +59,5 @@ export const routes: Routes = [
     ],
   },
   
-  { path: '**', redirectTo: 'actions' },
+  { path: '**', redirectTo: '' },
 ];

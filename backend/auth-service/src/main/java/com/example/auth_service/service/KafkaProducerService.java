@@ -1,5 +1,6 @@
 package com.example.auth_service.service;
 
+import com.example.auth_service.dto.EmailVerificationEvent;
 import com.example.auth_service.dto.UserRegisteredEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,11 @@ import org.springframework.stereotype.Service;
 public class KafkaProducerService {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    public void publishEmailVerification(EmailVerificationEvent event) {
+        kafkaTemplate.send("email.verification", String.valueOf(event.getUserId()), event);
+        log.info("Published email.verification for userId: {}", event.getUserId());
+    }
 
     public void publishUserRegistered(UserRegisteredEvent event) {
         kafkaTemplate.send("citoyen.inscrit", String.valueOf(event.getUserId()), event);

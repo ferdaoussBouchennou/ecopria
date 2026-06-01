@@ -5,6 +5,8 @@ import com.ecopria.notification.client.UtilisateurContactClient;
 import com.ecopria.notification.client.dto.CitizenContactSnapshot;
 import com.ecopria.notification.model.Notification;
 import com.ecopria.notification.service.NotificationDispatcher;
+import com.ecopria.notification.service.NotificationService;
+import com.ecopria.notification.service.VerificationEmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -25,6 +27,8 @@ import java.util.Set;
 public class NotificationConsumer {
 
     private final NotificationDispatcher dispatcher;
+    private final NotificationService notificationService;
+    private final VerificationEmailService verificationEmailService;
     private final UtilisateurContactClient utilisateurContactClient;
     private final InscriptionInternalClient inscriptionInternalClient;
 
@@ -86,6 +90,19 @@ public class NotificationConsumer {
         }
         String s = e.toString().trim();
         return s.isEmpty() ? null : s;
+    }
+
+    @KafkaListener(topics = "email.verification", groupId = "notification-email-verification-group")
+    public void onEmailVerification(Map<String, Object> event) {
+        log.info("📥 [Kafka] email.verification : {}", event);
+        String email = emailFromEvent(event);
+        if (email == null) {
+            log.warn("email.verification sans destinataire");
+            return;
+        }
+        String code = readStringAny(event, "", "code");
+        String firstName = readStringAny(event, "", "firstName", "first_name");
+        verificationEmailService.send(email, code, firstName);
     }
 
     @KafkaListener(topics = { "user.inscrit", "citoyen.inscrit" }, groupId = "notification-citoyen-group")

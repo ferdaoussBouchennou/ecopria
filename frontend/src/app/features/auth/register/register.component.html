@@ -1,0 +1,153 @@
+<section class="auth-page">
+  <div class="auth-layout auth-layout--register">
+    <div class="auth-form-col">
+      <p class="auth-eyebrow"><span class="eyebrow-line"></span> Rejoindre ecopria</p>
+      <h1 class="auth-title">Créer votre compte.</h1>
+      <p class="auth-sub">Choisissez votre profil. Tout commence ici.</p>
+
+      <div class="profile-cards" role="radiogroup" aria-label="Type de profil">
+        <button
+          type="button"
+          class="profile-card"
+          [class.profile-card--active]="profileType === 'citoyen'"
+          (click)="selectProfile('citoyen')"
+        >
+          <span class="profile-card__title">Citoyen·ne</span>
+          <span class="profile-card__desc">Participer à des actions, gagner des points.</span>
+        </button>
+        <button
+          type="button"
+          class="profile-card"
+          [class.profile-card--active]="profileType === 'association'"
+          (click)="selectProfile('association')"
+        >
+          <span class="profile-card__title">Association</span>
+          <span class="profile-card__desc">Créer et gérer des actions écologiques.</span>
+        </button>
+        <button
+          type="button"
+          class="profile-card"
+          [class.profile-card--active]="profileType === 'partenaire'"
+          (click)="selectProfile('partenaire')"
+        >
+          <span class="profile-card__title">Partenaire</span>
+          <span class="profile-card__desc">Proposer des récompenses à la communauté.</span>
+        </button>
+      </div>
+
+      <div *ngIf="successMessage" class="alert alert--success" role="status">
+        {{ successMessage }}
+        <a routerLink="/connexion" class="alert-link">Se connecter</a>
+      </div>
+
+      <form *ngIf="!successMessage" class="auth-form" (ngSubmit)="submit()" novalidate>
+        <div *ngIf="error" class="alert alert--error" role="alert">{{ error }}</div>
+
+        <ng-container *ngIf="profileType === 'citoyen'; else orgFields">
+          <div class="field-row">
+            <div class="field">
+              <label for="prenom">Prénom</label>
+              <input id="prenom" name="prenom" type="text" [(ngModel)]="firstName" required placeholder="Camille" autocomplete="given-name" />
+            </div>
+            <div class="field">
+              <label for="nom">Nom</label>
+              <input id="nom" name="nom" type="text" [(ngModel)]="lastName" required placeholder="Renard" autocomplete="family-name" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" [(ngModel)]="email" required placeholder="vous@exemple.com" autocomplete="email" />
+          </div>
+
+          <div class="field">
+            <label for="telephone">Téléphone</label>
+            <input id="telephone" name="telephone" type="tel" [(ngModel)]="phone" placeholder="+212 6 12 34 56 78" autocomplete="tel" />
+          </div>
+
+          <div class="field">
+            <label for="adresse">Adresse</label>
+            <input id="adresse" name="adresse" type="text" [(ngModel)]="address" placeholder="14 rue des Tilleuls" autocomplete="street-address" />
+          </div>
+
+          <div class="field">
+            <label for="ville">Ville</label>
+            <input id="ville" name="ville" type="text" [(ngModel)]="city" required placeholder="Tétouan" autocomplete="address-level2" />
+          </div>
+
+          <div class="field">
+            <label for="password">Mot de passe</label>
+            <input id="password" name="password" type="password" [(ngModel)]="password" required minlength="8" placeholder="Minimum 8 caractères" autocomplete="new-password" />
+          </div>
+        </ng-container>
+
+        <ng-template #orgFields>
+          <div class="field">
+            <label for="orgName">{{ profileType === 'partenaire' ? 'Nom du partenaire' : "Nom de l'association" }}</label>
+            <input id="orgName" name="orgName" type="text" [(ngModel)]="orgName" required placeholder="Bahr Nadif" />
+          </div>
+
+          <div class="field">
+            <label for="email-org">Email de contact</label>
+            <input id="email-org" name="email" type="email" [(ngModel)]="email" required placeholder="contact@asso.ma" autocomplete="email" />
+          </div>
+
+          <div class="field">
+            <label for="password-org">Mot de passe</label>
+            <input id="password-org" name="password" type="password" [(ngModel)]="password" required minlength="8" placeholder="Minimum 8 caractères" autocomplete="new-password" />
+          </div>
+
+          <div class="file-upload">
+            <label for="verification-doc">Document de vérification</label>
+            <div class="file-upload__zone">
+              <input
+                id="verification-doc"
+                class="file-upload__input"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                (change)="onDocumentSelected($event)"
+              />
+              <button type="button" class="file-upload__btn" (click)="triggerFilePicker()">Parcourir…</button>
+              <span class="file-upload__name">{{ documentFileName }}</span>
+            </div>
+            <p class="file-upload__hint">Statuts, récépissé ou attestation officielle (PDF, JPG)</p>
+          </div>
+
+          <div class="info-box">
+            Votre dossier sera validé par l'équipe Ecopria. Une fois accepté, vous pourrez compléter votre profil.
+          </div>
+        </ng-template>
+
+        <div class="captcha-box">
+          @if (!captchaUseDevFallback) {
+            <div #turnstileContainer class="turnstile-widget" aria-label="Vérification anti-robot"></div>
+          } @else {
+            <label class="captcha-box captcha-box--dev">
+              <input
+                type="checkbox"
+                [checked]="captchaDevBypass"
+                (change)="onDevCaptchaToggle($any($event.target).checked)"
+              />
+              <span>Je confirme que je ne suis pas un robot (mode développement)</span>
+            </label>
+            <p class="captcha-hint">Cloudflare indisponible — cochez pour continuer en local.</p>
+          }
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="submitting">
+          {{ submitting ? 'Création en cours…' : 'Créer mon compte' }}
+        </button>
+
+        <p class="legal-note">En continuant, vous acceptez nos conditions d'utilisation.</p>
+        <p class="auth-footer-hint">
+          Déjà inscrit·e ?
+          <a routerLink="/connexion">Se connecter</a>
+        </p>
+      </form>
+    </div>
+
+    <div class="auth-visual" aria-hidden="true">
+      <div class="auth-visual__frame auth-visual__frame--register"></div>
+    </div>
+  </div>
+</section>
