@@ -1,0 +1,96 @@
+<div *ngIf="profile" class="dashboard-page">
+  <div class="stats-grid stats-grid--dashboard">
+    <article class="stat-card stat-card--dashboard">
+      <span class="stat-val">{{ profile.totalPoints }}</span>
+      <span class="stat-lbl">Points actuels</span>
+    </article>
+    <article class="stat-card stat-card--dashboard">
+      <span class="stat-val">{{ validatedActionsCount }}</span>
+      <span class="stat-lbl">Actions validées</span>
+    </article>
+    <article class="stat-card stat-card--dashboard">
+      <span class="stat-val">{{ badges.length || 0 }}</span>
+      <span class="stat-lbl">Badges débloqués</span>
+    </article>
+    <article class="stat-card stat-card--dashboard">
+      <span class="stat-val">#{{ getMyRank() || '—' }}</span>
+      <span class="stat-lbl">Classement</span>
+    </article>
+  </div>
+
+  <div class="dashboard-layout">
+    <section class="dashboard-main">
+      <div class="section-title-wrap section-title-wrap--dashboard">
+        <h2>Mes actions à venir</h2>
+        <a *ngIf="totalUpcomingActions > 0" routerLink="/espace/actions" class="view-all">Toutes</a>
+      </div>
+
+      <div class="action-list action-list--dashboard">
+        <article class="action-card action-card--dashboard" *ngFor="let action of upcomingActions">
+          <img [src]="action.imageUrl" class="action-img action-img--dashboard" [alt]="action.title">
+          <div class="action-info action-info--dashboard">
+            <p class="action-meta action-meta--dashboard">{{ getLocationLabel(action) }}</p>
+            <h4>{{ action.title }}</h4>
+            <p class="action-date">{{ getActionSchedule(action) }}</p>
+          </div>
+          <div class="action-points action-points--dashboard">
+            <p class="pts-val">+{{ action.points }}</p>
+            <a routerLink="/espace/actions" class="qr-link">QR code</a>
+          </div>
+        </article>
+
+        <div *ngIf="upcomingActions.length === 0" class="empty-state empty-state--dashboard">
+          Aucune action à venir pour le moment.
+        </div>
+      </div>
+
+      <div class="section-title-wrap section-title-wrap--dashboard section-title-wrap--history">
+        <h2>Historique des points</h2>
+      </div>
+
+      <div class="table-card table-card--dashboard">
+        <table class="data-table data-table--dashboard">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Action</th>
+              <th class="align-right">Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let h of history">
+              <td class="muted">{{ h.createdAt | date:'dd MMM yyyy' }}</td>
+              <td>{{ h.description }}</td>
+              <td
+                class="align-right points-cell"
+                [class.points-cell--credit]="h.type === 'CREDIT'"
+                [class.points-cell--debit]="h.type !== 'CREDIT'">
+                {{ h.type === 'CREDIT' ? '+' : '−' }}{{ h.amount }}
+              </td>
+            </tr>
+            <tr *ngIf="totalPointHistory === 0">
+              <td colspan="3" class="muted empty-row">Aucun historique récent.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <aside class="dashboard-side">
+      <div class="section-title-wrap section-title-wrap--dashboard">
+        <h2>Mes badges</h2>
+      </div>
+
+      <div class="badges-grid badges-grid--dashboard">
+        <article
+          *ngFor="let badge of displayBadges"
+          class="badge-item badge-item--dashboard"
+          [class.locked]="badge.locked">
+          <div class="badge-icon-circle badge-icon-circle--dashboard">{{ badge.icon }}</div>
+          <h5>{{ badge.name }}</h5>
+          <p>{{ badge.description }}</p>
+        </article>
+      </div>
+    </aside>
+  </div>
+</div>

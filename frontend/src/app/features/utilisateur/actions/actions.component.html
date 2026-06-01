@@ -1,0 +1,139 @@
+<section class="space-page">
+  <div class="hero-card hero-card--actions">
+    <div class="hero-copy">
+      <span class="eyebrow-pill">Mes inscriptions</span>
+      <h2>Actions suivies, validées et à venir.</h2>
+      <p>
+        Retrouvez vos participations, les points gagnés et l'historique de vos engagements dans l'espace Ecopria.
+      </p>
+
+      <div class="hero-stats">
+        <article>
+          <strong>{{ allUpcoming.length }}</strong>
+          <span>À venir</span>
+        </article>
+        <article>
+          <strong>{{ allHistory.length }}</strong>
+          <span>Historique</span>
+        </article>
+        <article>
+          <strong>{{ allUpcoming.length + allHistory.length }}</strong>
+          <span>Total suivi</span>
+        </article>
+      </div>
+    </div>
+
+    <div class="hero-focus">
+      <p class="hero-focus__label">Prochaine étape</p>
+      <ng-container *ngIf="allUpcoming.length > 0; else noUpcoming">
+        <h3>{{ allUpcoming[0].title }}</h3>
+        <p>{{ allUpcoming[0].city }} · {{ allUpcoming[0].categoryName }}</p>
+        <div class="hero-focus__meta">
+          <span>{{ formatDateRange(allUpcoming[0].dateStart, allUpcoming[0].dateEnd) }}</span>
+          <span>{{ allUpcoming[0].points }} pts</span>
+        </div>
+      </ng-container>
+      <ng-template #noUpcoming>
+        <h3>Aucune action à venir</h3>
+        <p>Vos inscriptions récentes apparaîtront ici dès que le service d'inscription renvoie des données.</p>
+      </ng-template>
+    </div>
+  </div>
+
+  <p class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <section class="panel-card">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow-mini">À venir</span>
+        <h3>Actions confirmées</h3>
+      </div>
+    </div>
+
+    <div class="action-stack" *ngIf="!loading; else loadingState">
+      <article class="action-row" *ngFor="let action of upcomingActions">
+        <img class="action-row__image" [src]="action.categoryImageUrl || 'assets/logo.png'" [alt]="action.title">
+        <div class="action-row__body">
+          <div class="action-row__topline">
+            <span class="tag">{{ action.city }}</span>
+            <span class="status-chip" [ngClass]="getStatutClass(action.statut)">{{ getStatutLabel(action.statut) }}</span>
+          </div>
+          <h4>{{ action.title }}</h4>
+          <p>{{ action.categoryName }} · {{ formatDateRange(action.dateStart, action.dateEnd) }}</p>
+          <div class="action-row__footer">
+            <span>{{ action.associationName || 'Association locale' }}</span>
+            <strong>+{{ action.points }} pts</strong>
+          </div>
+        </div>
+      </article>
+
+      <div class="pagination" *ngIf="totalPagesUpcoming > 1">
+        <button class="pagination__btn" [disabled]="currentPageUpcoming === 1" (click)="changePageUpcoming(currentPageUpcoming - 1)">Précédent</button>
+        <span class="pagination__info">Page <strong>{{ currentPageUpcoming }}</strong> / {{ totalPagesUpcoming }}</span>
+        <button class="pagination__btn" [disabled]="currentPageUpcoming === totalPagesUpcoming" (click)="changePageUpcoming(currentPageUpcoming + 1)">Suivant</button>
+      </div>
+
+      <div class="empty-state" *ngIf="allUpcoming.length === 0">
+        Aucune action inscrite à venir pour le moment.
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel-card panel-card--soft">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow-mini">Historique</span>
+        <h3>Actions passées</h3>
+      </div>
+      <div class="section-filters" *ngIf="!loading">
+        <input
+          [ngModel]="historySearch"
+          (ngModelChange)="historySearch = $event; onHistoryFiltersChanged()"
+          placeholder="Rechercher (titre, ville, catégorie...)"
+        />
+        <select
+          [ngModel]="historyStatus"
+          (ngModelChange)="historyStatus = $event; onHistoryFiltersChanged()"
+        >
+          <option value="ALL">Tous</option>
+          <option value="VALIDE">Validé</option>
+          <option value="ABSENT">Absent</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="timeline" *ngIf="!loading; else loadingState">
+      <article class="timeline-item" *ngFor="let action of historyActions">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-content__top">
+            <span class="tag tag--muted">{{ action.city }}</span>
+            <span class="status-chip" [ngClass]="getStatutClass(action.statut)">{{ getStatutLabel(action.statut) }}</span>
+          </div>
+          <h4>{{ action.title }}</h4>
+          <p>{{ formatDateRange(action.dateStart, action.dateEnd) }}</p>
+          <div class="timeline-content__bottom">
+            <span>{{ action.categoryName }}</span>
+            <strong>{{ action.points }} pts</strong>
+          </div>
+        </div>
+      </article>
+
+      <div class="pagination" *ngIf="totalPagesHistory > 1">
+        <button class="pagination__btn" [disabled]="currentPageHistory === 1" (click)="changePageHistory(currentPageHistory - 1)">Précédent</button>
+        <span class="pagination__info">Page <strong>{{ currentPageHistory }}</strong> / {{ totalPagesHistory }}</span>
+        <button class="pagination__btn" [disabled]="currentPageHistory === totalPagesHistory" (click)="changePageHistory(currentPageHistory + 1)">Suivant</button>
+      </div>
+
+      <div class="empty-state" *ngIf="filteredHistory.length === 0">
+        Aucun historique disponible pour le moment.
+      </div>
+    </div>
+  </aside>
+</section>
+
+<ng-template #loadingState>
+  <div class="skeleton-list">
+    <div class="skeleton-card" *ngFor="let _ of [1, 2, 3]"></div>
+  </div>
+</ng-template>
