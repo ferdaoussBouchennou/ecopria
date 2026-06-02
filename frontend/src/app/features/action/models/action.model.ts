@@ -1,6 +1,6 @@
 export type ActionStatus = 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
 
-/** Réponse GET /api/actions — ActionSummaryDTO */
+/** Réponse GET /api/actions — ActionSummaryDto */
 export interface ActionSummary {
   id: number;
   title: string;
@@ -18,6 +18,29 @@ export interface ActionSummary {
   latitude?: number;
   longitude?: number;
   photoUrls?: string[]; // URLs des photos de l'action
+  associationName?: string; // Association name
+}
+
+/** Réponse GET /api/actions — ActionSummaryDto (alias) */
+export interface ActionSummaryDto extends ActionSummary {}
+
+/** View model for user actions */
+export interface ActionRowViewModel {
+  inscriptionId: number;
+  actionId: number;
+  statut: 'INSCRIT' | 'VALIDE' | 'ABSENT';
+  dateAction: string;
+  title: string;
+  categoryName: string;
+  categoryImageUrl?: string;
+  city: string;
+  dateStart: string;
+  dateEnd: string;
+  points: number;
+  availablePlaces: number;
+  maxParticipants: number;
+  associationName?: string;
+  description?: string;
 }
 
 /** Réponse GET /api/actions/{id} — ActionDetailDTO */

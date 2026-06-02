@@ -3,9 +3,9 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {
-  Coupon,
+  CouponDto,
   PartenaireProfil,
-  Recompense,
+  RecompenseItemDto,
   RecompenseType,
   ResultatMystereBox
 } from '../../core/models/recompense.model';
@@ -23,22 +23,22 @@ export class RecompenseService {
     return new HttpHeaders({ 'X-User-Id': String(this.userId) });
   }
 
-  getCatalogue(type?: RecompenseType): Observable<Recompense[]> {
+  getCatalogue(type?: RecompenseType): Observable<RecompenseItemDto[]> {
     const q = type ? `?type=${type}` : '';
-    return this.http.get<Recompense[]>(`${API}${q}`).pipe(catchError(this.handleError));
+    return this.http.get<RecompenseItemDto[]>(`${API}${q}`).pipe(catchError(this.handleError));
   }
 
-  getDetail(id: number): Observable<Recompense> {
-    return this.http.get<Recompense>(`${API}/${id}`).pipe(catchError(this.handleError));
+  getDetail(id: number): Observable<RecompenseItemDto> {
+    return this.http.get<RecompenseItemDto>(`${API}/${id}`).pipe(catchError(this.handleError));
   }
 
   enregistrerClic(id: number): Observable<void> {
     return this.http.post<void>(`${API}/${id}/clic`, null).pipe(catchError(this.handleError));
   }
 
-  echanger(recompenseId: number): Observable<Coupon> {
+  echanger(recompenseId: number): Observable<CouponDto> {
     return this.http
-      .post<Coupon>(`${API}/echanger`, { recompenseId }, { headers: this.headers() })
+      .post<CouponDto>(`${API}/echanger`, { recompenseId }, { headers: this.headers() })
       .pipe(catchError(this.handleError));
   }
 
@@ -48,9 +48,9 @@ export class RecompenseService {
       .pipe(catchError(this.handleError));
   }
 
-  getMesCoupons(): Observable<Coupon[]> {
+  getMesCoupons(): Observable<CouponDto[]> {
     return this.http
-      .get<Coupon[]>(`${API}/mes-coupons`, { headers: this.headers() })
+      .get<CouponDto[]>(`${API}/mes-coupons`, { headers: this.headers() })
       .pipe(catchError(this.handleError));
   }
 
