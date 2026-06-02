@@ -62,6 +62,11 @@ export class LoginComponent {
   }
 
   private redirectByRole(role: string): void {
+    if (role === 'ADMIN') {
+      localStorage.setItem('ecopria_admin_email', this.email.trim().toLowerCase());
+      void this.router.navigate(['/admin']);
+      return;
+    }
     if (role === 'ASSOCIATION') {
       void this.router.navigate(['/association']);
       return;

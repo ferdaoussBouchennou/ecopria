@@ -11,5 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserStatsResponse {
     private long totalUsers;
+    private long activeUsers;
     private long newUsersThisWeek;
+    private long pendingAssociations;
+    private long pendingPartenaires;
+    private long pendingValidations;
 }

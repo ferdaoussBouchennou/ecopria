@@ -57,4 +57,12 @@ public interface ActionRepository extends JpaRepository<Action, Long> {
     // vérifier disponibilité — appelé par service-inscription
     @Query("SELECT a.availablePlaces FROM Action a WHERE a.id = :actionId")
     Integer findAvailablePlacesById(@Param("actionId") Long actionId);
+
+    long countByStatus(ActionStatus status);
+
+    @Query("SELECT COUNT(a) FROM Action a WHERE a.status = 'PUBLISHED' AND a.dateEnd >= :now")
+    long countActivePublished(@Param("now") LocalDateTime now);
+
+    @Query("SELECT COUNT(a) FROM Action a WHERE a.createdAt >= :from")
+    long countCreatedSince(@Param("from") LocalDateTime from);
 }

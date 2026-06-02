@@ -1,5 +1,6 @@
 package com.example.auth_service.controller;
 
+import com.example.auth_service.dto.PendingAccountResponse;
 import com.example.auth_service.dto.UserInternalResponse;
 import com.example.auth_service.dto.UserStatsResponse;
 import com.example.auth_service.service.InternalUserService;
@@ -25,6 +26,11 @@ public class InternalUserController {
     @GetMapping("/stats")
     public ResponseEntity<UserStatsResponse> getStats() {
         return ResponseEntity.ok(service.getStats());
+    }
+
+    @GetMapping("/pending-accounts")
+    public ResponseEntity<List<PendingAccountResponse>> getPendingAccounts() {
+        return ResponseEntity.ok(service.getPendingAccounts());
     }
 
     // Get one user by id

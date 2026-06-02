@@ -34,6 +34,11 @@ import { ScannerCouponComponent } from './features/recompense/scanner-coupon/sca
 import { AvisClientsComponent } from './features/recompense/avis-clients/avis-clients.component';
 import { VisibiliteComponent } from './features/recompense/visibilite/visibilite.component';
 import { CommissionsComponent } from './features/recompense/commissions/commissions.component';
+import { adminGuard } from './core/guards/admin.guard';
+import { AdminShellComponent } from './features/admin/admin-shell/admin-shell.component';
+import { AdminDashboardComponent } from './features/admin/dashboard/admin-dashboard.component';
+import { AdminComptesComponent } from './features/admin/comptes/admin-comptes.component';
+import { AdminSectionComponent } from './features/admin/admin-section.component';
 
 export const routes: Routes = [
   // Routes publiques avec navbar/footer
@@ -97,6 +102,62 @@ export const routes: Routes = [
       // TODO: Ajouter les routes pour notifications
     ],
   },
-  
+
+  // ── Espace Admin ──────────────────────────────────────────────
+  {
+    path: 'admin',
+    component: AdminShellComponent,
+    canActivate: [adminGuard],
+    children: [
+      { path: '', component: AdminDashboardComponent },
+      { path: 'comptes', component: AdminComptesComponent },
+      {
+        path: 'fraude',
+        component: AdminSectionComponent,
+        data: {
+          eyebrow: 'Fraude',
+          title: 'Alertes fraude.',
+          message: 'Cette section affichera les alertes de fraude détectées lors des scans QR.',
+        },
+      },
+      {
+        path: 'actions-fixes',
+        component: AdminSectionComponent,
+        data: {
+          eyebrow: 'Actions fixes',
+          title: 'Actions fixes.',
+          message: 'Gestion des actions fixes Ecopria (CRUD via admin-service).',
+        },
+      },
+      {
+        path: 'support',
+        component: AdminSectionComponent,
+        data: {
+          eyebrow: 'Support & litiges',
+          title: 'Support et litiges.',
+          message: 'Les tickets support seront centralisés ici.',
+        },
+      },
+      {
+        path: 'moderation',
+        component: AdminSectionComponent,
+        data: {
+          eyebrow: 'Modération',
+          title: 'Modération des actions.',
+          message: 'Validation et désactivation des actions publiées.',
+        },
+      },
+      {
+        path: 'categories',
+        component: AdminSectionComponent,
+        data: {
+          eyebrow: 'Catégories',
+          title: 'Catégories d’actions.',
+          message: 'Gestion des catégories visibles sur la plateforme.',
+        },
+      },
+    ],
+  },
+
   { path: '**', redirectTo: '' },
 ];

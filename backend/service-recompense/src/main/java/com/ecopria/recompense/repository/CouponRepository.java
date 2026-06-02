@@ -51,4 +51,6 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
            "ORDER BY c.createdAt DESC")
     List<Coupon> findRecentByPartenaire(@Param("partenaireId") Long partenaireId,
                                         org.springframework.data.domain.Pageable pageable);
+
+    long countByStatus(CouponStatus status);
 }

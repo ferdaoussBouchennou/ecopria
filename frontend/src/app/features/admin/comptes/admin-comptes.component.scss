@@ -1,0 +1,64 @@
+@import '../admin-shared';
+
+.lists {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.list-card {
+  background: var(--ec-card);
+  border: 1px solid var(--ec-border);
+  border-radius: 14px;
+  padding: 1.25rem;
+
+  h2 {
+    margin: 0 0 1rem;
+    font-family: var(--ec-font-serif);
+    font-size: 1.15rem;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--ec-border);
+
+    strong {
+      display: block;
+      font-size: 0.92rem;
+    }
+
+    span {
+      display: block;
+      margin-top: 0.15rem;
+      font-size: 0.82rem;
+      color: var(--ec-text-muted);
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 0.45rem 0.9rem;
+      background: var(--ec-sage);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .lists {
+    grid-template-columns: 1fr;
+  }
+}

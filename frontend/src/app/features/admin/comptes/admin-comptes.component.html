@@ -1,0 +1,53 @@
+<section class="admin-page">
+  <p class="admin-eyebrow"><span class="eyebrow-line"></span> Validation comptes</p>
+  <h1 class="admin-page__title">Comptes en attente.</h1>
+
+  @if (actionMessage) {
+    <p class="admin-muted">{{ actionMessage }}</p>
+  }
+
+  @if (loading) {
+    <p class="admin-muted">Chargement…</p>
+  } @else if (error) {
+    <div class="admin-alert admin-alert--error">{{ error }}</div>
+  } @else {
+    <div class="lists">
+      <article class="list-card">
+        <h2>Associations</h2>
+        @if (associations.length === 0) {
+          <p class="admin-muted">Aucune association en attente.</p>
+        } @else {
+          <ul>
+            @for (item of associations; track accountId(item)) {
+              <li>
+                <div>
+                  <strong>{{ accountName(item) }}</strong>
+                  <span>{{ item.email }}</span>
+                </div>
+                <button type="button" (click)="approveAssociation(accountId(item))">Approuver</button>
+              </li>
+            }
+          </ul>
+        }
+      </article>
+
+      <article class="list-card">
+        <h2>Partenaires</h2>
+        @if (partenaires.length === 0) {
+          <p class="admin-muted">Aucun partenaire en attente.</p>
+        } @else {
+          <ul>
+            @for (item of partenaires; track accountId(item)) {
+              <li>
+                <div>
+                  <strong>{{ accountName(item) }}</strong>
+                  <span>{{ item.email }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </article>
+    </div>
+  }
+</section>
