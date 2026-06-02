@@ -44,32 +44,31 @@ public class UserConsumer {
         }
     }
 
-    @KafkaListener(topics = "asso.validee", groupId = "utilisateur-group")
-    public void onAssoValidee(Map<String, Object> event) {
-        log.info("[Kafka] asso.validee reçu : {}", event);
+    @KafkaListener(topics = { "asso.validee", "asso.en_attente", "partenaire.validee" }, groupId = "utilisateur-group")
+    public void onAssoOuPartenaireEvent(Map<String, Object> event) {
+        log.info("[Kafka] event asso/partenaire reçu : {}", event);
         try {
-            AssociationDTO dto = new AssociationDTO();
-            dto.setAuthId(readLong(event, "auth_id", "userId"));
-            dto.setName(readRequiredString(event, "name", "nom"));
-            dto.setEmail(readOptionalString(event, "email"));
-            userService.createAssociation(dto);
-        } catch (Exception e) {
-            log.error("Erreur conversion AssociationDTO : {}", e.getMessage());
-        }
-    }
+            Long authId = readLong(event, "auth_id", "userId");
+            String nom = readRequiredString(event, "name", "nom");
+            String email = readOptionalString(event, "email");
+            String role = readOptionalString(event, "role");
 
-    @KafkaListener(topics = "partenaire.validee", groupId = "utilisateur-group")
-    public void onPartenaireValidee(Map<String, Object> event) {
-        log.info("[Kafka] partenaire.validee reçu : {}", event);
-        try {
-            PartnerDTO dto = new PartnerDTO();
-            dto.setAuthId(readLong(event, "auth_id", "userId"));
-            dto.setName(readRequiredString(event, "name", "nom"));
-            dto.setEmail(readOptionalString(event, "email"));
-            dto.setCategory(readOptionalString(event, "categorie", "category"));
-            userService.createPartner(dto);
+            if ("PARTNER".equalsIgnoreCase(role)) {
+                PartnerDTO dto = new PartnerDTO();
+                dto.setAuthId(authId);
+                dto.setName(nom);
+                dto.setEmail(email);
+                dto.setCategory("Général"); // Default category
+                userService.createPartner(dto);
+            } else {
+                AssociationDTO dto = new AssociationDTO();
+                dto.setAuthId(authId);
+                dto.setName(nom);
+                dto.setEmail(email);
+                userService.createAssociation(dto);
+            }
         } catch (Exception e) {
-            log.error("Erreur conversion PartnerDTO : {}", e.getMessage());
+            log.error("Erreur conversion event asso/partenaire : {}", e.getMessage());
         }
     }
 

@@ -5,6 +5,7 @@ import { AssociationService } from '../services/association.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { AppNotification } from '../../../core/models/notification.model';
 import { httpErrorMessage } from '../../../core/utils/http-error.util';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-association-shell',
@@ -25,7 +26,8 @@ export class AssociationShellComponent implements OnInit {
   constructor(
     private router: Router,
     private associationService: AssociationService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -120,7 +122,8 @@ export class AssociationShellComponent implements OnInit {
 
   logout(): void {
     if (confirm('Voulez-vous vous déconnecter ?')) {
-      this.router.navigate(['/actions']);
+      this.authService.clearSession();
+      this.router.navigate(['/']);
     }
   }
 }

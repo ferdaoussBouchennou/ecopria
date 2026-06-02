@@ -291,12 +291,26 @@ public class UserService {
 
     public Association getAssociation(Long authId) {
         return associationRepository.findByAuthId(authId)
-                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+                .orElseGet(() -> {
+                    Association asso = new Association();
+                    asso.setAuthId(authId);
+                    asso.setName("Association"); // Nom par défaut
+                    Association saved = associationRepository.save(asso);
+                    getOrCreatePreferences(saved.getAuthId());
+                    return saved;
+                });
     }
 
     public Partner getPartner(Long authId) {
         return partnerRepository.findByAuthId(authId)
-                .orElseThrow(() -> new RuntimeException("Partenaire non trouvé"));
+                .orElseGet(() -> {
+                    Partner partner = new Partner();
+                    partner.setAuthId(authId);
+                    partner.setName("Partenaire"); // Nom par défaut
+                    Partner saved = partnerRepository.save(partner);
+                    getOrCreatePreferences(saved.getAuthId());
+                    return saved;
+                });
     }
 
     public List<LeaderboardEntryDTO> getLeaderboard(Long currentAuthId) {
