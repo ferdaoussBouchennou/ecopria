@@ -30,7 +30,7 @@ export interface ActionDTO {
   points: number;
   imageUrl?: string;
   isFixed: boolean;
-  /** Champs association uniquement */
+  /** Champs action non-fixe uniquement */
   lieu?: string;
   ville?: string;
   dateAction?: string;

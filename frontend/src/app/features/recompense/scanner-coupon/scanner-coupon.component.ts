@@ -12,9 +12,9 @@ import { Coupon } from '../../../core/models/recompense.model';
   styleUrls: ['./scanner-coupon.component.scss']
 })
 export class ScannerCouponComponent {
-  code = '';
+  code    = '';
   loading = false;
-  erreur = '';
+  erreur  = '';
   coupon: Coupon | null = null;
   history: Coupon[] = [];
 
@@ -25,18 +25,18 @@ export class ScannerCouponComponent {
     if (!trimmed) return;
 
     this.loading = true;
-    this.erreur = '';
-    this.coupon = null;
+    this.erreur  = '';
+    this.coupon  = null;
 
     this.partenaireService.validerCoupon(trimmed).subscribe({
       next: (c) => {
-        this.coupon = c;
+        this.coupon  = c;
         this.history.unshift(c);
-        this.code = '';
+        this.code    = '';
         this.loading = false;
       },
       error: (e: Error) => {
-        this.erreur = e.message;
+        this.erreur  = e.message;
         this.loading = false;
       }
     });
@@ -45,7 +45,8 @@ export class ScannerCouponComponent {
   formatDate(iso?: string): string {
     if (!iso) return '—';
     return new Date(iso).toLocaleString('fr-FR', {
-      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+      day: 'numeric', month: 'short',
+      hour: '2-digit', minute: '2-digit'
     });
   }
 }

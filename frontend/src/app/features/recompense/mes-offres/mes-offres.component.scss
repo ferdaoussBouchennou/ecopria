@@ -1,101 +1,141 @@
 @import '../partenaire-shared';
 
+.offres-page { }
+
+// ─── Filter Tabs ──────────────────────────────────────────────
+.filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  padding: 0.45rem 1rem;
+  border-radius: 20px;
+  border: 1.5px solid var(--p-border);
+  background: #fff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--p-text-soft);
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &.active {
+    background: var(--p-sage);
+    border-color: var(--p-sage);
+    color: #fff;
+  }
+
+  &:hover:not(.active) {
+    border-color: var(--p-sage-light);
+    color: var(--p-sage);
+  }
+}
+
+// ─── Offres Grid ──────────────────────────────────────────────
 .offres-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.25rem;
 }
 
 .offre-card {
-  background: var(--ec-card);
-  border: 1px solid var(--ec-border);
-  border-radius: 16px;
+  background: #fff;
+  border: 1px solid var(--p-border);
+  border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  transition: box-shadow 0.18s, border-color 0.18s;
 
-  &--inactive { opacity: 0.7; }
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    border-color: var(--p-sage-light);
+  }
 }
 
-.offre-card__img {
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
+// ─── Card Image ───────────────────────────────────────────────
+.offre-card-image {
+  position: relative;
+  height: 160px;
+  background: var(--p-cream-deep);
+  overflow: hidden;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .offre-img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    opacity: 0.3;
+  }
 }
 
-.offre-card__img--ph {
-  aspect-ratio: 1;
-  background: var(--ec-cream-deep);
+.offre-type-badge {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+
+  &.type--stock      { background: #EFF6FF; color: #1D4ED8; }
+  &.type--reduction  { background: #FEF3C7; color: #D97706; }
+  &.type--service    { background: #F0FDF4; color: #15803D; }
+  &.type--experience { background: #FDF4FF; color: #7E22CE; }
 }
 
-.offre-card__body {
-  padding: 1.1rem 1.25rem 1.25rem;
+.offre-status-dot {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #D1D5DB;
+  border: 2px solid #fff;
+
+  &.active { background: #22C55E; }
+}
+
+// ─── Card Body ────────────────────────────────────────────────
+.offre-card-body {
+  flex: 1;
+  padding: 1rem 1rem 0.75rem;
+}
+
+.offre-card-top {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.offre-card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--p-text);
+  margin: 0;
   flex: 1;
 }
 
-.toggle {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 22px;
-
-  input { opacity: 0; width: 0; height: 0; }
-
-  .toggle-slider {
-    position: absolute;
-    inset: 0;
-    background: #ccc;
-    border-radius: 22px;
-    cursor: pointer;
-    transition: 0.2s;
-
-    &::before {
-      content: '';
-      position: absolute;
-      height: 16px;
-      width: 16px;
-      left: 3px;
-      bottom: 3px;
-      background: #fff;
-      border-radius: 50%;
-      transition: 0.2s;
-    }
-  }
-
-  input:checked + .toggle-slider {
-    background: var(--ec-sage);
-    &::before { transform: translateX(18px); }
-  }
-}
-
-.offre-card__top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.offre-cat {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ec-text-muted);
-}
-
-.offre-title {
-  font-family: var(--ec-font-serif);
-  font-size: 1.2rem;
-  margin: 0;
-  line-height: 1.2;
-}
-
 .offre-desc {
-  font-size: 0.85rem;
-  color: var(--ec-text-soft);
-  margin: 0;
+  font-size: 0.78rem;
+  color: var(--p-text-muted);
+  margin: 0 0 0.75rem;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -106,34 +146,83 @@
 .offre-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  font-size: 0.85rem;
-  color: var(--ec-text-soft);
-
-  strong { color: var(--ec-sage-dark); }
-}
-
-.offre-card__actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: auto;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--ec-border);
-}
-
-.action-btns {
-  display: flex;
   gap: 0.5rem;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  display: flex;
-  flex-direction: column;
+.offre-stat {
+  display: inline-flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  color: var(--p-text-soft);
+  background: var(--p-cream);
+  border-radius: 6px;
+  padding: 0.15rem 0.5rem;
+
+  .stat-icon { font-size: 0.75rem; }
+
+  &.badge--mystere {
+    background: #F3E8FF;
+    color: #7E22CE;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+  }
+}
+
+// ─── Card Actions ─────────────────────────────────────────────
+.offre-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--p-border);
+  align-items: center;
+}
+
+.spinner-sm {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+// ─── Modal ────────────────────────────────────────────────────
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: modal-in 0.2s ease-out;
+
+  .modal-icon  { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  h3           { font-family: var(--p-font-serif); font-size: 1.2rem; margin: 0 0 0.75rem; }
+  p            { font-size: 0.875rem; color: var(--p-text-soft); margin: 0 0 1.5rem; line-height: 1.6; }
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)   translateY(0);   }
 }

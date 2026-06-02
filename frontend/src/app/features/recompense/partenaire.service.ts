@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import {
   AvisPartenaire,
   CommissionMensuelle,
@@ -13,16 +13,21 @@ import {
   UpdatePartenaireProfil,
   VisibilitePartenaire
 } from '../../core/models/recompense.model';
+import { DevContextService } from '../../core/services/dev-context.service';
 
 const API_PARTENAIRE = '/api/partenaire';
 
 @Injectable({ providedIn: 'root' })
 export class PartenaireService {
 
-  /** TODO: remplacer par AuthService.getUserId() */
-  private readonly userId = 1;
+  constructor(
+    private http: HttpClient,
+    private devContext: DevContextService
+  ) {}
 
-  constructor(private http: HttpClient) {}
+  private get userId(): number {
+    return this.devContext.getPartenaireUserId();
+  }
 
   private headers(): HttpHeaders {
     return new HttpHeaders({ 'X-User-Id': String(this.userId) });
@@ -38,6 +43,17 @@ export class PartenaireService {
     return this.http
       .get<Recompense[]>(`${API_PARTENAIRE}/offres`, { headers: this.headers() })
       .pipe(catchError(this.handleError));
+  }
+
+  getOffreById(id: number): Observable<Recompense> {
+    return this.getMesOffres().pipe(
+      map((list: Recompense[]) => {
+        const found = list.find((o) => o.id === id);
+        if (!found) throw new Error('Offre introuvable');
+        return found;
+      }),
+      catchError(this.handleError)
+    );
   }
 
   creerOffre(dto: CreateRecompenseRequest): Observable<Recompense> {

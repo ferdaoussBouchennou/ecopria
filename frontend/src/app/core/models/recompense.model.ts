@@ -61,15 +61,16 @@ export interface Coupon {
 
 export interface DashboardPartenaire {
   partenaireName: string;
-  vuesProfilPublic?: number;
-  clicsVersOffres?: number;
+  vuesProfil?: number;
+  clicsOffres?: number;
+  tauxClic?: number;
+  noteMoyenne?: number;
+  nombreAvis?: number;
+  badgeActuel?: string;
   couponsDistribues: number;
   couponsUtilises: number;
   tauxUtilisation: number;
-  noteMoyenne?: number;
-  nombreAvis?: number;
   commissionsARegler: number;
-  badgeActuel?: string;
   offresActives: Recompense[];
   echangesRecents: Coupon[];
 }

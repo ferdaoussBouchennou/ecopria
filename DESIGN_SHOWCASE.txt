@@ -1,0 +1,232 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║                    🎨 DESIGN SHOWCASE - ESPACE PARTENAIRE                 ║
+║                                                                            ║
+║                         Avant vs Après Redesign                           ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+════════════════════════════════════════════════════════════════════════════
+                              AVANT (Basique)
+════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Vue d'ensemble                                                          │
+│ Bonjour Café Botanique                                                  │
+│ [Bronze] [★ 4.7 (3 avis)]                                               │
+│                                                    [Voir ma page publique]│
+├─────────────────────────────────────────────────────────────────────────┤
+│ 1842 Vues profil public                                                 │
+│ 624 Clics vers offres                                                   │
+│ 0 Coupons distribués                                                    │
+│ 0 Coupons utilisés                                                      │
+│ 0% Taux conversion                                                      │
+│ — Note moyenne                                                          │
+│ 0 Nombre d'avis                                                         │
+│ 0 € Commissions à régler                                                │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Offres actives                                                          │
+│ Aucune offre active. Créer une offre                                    │
+│                                                                         │
+│ Échanges récents                                                        │
+│ Aucun échange récent.                                                   │
+└─────────────────────────────────────────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════════════
+                              APRÈS (Moderne)
+════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ ╔═══════════════════════════════════════════════════════════════════╗   │
+│ ║ Tableau de bord                                                   ║   │
+│ ║ Bienvenue, Café Botanique 👋                                      ║   │
+│ ║ Gérez vos offres, suivez vos commissions et consultez vos         ║   │
+│ ║ statistiques en temps réel.                                       ║   │
+│ ║ [🏆 Bronze] [★ 4.7 (3 avis)]                                      ║   │
+│ ║                                                                   ║   │
+│ ║ [+ Nouvelle offre] [👁️ Voir ma page publique]                    ║   │
+│ ╚═══════════════════════════════════════════════════════════════════╝   │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Statistiques clés                                                       │
+│                                                                         │
+│ ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
+│ │ 👁️           │  │ 🖱️           │  │ 🎟️           │  │ ✅           │ │
+│ │ 1842         │  │ 624          │  │ 0            │  │ 0            │ │
+│ │ Vues profil  │  │ Clics offres  │  │ Coupons dist.│  │ Coupons util.│ │
+│ │ ↑ 12%        │  │ ↑ 8%         │  │ ↑ 5%         │  │ ↑ 15%        │ │
+│ └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘ │
+│                                                                         │
+│ ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
+│ │ 📊           │  │ ⭐           │  │ 💰           │  │ 🎁           │ │
+│ │ 0%           │  │ 4.7          │  │ 0 DH         │  │ 0            │ │
+│ │ Taux convert.│  │ Note moyenne │  │ Commissions  │  │ Offres act.  │ │
+│ │ ↑ 3%         │  │ 3 avis       │  │ À régler     │  │ ↑ 2%         │ │
+│ └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘ │
+├─────────────────────────────────────────────────────────────────────────┤
+│ ┌─────────────────────────────────┐  ┌─────────────────────────────────┐ │
+│ │ 📦 Offres actives               │  │ 🔄 Échanges récents             │ │
+│ │ 1 offre(s) active(s) [Gérer →]  │  │ Derniers coupons [Voir tout →]  │ │
+│ ├─────────────────────────────────┤  ├─────────────────────────────────┤ │
+│ │ [🎁] Café & pâtisserie maison   │  │ Date  │ Code      │ Statut      │ │
+│ │       100 pts · Stock: 150      │  ├───────┼───────────┼─────────────┤ │
+│ │       [STOCK]        [Active]   │  │ 26/05 │ ECO-2026  │ DISTRIBUE   │ │
+│ │                                 │  │       │ XXXXX     │             │ │
+│ │ [📭] Aucune offre active        │  │       │           │ 📋          │ │
+│ │ Créez votre première offre...   │  └─────────────────────────────────┘ │
+│ │ [Créer une offre]               │                                     │ │
+│ └─────────────────────────────────┘                                     │ │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Actions rapides                                                         │
+│                                                                         │
+│ ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐       │
+│ │ ➕               │  │ 📱               │  │ 💰               │       │
+│ │ Nouvelle offre   │  │ Scanner coupon   │  │ Mes commissions  │       │
+│ │ Créer une offre  │  │ Valider coupons  │  │ Consulter l'hist.│       │
+│ └──────────────────┘  └──────────────────┘  └──────────────────┘       │
+│                                                                         │
+│ ┌──────────────────┐                                                   │
+│ │ ⭐               │                                                   │
+│ │ Avis clients     │                                                   │
+│ │ Gérer réputation │                                                   │
+│ └──────────────────┘                                                   │
+└─────────────────────────────────────────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════════════
+                            AMÉLIORATIONS CLÉS
+════════════════════════════════════════════════════════════════════════════
+
+1. HERO SECTION
+   ✅ Gradient de couleur (vert sage)
+   ✅ Texte blanc pour meilleur contraste
+   ✅ Description claire
+   ✅ Boutons d'action en évidence
+
+2. KPI CARDS
+   ✅ Icônes emoji pour chaque métrique
+   ✅ Tendances (↑ %) en vert
+   ✅ Couleurs distinctes par type
+   ✅ Hover effect avec ombre
+   ✅ Animation de la barre supérieure
+
+3. OFFRES ACTIVES
+   ✅ Meilleure présentation
+   ✅ Badge de type d'offre
+   ✅ Hover effect avec déplacement
+   ✅ Icône placeholder pour images manquantes
+
+4. ÉCHANGES RÉCENTS
+   ✅ Table plus lisible
+   ✅ Bouton de copie du code
+   ✅ Hover effect sur les lignes
+   ✅ Badges de statut colorés
+
+5. ACTIONS RAPIDES
+   ✅ Accès rapide aux fonctionnalités
+   ✅ Icônes grandes et claires
+   ✅ Descriptions courtes
+   ✅ Hover effect avec élévation
+
+════════════════════════════════════════════════════════════════════════════
+                            RESPONSIVE DESIGN
+════════════════════════════════════════════════════════════════════════════
+
+DESKTOP (> 1200px):
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Hero Section (full width)                                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│ KPI Cards (4 colonnes)                                                  │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Offres (50%) │ Échanges (50%)                                           │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Actions Rapides (4 colonnes)                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+TABLET (768px - 1200px):
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Hero Section (full width)                                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│ KPI Cards (3 colonnes)                                                  │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Offres (full width)                                                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Échanges (full width)                                                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Actions Rapides (2 colonnes)                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+MOBILE (< 768px):
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Hero Section (full width)                                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│ KPI Cards (2 colonnes)                                                  │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Offres (full width)                                                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Échanges (full width)                                                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Actions Rapides (1 colonne)                                             │
+└─────────────────────────────────────────────────────────────────────────┘
+
+════════════════════════════════════════════════════════════════════════════
+                            PALETTE DE COULEURS
+════════════════════════════════════════════════════════════════════════════
+
+Primaire:    #2d5a4a (Vert sage)
+Secondaire:  #a7f3d0 (Menthe)
+Accent:      #10b981 (Vert succès)
+Neutre:      #f3f4f6 (Gris clair)
+
+KPI Cards:
+- Primaire:    #3b82f6 (Bleu)
+- Secondaire:  #f59e0b (Ambre)
+- Tertiaire:   #8b5cf6 (Violet)
+- Succès:      #10b981 (Vert)
+- Info:        #06b6d4 (Cyan)
+- Avertissement: #f97316 (Orange)
+
+════════════════════════════════════════════════════════════════════════════
+                            ANIMATIONS
+════════════════════════════════════════════════════════════════════════════
+
+Stat Cards:
+- Hover: Border color change + Box shadow + Translate Y (-2px)
+- Top bar: Animation scaleX (0 → 1)
+- Duration: 0.3s ease
+
+Offre Mini:
+- Hover: Background color change + Border color change + Translate X (+4px)
+- Duration: 0.3s ease
+
+Action Cards:
+- Hover: Border color change + Background change + Translate Y (-4px)
+- Box shadow increase
+- Duration: 0.3s ease
+
+════════════════════════════════════════════════════════════════════════════
+                            RÉSULTATS
+════════════════════════════════════════════════════════════════════════════
+
+AVANT:
+❌ Design basique et plat
+❌ Peu de hiérarchie visuelle
+❌ Pas d'icônes
+❌ Pas d'animations
+❌ Responsive limité
+❌ Pas d'actions rapides
+
+APRÈS:
+✅ Design moderne et professionnel
+✅ Hiérarchie visuelle claire
+✅ 10+ icônes emoji
+✅ Animations fluides
+✅ Responsive complet
+✅ Actions rapides en évidence
+✅ Meilleure UX globale
+
+════════════════════════════════════════════════════════════════════════════
+
+Status: ✅ DESIGN AMÉLIORÉ ET PRÊT À DÉPLOYER
+
+Date: 26 mai 2026
+
+════════════════════════════════════════════════════════════════════════════

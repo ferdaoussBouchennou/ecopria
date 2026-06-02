@@ -1,50 +1,141 @@
-<div *ngIf="loading" class="loading-block"><div class="spinner"></div></div>
+<!-- ─── LOADING ─────────────────────────────────────────────── -->
+<div *ngIf="loading" class="loading-page">
+  <div class="spinner"></div>
+  <p>Chargement du profil…</p>
+</div>
 
-<div *ngIf="!loading" class="profil-page">
-  <header class="page-header-row">
+<!-- ─── ERREUR ─────────────────────────────────────────────── -->
+<div *ngIf="!loading && erreur" class="alert alert--error">
+  <div class="alert-inner">
+    <span class="alert-icon">⚠️</span>
     <div>
-      <span class="page-label">Vitrine Ecopria</span>
-      <h1 class="page-title">Profil public.</h1>
-      <p class="page-sub">Cette page est visible par tous les utilisateurs Ecopria. Les informations sont au format public.</p>
+      <strong>Erreur</strong>
+      <p>{{ erreur }}</p>
     </div>
-    <a href="/recompenses" target="_blank" class="btn btn--outline btn--pill">Voir ma page publique →</a>
-  </header>
+  </div>
+</div>
 
-  <div *ngIf="erreur" class="alert alert--error">{{ erreur }}</div>
-  <div *ngIf="succes" class="alert alert--success">{{ succes }}</div>
+<!-- ─── CONTENU ───────────────────────────────────────────── -->
+<div *ngIf="!loading && (profil || erreur === '')" class="profil-page">
 
-  <div class="card form-card">
-    <label class="field">
-      <span>Nom de l'établissement</span>
-      <input type="text" [(ngModel)]="form.name" name="name" />
-    </label>
-    <label class="field">
-      <span>Catégorie</span>
-      <input type="text" [(ngModel)]="form.category" name="category" />
-    </label>
-    <label class="field">
-      <span>Adresse</span>
-      <input type="text" [(ngModel)]="form.address" name="address" />
-    </label>
-    <label class="field">
-      <span>Ville</span>
-      <input type="text" [(ngModel)]="form.city" name="city" />
-    </label>
-    <label class="field">
-      <span>Description</span>
-      <textarea rows="4" [(ngModel)]="form.description" name="description"></textarea>
-    </label>
-    <label class="field">
-      <span>URL image (aperçu)</span>
-      <input type="url" [(ngModel)]="form.imageUrl" name="imageUrl" placeholder="https://..." />
-    </label>
-    <button type="button" class="btn btn--primary" [disabled]="saving" (click)="enregistrer()">
-      {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
+  <div class="page-header">
+    <div>
+      <span class="page-eyebrow">— PROFIL PUBLIC</span>
+      <h1 class="page-title">Profil public.</h1>
+      <p class="page-sub">
+        Ces informations sont visibles par les utilisateurs d'Ecopria.
+        Complétez votre profil pour améliorer votre visibilité.
+      </p>
+    </div>
+    <button class="btn btn--outline" (click)="voirPagePublique()" type="button">
+      <span>👁️</span> Voir ma page publique →
     </button>
   </div>
 
-  <section class="apercu" *ngIf="form.imageUrl">
-    <h2 class="section-title">Aperçu</h2>
-    <img [src]="form.imageUrl" alt="Aperçu vitrine" class="apercu-img" />
-  </section>
+  <!-- Alerts -->
+  <div *ngIf="succes" class="alert alert--success">
+    <div class="alert-inner">
+      <span class="alert-icon">✅</span>
+      <div><strong>{{ succes }}</strong></div>
+    </div>
+  </div>
+
+  <div class="profil-layout">
+
+    <!-- ─── Formulaire ─────────────────────────────────────── -->
+    <div class="card form-card">
+      <h2 class="card-title">Informations générales</h2>
+
+      <div class="form-group">
+        <label class="form-label" for="name">Nom de l'enseigne <span class="required">*</span></label>
+        <input
+          id="name"
+          class="form-control"
+          type="text"
+          [(ngModel)]="form.name"
+          placeholder="Ex : Café Botanique"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="category">Catégorie</label>
+        <select id="category" class="form-control" [(ngModel)]="form.category">
+          <option value="">— Sélectionner —</option>
+          <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="address">Adresse</label>
+          <input
+            id="address"
+            class="form-control"
+            type="text"
+            [(ngModel)]="form.address"
+            placeholder="Ex : 12 rue des Jardins"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="city">Ville</label>
+          <input
+            id="city"
+            class="form-control"
+            type="text"
+            [(ngModel)]="form.city"
+            placeholder="Ex : Tétouan"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="description">Description</label>
+        <textarea
+          id="description"
+          class="form-control"
+          rows="4"
+          [(ngModel)]="form.description"
+          placeholder="Décrivez votre enseigne en quelques lignes… (max 500 caractères)"
+          maxlength="500"
+        ></textarea>
+        <span class="form-hint">{{ (form.description?.length || 0) }} / 500 caractères</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="imageUrl">URL de l'image</label>
+        <input
+          id="imageUrl"
+          class="form-control"
+          type="url"
+          [(ngModel)]="form.imageUrl"
+          placeholder="https://…"
+        />
+        <span class="form-hint">Image de couverture (recommandé : 1200 × 600 px, format paysage)</span>
+      </div>
+
+      <div class="form-actions">
+        <button
+          class="btn btn--primary"
+          (click)="enregistrer()"
+          [disabled]="saving"
+        >
+          <span *ngIf="saving" class="spinner-sm"></span>
+          <span *ngIf="!saving">💾</span>
+          {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ─── Aperçu image ───────────────────────────────────── -->
+    <div class="preview-panel">
+      <h2 class="card-title">Aperçu de l'image</h2>
+      <div class="image-preview" *ngIf="form.imageUrl">
+        <img [src]="form.imageUrl" [alt]="form.name || 'Aperçu'" (error)="onImgError($event)" />
+      </div>
+      <div class="image-preview image-preview--empty" *ngIf="!form.imageUrl">
+        <span class="empty-img-icon">🖼️</span>
+        <p>Aucune image sélectionnée</p>
+      </div>
+    </div>
+  </div>
 </div>
