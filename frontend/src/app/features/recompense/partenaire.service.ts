@@ -98,6 +98,12 @@ export class PartenaireService {
       .pipe(catchError(this.handleError));
   }
 
+  getProfilPublic(partenaireUserId: number): Observable<PartenaireProfil> {
+    return this.http
+      .get<PartenaireProfil>(`/api/recompenses/public/partenaire/${partenaireUserId}`)
+      .pipe(catchError(this.handleError));
+  }
+
   getVisibilite(): Observable<VisibilitePartenaire> {
     return this.http
       .get<VisibilitePartenaire>(`${API_PARTENAIRE}/visibilite`, { headers: this.headers() })

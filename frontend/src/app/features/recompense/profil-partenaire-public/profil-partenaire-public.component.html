@@ -1,0 +1,28 @@
+<div class="public-profil-page">
+  <div *ngIf="loading" class="state state--loading">
+    <div class="spinner"></div>
+    <p>Chargement du profil partenaire...</p>
+  </div>
+
+  <div *ngIf="!loading && erreur" class="state state--error">
+    <h1>Profil indisponible</h1>
+    <p>{{ erreur }}</p>
+    <a routerLink="/accueil" class="btn-back">Retour a l'accueil</a>
+  </div>
+
+  <section *ngIf="!loading && profil" class="hero">
+    <img *ngIf="profil.imageUrl" [src]="profil.imageUrl" [alt]="profil.name" class="hero-image" />
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+      <span class="chip">{{ profil.category || 'Partenaire Ecopria' }}</span>
+      <h1>{{ profil.name }}</h1>
+      <p *ngIf="profil.description">{{ profil.description }}</p>
+      <p *ngIf="!profil.description">Ce partenaire fait partie du reseau Ecopria.</p>
+      <div class="meta">
+        <span *ngIf="profil.city">{{ profil.city }}</span>
+        <span *ngIf="profil.address">{{ profil.address }}</span>
+      </div>
+    </div>
+  </section>
+</div>

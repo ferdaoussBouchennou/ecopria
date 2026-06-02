@@ -72,7 +72,7 @@ export class ProfilPublicComponent implements OnInit {
 
   voirPagePublique(): void {
     if (this.profil) {
-      window.open(`/api/recompenses/public/partenaire/${this.profil.userId}`, '_blank');
+      window.open(`/partenaires/${this.profil.userId}`, '_blank');
     }
   }
 

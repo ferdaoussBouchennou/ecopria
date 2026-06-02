@@ -33,6 +33,7 @@ import { ScannerCouponComponent } from './features/recompense/scanner-coupon/sca
 import { AvisClientsComponent } from './features/recompense/avis-clients/avis-clients.component';
 import { VisibiliteComponent } from './features/recompense/visibilite/visibilite.component';
 import { CommissionsComponent } from './features/recompense/commissions/commissions.component';
+import { ProfilPartenairePublicComponent } from './features/recompense/profil-partenaire-public/profil-partenaire-public.component';
 import { EspaceShellComponent } from './features/utilisateur/espace-shell/espace-shell.component';
 import { DashboardComponent } from './features/utilisateur/dashboard/dashboard.component';
 import { ActionsComponent } from './features/utilisateur/actions/actions.component';
@@ -60,6 +61,7 @@ export const routes: Routes = [
       { path: 'reinitialiser-mot-de-passe/code', component: VerifyResetCodeComponent },
       { path: 'reinitialiser-mot-de-passe/nouveau', component: ResetPasswordComponent },
       { path: 'valider-presence/:actionId', loadComponent: () => import('./features/inscription/components/scan-participant/scan-participant.component').then(m => m.ScanParticipantComponent) },
+      { path: 'partenaires/:userId', component: ProfilPartenairePublicComponent },
     ],
   },
   
