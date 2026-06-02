@@ -2,6 +2,7 @@ package com.example.auth_service.controller;
 
 import com.example.auth_service.dto.*;
 import com.example.auth_service.service.AuthService;
+import com.example.auth_service.service.PasswordResetService;
 import com.example.auth_service.service.VerificationDocumentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final PasswordResetService passwordResetService;
     private final VerificationDocumentService verificationDocumentService;
 
     @PostMapping("/register")
@@ -69,6 +71,28 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordResetService.requestReset(request.getEmail());
+        return ResponseEntity.ok(Map.of(
+                "message", "Si un compte existe avec cet e-mail, un code de réinitialisation a été envoyé."));
+    }
+
+    @PostMapping("/verify-reset-code")
+    public ResponseEntity<ResetSessionResponse> verifyResetCode(@Valid @RequestBody VerifyResetCodeRequest request) {
+        String resetToken = passwordResetService.verifyCode(request.getEmail(), request.getCode());
+        return ResponseEntity.ok(ResetSessionResponse.builder()
+                .resetToken(resetToken)
+                .message("Code validé. Choisissez un nouveau mot de passe.")
+                .build());
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        passwordResetService.resetPassword(request.getResetToken(), request.getNewPassword());
+        return ResponseEntity.ok(Map.of("message", "Mot de passe mis à jour. Vous pouvez vous connecter."));
     }
 
     @PostMapping("/refresh")

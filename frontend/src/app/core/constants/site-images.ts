@@ -1,25 +1,30 @@
 /** Images locales — frontend/src/assets/images (maquettes Ecopria) */
 export const SITE_IMAGES = {
-  /** Hero accueil — communauté dans le jardin */
-  heroPlanting: '/assets/images/community-group.jpg',
+  /** Hero accueil — bénévoles en pleine nature */
+  heroPlanting: '/assets/images/hero-planting.jpg',
   communityGroup: '/assets/images/community-group.jpg',
-  /** Connexion — même visuel communauté */
-  loginPlanting: '/assets/images/community-group.jpg',
-  /** Créer un compte / inscription compte */
+  loginPlanting: '/assets/images/login-planting.jpg',
   registerCommunity: '/assets/images/community-group.jpg',
-  /** Comment ça marche — QR code sur smartphone */
   howItWorks: '/assets/images/how-qr.jpg',
-  /** Cartes « À l'affiche » (accueil) — découpées depuis la maquette */
-  eventAffiche: [
-    '/assets/images/event-affiche-1.jpg',
-    '/assets/images/event-affiche-2.jpg',
-    '/assets/images/event-affiche-3.jpg',
+  /** Visuels distincts pour les cartes « À l'affiche » */
+  featured: {
+    nettoyage: '/assets/images/hero-planting.jpg',
+    reboisement: '/assets/images/cat-reboisement.jpg',
+    sensibilisation: '/assets/images/how-qr.jpg',
+    recyclage: '/assets/images/how-qr.jpg',
+    compostage: '/assets/images/cat-reboisement.jpg',
+  },
+  /** Fallback par index si la catégorie n'est pas reconnue */
+  featuredFallback: [
+    '/assets/images/hero-planting.jpg',
+    '/assets/images/cat-reboisement.jpg',
+    '/assets/images/how-qr.jpg',
   ] as const,
   categories: {
-    nettoyage: '/assets/images/cat-nettoyage.jpg',
+    nettoyage: '/assets/images/hero-planting.jpg',
     reboisement: '/assets/images/cat-reboisement.jpg',
-    sensibilisation: '/assets/images/cat-sensibilisation.jpg',
-    recyclage: '/assets/images/cat-recyclage.jpg',
-    compostage: '/assets/images/cat-compostage.jpg',
+    sensibilisation: '/assets/images/how-qr.jpg',
+    recyclage: '/assets/images/how-qr.jpg',
+    compostage: '/assets/images/cat-reboisement.jpg',
   },
 } as const;

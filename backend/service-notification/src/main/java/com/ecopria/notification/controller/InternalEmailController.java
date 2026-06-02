@@ -1,5 +1,6 @@
 package com.ecopria.notification.controller;
 
+import com.ecopria.notification.service.PasswordResetEmailService;
 import com.ecopria.notification.service.VerificationEmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class InternalEmailController {
 
     private final VerificationEmailService verificationEmailService;
+    private final PasswordResetEmailService passwordResetEmailService;
 
     @PostMapping("/verification-email")
     public ResponseEntity<Void> sendVerificationEmail(@RequestBody Map<String, Object> body) {
@@ -30,6 +32,17 @@ public class InternalEmailController {
         String code = readString(body, "code");
         String firstName = readStringAny(body, "", "firstName", "first_name");
         verificationEmailService.send(email, code, firstName);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/password-reset-email")
+    public ResponseEntity<Void> sendPasswordResetEmail(@RequestBody Map<String, Object> body) {
+        Object emailObj = body.get("email");
+        if (emailObj == null || emailObj.toString().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        String code = readString(body, "code");
+        passwordResetEmailService.send(emailObj.toString().trim(), code);
         return ResponseEntity.ok().build();
     }
 

@@ -1,0 +1,38 @@
+<section class="auth-page">
+  <div class="auth-layout auth-layout--narrow">
+    <div class="auth-form-col">
+      <p class="auth-eyebrow"><span class="eyebrow-line"></span> Vérification</p>
+      <h1 class="auth-title">Entrez votre code.</h1>
+      <p class="auth-sub">
+        Un code à 6 chiffres a été envoyé à
+        <strong>{{ email || 'votre adresse' }}</strong>.
+      </p>
+
+      <form class="auth-form" (ngSubmit)="submit()" novalidate>
+        <label class="field">
+          <span>Code de réinitialisation</span>
+          <input
+            type="text"
+            name="code"
+            [(ngModel)]="code"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength="6"
+            placeholder="000000"
+            class="code-input"
+          />
+        </label>
+
+        @if (error) {
+          <div class="alert alert--error" role="alert">{{ error }}</div>
+        }
+
+        <button type="submit" class="btn-submit" [disabled]="submitting">
+          {{ submitting ? 'Vérification…' : 'Continuer' }}
+        </button>
+
+        <a routerLink="/mot-de-passe-oublie" class="back-link">← Renvoyer un code</a>
+      </form>
+    </div>
+  </div>
+</section>

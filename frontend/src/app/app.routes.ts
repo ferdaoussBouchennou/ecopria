@@ -17,6 +17,9 @@ import { CalendrierComponent } from './features/association/calendrier/calendrie
 import { RegisterComponent } from './features/auth/register/register.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { VerifyEmailComponent } from './features/auth/verify-email/verify-email.component';
+import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password.component';
+import { VerifyResetCodeComponent } from './features/auth/verify-reset-code/verify-reset-code.component';
+import { ResetPasswordComponent } from './features/auth/reset-password/reset-password.component';
 import { AccueilComponent } from './features/accueil/accueil.component';
 
 
@@ -53,6 +56,9 @@ export const routes: Routes = [
       { path: 'creer-compte', component: RegisterComponent },
       { path: 'verifier-email', component: VerifyEmailComponent },
       { path: 'connexion', component: LoginComponent },
+      { path: 'mot-de-passe-oublie', component: ForgotPasswordComponent },
+      { path: 'reinitialiser-mot-de-passe/code', component: VerifyResetCodeComponent },
+      { path: 'reinitialiser-mot-de-passe/nouveau', component: ResetPasswordComponent },
       { path: 'valider-presence/:actionId', loadComponent: () => import('./features/inscription/components/scan-participant/scan-participant.component').then(m => m.ScanParticipantComponent) },
     ],
   },

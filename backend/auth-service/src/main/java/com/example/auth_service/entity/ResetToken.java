@@ -28,4 +28,11 @@ public class ResetToken {
 
     @Column(name = "is_used")
     private Boolean isUsed = false;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    /** Jeton de session émis après validation du code (étape 3). */
+    @Column(name = "session_token", length = 64)
+    private String sessionToken;
 }
