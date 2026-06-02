@@ -1,7 +1,12 @@
 <section class="auth-page">
   <div class="auth-layout auth-layout--login">
     <div class="auth-visual" aria-hidden="true">
-      <div class="auth-visual__frame auth-visual__frame--login"></div>
+      <div class="auth-visual__frame auth-visual__frame--login">
+        <div class="auth-visual__caption">
+          <h2>Rejoignez le mouvement.</h2>
+          <p>Des actions concrètes pour un avenir plus vert, près de chez vous.</p>
+        </div>
+      </div>
     </div>
 
     <div class="auth-form-col">
@@ -9,11 +14,13 @@
       <h1 class="auth-title">Se connecter.</h1>
       <p class="auth-sub">Reprenez votre parcours là où vous l'aviez laissé.</p>
 
-      <div *ngIf="error" class="alert alert--error" role="alert">{{ error }}</div>
+      @if (error) {
+        <div class="alert alert--error" role="alert">{{ error }}</div>
+      }
 
       <form class="auth-form" (ngSubmit)="submit()" novalidate>
-        <div class="field">
-          <label for="login-email">Email</label>
+        <label class="field">
+          <span>Email</span>
           <input
             id="login-email"
             type="email"
@@ -23,10 +30,10 @@
             placeholder="vous@exemple.com"
             autocomplete="email"
           />
-        </div>
+        </label>
 
-        <div class="field">
-          <label for="login-password">Mot de passe</label>
+        <label class="field">
+          <span>Mot de passe</span>
           <input
             id="login-password"
             type="password"
@@ -36,14 +43,14 @@
             placeholder="••••••••"
             autocomplete="current-password"
           />
-        </div>
+        </label>
 
         <div class="form-row-options">
           <label class="remember-me">
             <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" />
             <span>Se souvenir</span>
           </label>
-          <a routerLink="/connexion" class="forgot-link" title="Bientôt disponible">Mot de passe oublié ?</a>
+          <a routerLink="/mot-de-passe-oublie" class="forgot-link">Mot de passe oublié ?</a>
         </div>
 
         <button type="submit" class="btn-submit" [disabled]="submitting">

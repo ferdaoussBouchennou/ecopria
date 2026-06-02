@@ -10,6 +10,7 @@ import {
   RegisterPayload,
   RegisterRole,
   RegistrationResponse,
+  ResetSessionResponse,
   VerifyEmailPayload,
 } from '../models/auth.model';
 
@@ -40,6 +41,26 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${environment.authApi}/login`, {
       email: payload.email.trim().toLowerCase(),
       password: payload.password,
+    });
+  }
+
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${environment.authApi}/forgot-password`, {
+      email: email.trim().toLowerCase(),
+    });
+  }
+
+  verifyResetCode(email: string, code: string): Observable<ResetSessionResponse> {
+    return this.http.post<ResetSessionResponse>(`${environment.authApi}/verify-reset-code`, {
+      email: email.trim().toLowerCase(),
+      code,
+    });
+  }
+
+  resetPassword(resetToken: string, newPassword: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${environment.authApi}/reset-password`, {
+      resetToken,
+      newPassword,
     });
   }
 

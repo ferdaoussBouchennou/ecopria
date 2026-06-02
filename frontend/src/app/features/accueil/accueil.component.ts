@@ -17,6 +17,7 @@ import {
   ACCUEIL_FEATURED_IMAGES,
   ACCUEIL_STATS,
 } from './accueil.constants';
+import { SITE_IMAGES } from '../../core/constants/site-images';
 
 @Component({
   selector: 'app-accueil',
@@ -28,6 +29,9 @@ import {
 export class AccueilComponent implements OnInit {
   readonly stats = ACCUEIL_STATS;
   readonly categoryCards = ACCUEIL_CATEGORY_CARDS;
+  readonly heroImage = SITE_IMAGES.heroPlanting;
+  readonly communityImage = SITE_IMAGES.communityGroup;
+  readonly howItWorksImage = SITE_IMAGES.howItWorks;
 
   featuredActions: ActionSummary[] = [];
   spotlightAction: ActionSummary | null = null;
@@ -58,16 +62,21 @@ export class AccueilComponent implements OnInit {
     return this.auth.isLoggedIn();
   }
 
-  /** Image par carte (évite le même visuel pour toutes les actions sans photo) */
+  /** Image par carte — index pour varier les 3 visuels, puis catégorie en secours */
   getFeaturedCardImage(action: ActionSummary, index: number): string {
     const photo = action.photoUrls?.[0]?.trim();
     if (photo) {
       return photo;
     }
-    return (
-      ACCUEIL_FEATURED_IMAGES[index] ??
-      `/assets/categories/${getCategoryMeta(action.categoryName).slug}.svg`
-    );
+    if (ACCUEIL_FEATURED_IMAGES[index]) {
+      return ACCUEIL_FEATURED_IMAGES[index];
+    }
+    const categoryKey = action.categoryName as keyof typeof SITE_IMAGES.featured;
+    const byCategory = SITE_IMAGES.featured[categoryKey];
+    if (byCategory) {
+      return byCategory;
+    }
+    return `/assets/categories/${getCategoryMeta(action.categoryName).slug}.svg`;
   }
 
   featuredActionLink(action: ActionSummary): string[] {

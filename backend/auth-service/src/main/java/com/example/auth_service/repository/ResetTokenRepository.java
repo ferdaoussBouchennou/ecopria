@@ -7,4 +7,10 @@ import java.util.Optional;
 
 public interface ResetTokenRepository extends JpaRepository<ResetToken, Long> {
     Optional<ResetToken> findByToken(String token);
+
+    Optional<ResetToken> findTopByUserIdAndIsUsedFalseOrderByExpiresAtDesc(Long userId);
+
+    Optional<ResetToken> findTopByUserIdAndIsUsedFalseAndSessionTokenIsNullOrderByCreatedAtDesc(Long userId);
+
+    Optional<ResetToken> findBySessionTokenAndIsUsedFalse(String sessionToken);
 }

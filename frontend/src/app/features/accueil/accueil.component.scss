@@ -24,26 +24,27 @@
 
 .accueil-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
-  gap: clamp(1.5rem, 4vw, 3rem);
-  align-items: start;
-  padding: clamp(1.5rem, 4vw, 3rem) 0 2.5rem;
+  grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
+  gap: clamp(2rem, 4vw, 3.5rem);
+  align-items: center;
+  padding: clamp(1.5rem, 4vw, 3rem) 0 2.75rem;
   border-bottom: 1px solid var(--ec-border);
 }
 
 .accueil-hero__title {
   margin: 0 0 1rem;
-  font-size: clamp(2.4rem, 5vw, 3.35rem);
-  line-height: 1.08;
-  max-width: 14ch;
+  font-size: clamp(2.35rem, 4.8vw, 3.25rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  max-width: 13ch;
 }
 
 .accueil-hero__lead {
   margin: 0 0 1.5rem;
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: 1.02rem;
+  line-height: 1.65;
   color: var(--ec-text-soft);
-  max-width: 42ch;
+  max-width: 40ch;
 }
 
 .accueil-hero__cta {
@@ -122,46 +123,55 @@
 
 .accueil-hero__visual {
   position: relative;
+  width: 100%;
+  max-width: 520px;
+  justify-self: end;
 }
 
 .accueil-hero__image {
+  display: block;
   width: 100%;
-  min-height: 420px;
+  aspect-ratio: 4 / 5;
+  max-height: min(580px, calc(100vh - 8rem));
+  object-fit: cover;
+  object-position: center 20%;
   border-radius: 20px;
-  background:
-    linear-gradient(160deg, rgba(45, 106, 79, 0.1), rgba(28, 25, 23, 0.05)),
-    url('/assets/images/community-group.jpg') center / cover no-repeat;
-  box-shadow: var(--ec-shadow-soft);
+  border: none;
+  box-shadow: none;
 }
 
 .accueil-spotlight {
   position: absolute;
-  left: 1rem;
-  bottom: 1rem;
-  max-width: min(280px, 85%);
-  padding: 0.85rem 1rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(6px);
-  box-shadow: var(--ec-shadow-soft);
+  left: 1.15rem;
+  bottom: 1.15rem;
+  max-width: min(300px, 88%);
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  border: none;
+  box-shadow: 0 8px 24px rgba(28, 25, 23, 0.08);
 }
 
 .accueil-spotlight__tag {
   display: block;
+  font-family: var(--ec-font-sans);
   font-size: 0.62rem;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ec-text-muted);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.4rem;
 }
 
 .accueil-spotlight__title {
   margin: 0;
   font-family: var(--ec-font-serif);
-  font-size: 1.05rem;
+  font-size: clamp(1rem, 1.8vw, 1.15rem);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--ec-text);
 }
 
 .accueil-section {
@@ -183,8 +193,9 @@
 
 .accueil-section__title {
   margin: 0;
-  font-size: clamp(1.85rem, 3.5vw, 2.5rem);
-  line-height: 1.12;
+  font-size: clamp(1.85rem, 3.2vw, 2.35rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
 }
 
 .accueil-link-arrow {
@@ -210,12 +221,13 @@
   position: relative;
   display: block;
   width: 100%;
-  min-height: 320px;
-  aspect-ratio: 4 / 5.4;
+  min-height: 300px;
+  aspect-ratio: 3 / 4.2;
   border-radius: 16px;
   overflow: hidden;
   text-decoration: none;
-  box-shadow: var(--ec-shadow-soft);
+  border: none;
+  box-shadow: none;
   background: var(--ec-earth);
 
   img {
@@ -290,16 +302,22 @@
 .accueil-events {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.25rem;
-  margin-top: 1.5rem;
+  gap: 1.35rem;
+  margin-top: 1.75rem;
 }
 
 .accueil-event-card {
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
   background: var(--ec-card);
   border: 1px solid var(--ec-border);
-  box-shadow: var(--ec-shadow-soft);
+  box-shadow: none;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: rgba(45, 106, 79, 0.22);
+  }
 }
 
 .accueil-event-card__link {
@@ -310,14 +328,21 @@
 
 .accueil-event-card__image {
   position: relative;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 11;
   overflow: hidden;
+  background: var(--ec-cream-deep);
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
+    transition: transform 0.35s ease;
   }
+}
+
+.accueil-event-card:hover .accueil-event-card__image img {
+  transform: scale(1.04);
 }
 
 .badge {
@@ -350,22 +375,28 @@
 }
 
 .accueil-event-card__body {
-  padding: 1rem 1.1rem 1.15rem;
+  padding: 1.1rem 1.2rem 1.2rem;
 
   h3 {
-    margin: 0.35rem 0 0.75rem;
+    margin: 0.4rem 0 0.85rem;
     font-family: var(--ec-font-serif);
-    font-size: 1.1rem;
+    font-size: clamp(1.05rem, 1.4vw, 1.18rem);
     font-weight: 600;
-    line-height: 1.3;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
 
 .accueil-event-card__city {
   margin: 0;
-  font-size: 0.65rem;
+  font-family: var(--ec-font-sans);
+  font-size: 0.64rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   color: var(--ec-text-muted);
 }
 
@@ -398,10 +429,11 @@
 .accueil-event-card__points-num {
   display: block;
   font-family: var(--ec-font-serif);
-  font-size: 1.65rem;
+  font-size: 1.55rem;
   font-weight: 600;
-  color: var(--ec-sage-dark);
+  color: var(--ec-sage);
   line-height: 1;
+  letter-spacing: -0.02em;
 }
 
 .accueil-event-card__points-label {
@@ -420,13 +452,15 @@
 }
 
 .accueil-how__image {
+  display: block;
   width: 100%;
-  min-height: 380px;
+  aspect-ratio: 4 / 5;
+  max-height: 480px;
+  object-fit: cover;
+  object-position: center;
   border-radius: 20px;
-  background:
-    linear-gradient(160deg, rgba(45, 106, 79, 0.08), transparent),
-    url('/assets/images/how-qr.jpg') center / cover no-repeat;
-  box-shadow: var(--ec-shadow-soft);
+  border: none;
+  box-shadow: none;
 }
 
 .accueil-steps {
@@ -482,13 +516,15 @@
 }
 
 .accueil-community__image {
+  display: block;
   width: 100%;
-  min-height: 400px;
+  aspect-ratio: 4 / 5;
+  max-height: 520px;
+  object-fit: cover;
+  object-position: center 25%;
   border-radius: 20px;
-  background:
-    linear-gradient(160deg, rgba(45, 106, 79, 0.1), transparent),
-    url('/assets/images/community-group.jpg') center / cover no-repeat;
-  box-shadow: var(--ec-shadow-soft);
+  border: none;
+  box-shadow: none;
 }
 
 @media (max-width: 1100px) {
@@ -516,7 +552,13 @@
   .accueil-hero__image,
   .accueil-how__image,
   .accueil-community__image {
-    min-height: 280px;
+    max-height: 360px;
+    aspect-ratio: 16 / 11;
+  }
+
+  .accueil-hero__visual {
+    max-width: none;
+    justify-self: stretch;
   }
 
   .accueil-stats {

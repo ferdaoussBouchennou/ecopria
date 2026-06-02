@@ -40,6 +40,11 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface ResetSessionResponse {
+  resetToken: string;
+  message: string;
+}
+
 export interface CitizenProfileUpdate {
   firstName?: string;
   lastName?: string;

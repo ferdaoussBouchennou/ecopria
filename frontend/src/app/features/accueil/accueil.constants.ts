@@ -42,8 +42,7 @@ export const ACCUEIL_STATS = [
   { value: '86 t', label: 'Déchets collectés' },
 ] as const;
 
-/** Visuels distincts pour les 3 cartes « À l'affiche » (index 0–2) */
-export const ACCUEIL_FEATURED_IMAGES = SITE_IMAGES.eventAffiche;
+export const ACCUEIL_FEATURED_IMAGES = SITE_IMAGES.featuredFallback;
 
 /** Données de démonstration si l’API ne renvoie pas encore d’actions publiées */
 export const ACCUEIL_FEATURED_DEMO: ActionSummary[] = [
@@ -63,8 +62,8 @@ export const ACCUEIL_FEATURED_DEMO: ActionSummary[] = [
   },
   {
     id: 0,
-    title: 'Ramassage de déchets dans la forêt de Bouhachem',
-    categoryName: 'Nettoyage',
+    title: 'Plantation de 200 chênes, forêt de Bouhachem',
+    categoryName: 'Reboisement',
     city: 'Bouhachem',
     dateStart: '2025-06-01T10:00:00',
     dateEnd: '2025-06-01T15:00:00',
@@ -77,9 +76,9 @@ export const ACCUEIL_FEATURED_DEMO: ActionSummary[] = [
   },
   {
     id: 0,
-    title: 'Nettoyage des berges de l’oued Martil',
-    categoryName: 'Nettoyage',
-    city: 'Martil',
+    title: 'Atelier sensibilisation éco-citoyenne',
+    categoryName: 'Sensibilisation',
+    city: 'Tanger',
     dateStart: '2025-06-07T09:30:00',
     dateEnd: '2025-06-07T12:30:00',
     points: 110,

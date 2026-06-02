@@ -24,22 +24,32 @@ public class NotificationEmailClient {
     private String notificationServiceUrl;
 
     public boolean sendVerificationEmail(EmailVerificationEvent event) {
-        String url = notificationServiceUrl.replaceAll("/+$", "") + "/internal/verification-email";
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("email", event.getEmail());
         body.put("code", event.getCode());
         body.put("firstName", event.getFirstName());
         body.put("first_name", event.getFirstName());
         body.put("userId", event.getUserId());
+        return postInternal("/internal/verification-email", body, "vérification", event.getEmail());
+    }
 
+    public boolean sendPasswordResetEmail(String email, String code) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("email", email);
+        body.put("code", code);
+        return postInternal("/internal/password-reset-email", body, "réinitialisation", email);
+    }
+
+    private boolean postInternal(String path, Map<String, Object> body, String kind, String email) {
+        String url = notificationServiceUrl.replaceAll("/+$", "") + path;
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             restTemplate.postForEntity(url, new HttpEntity<>(body, headers), Void.class);
-            log.info("E-mail de vérification envoyé via notification-service → {}", event.getEmail());
+            log.info("E-mail de {} envoyé via notification-service → {}", kind, email);
             return true;
         } catch (Exception ex) {
-            log.warn("Échec envoi HTTP vers notification-service ({}), repli Kafka", ex.getMessage());
+            log.warn("Échec envoi HTTP {} vers notification-service ({}): {}", kind, email, ex.getMessage());
             return false;
         }
     }
