@@ -5,11 +5,11 @@ import { catchError, map } from 'rxjs/operators';
 import {
   AvisPartenaire,
   CommissionMensuelle,
-  Coupon,
+  CouponDto,
   CreateRecompenseRequest,
   DashboardPartenaire,
   PartenaireProfil,
-  Recompense,
+  RecompenseItemDto,
   UpdatePartenaireProfil,
   VisibilitePartenaire
 } from '../../core/models/recompense.model';
@@ -39,15 +39,15 @@ export class PartenaireService {
       .pipe(catchError(this.handleError));
   }
 
-  getMesOffres(): Observable<Recompense[]> {
+  getMesOffres(): Observable<RecompenseItemDto[]> {
     return this.http
-      .get<Recompense[]>(`${API_PARTENAIRE}/offres`, { headers: this.headers() })
+      .get<RecompenseItemDto[]>(`${API_PARTENAIRE}/offres`, { headers: this.headers() })
       .pipe(catchError(this.handleError));
   }
 
-  getOffreById(id: number): Observable<Recompense> {
+  getOffreById(id: number): Observable<RecompenseItemDto> {
     return this.getMesOffres().pipe(
-      map((list: Recompense[]) => {
+      map((list: RecompenseItemDto[]) => {
         const found = list.find((o) => o.id === id);
         if (!found) throw new Error('Offre introuvable');
         return found;
@@ -56,15 +56,15 @@ export class PartenaireService {
     );
   }
 
-  creerOffre(dto: CreateRecompenseRequest): Observable<Recompense> {
+  creerOffre(dto: CreateRecompenseRequest): Observable<RecompenseItemDto> {
     return this.http
-      .post<Recompense>(`${API_PARTENAIRE}/offres`, dto, { headers: this.headers() })
+      .post<RecompenseItemDto>(`${API_PARTENAIRE}/offres`, dto, { headers: this.headers() })
       .pipe(catchError(this.handleError));
   }
 
-  modifierOffre(id: number, dto: CreateRecompenseRequest): Observable<Recompense> {
+  modifierOffre(id: number, dto: CreateRecompenseRequest): Observable<RecompenseItemDto> {
     return this.http
-      .put<Recompense>(`${API_PARTENAIRE}/offres/${id}`, dto, { headers: this.headers() })
+      .put<RecompenseItemDto>(`${API_PARTENAIRE}/offres/${id}`, dto, { headers: this.headers() })
       .pipe(catchError(this.handleError));
   }
 
@@ -74,9 +74,9 @@ export class PartenaireService {
       .pipe(catchError(this.handleError));
   }
 
-  validerCoupon(code: string): Observable<Coupon> {
+  validerCoupon(code: string): Observable<CouponDto> {
     return this.http
-      .post<Coupon>(`${API_PARTENAIRE}/valider-coupon`, { code }, { headers: this.headers() })
+      .post<CouponDto>(`${API_PARTENAIRE}/valider-coupon`, { code }, { headers: this.headers() })
       .pipe(catchError(this.handleError));
   }
 
@@ -116,9 +116,9 @@ export class PartenaireService {
       .pipe(catchError(this.handleError));
   }
 
-  toggleOffreActive(id: number): Observable<Recompense> {
+  toggleOffreActive(id: number): Observable<RecompenseItemDto> {
     return this.http
-      .patch<Recompense>(`${API_PARTENAIRE}/offres/${id}/toggle-active`, null, { headers: this.headers() })
+      .patch<RecompenseItemDto>(`${API_PARTENAIRE}/offres/${id}/toggle-active`, null, { headers: this.headers() })
       .pipe(catchError(this.handleError));
   }
 

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PartenaireService } from '../partenaire.service';
-import { Recompense } from '../../../core/models/recompense.model';
+import { RecompenseItemDto } from '../../../core/models/recompense.model';
 
 type Filtre = 'TOUS' | 'ACTIVE' | 'INACTIVE';
 
@@ -14,7 +14,7 @@ type Filtre = 'TOUS' | 'ACTIVE' | 'INACTIVE';
   styleUrls: ['./mes-offres.component.scss']
 })
 export class MesOffresComponent implements OnInit {
-  offres: Recompense[] = [];
+  offres: RecompenseItemDto[] = [];
   loading = true;
   erreur = '';
   desactivationId: number | null = null;
@@ -42,15 +42,15 @@ export class MesOffresComponent implements OnInit {
     });
   }
 
-  get offresActives(): Recompense[] {
+  get offresActives(): RecompenseItemDto[] {
     return this.offres.filter((o) => o.isActive);
   }
 
-  get offresInactives(): Recompense[] {
+  get offresInactives(): RecompenseItemDto[] {
     return this.offres.filter((o) => !o.isActive);
   }
 
-  get offresFiltered(): Recompense[] {
+  get offresFiltered(): RecompenseItemDto[] {
     switch (this.filtre) {
       case 'ACTIVE':   return this.offresActives;
       case 'INACTIVE': return this.offresInactives;
@@ -58,7 +58,7 @@ export class MesOffresComponent implements OnInit {
     }
   }
 
-  toggleActif(o: Recompense): void {
+  toggleActif(o: RecompenseItemDto): void {
     this.desactivationId = o.id;
     this.partenaireService.toggleOffreActive(o.id).subscribe({
       next: (updated) => {
@@ -72,7 +72,7 @@ export class MesOffresComponent implements OnInit {
     });
   }
 
-  confirmerSuppression(o: Recompense): void {
+  confirmerSuppression(o: RecompenseItemDto): void {
     this.suppressionId = o.id;
   }
 

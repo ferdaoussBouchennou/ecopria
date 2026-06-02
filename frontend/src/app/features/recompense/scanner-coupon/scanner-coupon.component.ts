@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PartenaireService } from '../partenaire.service';
-import { Coupon } from '../../../core/models/recompense.model';
+import { CouponDto } from '../../../core/models/recompense.model';
 
 @Component({
   selector: 'app-scanner-coupon',
@@ -15,8 +15,8 @@ export class ScannerCouponComponent {
   code    = '';
   loading = false;
   erreur  = '';
-  coupon: Coupon | null = null;
-  history: Coupon[] = [];
+  coupon: CouponDto | null = null;
+  history: CouponDto[] = [];
 
   constructor(private partenaireService: PartenaireService) {}
 

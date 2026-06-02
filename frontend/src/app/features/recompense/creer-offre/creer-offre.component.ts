@@ -115,7 +115,7 @@ export class CreerOffreComponent implements OnInit {
         });
         this.mystereItems.clear();
         if (o.mystereBoxItems?.length) {
-          o.mystereBoxItems.forEach((item) => this.mystereItems.push(this.creerItemGroup(item)));
+          o.mystereBoxItems.forEach((item: any) => this.mystereItems.push(this.creerItemGroup(item)));
         } else {
           this.ajouterItemMystere();
           this.ajouterItemMystere();

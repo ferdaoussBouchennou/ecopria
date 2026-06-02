@@ -76,7 +76,6 @@ export interface DashboardPartenaire {
   couponsUtilises: number;
   tauxUtilisation: number;
   commissionsARegler: number;
-  badgeActuel?: string;
   offresActives: RecompenseItemDto[];
   echangesRecents: CouponDto[];
 }
