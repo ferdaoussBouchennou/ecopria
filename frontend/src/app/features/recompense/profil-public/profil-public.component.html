@@ -113,6 +113,45 @@
         <span class="form-hint">Image de couverture (recommandé : 1200 × 600 px, format paysage)</span>
       </div>
 
+      <div class="form-group">
+        <label class="form-label" for="galleryUrls">Galerie photos (plusieurs URLs)</label>
+        <textarea
+          id="galleryUrls"
+          class="form-control"
+          rows="4"
+          [(ngModel)]="galleryText"
+          placeholder="Une URL par ligne&#10;https://...&#10;https://..."
+        ></textarea>
+        <span class="form-hint">Ajoutez une photo par ligne pour enrichir la page publique.</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="phone">Téléphone</label>
+          <input id="phone" class="form-control" type="text" [(ngModel)]="form.phone" placeholder="+212 ..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="openingHours">Horaires</label>
+          <input id="openingHours" class="form-control" type="text" [(ngModel)]="form.openingHours" placeholder="Lun-Dim 08:00-22:00" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="website">Site web</label>
+        <input id="website" class="form-control" type="url" [(ngModel)]="form.website" placeholder="https://..." />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="instagramUrl">Instagram</label>
+          <input id="instagramUrl" class="form-control" type="url" [(ngModel)]="form.instagramUrl" placeholder="https://instagram.com/..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="facebookUrl">Facebook</label>
+          <input id="facebookUrl" class="form-control" type="url" [(ngModel)]="form.facebookUrl" placeholder="https://facebook.com/..." />
+        </div>
+      </div>
+
       <div class="form-actions">
         <button
           class="btn btn--primary"
@@ -136,6 +175,12 @@
         <span class="empty-img-icon">🖼️</span>
         <p>Aucune image sélectionnée</p>
       </div>
+
+      <h3 class="sub-title">Galerie</h3>
+      <div class="gallery-preview" *ngIf="form.galleryImages?.length">
+        <img *ngFor="let img of form.galleryImages" [src]="img" alt="Galerie partenaire" (error)="onImgError($event)" />
+      </div>
+      <p class="gallery-empty" *ngIf="!form.galleryImages?.length">Aucune photo de galerie.</p>
     </div>
   </div>
 </div>

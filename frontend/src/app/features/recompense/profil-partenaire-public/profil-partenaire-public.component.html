@@ -25,4 +25,29 @@
       </div>
     </div>
   </section>
+
+  <section *ngIf="!loading && profil" class="content">
+    <div class="card">
+      <h2>A propos</h2>
+      <p>{{ profil.description || 'Ce partenaire fait partie du reseau Ecopria et propose des offres responsables.' }}</p>
+      <p *ngIf="profil.openingHours"><strong>Horaires:</strong> {{ profil.openingHours }}</p>
+      <p *ngIf="profil.phone"><strong>Telephone:</strong> {{ profil.phone }}</p>
+    </div>
+
+    <div class="card" *ngIf="profil.galleryImages?.length">
+      <h2>Galerie</h2>
+      <div class="gallery-grid">
+        <img *ngFor="let img of profil.galleryImages" [src]="img" [alt]="profil.name + ' photo'" />
+      </div>
+    </div>
+
+    <div class="card" *ngIf="profil.website || profil.instagramUrl || profil.facebookUrl">
+      <h2>Suivre ce partenaire</h2>
+      <div class="links">
+        <a *ngIf="profil.website" [href]="profil.website" target="_blank" rel="noopener">Site web</a>
+        <a *ngIf="profil.instagramUrl" [href]="profil.instagramUrl" target="_blank" rel="noopener">Instagram</a>
+        <a *ngIf="profil.facebookUrl" [href]="profil.facebookUrl" target="_blank" rel="noopener">Facebook</a>
+      </div>
+    </div>
+  </section>
 </div>

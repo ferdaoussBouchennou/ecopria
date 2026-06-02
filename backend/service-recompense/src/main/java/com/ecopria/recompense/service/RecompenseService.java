@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -204,6 +205,12 @@ public class RecompenseService {
         if (dto.getCity() != null) p.setCity(dto.getCity());
         if (dto.getDescription() != null) p.setDescription(dto.getDescription());
         if (dto.getImageUrl() != null) p.setImageUrl(dto.getImageUrl());
+        if (dto.getGalleryImages() != null) p.setGalleryImages(joinGallery(dto.getGalleryImages()));
+        if (dto.getPhone() != null) p.setPhone(dto.getPhone());
+        if (dto.getWebsite() != null) p.setWebsite(dto.getWebsite());
+        if (dto.getInstagramUrl() != null) p.setInstagramUrl(dto.getInstagramUrl());
+        if (dto.getFacebookUrl() != null) p.setFacebookUrl(dto.getFacebookUrl());
+        if (dto.getOpeningHours() != null) p.setOpeningHours(dto.getOpeningHours());
         return toProfilDTO(partenaireRepository.save(p));
     }
 
@@ -636,7 +643,30 @@ public class RecompenseService {
                 .city(p.getCity())
                 .description(p.getDescription())
                 .imageUrl(p.getImageUrl())
+                .galleryImages(splitGallery(p.getGalleryImages()))
+                .phone(p.getPhone())
+                .website(p.getWebsite())
+                .instagramUrl(p.getInstagramUrl())
+                .facebookUrl(p.getFacebookUrl())
+                .openingHours(p.getOpeningHours())
                 .build();
+    }
+
+    private List<String> splitGallery(String galleryImages) {
+        if (galleryImages == null || galleryImages.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(galleryImages.split("\\|\\|"))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toList());
+    }
+
+    private String joinGallery(List<String> galleryImages) {
+        return galleryImages.stream()
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.joining("||"));
     }
 
     private AvisDTO toAvisDTO(AvisPartenaire a) {
