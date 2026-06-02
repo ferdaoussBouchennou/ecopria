@@ -1,25 +1,22 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { AuthService } from './auth.service';
 
 /**
- * Contexte utilisateur en développement (en attendant l'auth JWT).
- * Valeurs modifiables dans la console :
- *   localStorage.setItem('ecopria.dev.associationAuthId', '1')
- *   localStorage.setItem('ecopria.dev.participantUserId', '2')
+ * Contexte utilisateur.
+ * Utilise désormais l'ID de l'utilisateur connecté via AuthService.
  */
 @Injectable({ providedIn: 'root' })
 export class DevContextService {
-  private readonly KEY_ASSO        = 'ecopria.dev.associationAuthId';
-  private readonly KEY_PARTICIPANT = 'ecopria.dev.participantUserId';
-  private readonly KEY_PARTENAIRE  = 'ecopria.dev.partenaireUserId';
+  private auth = inject(AuthService);
 
   /** authId côté service-utilisateur (profil association) */
   getAssociationAuthId(): number {
-    return this.readNumber(this.KEY_ASSO, 1);
+    return this.auth.getUserId() || 1;
   }
 
   /** authId du citoyen (inscriptions, présence, mes-inscriptions) */
   getParticipantUserId(): number {
-    return this.readNumber(this.KEY_PARTICIPANT, 2);
+    return this.auth.getUserId() || 2;
   }
 
   /** Header X-User-Id pour service-action (user_id dans db_action.associations) */
@@ -29,22 +26,8 @@ export class DevContextService {
 
   /**
    * userId partenaire pour l'espace partenaire.
-   * En dev, userId=1 correspond à "Café Botanique" (créé par DemoDataInitializer).
-   * Modifier via : localStorage.setItem('ecopria.dev.partenaireUserId', '1')
    */
   getPartenaireUserId(): number {
-    return this.readNumber(this.KEY_PARTENAIRE, 1);
-  }
-
-  private readNumber(key: string, defaultValue: number): number {
-    if (typeof localStorage === 'undefined') {
-      return defaultValue;
-    }
-    const raw = localStorage.getItem(key);
-    if (raw == null || raw === '') {
-      return defaultValue;
-    }
-    const n = Number(raw);
-    return Number.isFinite(n) && n > 0 ? n : defaultValue;
+    return this.auth.getUserId() || 1;
   }
 }
