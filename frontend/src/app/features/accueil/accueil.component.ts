@@ -11,6 +11,8 @@ import {
   isActionFull,
 } from '../action/utils/action-format.utils';
 import { AuthService } from '../../core/services/auth.service';
+import { PartenaireService } from '../recompense/partenaire.service';
+import { PartenaireProfil } from '../../core/models/recompense.model';
 import {
   ACCUEIL_CATEGORY_CARDS,
   ACCUEIL_FEATURED_DEMO,
@@ -36,10 +38,13 @@ export class AccueilComponent implements OnInit {
   featuredActions: ActionSummary[] = [];
   spotlightAction: ActionSummary | null = null;
   loadingFeatured = true;
+  partenaires: PartenaireProfil[] = [];
+  loadingPartenaires = true;
 
   constructor(
     public auth: AuthService,
-    private actionService: ActionService
+    private actionService: ActionService,
+    private partenaireService: PartenaireService
   ) {}
 
   ngOnInit(): void {
@@ -54,6 +59,17 @@ export class AccueilComponent implements OnInit {
         this.featuredActions = [...ACCUEIL_FEATURED_DEMO];
         this.spotlightAction = this.featuredActions[0] ?? null;
         this.loadingFeatured = false;
+      },
+    });
+
+    this.partenaireService.getPartenairesPublics().subscribe({
+      next: (partenaires) => {
+        this.partenaires = partenaires;
+        this.loadingPartenaires = false;
+      },
+      error: () => {
+        this.partenaires = [];
+        this.loadingPartenaires = false;
       },
     });
   }

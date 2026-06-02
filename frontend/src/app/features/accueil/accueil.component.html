@@ -175,4 +175,38 @@
       />
     </div>
   </section>
+
+  <!-- Partenaires -->
+  <section class="accueil-section accueil-partenaires" id="partenaires">
+    <div class="accueil-section__head">
+      <div>
+        <p class="accueil-eyebrow"><span class="eyebrow-line"></span> Nos partenaires</p>
+        <h2 class="accueil-section__title">Découvrez les enseignes engagées.</h2>
+      </div>
+    </div>
+
+    @if (loadingPartenaires) {
+      <p class="accueil-muted">Chargement des partenaires…</p>
+    } @else if (partenaires.length === 0) {
+      <p class="accueil-muted">Aucun partenaire disponible pour le moment.</p>
+    } @else {
+      <div class="partenaires-grid">
+        @for (p of partenaires; track p.userId) {
+          <a class="partenaire-card" [routerLink]="['/partenaires', p.userId]">
+            <img
+              class="partenaire-card__img"
+              [src]="p.imageUrl || 'https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=900'"
+              [alt]="p.name"
+              loading="lazy"
+            />
+            <div class="partenaire-card__overlay">
+              <span class="partenaire-chip">{{ p.category || 'Partenaire Ecopria' }}</span>
+              <h3>{{ p.name }}</h3>
+              <p>{{ p.city || 'Maroc' }}</p>
+            </div>
+          </a>
+        }
+      </div>
+    }
+  </section>
 </div>

@@ -222,6 +222,14 @@ public class RecompenseService {
         return toProfilDTO(p);
     }
 
+    @Transactional(readOnly = true)
+    public List<PartenaireProfilDTO> getPartenairesPublics() {
+        return partenaireRepository.findAll().stream()
+                .sorted(java.util.Comparator.comparing(Partenaire::getName, String.CASE_INSENSITIVE_ORDER))
+                .map(this::toProfilDTO)
+                .collect(Collectors.toList());
+    }
+
     // ─── VISIBILITÉ & AVIS ───────────────────────────────────
 
     @Transactional(readOnly = true)

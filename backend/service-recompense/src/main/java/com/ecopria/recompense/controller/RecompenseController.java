@@ -75,4 +75,9 @@ public class RecompenseController {
     public ResponseEntity<PartenaireProfilDTO> getProfilPublic(@PathVariable Long userId) {
         return ResponseEntity.ok(recompenseService.getProfilPublic(userId));
     }
+
+    @GetMapping("/public/partenaires")
+    public ResponseEntity<List<PartenaireProfilDTO>> getPartenairesPublics() {
+        return ResponseEntity.ok(recompenseService.getPartenairesPublics());
+    }
 }
