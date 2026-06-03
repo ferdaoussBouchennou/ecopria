@@ -14,6 +14,7 @@ import { PartenaireProfil, UpdatePartenaireProfil } from '../../../core/models/r
 export class ProfilPublicComponent implements OnInit {
   profil: PartenaireProfil | null = null;
   form: UpdatePartenaireProfil = {};
+  galleryText = '';
   loading = true;
   saving = false;
   erreur = '';
@@ -37,8 +38,15 @@ export class ProfilPublicComponent implements OnInit {
           address:     p.address,
           city:        p.city,
           description: p.description,
-          imageUrl:    p.imageUrl
+          imageUrl:    p.imageUrl,
+          galleryImages: p.galleryImages ?? [],
+          phone: p.phone,
+          website: p.website,
+          instagramUrl: p.instagramUrl,
+          facebookUrl: p.facebookUrl,
+          openingHours: p.openingHours
         };
+        this.galleryText = (p.galleryImages ?? []).join('\n');
         this.loading = false;
       },
       error: (e: Error) => {
@@ -56,9 +64,16 @@ export class ProfilPublicComponent implements OnInit {
     this.saving  = true;
     this.succes  = '';
     this.erreur  = '';
+    const galleryImages = this.galleryText
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => !!line);
+
+    this.form.galleryImages = galleryImages;
     this.partenaireService.updateProfil(this.form).subscribe({
       next: (p) => {
         this.profil = p;
+        this.galleryText = (p.galleryImages ?? []).join('\n');
         this.succes = 'Profil enregistré avec succès !';
         this.saving = false;
         setTimeout(() => (this.succes = ''), 4000);

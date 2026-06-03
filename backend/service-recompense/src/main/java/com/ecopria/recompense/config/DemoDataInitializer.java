@@ -34,6 +34,15 @@ public class DemoDataInitializer implements ApplicationRunner {
                     .city("Tétouan")
                     .description("Un café éco-responsable au cœur de Tétouan. Engagé pour une consommation locale, bio et zéro-déchet.")
                     .imageUrl("https://images.unsplash.com/photo-1515823064-24b604696a43?w=800")
+                    .galleryImages(String.join("||",
+                            "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=1200",
+                            "https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=1200",
+                            "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200"))
+                    .phone("+212 612-345678")
+                    .website("https://cafebotanique.example.com")
+                    .instagramUrl("https://instagram.com/cafebotanique")
+                    .facebookUrl("https://facebook.com/cafebotanique")
+                    .openingHours("Lun-Dim 08:00-22:30")
                     .vuesProfil(1842L)
                     .clicsOffres(624L)
                     .commissionRate(15.0)
@@ -52,6 +61,18 @@ public class DemoDataInitializer implements ApplicationRunner {
                 p.setImageUrl("https://images.unsplash.com/photo-1515823064-24b604696a43?w=800");
                 partenaireRepository.save(p);
             }
+            if (p.getGalleryImages() == null || p.getGalleryImages().isBlank()) {
+                p.setGalleryImages(String.join("||",
+                        "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=1200",
+                        "https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=1200",
+                        "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200"));
+            }
+            if (p.getPhone() == null) p.setPhone("+212 612-345678");
+            if (p.getWebsite() == null) p.setWebsite("https://cafebotanique.example.com");
+            if (p.getInstagramUrl() == null) p.setInstagramUrl("https://instagram.com/cafebotanique");
+            if (p.getFacebookUrl() == null) p.setFacebookUrl("https://facebook.com/cafebotanique");
+            if (p.getOpeningHours() == null) p.setOpeningHours("Lun-Dim 08:00-22:30");
+            partenaireRepository.save(p);
         }
 
         if (recompenseRepository.findByPartenaireId(p.getId()).isEmpty()) {

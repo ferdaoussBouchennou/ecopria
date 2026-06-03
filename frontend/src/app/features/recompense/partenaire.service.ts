@@ -104,6 +104,12 @@ export class PartenaireService {
       .pipe(catchError(this.handleError));
   }
 
+  getPartenairesPublics(): Observable<PartenaireProfil[]> {
+    return this.http
+      .get<PartenaireProfil[]>('/api/recompenses/public/partenaires')
+      .pipe(catchError(this.handleError));
+  }
+
   getVisibilite(): Observable<VisibilitePartenaire> {
     return this.http
       .get<VisibilitePartenaire>(`${API_PARTENAIRE}/visibilite`, { headers: this.headers() })

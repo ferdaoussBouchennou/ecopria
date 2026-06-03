@@ -40,6 +40,24 @@ public class Partenaire {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "gallery_images", columnDefinition = "TEXT")
+    private String galleryImages;
+
+    @Column(length = 50)
+    private String phone;
+
+    @Column(length = 255)
+    private String website;
+
+    @Column(name = "instagram_url", length = 255)
+    private String instagramUrl;
+
+    @Column(name = "facebook_url", length = 255)
+    private String facebookUrl;
+
+    @Column(name = "opening_hours", length = 255)
+    private String openingHours;
+
     @Column(name = "vues_profil", nullable = false)
     @Builder.Default
     private Long vuesProfil = 0L;

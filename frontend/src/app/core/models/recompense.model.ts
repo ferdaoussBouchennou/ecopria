@@ -48,6 +48,7 @@ export interface CreateRecompenseRequest {
 
 export interface CouponDto {
   id: number;
+  userId?: number;
   code: string;
   recompenseTitle: string;
   recompenseImageUrl?: string;
@@ -88,6 +89,12 @@ export interface PartenaireProfil {
   city?: string;
   description?: string;
   imageUrl?: string;
+  galleryImages?: string[];
+  phone?: string;
+  website?: string;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  openingHours?: string;
 }
 
 export interface UpdatePartenaireProfil {
@@ -97,6 +104,12 @@ export interface UpdatePartenaireProfil {
   city?: string;
   description?: string;
   imageUrl?: string;
+  galleryImages?: string[];
+  phone?: string;
+  website?: string;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  openingHours?: string;
 }
 
 export interface AvisPartenaire {
