@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { catchError, of } from 'rxjs';
 import { AssociationService } from '../services/association.service';
 import { ActionSummary } from '../../action/models/action.model';
 
@@ -36,7 +37,12 @@ export class ListeParticipantsComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    this.associationService.getMesActions().subscribe({
+    this.associationService.getMesActions().pipe(
+      catchError((err) => {
+        console.error('Erreur lors du chargement des actions (participants):', err);
+        return of([] as ActionSummary[]);
+      })
+    ).subscribe({
       next: (actions) => {
         this.actions = actions.map(action => ({
           ...action,

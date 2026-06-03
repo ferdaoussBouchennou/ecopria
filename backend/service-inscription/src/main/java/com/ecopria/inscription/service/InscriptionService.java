@@ -79,7 +79,7 @@ public class InscriptionService {
 
         inscription.setStatut("CONFIRMEE");
         Inscription saved = inscriptionRepository.save(inscription);
-        inscriptionProducer.envoyerConfirmation(saved);
+        inscriptionProducer.envoyerConfirmation(saved, action);
         return toResponseDTO(saved);
     }
 

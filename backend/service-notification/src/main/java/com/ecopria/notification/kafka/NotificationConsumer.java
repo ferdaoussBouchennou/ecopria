@@ -135,6 +135,15 @@ public class NotificationConsumer {
         }
         String dateAction = readStringAny(event, "", "dateAction", "date_action");
         String actionTitle = readStringAny(event, "l'action", "actionTitle", "title", "action_title");
+        String city = readStringAny(event, "", "city", "ville");
+        String address = readStringAny(event, "", "address", "adresse");
+        Long associationId = firstLongId(event, "inscription.confirmee", "associationId", "association_id");
+
+        String locationDetails = "";
+        if (!city.isEmpty() || !address.isEmpty()) {
+            locationDetails = "Lieu : " + (address.isEmpty() ? "" : address + " - ") + city + "\n";
+        }
+
         dispatcher.notifyUser(userId,
                 "Inscription confirmee ✅",
                 "Votre inscription a ete confirmee pour : " + actionTitle + ". Votre QR Code sera envoye par email.",
@@ -142,11 +151,22 @@ public class NotificationConsumer {
                 "Votre inscription est confirmee - " + actionTitle,
                 "Bonjour,\n\n" +
                         "Votre inscription pour \"" + actionTitle + "\" est confirmee.\n" +
-                        "Date : " + dateAction + "\n\n" +
+                        "Date : " + dateAction + "\n" +
+                        locationDetails + "\n" +
                         "Votre QR code personnel sera genere et envoye avant l'evenement.\n\n" +
                         "https://ecopria.ma/espace/qr\n\n" +
                         "- L'equipe EcoPria",
                 emailFromEvent(event));
+
+        if (associationId != null) {
+            dispatcher.notifyUser(associationId,
+                    "Nouvel inscrit",
+                    "Un nouveau participant s'est inscrit à votre action : " + actionTitle,
+                    Notification.NotificationType.INFO,
+                    null,
+                    null,
+                    null);
+        }
     }
 
     @KafkaListener(topics = "inscription.annulee", groupId = "notification-inscription-annulee-group")

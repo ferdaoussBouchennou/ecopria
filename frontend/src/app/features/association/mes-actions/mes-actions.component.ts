@@ -40,7 +40,12 @@ export class MesActionsComponent implements OnInit {
     this.error = null;
 
     forkJoin({
-      actions: this.associationService.getMesActions(),
+      actions: this.associationService.getMesActions().pipe(
+        catchError((err) => {
+          console.error('Erreur chargement actions:', err);
+          return of([] as ActionSummary[]);
+        })
+      ),
       drafts: this.associationService.getMesBrouillons().pipe(
         catchError((err) => {
           console.error('Erreur chargement brouillons:', err);

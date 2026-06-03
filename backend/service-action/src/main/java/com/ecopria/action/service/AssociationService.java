@@ -25,15 +25,31 @@ public class AssociationService {
             return;
         }
 
+        String eventCity = event.get("city") != null ? event.get("city").toString() :
+                (event.get("ville") != null ? event.get("ville").toString() : null);
+
         Association association = Association.builder()
                 .userId(userId)
                 .name(event.get("nom") != null ? event.get("nom").toString() : "")
                 .description(event.get("description") != null ? event.get("description").toString() : null)
                 .logoUrl(event.get("logoUrl") != null ? event.get("logoUrl").toString() : null)
-                .city(event.get("ville") != null ? event.get("ville").toString() : null)
+                .city(eventCity)
                 .build();
 
         associationRepository.save(association);
         log.info("Association validée créée pour userId: {}", userId);
+    }
+
+    @Transactional
+    public Association getOrCreateAssociation(Long userId) {
+        return associationRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    Association assoc = Association.builder()
+                            .userId(userId)
+                            .name("Association")
+                            .build();
+                    log.info("Association par défaut créée pour userId: {}", userId);
+                    return associationRepository.save(assoc);
+                });
     }
 }

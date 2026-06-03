@@ -105,7 +105,14 @@ public class ActionService {
     @Transactional
     public ActionDetailDTO create(CreateActionDTO dto, Long userId) {
         Association association = associationRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+                .orElseGet(() -> {
+                    Association assoc = Association.builder()
+                            .userId(userId)
+                            .name("Association")
+                            .build();
+                    log.info("Association par défaut créée pour userId: {}", userId);
+                    return associationRepository.save(assoc);
+                });
 
         Categorie category = categorieRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"));
@@ -228,18 +235,30 @@ public class ActionService {
 
     // ─── DASHBOARD ASSOCIATION ────────────────────────────────
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = false) // changed to false to allow saving
     public List<ActionSummaryDTO> getMyActions(Long userId) {
         Association association = associationRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+                .orElseGet(() -> {
+                    Association assoc = Association.builder()
+                            .userId(userId)
+                            .name("Association")
+                            .build();
+                    return associationRepository.save(assoc);
+                });
         return actionRepository.findByAssociationId(association.getId())
                 .stream().map(this::toSummaryDTO).collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = false) // changed to false to allow saving
     public AssociationStatsDTO getMyStats(Long userId) {
         Association association = associationRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+                .orElseGet(() -> {
+                    Association assoc = Association.builder()
+                            .userId(userId)
+                            .name("Association")
+                            .build();
+                    return associationRepository.save(assoc);
+                });
                 
         List<Action> actions = actionRepository.findByAssociationId(association.getId());
         
@@ -270,10 +289,16 @@ public class ActionService {
                 .stream().map(this::toSummaryDTO).collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = false) // changed to false to allow saving
     public List<ActionSummaryDTO> getMyDrafts(Long userId) {
         Association association = associationRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+                .orElseGet(() -> {
+                    Association assoc = Association.builder()
+                            .userId(userId)
+                            .name("Association")
+                            .build();
+                    return associationRepository.save(assoc);
+                });
         return actionRepository.findByAssociationIdAndStatus(association.getId(), ActionStatus.DRAFT)
                 .stream().map(this::toSummaryDTO).collect(Collectors.toList());
     }
@@ -425,7 +450,13 @@ public class ActionService {
         Action action = actionRepository.findById(actionId)
                 .orElseThrow(() -> new RuntimeException("Action non trouvée"));
         Association association = associationRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+                .orElseGet(() -> {
+                    Association assoc = Association.builder()
+                            .userId(userId)
+                            .name("Association")
+                            .build();
+                    return associationRepository.save(assoc);
+                });
         if (!action.getAssociation().getId().equals(association.getId())) {
             throw new RuntimeException("Vous n'êtes pas le propriétaire de cette action");
         }
@@ -480,6 +511,8 @@ public class ActionService {
                         .collect(Collectors.toList()))
                 .associationId(action.getAssociation() != null ? action.getAssociation().getId() : null)
                 .associationName(action.getAssociation() != null ? action.getAssociation().getName() : null)
+                .associationDescription(action.getAssociation() != null ? action.getAssociation().getDescription() : null)
+                .associationLogoUrl(action.getAssociation() != null ? action.getAssociation().getLogoUrl() : null)
                 .associationCity(action.getAssociation() != null ? action.getAssociation().getCity() : null)
                 .build();
     }

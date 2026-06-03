@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { httpErrorMessage } from '../../../core/utils/http-error.util';
 
@@ -23,7 +23,8 @@ export class LoginComponent {
 
   constructor(
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     const saved = localStorage.getItem(REMEMBER_EMAIL_KEY);
     if (saved) {
@@ -62,6 +63,12 @@ export class LoginComponent {
   }
 
   private redirectByRole(role: string): void {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (returnUrl) {
+      void this.router.navigateByUrl(returnUrl);
+      return;
+    }
+
     if (role === 'ASSOCIATION') {
       void this.router.navigate(['/association']);
       return;

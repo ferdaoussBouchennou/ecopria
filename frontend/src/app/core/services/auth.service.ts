@@ -136,23 +136,29 @@ export class AuthService {
   }
 
   registerOrganization(
-    form: {
+    data: {
       profileType: 'association' | 'partenaire';
       nom: string;
       email: string;
       password: string;
+      phone?: string;
+      address?: string;
+      city?: string;
       documentFile: File;
     },
     captchaToken: string
   ): Observable<RegistrationResponse> {
-    const role: RegisterRole = form.profileType === 'association' ? 'ASSOCIATION' : 'PARTNER';
-    return this.uploadVerificationDocument(form.documentFile).pipe(
+    return this.uploadVerificationDocument(data.documentFile).pipe(
       switchMap(({ document }) => {
+        const role: RegisterRole = data.profileType === 'association' ? 'ASSOCIATION' : 'PARTNER';
         const payload: RegisterPayload = {
-          email: form.email.trim(),
-          password: form.password,
+          email: data.email.trim(),
+          password: data.password,
           role,
-          nom: form.nom.trim(),
+          nom: data.nom.trim(),
+          phone: data.phone?.trim() || '',
+          address: data.address?.trim() || '',
+          city: data.city?.trim() || '',
           document,
           captcha_token: captchaToken,
         };

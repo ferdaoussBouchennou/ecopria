@@ -119,7 +119,11 @@
         <div class="navbar-divider"></div>
         <button type="button" class="navbar-profile" (click)="navigateTo('/association/profil')">
           <div class="profile-avatar">
-            <span>{{ getInitials() }}</span>
+            @if (associationLogo) {
+              <img [src]="associationLogo" [alt]="associationName" class="avatar-img" />
+            } @else {
+              <span>{{ getInitials() }}</span>
+            }
           </div>
           <span class="profile-name">{{ associationName }}</span>
         </button>

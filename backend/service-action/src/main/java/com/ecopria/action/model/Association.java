@@ -40,10 +40,16 @@ public class Association {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "is_validated", nullable = false)
+    private Boolean isValidated = false;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        if (this.isValidated == null) {
+            this.isValidated = false;
+        }
     }
 
     @PreUpdate

@@ -137,15 +137,21 @@
         <div class="bottom-col org-col">
           <h2><span class="col-line"></span> L'organisateur</h2>
           <div class="org-card">
-            @if (action.associationLogoUrl) {
-              <img [src]="action.associationLogoUrl" [alt]="action.associationName" class="org-logo" />
-            }
-            <h3>{{ action.associationName }}</h3>
-            @if (action.associationDescription) {
-              <p>{{ action.associationDescription }}</p>
-            } @else if (action.associationCity) {
-              <p class="org-city">{{ action.associationCity }}</p>
-            }
+            <div class="org-avatar-wrap">
+              @if (action.associationLogoUrl) {
+                <img [src]="action.associationLogoUrl" [alt]="action.associationName" class="org-logo" />
+              } @else {
+                <div class="org-avatar-fallback">{{ (action.associationName || 'A')[0].toUpperCase() }}</div>
+              }
+              <div class="org-identity">
+                <h3>{{ action.associationName }}</h3>
+                @if (action.associationDescription) {
+                  <p>{{ action.associationDescription }}</p>
+                } @else if (action.associationCity) {
+                  <p class="org-city">{{ action.associationCity }}</p>
+                }
+              </div>
+            </div>
             @if (action.associationId) {
               <a [routerLink]="['/actions']" class="org-link">Voir le profil</a>
             }

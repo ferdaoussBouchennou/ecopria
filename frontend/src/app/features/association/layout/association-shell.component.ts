@@ -16,6 +16,7 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class AssociationShellComponent implements OnInit {
   associationName = '';
+  associationLogo = '';
   associationId = 0;
   showNotifications = false;
   notifications: AppNotification[] = [];
@@ -39,9 +40,15 @@ export class AssociationShellComponent implements OnInit {
     this.associationService.getProfile(authId).subscribe({
       next: (profile) => {
         this.associationName = profile.name;
+        this.associationLogo = profile.logo || '';
         this.associationId = profile.id;
         this.profileLoadError = '';
         this.loadNotifications(authId);
+
+        // Si le profil est incomplet (pas de description), on redirige vers la page profil
+        if ((!profile.description || profile.description.trim() === '') && !this.router.url.includes('/association/profil')) {
+          this.router.navigate(['/association/profil']);
+        }
       },
       error: (err) => {
         this.associationName = 'Association';

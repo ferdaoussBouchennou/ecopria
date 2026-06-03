@@ -14,6 +14,9 @@ management:
       probes:
         enabled: true
 
+app:
+  base-url: http://localhost:8082
+
 spring:
   application:
     name: service-utilisateur

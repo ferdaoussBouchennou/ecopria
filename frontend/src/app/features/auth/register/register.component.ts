@@ -264,6 +264,9 @@ export class RegisterComponent implements AfterViewInit, OnDestroy {
           nom: this.orgName,
           email: this.email,
           password: this.password,
+          phone: this.phone,
+          address: this.address,
+          city: this.city,
           documentFile: this.documentFile,
         },
         token
@@ -275,9 +278,9 @@ export class RegisterComponent implements AfterViewInit, OnDestroy {
             firstName: '',
             lastName: '',
             email: this.email.trim().toLowerCase(),
-            phone: '',
-            address: '',
-            city: '',
+            phone: this.phone,
+            address: this.address,
+            city: this.city,
             profileType: this.profileType,
           });
           this.goToEmailVerification();

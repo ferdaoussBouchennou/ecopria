@@ -16,13 +16,26 @@ public class InscriptionProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    // Publié quand un utilisateur s'inscrit
-    public void envoyerConfirmation(Inscription inscription) {
+    public void envoyerConfirmation(Inscription inscription, com.ecopria.inscription.dto.ActionDTO action) {
+        java.time.LocalDateTime dateStart = null;
+        if (action.getDateStart() != null) {
+            try {
+                dateStart = java.time.LocalDateTime.parse(action.getDateStart());
+            } catch (Exception e) {}
+        }
+        if (dateStart == null) {
+            dateStart = inscription.getDateInscription();
+        }
+
         InscriptionEvent event = new InscriptionEvent(
                 inscription.getId(),
                 inscription.getUserId(),
                 inscription.getActionId(),
-                inscription.getDateInscription()  // dateAction = date de l'inscription
+                dateStart,
+                action.getAssociationId(),
+                action.getTitre(),
+                action.getCity(),
+                action.getAddress()
         );
         kafkaTemplate.send(TOPIC_CONFIRMEE, String.valueOf(inscription.getUserId()), event);
         System.out.println("Kafka [inscription.confirmee] publié pour inscriptionId=" + inscription.getId());

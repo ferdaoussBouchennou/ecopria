@@ -96,6 +96,21 @@
             </label>
 
             <label class="field">
+              <span>Téléphone</span>
+              <input id="telephone-org" name="telephone" type="tel" [(ngModel)]="phone" placeholder="+212 6 12 34 56 78" autocomplete="tel" />
+            </label>
+
+            <label class="field">
+              <span>Adresse</span>
+              <input id="adresse-org" name="adresse" type="text" [(ngModel)]="address" placeholder="14 rue des Tilleuls" autocomplete="street-address" />
+            </label>
+
+            <label class="field">
+              <span>Ville</span>
+              <input id="ville-org" name="ville" type="text" [(ngModel)]="city" required placeholder="Tétouan" autocomplete="address-level2" />
+            </label>
+
+            <label class="field">
               <span>Mot de passe</span>
               <input id="password-org" name="password" type="password" [(ngModel)]="password" required minlength="8" placeholder="Minimum 8 caractères" autocomplete="new-password" />
             </label>

@@ -1,7 +1,8 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
+import { catchError, of } from 'rxjs';
 import { AssociationService } from '../services/association.service';
 import { ActionSummary } from '../../action/models/action.model';
 
@@ -83,7 +84,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       error: (err) => console.error('Erreur chargement stats:', err)
     });
 
-    this.associationService.getMesActions().subscribe({
+    this.associationService.getMesActions().pipe(
+      catchError((err) => {
+        console.error('Erreur chargement actions (dashboard):', err);
+        return of([] as ActionSummary[]);
+      })
+    ).subscribe({
       next: (actions) => {
         this.actions = actions;
         this.calculateStats(actions);

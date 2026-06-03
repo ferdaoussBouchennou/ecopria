@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ActionService } from '../services/action.service';
 import { AssociationService } from '../../association/services/association.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { ActionDetail } from '../models/action.model';
 import { getCategoryMeta } from '../constants/category-meta';
 import {
@@ -32,7 +33,8 @@ export class DetailActionComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private actionService: ActionService,
-    private associationService: AssociationService
+    private associationService: AssociationService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -89,8 +91,14 @@ export class DetailActionComponent implements OnInit {
       return;
     }
     
-    // TODO: Récupérer l'ID utilisateur depuis le service d'authentification
-    const userId = 1; // Temporaire pour le développement
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/connexion'], {
+        queryParams: { returnUrl: `/inscription/${this.action.id}` }
+      });
+      return;
+    }
+
+    const userId = this.authService.getUserId();
     
     this.router.navigate(['/inscription', this.action.id], {
       queryParams: { userId }
