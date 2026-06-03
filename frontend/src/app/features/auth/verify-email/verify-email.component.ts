@@ -67,7 +67,7 @@ export class VerifyEmailComponent implements OnInit {
         next: () => {
           sessionStorage.removeItem(PENDING_PROFILE_KEY);
           this.submitting = false;
-          void this.router.navigate(['/'], { queryParams: { bienvenue: '1' } });
+          void this.router.navigate(['/espace'], { queryParams: { bienvenue: '1' } });
         },
         error: (err) => {
           this.submitting = false;

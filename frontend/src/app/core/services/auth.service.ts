@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, map, retry, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { defaultHomeForRole } from '../utils/auth-navigation.util';
 import {
   AuthResponse,
   CitizenProfileUpdate,
@@ -179,6 +180,38 @@ export class AuthService {
     localStorage.removeItem(REFRESH_KEY);
     localStorage.removeItem(USER_ID_KEY);
     localStorage.removeItem(ROLE_KEY);
+  }
+
+  logout(): void {
+    const refresh = localStorage.getItem(REFRESH_KEY);
+    this.clearSession();
+    if (refresh) {
+      this.http
+        .post(`${environment.authApi}/logout?token=${encodeURIComponent(refresh)}`, null)
+        .subscribe({ error: () => {} });
+    }
+  }
+
+  refreshSession(): Observable<AuthResponse> {
+    const refresh = localStorage.getItem(REFRESH_KEY);
+    if (!refresh) {
+      throw new Error('No refresh token');
+    }
+    return this.http
+      .post<AuthResponse>(`${environment.authApi}/refresh?token=${encodeURIComponent(refresh)}`, null)
+      .pipe(tap((auth) => this.persistSession(auth)));
+  }
+
+  homePath(): string {
+    return defaultHomeForRole(this.getRole());
+  }
+
+  requireUserId(): number {
+    const id = this.getUserId();
+    if (id == null) {
+      throw new Error('Utilisateur non connecté');
+    }
+    return id;
   }
 
   getAccessToken(): string | null {

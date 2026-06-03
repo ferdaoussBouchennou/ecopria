@@ -129,8 +129,8 @@ export class AssociationShellComponent implements OnInit {
 
   logout(): void {
     if (confirm('Voulez-vous vous déconnecter ?')) {
-      this.authService.clearSession();
-      this.router.navigate(['/']);
+      this.authService.logout();
+      void this.router.navigate(['/']);
     }
   }
 }

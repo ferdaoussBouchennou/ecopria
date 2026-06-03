@@ -49,7 +49,7 @@ export class AdminShellComponent implements OnInit {
   }
 
   logout(): void {
-    this.auth.clearSession();
+    this.auth.logout();
     void this.router.navigate(['/connexion']);
   }
 

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { defaultHomeForRole } from '../../../core/utils/auth-navigation.util';
 
 @Component({
   selector: 'app-page-shell',
@@ -18,13 +19,14 @@ export class PageShellComponent {
   }
 
   get monEspaceLink(): string[] {
-    const role = this.auth.getRole();
-    if (role === 'ASSOCIATION') {
-      return ['/association'];
+    const path = defaultHomeForRole(this.auth.getRole());
+    return [path];
+  }
+
+  get recompensesLink(): string[] {
+    if (this.auth.getRole() === 'USER') {
+      return ['/espace/recompenses'];
     }
-    if (role === 'PARTNER') {
-      return ['/partenaire'];
-    }
-    return ['/mes-inscriptions'];
+    return ['/connexion'];
   }
 }

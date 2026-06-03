@@ -34,6 +34,8 @@ public interface CommissionRepository extends JpaRepository<Commission, Long> {
             "WHERE c.partenaire.id = :partenaireId " +
             "GROUP BY c.moisFacturation " +
             "ORDER BY c.moisFacturation DESC")
+    List<Object[]> findMonthlyHistoryByPartenaire(@Param("partenaireId") Long partenaireId);
+
     @Query("SELECT SUM(c.montantCommission) FROM Commission c")
     Double sumAllCommissions();
 }

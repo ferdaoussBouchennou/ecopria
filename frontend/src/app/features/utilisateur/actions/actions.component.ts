@@ -6,6 +6,7 @@ import { ActionRowViewModel, ActionSummary } from '../../action/models/action.mo
 import { ActionService } from '../../action/services/action.service';
 import { InscriptionService } from '../../inscription/inscription.service';
 import { UiService } from '../../../core/services/ui.user.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { MonInscriptionDto } from '../../inscription/models/inscription.model';
 
 @Component({
@@ -16,7 +17,6 @@ import { MonInscriptionDto } from '../../inscription/models/inscription.model';
   styleUrl: '../styles/user-space.scss'
 })
 export class ActionsComponent implements OnInit {
-  readonly userId = 1;
   readonly pageSize = 3;
 
   allUpcoming: ActionRowViewModel[] = [];
@@ -34,8 +34,13 @@ export class ActionsComponent implements OnInit {
   constructor(
     private readonly actionService: ActionService,
     private readonly inscriptionService: InscriptionService,
-    private readonly uiService: UiService
+    private readonly uiService: UiService,
+    private readonly auth: AuthService
   ) {}
+
+  private get userId(): number {
+    return this.auth.requireUserId();
+  }
 
   ngOnInit(): void {
     this.uiService.setPageHeader('Mes actions', 'ESPACE ENGAGÉ');

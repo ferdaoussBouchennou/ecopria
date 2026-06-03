@@ -41,6 +41,7 @@ import { LeaderboardComponent } from './features/utilisateur/leaderboard/leaderb
 import { RecompensesComponent } from './features/utilisateur/recompenses/recompenses.component';
 import { SettingsComponent } from './features/utilisateur/settings/settings.component';
 import { adminGuard } from './core/guards/admin.guard';
+import { authGuard, associationGuard, citizenGuard, partenaireGuard } from './core/guards/auth.guard';
 import { AdminShellComponent } from './features/admin/admin-shell/admin-shell.component';
 import { AdminDashboardComponent } from './features/admin/dashboard/admin-dashboard.component';
 import { AdminComptesComponent } from './features/admin/comptes/admin-comptes.component';
@@ -62,8 +63,8 @@ export const routes: Routes = [
       { path: 'actions', component: ListeActionsComponent },
       { path: 'carte', component: CarteActionsComponent },
       { path: 'action/:id', component: DetailActionComponent },
-      { path: 'inscription/:actionId', component: InscriptionFormComponent },
-      { path: 'mes-inscriptions', component: MesInscriptionsComponent },
+      { path: 'inscription/:actionId', component: InscriptionFormComponent, canActivate: [authGuard] },
+      { path: 'mes-inscriptions', component: MesInscriptionsComponent, canActivate: [authGuard] },
       { path: 'creer-compte', component: RegisterComponent },
       { path: 'verifier-email', component: VerifyEmailComponent },
       { path: 'connexion', component: LoginComponent },
@@ -83,6 +84,7 @@ export const routes: Routes = [
   {
     path: 'partenaire',
     component: PartenaireShellComponent,
+    canActivate: [partenaireGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard',             component: DashboardPartenaireComponent },
@@ -100,6 +102,7 @@ export const routes: Routes = [
   {
     path: 'association',
     component: AssociationShellComponent,
+    canActivate: [associationGuard],
     children: [
       { path: '', redirectTo: 'tableau-de-bord', pathMatch: 'full' },
       { path: 'tableau-de-bord', component: AssociationDashboardComponent },
@@ -118,6 +121,7 @@ export const routes: Routes = [
   {
     path: 'espace',
     component: EspaceShellComponent,
+    canActivate: [citizenGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },

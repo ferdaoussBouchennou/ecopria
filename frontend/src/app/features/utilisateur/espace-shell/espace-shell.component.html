@@ -21,8 +21,9 @@
             <a routerLink="/espace/parametres" routerLinkActive="active" class="nav-item">Paramètres</a>
         </nav>
 
-        <div style="margin-top: auto;">
-            <a routerLink="/" class="nav-item" style="font-size: 0.8rem; color: var(--muted-foreground);">← Retour au site</a>
+        <div class="sidebar-footer">
+            <a routerLink="/" class="nav-item sidebar-back">← Retour au site</a>
+            <button type="button" class="btn-logout" (click)="logout()">Déconnexion</button>
         </div>
     </aside>
 

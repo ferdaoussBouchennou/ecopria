@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet, Router, NavigationEnd } fro
 import { filter } from 'rxjs/operators';
 import { PartenaireService } from '../partenaire.service';
 import { PartenaireProfil } from '../../../core/models/recompense.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 interface NavItem {
   path: string;
@@ -32,7 +33,11 @@ export class PartenaireShellComponent implements OnInit {
     { path: '/partenaire/profil', label: 'Mon profil', icon: '👤' },
   ];
 
-  constructor(private partenaireService: PartenaireService, private router: Router) {}
+  constructor(
+    private partenaireService: PartenaireService,
+    private router: Router,
+    private auth: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.partenaireService.getProfil().subscribe({
@@ -50,5 +55,12 @@ export class PartenaireShellComponent implements OnInit {
   isActive(path: string): boolean {
     if (path === '/partenaire') return this.router.url === '/partenaire';
     return this.router.url.startsWith(path);
+  }
+
+  logout(): void {
+    if (confirm('Voulez-vous vous déconnecter ?')) {
+      this.auth.logout();
+      void this.router.navigate(['/']);
+    }
   }
 }

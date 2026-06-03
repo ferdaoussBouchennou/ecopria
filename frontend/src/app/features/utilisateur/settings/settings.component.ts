@@ -5,6 +5,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NotificationPreferences } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
 import { UiService } from '../../../core/services/ui.user.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-settings',
@@ -14,8 +15,6 @@ import { UiService } from '../../../core/services/ui.user.service';
   styleUrl: '../styles/user-space.scss'
 })
 export class SettingsComponent implements OnInit {
-  readonly userId = 1;
-
   firstName = '';
   lastName = '';
   city = '';
@@ -34,8 +33,13 @@ export class SettingsComponent implements OnInit {
 
   constructor(
     private readonly userService: UserService,
-    private readonly uiSvc: UiService
+    private readonly uiSvc: UiService,
+    private readonly auth: AuthService
   ) {}
+
+  private get userId(): number {
+    return this.auth.requireUserId();
+  }
 
   ngOnInit(): void {
     this.uiSvc.setPageHeader('Mon profil', 'PARAMÈTRES');

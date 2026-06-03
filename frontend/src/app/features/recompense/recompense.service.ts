@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { AuthService } from '../../core/services/auth.service';
 import {
   CouponDto,
   PartenaireProfil,
@@ -14,13 +15,12 @@ const API = '/api/recompenses';
 
 @Injectable({ providedIn: 'root' })
 export class RecompenseService {
-
-  private readonly userId = 1;
+  private auth = inject(AuthService);
 
   constructor(private http: HttpClient) {}
 
   private headers(): HttpHeaders {
-    return new HttpHeaders({ 'X-User-Id': String(this.userId) });
+    return new HttpHeaders({ 'X-User-Id': String(this.auth.requireUserId()) });
   }
 
   getCatalogue(type?: RecompenseType): Observable<RecompenseItemDto[]> {

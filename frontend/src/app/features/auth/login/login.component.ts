@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { httpErrorMessage } from '../../../core/utils/http-error.util';
+import { resolvePostLoginUrl } from '../../../core/utils/auth-navigation.util';
 
 const REMEMBER_EMAIL_KEY = 'ecopria_remember_email';
 
@@ -14,7 +15,7 @@ const REMEMBER_EMAIL_KEY = 'ecopria_remember_email';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   email = '';
   password = '';
   rememberMe = false;
@@ -33,6 +34,14 @@ export class LoginComponent {
     }
   }
 
+  ngOnInit(): void {
+    if (this.auth.isLoggedIn()) {
+      const role = this.auth.getRole() ?? 'USER';
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+      void this.router.navigateByUrl(resolvePostLoginUrl(returnUrl, role));
+    }
+  }
+
   submit(): void {
     this.error = '';
     this.submitting = true;
@@ -45,7 +54,11 @@ export class LoginComponent {
           localStorage.removeItem(REMEMBER_EMAIL_KEY);
         }
         this.submitting = false;
-        this.redirectByRole(res.role);
+        if (res.role === 'ADMIN') {
+          localStorage.setItem('ecopria_admin_email', this.email.trim().toLowerCase());
+        }
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        void this.router.navigateByUrl(resolvePostLoginUrl(returnUrl, res.role));
       },
       error: (err) => {
         this.submitting = false;
@@ -57,31 +70,13 @@ export class LoginComponent {
           });
           return;
         }
+        if (msg.includes('pending admin verification') || msg.includes('en attente')) {
+          this.error =
+            'Votre dossier est en cours de validation par l’équipe Ecopria. Vous recevrez un e-mail dès l’activation.';
+          return;
+        }
         this.error = msg;
       },
     });
-  }
-
-  private redirectByRole(role: string): void {
-    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-    if (returnUrl) {
-      void this.router.navigateByUrl(returnUrl);
-      return;
-    }
-
-    if (role === 'ADMIN') {
-      localStorage.setItem('ecopria_admin_email', this.email.trim().toLowerCase());
-      void this.router.navigate(['/admin']);
-      return;
-    }
-    if (role === 'ASSOCIATION') {
-      void this.router.navigate(['/association']);
-      return;
-    }
-    if (role === 'PARTNER') {
-      void this.router.navigate(['/partenaire']);
-      return;
-    }
-    void this.router.navigate(['/']);
   }
 }

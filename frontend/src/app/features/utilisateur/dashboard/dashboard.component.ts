@@ -5,6 +5,7 @@ import { map } from 'rxjs';
 import { UserService } from '../../../core/services/user.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { UiService } from '../../../core/services/ui.user.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Profile, PointHistory, UserBadge, LeaderboardEntry, UpcomingAction } from '../../../core/models/user.model';
 import { ActionService } from '../../action/services/action.service';
 
@@ -23,8 +24,6 @@ interface DashboardBadgeCard {
   styleUrl: '../styles/user-space.scss'
 })
 export class DashboardComponent implements OnInit {
-  readonly userId = 1;
-
   profile?: Profile;
   history: PointHistory[] = [];
   totalPointHistory = 0;
@@ -45,8 +44,13 @@ export class DashboardComponent implements OnInit {
     private userSvc: UserService,
     private notifSvc: NotificationService,
     private uiSvc: UiService,
-    private actionSvc: ActionService
+    private actionSvc: ActionService,
+    private auth: AuthService
   ) {}
+
+  private get userId(): number {
+    return this.auth.requireUserId();
+  }
 
   ngOnInit() {
     this.userSvc.getProfile(this.userId).subscribe({

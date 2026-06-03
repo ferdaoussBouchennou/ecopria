@@ -93,16 +93,12 @@ export class DetailActionComponent implements OnInit {
     
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/connexion'], {
-        queryParams: { returnUrl: `/inscription/${this.action.id}` }
+        queryParams: { returnUrl: `/inscription/${this.action.id}` },
       });
       return;
     }
 
-    const userId = this.authService.getUserId();
-    
-    this.router.navigate(['/inscription', this.action.id], {
-      queryParams: { userId }
-    });
+    this.router.navigate(['/inscription', this.action.id]);
   }
 
   share(): void {

@@ -5,6 +5,7 @@ import { forkJoin, from, map, switchMap, tap } from 'rxjs';
 import { Profile } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
 import { UiService } from '../../../core/services/ui.user.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { RecompenseService } from '../../recompense/recompense.service';
 import {
   RecompenseItemDto,
@@ -21,7 +22,6 @@ import {
   styleUrl: '../styles/user-space.scss'
 })
 export class RecompensesComponent implements OnInit {
-  readonly userId = 1;
   readonly pageSize = 4;
 
   allCatalogue: RecompenseItemDto[] = [];
@@ -45,8 +45,13 @@ export class RecompensesComponent implements OnInit {
   constructor(
     private readonly userService: UserService,
     private readonly recompenseService: RecompenseService,
-    private readonly uiService: UiService
+    private readonly uiService: UiService,
+    private readonly auth: AuthService
   ) {}
+
+  private get userId(): number {
+    return this.auth.requireUserId();
+  }
 
   ngOnInit(): void {
     this.uiService.setPageHeader('Mes récompenses', 'ESPACE GAGNANT');
