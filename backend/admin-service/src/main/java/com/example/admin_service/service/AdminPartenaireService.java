@@ -25,39 +25,23 @@ public class AdminPartenaireService {
     private final LogAdminRepository logAdminRepository;
     private final RestTemplate restTemplate;
 
-    @Value("${services.utilisateur-url}")
-    private String utilisateurServiceUrl;
-
     @Value("${services.auth-url}")
     private String authServiceUrl;
 
     public List<?> getAll() {
-        return restTemplate.getForObject(
-                utilisateurServiceUrl + "/internal/partenaires",
-                List.class
-        );
+        return getPending();
     }
 
     public List<?> getPending() {
-        return restTemplate.getForObject(
-                utilisateurServiceUrl + "/internal/partenaires?status=PENDING",
-                List.class
-        );
+        return fetchPendingByRole("PARTNER");
     }
 
-    public void approve(Long partenaireId, Long adminId) {
-        Map partenaire = restTemplate.getForObject(
-                utilisateurServiceUrl + "/internal/partenaires/" + partenaireId,
-                Map.class
-        );
-        Long userId = extractUserId(partenaire);
-        String email = getEmail(userId);
+    public void approve(Long userId, Long adminId) {
+        Map<String, Object> account = getPendingAccount(userId, "PARTNER");
+        String email = asString(account.get("email"));
+        String name = asString(account.get("name"));
 
-        restTemplate.put(
-                utilisateurServiceUrl + "/internal/partenaires/"
-                        + partenaireId + "/activate",
-                null
-        );
+        restTemplate.put(authServiceUrl + "/internal/users/" + userId + "/activate", null);
 
         kafkaProducer.publishStatutChange(StatutChangeEvent.builder()
                 .userId(userId)
@@ -67,97 +51,91 @@ public class AdminPartenaireService {
                 .type("PARTENAIRE")
                 .build());
 
-        Map<String, Object> partenaireValideeEvent = new HashMap<>();
-        partenaireValideeEvent.put("userId", userId);
-        partenaireValideeEvent.put("nom", extractString(partenaire, "nom", "name"));
-        partenaireValideeEvent.put("categorie", extractString(partenaire, "categorie", "category"));
-        kafkaProducer.publishPartenaireValidee(partenaireValideeEvent, String.valueOf(userId));
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("userId", userId);
+        payload.put("nom", name);
+        payload.put("categorie", "");
+        kafkaProducer.publishPartenaireValidee(payload, String.valueOf(userId));
 
-        saveLog(adminId, "VALIDER_PARTENAIRE", partenaireId, "PARTENAIRE");
+        saveLog(adminId, "VALIDER_PARTENAIRE", userId, "PARTENAIRE");
     }
 
-    public void reject(Long partenaireId, StatutChangeRequest request, Long adminId) {
-        Map partenaire = restTemplate.getForObject(
-                utilisateurServiceUrl + "/internal/partenaires/" + partenaireId,
-                Map.class
-        );
-        Long userId = extractUserId(partenaire);
-        String email = getEmail(userId);
+    public void reject(Long userId, StatutChangeRequest request, Long adminId) {
+        Map<String, Object> account = getPendingAccount(userId, "PARTNER");
+        String email = asString(account.get("email"));
 
-        restTemplate.put(
-                utilisateurServiceUrl + "/internal/partenaires/"
-                        + partenaireId + "/deactivate",
-                null
-        );
+        restTemplate.put(authServiceUrl + "/internal/users/" + userId + "/deactivate", null);
 
         kafkaProducer.publishStatutChange(StatutChangeEvent.builder()
                 .userId(userId)
                 .email(email)
                 .action("REJETEE")
-                .raison(request.getRaison())
+                .raison(request != null ? request.getRaison() : null)
                 .type("PARTENAIRE")
                 .build());
 
-        saveLog(adminId, "REJETER_PARTENAIRE", partenaireId, "PARTENAIRE");
+        saveLog(adminId, "REJETER_PARTENAIRE", userId, "PARTENAIRE");
     }
 
-    public void deactivate(Long partenaireId, StatutChangeRequest request, Long adminId) {
-        Map partenaire = restTemplate.getForObject(
-                utilisateurServiceUrl + "/internal/partenaires/" + partenaireId,
+    public void deactivate(Long userId, StatutChangeRequest request, Long adminId) {
+        Map<String, Object> user = restTemplate.getForObject(
+                authServiceUrl + "/internal/users/" + userId,
                 Map.class
         );
-        Long userId = extractUserId(partenaire);
-        String email = getEmail(userId);
+        String email = asString(user != null ? user.get("email") : null);
 
-        restTemplate.put(
-                utilisateurServiceUrl + "/internal/partenaires/"
-                        + partenaireId + "/deactivate",
-                null
-        );
+        restTemplate.put(authServiceUrl + "/internal/users/" + userId + "/deactivate", null);
 
         kafkaProducer.publishStatutChange(StatutChangeEvent.builder()
                 .userId(userId)
                 .email(email)
                 .action("DESACTIVEE")
-                .raison(request.getRaison())
+                .raison(request != null ? request.getRaison() : null)
                 .type("PARTENAIRE")
                 .build());
 
-        saveLog(adminId, "DESACTIVER_PARTENAIRE", partenaireId, "PARTENAIRE");
+        saveLog(adminId, "DESACTIVER_PARTENAIRE", userId, "PARTENAIRE");
     }
 
-    private String getEmail(Long userId) {
-        Map response = restTemplate.getForObject(
-                authServiceUrl + "/internal/users/" + userId,
-                Map.class
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> fetchPendingByRole(String role) {
+        List<Map<String, Object>> pending = restTemplate.getForObject(
+                authServiceUrl + "/internal/users/pending-accounts",
+                List.class
         );
-        return (String) response.get("email");
+        if (pending == null) {
+            return List.of();
+        }
+        return pending.stream()
+                .filter(row -> role.equalsIgnoreCase(asString(row.get("role"))))
+                .toList();
     }
 
-    private Long extractUserId(Map partenairePayload) {
-        if (partenairePayload == null) {
-            throw new RuntimeException("Partenaire not found");
-        }
-        Object rawUserId = partenairePayload.get("userId");
-        if (rawUserId == null) {
-            rawUserId = partenairePayload.get("utilisateurId");
-        }
-        if (rawUserId == null) {
-            throw new RuntimeException("Partenaire payload missing userId");
-        }
-        return Long.valueOf(rawUserId.toString());
+    private Map<String, Object> getPendingAccount(Long userId, String role) {
+        return fetchPendingByRole(role).stream()
+                .filter(row -> {
+                    Object raw = row.get("userId");
+                    return raw != null && Long.valueOf(raw.toString()).equals(userId);
+                })
+                .findFirst()
+                .orElseGet(() -> {
+                    Map<String, Object> fallback = new HashMap<>();
+                    fallback.put("userId", userId);
+                    Map user = restTemplate.getForObject(authServiceUrl + "/internal/users/" + userId, Map.class);
+                    if (user != null) {
+                        fallback.put("email", user.get("email"));
+                    }
+                    fallback.put("name", "Partenaire");
+                    fallback.put("role", role);
+                    return fallback;
+                });
     }
 
-    private String extractString(Map payload, String primaryKey, String fallbackKey) {
-        Object value = payload.get(primaryKey);
-        if (value == null) {
-            value = payload.get(fallbackKey);
-        }
+    private String asString(Object value) {
         return value == null ? "" : value.toString();
     }
 
-    private void saveLog(Long adminId, String action,
-                         Long cibleId, String cibleType) {
+    private void saveLog(Long adminId, String action, Long cibleId, String cibleType) {
         logAdminRepository.save(LogAdmin.builder()
                 .adminId(adminId)
                 .action(action)

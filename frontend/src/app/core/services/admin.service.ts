@@ -4,8 +4,15 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import {
+  AdminLog,
   AdminConfiguration,
   AdminDashboard,
+  AccountValidationsPage,
+  AccountValidationFilter,
+  ActionAssociationRequest,
+  ActionFixe,
+  ActionFixeRequest,
+  ActionNonFixe,
   AdminPendingAccount,
 } from '../models/admin.model';
 
@@ -21,6 +28,13 @@ export class AdminService {
   getDashboard(): Observable<AdminDashboard> {
     return this.http.get<AdminDashboard>(`${this.base}/dashboard`, {
       headers: this.authHeaders(),
+    });
+  }
+
+  getAccountValidations(filter: AccountValidationFilter): Observable<AccountValidationsPage> {
+    return this.http.get<AccountValidationsPage>(`${this.base}/accounts/validations`, {
+      headers: this.authHeaders(),
+      params: { filter },
     });
   }
 
@@ -50,6 +64,26 @@ export class AdminService {
     );
   }
 
+  approvePartenaire(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/partenaires/${id}/approve`, null, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  rejectPartenaire(id: number, raison: string): Observable<void> {
+    return this.http.put<void>(
+      `${this.base}/partenaires/${id}/reject`,
+      { raison },
+      { headers: this.writeHeaders() }
+    );
+  }
+
+  getLogs(): Observable<AdminLog[]> {
+    return this.http.get<AdminLog[]>(`${this.base}/logs`, {
+      headers: this.authHeaders(),
+    });
+  }
+
   getConfigurations(): Observable<AdminConfiguration[]> {
     return this.http.get<AdminConfiguration[]>(`${this.base}/configurations`, {
       headers: this.authHeaders(),
@@ -62,6 +96,54 @@ export class AdminService {
       { valeur, description },
       { headers: this.writeHeaders() }
     );
+  }
+
+  getActionsFixes(): Observable<ActionFixe[]> {
+    return this.http.get<ActionFixe[]>(`${this.base}/actions-fixes`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  createActionFixe(body: ActionFixeRequest): Observable<void> {
+    return this.http.post<void>(`${this.base}/actions-fixes`, body, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  updateActionFixe(id: number, body: ActionFixeRequest): Observable<void> {
+    return this.http.put<void>(`${this.base}/actions-fixes/${id}`, body, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  deactivateActionFixe(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/actions-fixes/${id}/deactivate`, null, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  getActionsNonFixes(): Observable<ActionNonFixe[]> {
+    return this.http.get<ActionNonFixe[]>(`${this.base}/actions`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  createActionNonFixe(body: ActionAssociationRequest): Observable<void> {
+    return this.http.post<void>(`${this.base}/actions`, body, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  updateActionNonFixe(id: number, body: ActionAssociationRequest): Observable<void> {
+    return this.http.put<void>(`${this.base}/actions/${id}`, body, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  deactivateActionNonFixe(id: number, raison?: string): Observable<void> {
+    return this.http.put<void>(`${this.base}/actions/${id}/deactivate`, { raison }, {
+      headers: this.writeHeaders(),
+    });
   }
 
   private authHeaders(): HttpHeaders {

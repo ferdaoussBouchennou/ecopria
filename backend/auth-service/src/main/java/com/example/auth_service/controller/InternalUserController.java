@@ -1,5 +1,6 @@
 package com.example.auth_service.controller;
 
+import com.example.auth_service.dto.OrganizationAccountsPageResponse;
 import com.example.auth_service.dto.PendingAccountResponse;
 import com.example.auth_service.dto.UserInternalResponse;
 import com.example.auth_service.dto.UserStatsResponse;
@@ -31,6 +32,32 @@ public class InternalUserController {
     @GetMapping("/pending-accounts")
     public ResponseEntity<List<PendingAccountResponse>> getPendingAccounts() {
         return ResponseEntity.ok(service.getPendingAccounts());
+    }
+
+    @GetMapping("/organization-accounts")
+    public ResponseEntity<OrganizationAccountsPageResponse> getOrganizationAccounts(
+            @RequestParam(defaultValue = "pending") String status,
+            @RequestParam(required = false) String rejectedIds) {
+        return ResponseEntity.ok(service.getOrganizationAccounts(status, parseRejectedIds(rejectedIds)));
+    }
+
+    private List<Long> parseRejectedIds(String rejectedIds) {
+        if (rejectedIds == null || rejectedIds.isBlank()) {
+            return List.of();
+        }
+        List<Long> ids = new java.util.ArrayList<>();
+        for (String part : rejectedIds.split(",")) {
+            String trimmed = part.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            try {
+                ids.add(Long.parseLong(trimmed));
+            } catch (NumberFormatException ignored) {
+                // skip invalid id
+            }
+        }
+        return ids;
     }
 
     // Get one user by id

@@ -48,7 +48,7 @@ public class AdminDashboardService {
         Map<String, Object> recompenseStats = fetchMap(recompenseServiceUrl + "/internal/stats");
         Map<String, Object> utilisateurStats = fetchMap(utilisateurServiceUrl + "/internal/stats");
 
-        List<PendingRequestItem> pendingRequests = fetchPendingRequests();
+        List<PendingRequestItem> pendingRequests = fetchPendingRequestsFromAuth("pending");
         List<LogAdminResponse> recentLogs = adminLogService.getRecentLogs(10);
         double commissionRate = resolveCommissionRate();
 
@@ -94,22 +94,30 @@ public class AdminDashboardService {
     }
 
     @SuppressWarnings("unchecked")
-    private List<PendingRequestItem> fetchPendingRequests() {
+    private List<PendingRequestItem> fetchPendingRequestsFromAuth(String status) {
         try {
-            List<Map<String, Object>> rows = restTemplate.getForObject(
-                    authServiceUrl + "/internal/users/pending-accounts",
-                    List.class
+            Map<String, Object> page = restTemplate.getForObject(
+                    authServiceUrl + "/internal/users/organization-accounts?status=" + status + "&rejectedIds=",
+                    Map.class
             );
-            if (rows == null) {
+            if (page == null) {
+                return List.of();
+            }
+            Object rawItems = page.get("items");
+            if (!(rawItems instanceof List<?> rows)) {
                 return List.of();
             }
             List<PendingRequestItem> items = new ArrayList<>();
-            for (Map<String, Object> row : rows) {
+            for (Object row : rows) {
+                if (!(row instanceof Map<?, ?> map)) {
+                    continue;
+                }
+                Map<String, Object> account = (Map<String, Object>) map;
                 items.add(PendingRequestItem.builder()
-                        .userId(extractLong(row, "userId"))
-                        .label(String.valueOf(row.getOrDefault("name", "Compte")))
-                        .role(String.valueOf(row.getOrDefault("role", "")))
-                        .createdAt(parseDateTime(row.get("createdAt")))
+                        .userId(extractLong(account, "userId"))
+                        .label(String.valueOf(account.getOrDefault("name", "Compte")))
+                        .role(String.valueOf(account.getOrDefault("role", "")))
+                        .createdAt(parseDateTime(account.get("createdAt")))
                         .build());
             }
             return items.stream().limit(5).toList();

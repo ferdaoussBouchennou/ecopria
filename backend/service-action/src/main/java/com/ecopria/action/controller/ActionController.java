@@ -122,6 +122,37 @@ public class ActionController {
         return ResponseEntity.ok(actionService.getAllForAdmin());
     }
 
+    @GetMapping("/admin/manage")
+    public ResponseEntity<List<ActionSummaryDTO>> getAllNonFixedForAdmin() {
+        return ResponseEntity.ok(actionService.getNonFixedForAdmin());
+    }
+
+    @PostMapping("/admin/manage")
+    public ResponseEntity<ActionDetailDTO> adminCreateNonFixed(
+            @Valid @RequestBody AdminActionManageRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(actionService.adminCreateNonFixedAction(request));
+    }
+
+    @PutMapping("/admin/manage/{id}")
+    public ResponseEntity<ActionDetailDTO> adminUpdateNonFixed(
+            @PathVariable Long id,
+            @Valid @RequestBody AdminActionManageRequest request) {
+        return ResponseEntity.ok(actionService.adminUpdateNonFixedAction(id, request));
+    }
+
+    @PutMapping("/admin/manage/{id}/activate")
+    public ResponseEntity<Void> adminActivateNonFixed(@PathVariable Long id) {
+        actionService.adminActivateNonFixedAction(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/admin/manage/{id}/deactivate")
+    public ResponseEntity<Void> adminDeactivateNonFixed(@PathVariable Long id) {
+        actionService.adminDeactivateNonFixedAction(id);
+        return ResponseEntity.noContent().build();
+    }
+
     // ── UPLOAD PHOTO ────────────────────────────────────────
     // POST /api/actions/{id}/photo
     @PostMapping("/{id}/photo")

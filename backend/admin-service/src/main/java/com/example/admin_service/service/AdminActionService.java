@@ -1,16 +1,14 @@
 package com.example.admin_service.service;
 
 import com.example.admin_service.dto.request.ActionAssociationRequest;
-import com.example.admin_service.kafka.producer.AdminKafkaProducer;
-import com.example.admin_service.model.ActionFixe;
 import com.example.admin_service.model.LogAdmin;
-import com.example.admin_service.repository.ActionFixeRepository;
 import com.example.admin_service.repository.LogAdminRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,124 +16,46 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminActionService {
 
-    private final AdminKafkaProducer kafkaProducer;
     private final LogAdminRepository logAdminRepository;
-    private final ActionFixeRepository actionFixeRepository;
+    private final RestTemplate restTemplate;
+    private final CategorySyncService categorySyncService;
+
+    @Value("${services.action-url}")
+    private String actionServiceUrl;
 
     public List<?> getAll() {
-        // Non-fixed actions created for associations are stored with estFixe=false
-        return actionFixeRepository.findAll()
-                .stream()
-                .filter(a -> Boolean.FALSE.equals(a.getEstFixe()))
-                .toList();
+        List<?> actions = restTemplate.getForObject(
+                actionServiceUrl + "/api/actions/admin/manage",
+                List.class
+        );
+        return actions != null ? actions : List.of();
     }
 
     public Object create(ActionAssociationRequest request, Long adminId) {
-        LocalDateTime now = LocalDateTime.now();
-        ActionFixe action = actionFixeRepository.save(ActionFixe.builder()
-                .titre(request.getTitre())
-                .description(request.getDescription())
-                .categorie(request.getCategorie())
-                .estFixe(false)
-                .associationId(request.getAssociationId())
-                .associationName(request.getAssociationName())
-                .lieu(request.getLieu())
-                .latitude(request.getLatitude())
-                .longitude(request.getLongitude())
-                .points(request.getPoints())
-                .placesTotal(request.getPlacesTotal())
-                .active(true)
-                .createdAt(now)
-                .updatedAt(now)
-                .build());
-
-        Map<String, Object> event = new HashMap<>();
-        event.put("actionId", action.getId());
-        event.put("titre", action.getTitre());
-        event.put("description", action.getDescription());
-        event.put("categorie", action.getCategorie());
-        event.put("associationId", action.getAssociationId());
-        event.put("associationName", action.getAssociationName());
-        event.put("lieu", action.getLieu());
-        event.put("latitude", action.getLatitude());
-        event.put("longitude", action.getLongitude());
-        event.put("points", action.getPoints());
-        event.put("placesTotal", action.getPlacesTotal());
-        event.put("adminId", adminId);
-        kafkaProducer.publishActionAdminEvent("action.creee.admin", String.valueOf(action.getId()), event);
-
-        saveLog(adminId, "CREER_ACTION", 0L, "ACTION");
-        return action;
+        request.setCategorie(categorySyncService.ensureCategoryExists(request.getCategorie(), adminId));
+        Object created = restTemplate.postForObject(
+                actionServiceUrl + "/api/actions/admin/manage",
+                request,
+                Map.class
+        );
+        Long cibleId = extractLong(created, "id");
+        saveLog(adminId, "CREER_ACTION", cibleId, "ACTION");
+        return created;
     }
 
     public void update(Long actionId, ActionAssociationRequest request, Long adminId) {
-        ActionFixe action = actionFixeRepository.findById(actionId)
-                .orElseThrow(() -> new RuntimeException("Action not found: " + actionId));
-        action.setTitre(request.getTitre());
-        action.setDescription(request.getDescription());
-        action.setCategorie(request.getCategorie());
-        action.setEstFixe(false);
-        action.setAssociationId(request.getAssociationId());
-        action.setAssociationName(request.getAssociationName());
-        action.setLieu(request.getLieu());
-        action.setLatitude(request.getLatitude());
-        action.setLongitude(request.getLongitude());
-        action.setPoints(request.getPoints());
-        action.setPlacesTotal(request.getPlacesTotal());
-        action.setUpdatedAt(LocalDateTime.now());
-        actionFixeRepository.save(action);
-
-        Map<String, Object> event = new HashMap<>();
-        event.put("actionId", action.getId());
-        event.put("titre", action.getTitre());
-        event.put("description", action.getDescription());
-        event.put("categorie", action.getCategorie());
-        event.put("associationId", action.getAssociationId());
-        event.put("associationName", action.getAssociationName());
-        event.put("lieu", action.getLieu());
-        event.put("latitude", action.getLatitude());
-        event.put("longitude", action.getLongitude());
-        event.put("points", action.getPoints());
-        event.put("placesTotal", action.getPlacesTotal());
-        event.put("adminId", adminId);
-        kafkaProducer.publishActionAdminEvent("action.modifiee.admin", String.valueOf(actionId), event);
-
+        request.setCategorie(categorySyncService.ensureCategoryExists(request.getCategorie(), adminId));
+        restTemplate.put(actionServiceUrl + "/api/actions/admin/manage/" + actionId, request);
         saveLog(adminId, "MODIFIER_ACTION", actionId, "ACTION");
     }
 
     public void activate(Long actionId, Long adminId) {
-        ActionFixe action = actionFixeRepository.findById(actionId)
-                .orElseThrow(() -> new RuntimeException("Action not found: " + actionId));
-        action.setActive(true);
-        action.setUpdatedAt(LocalDateTime.now());
-        actionFixeRepository.save(action);
-
-        Map<String, Object> event = Map.of(
-                "actionId", actionId,
-                "adminId", adminId,
-                "status", "ACTIVE",
-                "eventType", "ACTION_ACTIVEE"
-        );
-        kafkaProducer.publishActionAdminEvent("action.statut.change", String.valueOf(actionId), event);
-
+        restTemplate.put(actionServiceUrl + "/api/actions/admin/manage/" + actionId + "/activate", null);
         saveLog(adminId, "ACTIVER_ACTION", actionId, "ACTION");
     }
 
     public void deactivate(Long actionId, String raison, Long adminId) {
-        ActionFixe action = actionFixeRepository.findById(actionId)
-                .orElseThrow(() -> new RuntimeException("Action not found: " + actionId));
-        action.setActive(false);
-        action.setUpdatedAt(LocalDateTime.now());
-        actionFixeRepository.save(action);
-
-        Map<String, Object> event = new HashMap<>();
-        event.put("actionId", actionId);
-        event.put("adminId", adminId);
-        event.put("status", "INACTIVE");
-        event.put("raison", raison);
-        event.put("eventType", "ACTION_DESACTIVEE");
-        kafkaProducer.publishActionAdminEvent("action.statut.change", String.valueOf(actionId), event);
-
+        restTemplate.put(actionServiceUrl + "/api/actions/admin/manage/" + actionId + "/deactivate", null);
         saveLog(adminId, "DESACTIVER_ACTION", actionId, "ACTION");
     }
 
@@ -147,5 +67,17 @@ public class AdminActionService {
                 .cibleType(cibleType)
                 .createdAt(LocalDateTime.now())
                 .build());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Long extractLong(Object source, String key) {
+        if (!(source instanceof Map<?, ?> map)) {
+            return null;
+        }
+        Object value = ((Map<String, Object>) map).get(key);
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        return null;
     }
 }

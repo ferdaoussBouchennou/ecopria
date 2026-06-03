@@ -36,12 +36,34 @@ export interface AdminLog {
 }
 
 export interface AdminPendingAccount {
+  userId?: number;
   id?: number;
   authId?: number;
+  role?: string;
   name?: string;
   nom?: string;
   email?: string;
   createdAt?: string;
+}
+
+export type AccountValidationFilter = 'pending' | 'approved' | 'rejected' | 'all';
+
+export interface AccountValidationItem {
+  userId: number;
+  name: string;
+  email: string;
+  role: 'ASSOCIATION' | 'PARTNER';
+  createdAt?: string;
+  status: 'En attente' | 'Validé' | 'Rejeté';
+  documentPath?: string;
+}
+
+export interface AccountValidationsPage {
+  pendingCount: number;
+  approvedCount: number;
+  rejectedCount: number;
+  totalCount: number;
+  items: AccountValidationItem[];
 }
 
 export interface AdminConfiguration {
@@ -50,6 +72,48 @@ export interface AdminConfiguration {
   valeur: string;
   description?: string;
   updatedAt?: string;
+}
+
+export interface ActionFixe {
+  id: number;
+  titre: string;
+  description?: string;
+  categorie: string;
+  estFixe?: boolean;
+  points: number;
+  active?: boolean;
+  updatedAt?: string;
+}
+
+export interface ActionFixeRequest {
+  titre: string;
+  description?: string;
+  categorie: string;
+  points: number;
+  frequence?: string;
+}
+
+export interface ActionAssociationRequest {
+  titre: string;
+  description?: string;
+  categorie: string;
+  associationId: number;
+  associationName?: string;
+  latitude: number;
+  longitude: number;
+  points: number;
+  placesTotal?: number;
+  lieu?: string;
+}
+
+export interface ActionNonFixe {
+  id: number;
+  title: string;
+  categoryName?: string;
+  points: number;
+  status?: 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
+  isFixed?: boolean;
+  city?: string;
 }
 
 export type AdminNavId =

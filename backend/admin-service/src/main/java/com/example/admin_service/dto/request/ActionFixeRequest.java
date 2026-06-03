@@ -9,10 +9,6 @@ public class ActionFixeRequest {
     @NotBlank private String titre;
     private String description;
     @NotBlank private String categorie;
-    private String lieu;
-    private Double latitude;
-    private Double longitude;
     @NotNull private Integer points;
-    private Integer placesTotal;
     private String frequence;
 }
