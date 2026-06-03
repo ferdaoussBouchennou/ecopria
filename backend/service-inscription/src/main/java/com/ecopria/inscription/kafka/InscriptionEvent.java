@@ -6,16 +6,30 @@ public class InscriptionEvent {
     private Long inscriptionId;
     private Long userId;
     private Long actionId;
-    private LocalDateTime dateAction;  // ← remplace dateInscription
+    private LocalDateTime dateAction;
     private Long associationId;
     private String title;
     private String city;
     private String address;
-    // qrCode et pointsAction supprimés — c'est service-presence qui gère le QR
+    private String statut;
+    private String email;
+    private String firstName;
+    private Integer pointsAction;
 
     public InscriptionEvent() {}
 
-    public InscriptionEvent(Long inscriptionId, Long userId, Long actionId, LocalDateTime dateAction, Long associationId, String title, String city, String address) {
+    public InscriptionEvent(Long inscriptionId,
+                            Long userId,
+                            Long actionId,
+                            LocalDateTime dateAction,
+                            Long associationId,
+                            String title,
+                            String city,
+                            String address,
+                            String statut,
+                            String email,
+                            String firstName,
+                            Integer pointsAction) {
         this.inscriptionId = inscriptionId;
         this.userId = userId;
         this.actionId = actionId;
@@ -24,6 +38,10 @@ public class InscriptionEvent {
         this.title = title;
         this.city = city;
         this.address = address;
+        this.statut = statut;
+        this.email = email;
+        this.firstName = firstName;
+        this.pointsAction = pointsAction;
     }
 
     public Long getInscriptionId() { return inscriptionId; }
@@ -42,4 +60,12 @@ public class InscriptionEvent {
     public void setCity(String c) { this.city = c; }
     public String getAddress() { return address; }
     public void setAddress(String a) { this.address = a; }
+    public String getStatut() { return statut; }
+    public void setStatut(String statut) { this.statut = statut; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public Integer getPointsAction() { return pointsAction; }
+    public void setPointsAction(Integer pointsAction) { this.pointsAction = pointsAction; }
 }

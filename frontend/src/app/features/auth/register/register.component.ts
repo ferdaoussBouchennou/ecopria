@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import {
   TURNSTILE_DEV_BYPASS_TOKEN,
@@ -59,10 +59,16 @@ export class RegisterComponent implements AfterViewInit, OnDestroy {
 
   private turnstileWidgetId: string | null = null;
 
+  get authQueryParams(): Record<string, string> {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    return returnUrl ? { returnUrl } : {};
+  }
+
   constructor(
     private auth: AuthService,
     private turnstile: TurnstileService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngAfterViewInit(): void {
@@ -208,7 +214,10 @@ export class RegisterComponent implements AfterViewInit, OnDestroy {
 
   private goToEmailVerification(): void {
     void this.router.navigate(['/verifier-email'], {
-      queryParams: { email: this.email.trim().toLowerCase() },
+      queryParams: {
+        email: this.email.trim().toLowerCase(),
+        ...this.authQueryParams,
+      },
     });
   }
 

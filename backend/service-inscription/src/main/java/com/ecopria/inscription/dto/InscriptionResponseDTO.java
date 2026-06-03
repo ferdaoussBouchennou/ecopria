@@ -15,6 +15,11 @@ public class InscriptionResponseDTO {
     private String phone;
     private String city;
     private String photoUrl;
+    private String motivation;
+    private String conditions;
+    private Boolean imageRights;
+    private Boolean newsletter;
+    private Integer accompagnants;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -40,4 +45,14 @@ public class InscriptionResponseDTO {
     public void setCity(String city) { this.city = city; }
     public String getPhotoUrl() { return photoUrl; }
     public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
+    public String getMotivation() { return motivation; }
+    public void setMotivation(String motivation) { this.motivation = motivation; }
+    public String getConditions() { return conditions; }
+    public void setConditions(String conditions) { this.conditions = conditions; }
+    public Boolean getImageRights() { return imageRights; }
+    public void setImageRights(Boolean imageRights) { this.imageRights = imageRights; }
+    public Boolean getNewsletter() { return newsletter; }
+    public void setNewsletter(Boolean newsletter) { this.newsletter = newsletter; }
+    public Integer getAccompagnants() { return accompagnants; }
+    public void setAccompagnants(Integer accompagnants) { this.accompagnants = accompagnants; }
 }

@@ -16,7 +16,10 @@ public class InscriptionProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void envoyerConfirmation(Inscription inscription, com.ecopria.inscription.dto.ActionDTO action) {
+    public void envoyerNotification(Inscription inscription,
+                                    com.ecopria.inscription.dto.ActionDTO action,
+                                    String email,
+                                    String firstName) {
         java.time.LocalDateTime dateStart = null;
         if (action.getDateStart() != null) {
             try {
@@ -35,10 +38,15 @@ public class InscriptionProducer {
                 action.getAssociationId(),
                 action.getTitre(),
                 action.getCity(),
-                action.getAddress()
+                action.getAddress(),
+                inscription.getStatut(),
+                email,
+                firstName,
+                inscription.getPointsAction()
         );
         kafkaTemplate.send(TOPIC_CONFIRMEE, String.valueOf(inscription.getUserId()), event);
-        System.out.println("Kafka [inscription.confirmee] publié pour inscriptionId=" + inscription.getId());
+        System.out.println("Kafka [inscription.confirmee] publié pour inscriptionId=" + inscription.getId()
+                + " statut=" + inscription.getStatut());
     }
 
     // Publié quand un utilisateur se désinscrit

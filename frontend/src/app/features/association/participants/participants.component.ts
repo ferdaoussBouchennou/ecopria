@@ -42,6 +42,7 @@ export class ParticipantsComponent implements OnInit {
   // Tri
   sortColumn: SortColumn = 'dateInscription';
   sortDirection: SortDirection = 'desc';
+  expandedInscriptionId: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -258,6 +259,11 @@ export class ParticipantsComponent implements OnInit {
     }
 
     return `${this.stats.confirmes} participant(s) confirmé(s), ${this.stats.enAttente} en attente et ${this.stats.annules} annulé(s) pour cette action.`;
+  }
+
+  toggleDetails(inscriptionId: number): void {
+    this.expandedInscriptionId =
+      this.expandedInscriptionId === inscriptionId ? null : inscriptionId;
   }
 
   goBack(): void {

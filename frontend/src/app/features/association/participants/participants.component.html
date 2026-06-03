@@ -129,45 +129,77 @@
             </span>
           </th>
           <th>Points</th>
+          <th>Inscription</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let participant of filteredParticipants">
-          <td>
-            <div class="avatar" *ngIf="!participant.photoUrl">
-              {{ getInitials(participant.firstName, participant.lastName) }}
-            </div>
-            <img 
-              *ngIf="participant.photoUrl" 
-              [src]="participant.photoUrl" 
-              [alt]="participant.firstName + ' ' + participant.lastName"
-              class="avatar-img"
-            />
-          </td>
-          <td class="name-cell">
-            {{ participant.lastName }} {{ participant.firstName }}
-          </td>
-          <td class="email-cell">{{ participant.email }}</td>
-          <td>{{ participant.phone }}</td>
-          <td>{{ participant.city }}</td>
-          <td>{{ formatDate(participant.dateInscription) }}</td>
-          <td>
-            <span class="badge" [ngClass]="getStatutClass(participant.statut)">
-              {{ getStatutLabel(participant.statut) }}
-            </span>
-          </td>
-          <td class="points-cell">{{ participant.pointsAction }}</td>
-          <td>
-            <button 
-              *ngIf="participant.statut === 'CONFIRMEE' || participant.statut === 'EN_ATTENTE'"
-              class="btn-valider" 
-              (click)="validerPresence(participant)"
-              [disabled]="validerLoading[participant.userId]">
-              {{ validerLoading[participant.userId] ? '...' : 'Valider' }}
-            </button>
-          </td>
-        </tr>
+        <ng-container *ngFor="let participant of filteredParticipants">
+          <tr>
+            <td>
+              <div class="avatar" *ngIf="!participant.photoUrl">
+                {{ getInitials(participant.firstName, participant.lastName) }}
+              </div>
+              <img 
+                *ngIf="participant.photoUrl" 
+                [src]="participant.photoUrl" 
+                [alt]="participant.firstName + ' ' + participant.lastName"
+                class="avatar-img"
+              />
+            </td>
+            <td class="name-cell">
+              {{ participant.lastName }} {{ participant.firstName }}
+            </td>
+            <td class="email-cell">{{ participant.email }}</td>
+            <td>{{ participant.phone }}</td>
+            <td>{{ participant.city }}</td>
+            <td>{{ formatDate(participant.dateInscription) }}</td>
+            <td>
+              <span class="badge" [ngClass]="getStatutClass(participant.statut)">
+                {{ getStatutLabel(participant.statut) }}
+              </span>
+            </td>
+            <td class="points-cell">{{ participant.pointsAction }}</td>
+            <td>
+              <button
+                type="button"
+                class="btn-details"
+                (click)="toggleDetails(participant.inscriptionId)"
+                [class.btn-details--active]="expandedInscriptionId === participant.inscriptionId"
+              >
+                {{ expandedInscriptionId === participant.inscriptionId ? 'Masquer' : 'Voir' }}
+              </button>
+            </td>
+            <td>
+              <button 
+                *ngIf="participant.statut === 'CONFIRMEE' || participant.statut === 'EN_ATTENTE'"
+                class="btn-valider" 
+                (click)="validerPresence(participant)"
+                [disabled]="validerLoading[participant.userId]">
+                {{ validerLoading[participant.userId] ? '...' : 'Valider' }}
+              </button>
+            </td>
+          </tr>
+          <tr class="detail-row" *ngIf="expandedInscriptionId === participant.inscriptionId">
+            <td colspan="10">
+              <div class="inscription-details">
+                <div class="detail-block">
+                  <h4>Pourquoi participez-vous à cette action ?</h4>
+                  <p>{{ participant.motivation || 'Non renseigné' }}</p>
+                </div>
+                <div class="detail-block">
+                  <h4>Conditions médicales / allergies</h4>
+                  <p>{{ participant.conditions || 'Non renseigné' }}</p>
+                </div>
+                <div class="detail-meta">
+                  <span>Droit à l'image : {{ participant.imageRights ? 'Oui' : 'Non' }}</span>
+                  <span>Newsletter : {{ participant.newsletter ? 'Oui' : 'Non' }}</span>
+                  <span *ngIf="participant.accompagnants != null">Accompagnants : {{ participant.accompagnants }}</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
       </tbody>
     </table>
 

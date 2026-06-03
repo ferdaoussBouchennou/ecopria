@@ -19,6 +19,11 @@ export interface InscriptionResponse {
   phone?: string;
   city?: string;
   photoUrl?: string;
+  motivation?: string;
+  conditions?: string;
+  imageRights?: boolean;
+  newsletter?: boolean;
+  accompagnants?: number;
 }
 
 export interface MonInscriptionDto {

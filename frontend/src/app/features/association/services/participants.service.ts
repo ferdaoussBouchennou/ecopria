@@ -39,7 +39,12 @@ export class ParticipantsService {
       email: inscription.email || '—',
       phone: inscription.phone || '—',
       photoUrl: inscription.photoUrl,
-      city: inscription.city || '—'
+      city: inscription.city || '—',
+      motivation: inscription.motivation?.trim() || undefined,
+      conditions: inscription.conditions?.trim() || undefined,
+      imageRights: inscription.imageRights,
+      newsletter: inscription.newsletter,
+      accompagnants: inscription.accompagnants
     };
   }
 
@@ -53,7 +58,20 @@ export class ParticipantsService {
   }
 
   exportToCSV(participants: Participant[], actionTitle: string): void {
-    const headers = ['Nom', 'Prénom', 'Email', 'Téléphone', 'Ville', 'Date inscription', 'Statut', 'Points'];
+    const headers = [
+      'Nom',
+      'Prénom',
+      'Email',
+      'Téléphone',
+      'Ville',
+      'Date inscription',
+      'Statut',
+      'Points',
+      'Motivation',
+      'Conditions médicales / allergies',
+      'Droit à l\'image',
+      'Newsletter'
+    ];
     const rows = participants.map((p) => [
       p.lastName || '',
       p.firstName || '',
@@ -62,7 +80,11 @@ export class ParticipantsService {
       p.city || '',
       this.formatDate(p.dateInscription),
       this.getStatutLabel(p.statut),
-      p.pointsAction.toString()
+      p.pointsAction.toString(),
+      p.motivation || '',
+      p.conditions || '',
+      p.imageRights ? 'Oui' : 'Non',
+      p.newsletter ? 'Oui' : 'Non'
     ]);
 
     const csvContent = [

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   FormBuilder,
   FormGroup,
@@ -43,6 +43,7 @@ export class InscriptionFormComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private fb: FormBuilder,
     private inscriptionService: InscriptionService,
     private devContext: DevContextService,
@@ -145,8 +146,13 @@ export class InscriptionFormComponent implements OnInit {
       .subscribe({
         next: (res: InscriptionResponse) => {
           this.inscription = res;
-          // CONFIRMEE si places dispo, EN_ATTENTE si complet (gere par ActionPlacesConsumer)
-          this.statut = res.statut === 'EN_ATTENTE' ? 'en_attente' : 'confirmee';
+          const queryParams: Record<string, string> = { inscriptionOk: '1' };
+          if (res.statut === 'EN_ATTENTE') {
+            queryParams['listeAttente'] = '1';
+          } else {
+            queryParams['emailSent'] = '1';
+          }
+          void this.router.navigate(['/espace/actions'], { queryParams });
         },
         error: (err: Error) => {
           this.erreurMessage = err.message;

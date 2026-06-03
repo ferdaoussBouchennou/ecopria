@@ -22,6 +22,11 @@ export class LoginComponent implements OnInit {
   submitting = false;
   error = '';
 
+  get authQueryParams(): Record<string, string> {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    return returnUrl ? { returnUrl } : {};
+  }
+
   constructor(
     private auth: AuthService,
     private router: Router,
@@ -66,7 +71,10 @@ export class LoginComponent implements OnInit {
         if (msg.includes('EMAIL_NOT_VERIFIED')) {
           this.error = 'Votre e-mail n’est pas encore vérifié.';
           void this.router.navigate(['/verifier-email'], {
-            queryParams: { email: this.email.trim().toLowerCase() },
+            queryParams: {
+              email: this.email.trim().toLowerCase(),
+              ...this.authQueryParams,
+            },
           });
           return;
         }

@@ -13,6 +13,11 @@ export interface Participant {
   phone?: string;
   photoUrl?: string;
   city?: string;
+  motivation?: string;
+  conditions?: string;
+  imageRights?: boolean;
+  newsletter?: boolean;
+  accompagnants?: number;
 }
 
 // Statistiques des participants

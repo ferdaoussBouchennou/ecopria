@@ -1,4 +1,8 @@
 <section class="space-page">
+  @if (successMessage) {
+    <div class="inscription-alert" role="status">{{ successMessage }}</div>
+  }
+
   <div class="hero-card hero-card--actions">
     <div class="hero-copy">
       <span class="eyebrow-pill">Mes inscriptions</span>

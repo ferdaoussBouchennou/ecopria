@@ -44,6 +44,9 @@ public class InscriptionService {
         }
 
         ActionDTO action = actionClient.getAction(request.getActionId());
+        Map<String, Object> profile = utilisateurClient.getParticipantProfile(request.getUserId());
+        String participantEmail = stringValue(profile.get("email"));
+        String participantFirstName = stringValue(profile.get("firstName"));
 
         Inscription inscription = new Inscription();
         inscription.setUserId(request.getUserId());
@@ -66,6 +69,7 @@ public class InscriptionService {
         if (action.getPlacesDisponibles() <= 0) {
             inscription.setStatut("EN_ATTENTE");
             Inscription saved = inscriptionRepository.save(inscription);
+            inscriptionProducer.envoyerNotification(saved, action, participantEmail, participantFirstName);
             return toResponseDTO(saved);
         }
 
@@ -74,12 +78,13 @@ public class InscriptionService {
         if (trustScore < 70) {
             inscription.setStatut("EN_ATTENTE");
             Inscription saved = inscriptionRepository.save(inscription);
+            inscriptionProducer.envoyerNotification(saved, action, participantEmail, participantFirstName);
             return toResponseDTO(saved);
         }
 
         inscription.setStatut("CONFIRMEE");
         Inscription saved = inscriptionRepository.save(inscription);
-        inscriptionProducer.envoyerConfirmation(saved, action);
+        inscriptionProducer.envoyerNotification(saved, action, participantEmail, participantFirstName);
         return toResponseDTO(saved);
     }
 
@@ -128,6 +133,11 @@ public class InscriptionService {
         dto.setPhone(stringValue(profile.get("phone")));
         dto.setCity(stringValue(profile.get("city")));
         dto.setPhotoUrl(stringValue(profile.get("photo")));
+        dto.setMotivation(inscription.getMotivation());
+        dto.setConditions(inscription.getConditions());
+        dto.setImageRights(inscription.getImageRights());
+        dto.setNewsletter(inscription.getNewsletter());
+        dto.setAccompagnants(inscription.getAccompagnants());
         return dto;
     }
 

@@ -16,6 +16,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Locale;
 
 /**
  * Écoute les topics listés dans {@code docs/KAFKA_TOPICS.md} (racine du dépôt).
@@ -133,32 +137,68 @@ public class NotificationConsumer {
         if (userId == null) {
             return;
         }
-        String dateAction = readStringAny(event, "", "dateAction", "date_action");
+        String dateAction = formatEventDate(readStringAny(event, "", "dateAction", "date_action"));
         String actionTitle = readStringAny(event, "l'action", "actionTitle", "title", "action_title");
         String city = readStringAny(event, "", "city", "ville");
         String address = readStringAny(event, "", "address", "adresse");
+        String firstName = readStringAny(event, "", "firstName", "first_name");
+        Integer points = readIntAny(event, "pointsAction", "points_action");
+        String statut = readStringAny(event, "CONFIRMEE", "statut");
         Long associationId = firstLongId(event, "inscription.confirmee", "associationId", "association_id");
 
-        String locationDetails = "";
-        if (!city.isEmpty() || !address.isEmpty()) {
-            locationDetails = "Lieu : " + (address.isEmpty() ? "" : address + " - ") + city + "\n";
+        String greeting = firstName.isBlank() ? "Bonjour," : "Bonjour " + firstName + ",";
+        String locationLine = buildLocationLine(address, city);
+        String pointsLine = points != null && points > 0
+                ? "Points EcoPria : +" + points + " pts\n"
+                : "";
+
+        boolean enAttente = "EN_ATTENTE".equalsIgnoreCase(statut);
+        String mailSubject;
+        String mailBody;
+        String inAppTitle;
+        String inAppMessage;
+
+        if (enAttente) {
+            mailSubject = "Liste d'attente — " + actionTitle;
+            inAppTitle = "Inscription en liste d'attente";
+            inAppMessage = "Vous etes en liste d'attente pour : " + actionTitle + ".";
+            mailBody = greeting + "\n\n" +
+                    "Votre demande de participation a bien ete enregistree.\n" +
+                    "L'action \"" + actionTitle + "\" est complete pour le moment : vous etes en liste d'attente.\n\n" +
+                    "Recapitulatif :\n" +
+                    "- Action : " + actionTitle + "\n" +
+                    (dateAction.isBlank() ? "" : "- Date : " + dateAction + "\n") +
+                    locationLine +
+                    pointsLine + "\n" +
+                    "Si une place se libere, vous recevrez un e-mail de confirmation avec votre QR code.\n\n" +
+                    "Consultez vos inscriptions : https://ecopria.ma/espace/actions\n\n" +
+                    "- L'equipe EcoPria\n" +
+                    "https://ecopria.ma";
+        } else {
+            mailSubject = "Inscription confirmee — " + actionTitle;
+            inAppTitle = "Inscription confirmee";
+            inAppMessage = "Votre inscription pour \"" + actionTitle + "\" est confirmee. Consultez vos e-mails pour le recapitulatif.";
+            mailBody = greeting + "\n\n" +
+                    "Votre inscription pour l'action suivante est confirmee :\n\n" +
+                    "Action : " + actionTitle + "\n" +
+                    (dateAction.isBlank() ? "" : "Date : " + dateAction + "\n") +
+                    locationLine +
+                    pointsLine + "\n" +
+                    "Votre QR code personnel sera genere et envoye avant l'evenement.\n" +
+                    "Retrouvez vos inscriptions : https://ecopria.ma/espace/actions\n\n" +
+                    "- L'equipe EcoPria\n" +
+                    "https://ecopria.ma";
         }
 
         dispatcher.notifyUser(userId,
-                "Inscription confirmee ✅",
-                "Votre inscription a ete confirmee pour : " + actionTitle + ". Votre QR Code sera envoye par email.",
-                Notification.NotificationType.SUCCESS,
-                "Votre inscription est confirmee - " + actionTitle,
-                "Bonjour,\n\n" +
-                        "Votre inscription pour \"" + actionTitle + "\" est confirmee.\n" +
-                        "Date : " + dateAction + "\n" +
-                        locationDetails + "\n" +
-                        "Votre QR code personnel sera genere et envoye avant l'evenement.\n\n" +
-                        "https://ecopria.ma/espace/qr\n\n" +
-                        "- L'equipe EcoPria",
+                inAppTitle,
+                inAppMessage,
+                enAttente ? Notification.NotificationType.INFO : Notification.NotificationType.SUCCESS,
+                mailSubject,
+                mailBody,
                 emailFromEvent(event));
 
-        if (associationId != null) {
+        if (associationId != null && !enAttente) {
             dispatcher.notifyUser(associationId,
                     "Nouvel inscrit",
                     "Un nouveau participant s'est inscrit à votre action : " + actionTitle,
@@ -166,6 +206,28 @@ public class NotificationConsumer {
                     null,
                     null,
                     null);
+        }
+    }
+
+    private static String buildLocationLine(String address, String city) {
+        if ((address == null || address.isBlank()) && (city == null || city.isBlank())) {
+            return "";
+        }
+        String lieu = address == null || address.isBlank()
+                ? city
+                : (city == null || city.isBlank() ? address : address + ", " + city);
+        return "Lieu : " + lieu + "\n";
+    }
+
+    private static String formatEventDate(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return "";
+        }
+        try {
+            LocalDateTime dt = LocalDateTime.parse(raw);
+            return dt.format(DateTimeFormatter.ofPattern("EEEE d MMMM yyyy 'a' HH:mm", Locale.FRENCH));
+        } catch (DateTimeParseException ignored) {
+            return raw;
         }
     }
 

@@ -50,7 +50,8 @@ public class ActionPlacesConsumer {
             }
             inscription.setStatut("CONFIRMEE");
             inscriptionRepository.save(inscription);
-            inscriptionProducer.envoyerConfirmation(inscription, action);
+            // L'e-mail est envoyé via le profil utilisateur (service-utilisateur)
+            inscriptionProducer.envoyerNotification(inscription, action, null, null);
             remaining--;
             System.out.println("Liste d'attente : userId=" + inscription.getUserId()
                     + " promu CONFIRMEE pour actionId=" + event.getActionId());
