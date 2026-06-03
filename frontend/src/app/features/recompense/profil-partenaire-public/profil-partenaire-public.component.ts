@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PartenaireService } from '../partenaire.service';
 import { RecompenseService } from '../recompense.service';
 import { UserService } from '../../../core/services/user.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { PartenaireProfil, RecompenseItemDto, CouponDto } from '../../../core/models/recompense.model';
 
 @Component({
@@ -36,8 +37,13 @@ export class ProfilPartenairePublicComponent implements OnInit {
     private router: Router,
     private partenaireService: PartenaireService,
     private recompenseService: RecompenseService,
-    private userService: UserService
+    private userService: UserService,
+    private auth: AuthService
   ) {}
+
+  get loginReturnUrl(): string {
+    return this.router.url;
+  }
 
   ngOnInit(): void {
     const rawId = this.route.snapshot.paramMap.get('userId');
@@ -67,13 +73,10 @@ export class ProfilPartenairePublicComponent implements OnInit {
   }
 
   checkUserAuthentication(): void {
-    const userIdStr = localStorage.getItem('userId');
-    if (userIdStr) {
-      const userId = Number(userIdStr);
-      if (!isNaN(userId) && userId > 0) {
-        this.isUserConnected = true;
-        this.loadUserPoints(userId);
-      }
+    const userId = this.auth.getUserId();
+    if (userId != null && this.auth.isLoggedIn()) {
+      this.isUserConnected = true;
+      this.loadUserPoints(userId);
     }
   }
 
@@ -130,8 +133,8 @@ export class ProfilPartenairePublicComponent implements OnInit {
     if (!offre.isAvailable || this.echangeEnCours) return;
 
     // Vérifier si l'utilisateur est connecté
-    const userIdStr = localStorage.getItem('userId');
-    if (!userIdStr || !this.isUserConnected) {
+    const userId = this.auth.getUserId();
+    if (userId == null || !this.isUserConnected) {
       // Rediriger vers la page de connexion
       alert('Vous devez être connecté pour échanger des points.');
       this.router.navigate(['/connexion'], { 
@@ -170,8 +173,10 @@ export class ProfilPartenairePublicComponent implements OnInit {
         this.echangeEnCours = null;
         
         // Recharger le solde de points
-        const userId = Number(userIdStr);
-        this.loadUserPoints(userId);
+        const userId = this.auth.getUserId();
+        if (userId != null) {
+          this.loadUserPoints(userId);
+        }
         
         // Recharger les offres pour mettre à jour le stock
         if (this.profil) {
