@@ -24,6 +24,7 @@ public class AdminActionFixeService {
     private final AdminKafkaProducer kafkaProducer;
     private final LogAdminRepository logAdminRepository;
     private final ActionFixeRepository actionFixeRepository;
+    private final CategorySyncService categorySyncService;
 
     public List<ActionFixeResponse> getAll() {
         return actionFixeRepository.findAll()
@@ -33,17 +34,14 @@ public class AdminActionFixeService {
     }
 
     public void create(ActionFixeRequest request, Long adminId) {
+        String categorie = categorySyncService.ensureCategoryExists(request.getCategorie(), adminId);
         LocalDateTime now = LocalDateTime.now();
         ActionFixe actionFixe = actionFixeRepository.save(ActionFixe.builder()
                 .titre(request.getTitre())
                 .description(request.getDescription())
-                .categorie(request.getCategorie())
+                .categorie(categorie)
                 .estFixe(true)
-                .lieu(request.getLieu())
-                .latitude(request.getLatitude())
-                .longitude(request.getLongitude())
                 .points(request.getPoints())
-                .placesTotal(request.getPlacesTotal())
                 .active(true)
                 .createdAt(now)
                 .updatedAt(now)
@@ -54,17 +52,14 @@ public class AdminActionFixeService {
     }
 
     public void update(Long id, ActionFixeRequest request, Long adminId) {
+        String categorie = categorySyncService.ensureCategoryExists(request.getCategorie(), adminId);
         ActionFixe actionFixe = actionFixeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Action fixe not found: " + id));
         actionFixe.setTitre(request.getTitre());
         actionFixe.setDescription(request.getDescription());
-        actionFixe.setCategorie(request.getCategorie());
+        actionFixe.setCategorie(categorie);
         actionFixe.setEstFixe(true);
-        actionFixe.setLieu(request.getLieu());
-        actionFixe.setLatitude(request.getLatitude());
-        actionFixe.setLongitude(request.getLongitude());
         actionFixe.setPoints(request.getPoints());
-        actionFixe.setPlacesTotal(request.getPlacesTotal());
         actionFixe.setUpdatedAt(LocalDateTime.now());
         actionFixe = actionFixeRepository.save(actionFixe);
 
@@ -91,12 +86,9 @@ public class AdminActionFixeService {
         return ActionFixeEvent.builder()
                 .actionFixeId(actionFixe.getId())
                 .titre(actionFixe.getTitre())
+                .description(actionFixe.getDescription())
                 .categorie(actionFixe.getCategorie())
-                .lieu(actionFixe.getLieu())
-                .latitude(actionFixe.getLatitude())
-                .longitude(actionFixe.getLongitude())
                 .points(actionFixe.getPoints())
-                .placesTotal(actionFixe.getPlacesTotal())
                 .build();
     }
 
@@ -109,11 +101,7 @@ public class AdminActionFixeService {
                 .estFixe(actionFixe.getEstFixe())
                 .associationId(actionFixe.getAssociationId())
                 .associationName(actionFixe.getAssociationName())
-                .lieu(actionFixe.getLieu())
-                .latitude(actionFixe.getLatitude())
-                .longitude(actionFixe.getLongitude())
                 .points(actionFixe.getPoints())
-                .placesTotal(actionFixe.getPlacesTotal())
                 .active(actionFixe.getActive())
                 .updatedAt(actionFixe.getUpdatedAt())
                 .build();

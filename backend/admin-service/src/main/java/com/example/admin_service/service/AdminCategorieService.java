@@ -24,6 +24,7 @@ public class AdminCategorieService {
     private final AdminKafkaProducer kafkaProducer;
     private final LogAdminRepository logAdminRepository;
     private final CategorieRepository categorieRepository;
+    private final CategorySyncService categorySyncService;
 
     public List<CategorieResponse> getAll() {
         return categorieRepository.findAll()
@@ -33,9 +34,17 @@ public class AdminCategorieService {
     }
 
     public void create(CategorieRequest request, Long adminId) {
+        String nom = request.getNom() == null ? "" : request.getNom().trim();
+        if (nom.isEmpty()) {
+            throw new IllegalArgumentException("Le nom de catégorie est obligatoire");
+        }
+        if (categorieRepository.existsByNomIgnoreCase(nom)) {
+            throw new RuntimeException("Catégorie déjà existante: " + nom);
+        }
+
         LocalDateTime now = LocalDateTime.now();
         Categorie categorie = categorieRepository.save(Categorie.builder()
-                .nom(request.getNom())
+                .nom(nom)
                 .description(request.getDescription())
                 .imageUrl(request.getImageUrl())
                 .createdAt(now)
@@ -47,6 +56,8 @@ public class AdminCategorieService {
                 .description(request.getDescription())
                 .imageUrl(request.getImageUrl())
                 .build());
+
+        categorySyncService.syncToActionDb(categorie.getNom(), categorie.getDescription(), categorie.getImageUrl());
 
         saveLog(adminId, "CREER_CATEGORIE", categorie.getId(), "CATEGORIE");
     }

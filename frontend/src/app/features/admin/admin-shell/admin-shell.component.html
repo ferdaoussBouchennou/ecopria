@@ -1,0 +1,52 @@
+<div class="admin-layout">
+  <aside class="sidebar" [class.sidebar--open]="sidebarOpen">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <span class="brand-dot"></span>
+        <div>
+          <span class="brand-mark">ecopria</span>
+          <span class="brand-sub">Back-office Ecopria</span>
+        </div>
+      </div>
+      <button type="button" class="sidebar-close" (click)="sidebarOpen = false" aria-label="Fermer">✕</button>
+    </div>
+
+    <p class="sidebar-title">Administration</p>
+
+    <nav class="sidebar-nav">
+      @for (item of navItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          class="nav-item"
+          [class.nav-item--active]="isActive(item.path)"
+        >
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <a routerLink="/" class="nav-item nav-item--back">← Retour au site</a>
+      <button type="button" class="nav-item nav-item--logout" (click)="logout()">Se déconnecter</button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" *ngIf="sidebarOpen" (click)="sidebarOpen = false"></div>
+
+  <div class="admin-main">
+    <header class="topbar">
+      <button type="button" class="topbar-menu" (click)="sidebarOpen = true" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-breadcrumb">Administration</div>
+      <div class="topbar-right">
+        <span class="topbar-name">{{ adminEmail }}</span>
+        <div class="topbar-avatar">{{ adminInitials }}</div>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <router-outlet />
+    </div>
+  </div>
+</div>

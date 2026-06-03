@@ -9,10 +9,7 @@ import lombok.*;
 public class ActionFixeEvent {
     private Long actionFixeId;
     private String titre;
+    private String description;
     private String categorie;
-    private String lieu;
-    private Double latitude;
-    private Double longitude;
     private Integer points;
-    private Integer placesTotal;
 }

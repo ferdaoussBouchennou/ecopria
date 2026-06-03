@@ -40,6 +40,16 @@ import { ActionsComponent } from './features/utilisateur/actions/actions.compone
 import { LeaderboardComponent } from './features/utilisateur/leaderboard/leaderboard.component';
 import { RecompensesComponent } from './features/utilisateur/recompenses/recompenses.component';
 import { SettingsComponent } from './features/utilisateur/settings/settings.component';
+import { adminGuard } from './core/guards/admin.guard';
+import { AdminShellComponent } from './features/admin/admin-shell/admin-shell.component';
+import { AdminDashboardComponent } from './features/admin/dashboard/admin-dashboard.component';
+import { AdminComptesComponent } from './features/admin/comptes/admin-comptes.component';
+import { AdminActionsFixesComponent } from './features/admin/actions-fixes/admin-actions-fixes.component';
+import { AdminModerationComponent } from './features/admin/moderation/admin-moderation.component';
+import { AdminCategoriesComponent } from './features/admin/categories/admin-categories.component';
+import { AdminUsersComponent } from './features/admin/users/admin-users.component';
+import { AdminConfigurationsComponent } from './features/admin/configurations/admin-configurations.component';
+import { AdminLogsComponent } from './features/admin/logs/admin-logs.component';
 
 export const routes: Routes = [
   // Routes publiques avec navbar/footer
@@ -101,9 +111,9 @@ export const routes: Routes = [
       { path: 'action/:id/participants', component: ParticipantsComponent },
       { path: 'participants', component: ListeParticipantsComponent },
       { path: 'profil', component: ProfilComponent },
+      // TODO: Ajouter les routes pour notifications
     ],
   },
-
   // Routes utilisateur/espace personnel
   {
     path: 'espace',
@@ -117,6 +127,23 @@ export const routes: Routes = [
       { path: 'parametres', component: SettingsComponent },
     ],
   },
-  
+
+  // ── Espace Admin ──────────────────────────────────────────────
+  {
+    path: 'admin',
+    component: AdminShellComponent,
+    canActivate: [adminGuard],
+    children: [
+      { path: '', component: AdminDashboardComponent },
+      { path: 'comptes', component: AdminComptesComponent },
+      { path: 'actions-fixes', component: AdminActionsFixesComponent },
+      { path: 'moderation', component: AdminModerationComponent },
+      { path: 'categories', component: AdminCategoriesComponent },
+      { path: 'users', component: AdminUsersComponent },
+      { path: 'configurations', component: AdminConfigurationsComponent },
+      { path: 'logs', component: AdminLogsComponent },
+    ],
+  },
+
   { path: '**', redirectTo: '' },
 ];

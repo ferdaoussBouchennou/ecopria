@@ -1,0 +1,184 @@
+<section class="admin-page">
+  <p class="admin-eyebrow"><span class="eyebrow-line"></span> Gouvernance</p>
+  <h1 class="admin-page__title">Actions (fixes et non fixes).</h1>
+  <p class="admin-desc">
+    Templates d'actions disponibles dans toute la plateforme. Chaque opération publie un événement Kafka
+    (créée, modifiée, désactivée).
+  </p>
+
+  @if (message) {
+    <p class="admin-muted action-msg">{{ message }}</p>
+  }
+
+  @if (loading) {
+    <p class="admin-muted">Chargement…</p>
+  } @else if (error) {
+    <div class="admin-alert admin-alert--error">{{ error }}</div>
+  } @else {
+    <div class="toolbar">
+      <div class="type-switch">
+        <button type="button" class="chip" [class.chip--active]="actionType === 'fixed'" (click)="setActionType('fixed')">
+          Fixe (db_admin)
+        </button>
+        <button
+          type="button"
+          class="chip"
+          [class.chip--active]="actionType === 'non-fixed'"
+          (click)="setActionType('non-fixed')"
+        >
+          Non fixe (db_action)
+        </button>
+      </div>
+      <input
+        type="search"
+        class="search-input"
+        [(ngModel)]="search"
+        placeholder="Rechercher par titre ou catégorie…"
+      />
+    </div>
+
+    <article class="table-card">
+      <header class="table-head table-head--actions">
+        <span>Titre</span>
+        <span>Catégorie</span>
+        <span>Points</span>
+        <span>Statut</span>
+        <span>Actions</span>
+      </header>
+      @if (actionType === 'fixed') {
+        @if (filteredItems.length === 0) {
+          <p class="admin-muted table-empty">Aucune action fixe pour le moment.</p>
+        } @else {
+          @for (item of filteredItems; track item.id) {
+            <div
+              class="table-row table-row--actions"
+              [class.table-row--selected]="editingId === item.id"
+              (click)="startEdit(item)"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="startEdit(item)"
+            >
+              <span>{{ item.titre }}</span>
+              <span>{{ item.categorie }}</span>
+              <span>{{ item.points }} pts</span>
+              <span>
+                <span class="status-pill" [ngClass]="statusClass(item)">{{ statusLabel(item) }}</span>
+              </span>
+              <span class="row-actions" (click)="$event.stopPropagation()">
+                @if (item.active) {
+                  <button type="button" class="link-btn" (click)="deactivate(item, $event)">Désactiver</button>
+                } @else {
+                  <span class="admin-muted">—</span>
+                }
+              </span>
+            </div>
+          }
+        }
+      } @else {
+        @if (filteredNonFixedItems.length === 0) {
+          <p class="admin-muted table-empty">Aucune action non fixe pour le moment.</p>
+        } @else {
+          @for (item of filteredNonFixedItems; track item.id) {
+            <div
+              class="table-row table-row--actions"
+              [class.table-row--selected]="editingNonFixedId === item.id"
+              (click)="startEditNonFixed(item)"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="startEditNonFixed(item)"
+            >
+              <span>{{ item.title }}</span>
+              <span>{{ item.categoryName }}</span>
+              <span>{{ item.points }} pts</span>
+              <span>
+                <span class="status-pill" [ngClass]="item.status === 'PUBLISHED' ? 'status-pill--active' : 'status-pill--draft'">
+                  {{ item.status === 'PUBLISHED' ? 'Active' : 'Brouillon' }}
+                </span>
+              </span>
+              <span class="row-actions" (click)="$event.stopPropagation()">
+                @if (item.status !== 'CANCELLED') {
+                  <button type="button" class="link-btn" (click)="deactivateNonFixed(item, $event)">Désactiver</button>
+                } @else {
+                  <span class="admin-muted">—</span>
+                }
+              </span>
+            </div>
+          }
+        }
+      }
+    </article>
+
+    <article class="form-card">
+      <h2>{{ actionType === 'fixed' ? (editingId != null ? 'Modifier l’action fixe' : 'Nouvelle action fixe') : (editingNonFixedId != null ? 'Modifier l’action non fixe' : 'Nouvelle action non fixe') }}</h2>
+      @if (actionType === 'fixed') {
+        <div class="form-grid">
+          <label>
+            <span>Titre</span>
+            <input type="text" [(ngModel)]="form.titre" placeholder="Trajet à vélo" />
+          </label>
+          <label>
+            <span>Catégorie</span>
+            <input type="text" [(ngModel)]="form.categorie" placeholder="Mobilité" />
+          </label>
+          <label>
+            <span>Points</span>
+            <input type="number" min="0" [(ngModel)]="form.points" />
+          </label>
+          <label class="form-grid__full">
+            <span>Description (optionnel)</span>
+            <textarea rows="2" [(ngModel)]="form.description" placeholder="Description courte…"></textarea>
+          </label>
+        </div>
+      } @else {
+        <div class="form-grid">
+          <label>
+            <span>Association ID</span>
+            <input type="number" min="1" [(ngModel)]="nonFixedForm.associationId" />
+          </label>
+          <label>
+            <span>Association (optionnel)</span>
+            <input type="text" [(ngModel)]="nonFixedForm.associationName" placeholder="Association locale" />
+          </label>
+          <label>
+            <span>Titre</span>
+            <input type="text" [(ngModel)]="nonFixedForm.titre" placeholder="Collecte locale" />
+          </label>
+          <label>
+            <span>Catégorie</span>
+            <input type="text" [(ngModel)]="nonFixedForm.categorie" placeholder="Nature" />
+          </label>
+          <label>
+            <span>Points</span>
+            <input type="number" min="0" [(ngModel)]="nonFixedForm.points" />
+          </label>
+          <label class="form-grid__full">
+            <span>Description (optionnel)</span>
+            <textarea rows="2" [(ngModel)]="nonFixedForm.description" placeholder="Description courte…"></textarea>
+          </label>
+          <label>
+            <span>Lieu (ville/adresse)</span>
+            <input type="text" [(ngModel)]="nonFixedForm.lieu" placeholder="Casablanca" />
+          </label>
+          <label>
+            <span>Places (optionnel)</span>
+            <input type="number" min="0" [(ngModel)]="nonFixedForm.placesTotal" />
+          </label>
+        </div>
+      }
+      <div class="form-actions">
+        @if (editingId != null || editingNonFixedId != null) {
+          <button type="button" class="btn btn--ghost" [disabled]="saving" (click)="startCreate()">
+            Annuler
+          </button>
+        }
+        <button type="button" class="btn btn--primary" [disabled]="saving" (click)="submit()">
+          {{
+            saving
+              ? 'Enregistrement…'
+              : ((editingId != null || editingNonFixedId != null) ? 'Enregistrer' : 'Créer')
+          }}
+        </button>
+      </div>
+    </article>
+  }
+</section>

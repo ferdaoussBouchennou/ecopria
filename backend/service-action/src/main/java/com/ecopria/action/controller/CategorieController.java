@@ -1,8 +1,13 @@
 package com.ecopria.action.controller;
 
 import com.ecopria.action.dto.CategorieDTO;
+import com.ecopria.action.dto.CategoryEnsureRequest;
+import com.ecopria.action.model.Categorie;
+import com.ecopria.action.service.ActionService;
 import com.ecopria.action.repository.CategorieRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -14,6 +19,7 @@ import java.util.stream.Collectors;
 public class CategorieController {
 
     private final CategorieRepository categorieRepository;
+    private final ActionService actionService;
 
     @GetMapping
     public ResponseEntity<List<CategorieDTO>> getAll() {
@@ -32,7 +38,17 @@ public class CategorieController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    private CategorieDTO mapToDTO(com.ecopria.action.model.Categorie c) {
+    @PostMapping("/admin/ensure")
+    public ResponseEntity<CategorieDTO> ensureForAdmin(@Valid @RequestBody CategoryEnsureRequest request) {
+        Categorie category = actionService.ensureCategoryExists(
+                request.getNom(),
+                request.getDescription(),
+                request.getImageUrl()
+        );
+        return ResponseEntity.ok(mapToDTO(category));
+    }
+
+    private CategorieDTO mapToDTO(Categorie c) {
         return CategorieDTO.builder()
                 .id(c.getId())
                 .name(c.getName())

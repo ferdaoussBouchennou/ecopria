@@ -1,4 +1,4 @@
-export type RegisterRole = 'USER' | 'ASSOCIATION' | 'PARTNER';
+export type RegisterRole = 'USER' | 'ASSOCIATION' | 'PARTNER' | 'ADMIN';
 
 export type ProfileType = 'citoyen' | 'association' | 'partenaire';
 

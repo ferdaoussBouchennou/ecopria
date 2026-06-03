@@ -32,5 +32,5 @@ build/
 ### VS Code ###
 .vscode/
 
-# Configuration locale avec mot de passe
-src/main/resources/application.yml
+# Copie locale personnalisée (secrets) — le application.yml par défaut (profil local) est versionné
+src/main/resources/application-local-override.yml

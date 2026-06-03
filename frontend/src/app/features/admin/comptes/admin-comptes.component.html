@@ -1,0 +1,129 @@
+<section class="admin-page">
+  <p class="admin-eyebrow"><span class="eyebrow-line"></span> Approbations</p>
+  <h1 class="admin-page__title">Validation des comptes.</h1>
+  <p class="admin-desc">
+    File d'attente des associations et partenaires. Verifiez les pieces d'identite, validez ou rejetez.
+  </p>
+
+  @if (actionMessage) {
+    <p class="admin-muted">{{ actionMessage }}</p>
+  }
+
+  @if (loading) {
+    <p class="admin-muted">Chargement…</p>
+  } @else if (error) {
+    <div class="admin-alert admin-alert--error">{{ error }}</div>
+  } @else {
+    <div class="chips">
+      <button
+        type="button"
+        class="chip"
+        [class.chip--active]="filter === 'pending'"
+        (click)="setFilter('pending')"
+      >
+        En attente ({{ pendingCount }})
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [class.chip--active]="filter === 'approved'"
+        (click)="setFilter('approved')"
+      >
+        Valide ({{ approvedCount }})
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [class.chip--active]="filter === 'rejected'"
+        (click)="setFilter('rejected')"
+      >
+        Rejete ({{ rejectedCount }})
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [class.chip--active]="filter === 'all'"
+        (click)="setFilter('all')"
+      >
+        Tous ({{ totalCount }})
+      </button>
+    </div>
+
+    @if (items.length === 0) {
+      <p class="admin-muted">Aucun compte pour ce filtre.</p>
+    } @else {
+      <article class="table-card">
+        <header class="table-head">
+          <span>Nom</span>
+          <span>Type</span>
+          <span>Soumis</span>
+          <span>Statut</span>
+        </header>
+        @for (item of items; track item.userId) {
+          <button
+            type="button"
+            class="table-row"
+            [class.table-row--selected]="selectedItem?.userId === item.userId"
+            (click)="select(item)"
+          >
+            <span>{{ item.name }}</span>
+            <span>{{ item.role === 'ASSOCIATION' ? 'Association' : 'Partenaire' }}</span>
+            <span>{{ item.createdAt ? (item.createdAt | date:'MM-dd') : '—' }}</span>
+            <span class="status-pill">{{ item.status }}</span>
+          </button>
+        }
+      </article>
+    }
+
+    @if (selectedItem) {
+      <article class="detail-card">
+        <div class="detail-top">
+          <div>
+            <p class="type-label">{{ selectedItem.role === 'ASSOCIATION' ? 'Association' : 'Partenaire' }}</p>
+            <h2>{{ selectedItem.name }}</h2>
+            <p class="email">{{ selectedItem.email || 'Aucun email' }}</p>
+          </div>
+          <span class="status-pill">{{ selectedItem.status }}</span>
+        </div>
+
+        @if (selectedItem.documentPath) {
+          <div class="doc-box">
+            <span>Document de verification</span>
+            <a [href]="selectedItem.documentPath" target="_blank" rel="noopener">Ouvrir</a>
+          </div>
+        }
+
+        @if (isPending(selectedItem)) {
+          <textarea
+            [(ngModel)]="rejectReason"
+            rows="3"
+            placeholder="Motif de rejet (obligatoire si rejet)..."
+          ></textarea>
+
+          <div class="actions">
+            <button type="button" class="btn btn--approve" [disabled]="actionLoading" (click)="approveSelected()">
+              {{ actionLoading ? 'Traitement…' : 'Approuver' }}
+            </button>
+            <button type="button" class="btn btn--reject" [disabled]="actionLoading" (click)="rejectSelected()">
+              Rejeter
+            </button>
+          </div>
+        }
+      </article>
+    }
+
+    <article class="audit-card">
+      <h2>Historique d'audit</h2>
+      @if (auditLogs.length === 0) {
+        <p class="admin-muted">Aucun log pour le moment.</p>
+      } @else {
+        @for (log of auditLogs; track log.id) {
+          <div class="audit-row">
+            <span><strong>{{ log.action }}</strong> — {{ log.cibleType }} #{{ log.cibleId }}</span>
+            <span>{{ log.createdAt | date:'yyyy-MM-dd HH:mm' }}</span>
+          </div>
+        }
+      }
+    </article>
+  }
+</section>
