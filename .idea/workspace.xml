@@ -6,6 +6,17 @@
   <component name="ChangeListManager">
     <list default="true" id="c693b60b-5826-43ee-948c-0a9d2aca6a30" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GUIDE_TEST_INTERACTIF.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/RESUME_FINAL_DESIGN.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/RESUME_FINAL_PRET_TEST.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/service-recompense/src/main/java/com/ecopria/recompense/controller/RecompenseController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-recompense/src/main/java/com/ecopria/recompense/controller/RecompenseController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/service-recompense/src/main/java/com/ecopria/recompense/service/RecompenseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-recompense/src/main/java/com/ecopria/recompense/service/RecompenseService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/app.routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/app.routes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/profil-partenaire-public/profil-partenaire-public.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/profil-partenaire-public/profil-partenaire-public.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/profil-partenaire-public/profil-partenaire-public.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/profil-partenaire-public/profil-partenaire-public.component.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/profil-partenaire-public/profil-partenaire-public.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/profil-partenaire-public/profil-partenaire-public.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/recompense.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/recompense.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/shared/components/page-shell/page-shell.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/shared/components/page-shell/page-shell.component.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,7 +27,7 @@
     <execution />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="601" />
+    <option name="cachedIndexableFilesCount" value="679" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
@@ -59,7 +70,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "git-widget-placeholder": "all-front",
+    "git-widget-placeholder": "frontend-v2",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/user/Desktop/ecopria",
     "node.js.detected.package.eslint": "true",
@@ -67,6 +78,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -109,6 +121,7 @@
       <workItem from="1780262186638" duration="1607000" />
       <workItem from="1780318635846" duration="494000" />
       <workItem from="1780400490715" duration="5360000" />
+      <workItem from="1780499122886" duration="9975000" />
     </task>
     <servers />
   </component>

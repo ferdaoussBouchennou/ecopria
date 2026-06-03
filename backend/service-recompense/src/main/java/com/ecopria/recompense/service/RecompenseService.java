@@ -230,6 +230,21 @@ public class RecompenseService {
                 .collect(Collectors.toList());
     }
 
+    // ─── OFFRES D'UN PARTENAIRE ─────────────────────────────
+
+    @Transactional(readOnly = true)
+    public List<RecompenseDTO> getOffresPartenaire(Long userId) {
+        Partenaire partenaire = getPartenaireByUserId(userId);
+        
+        // Récupérer uniquement les offres actives de ce partenaire
+        List<Recompense> recompenses = recompenseRepository
+                .findByPartenaireIdAndIsActiveTrue(partenaire.getId());
+        
+        return recompenses.stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
     // ─── VISIBILITÉ & AVIS ───────────────────────────────────
 
     @Transactional(readOnly = true)

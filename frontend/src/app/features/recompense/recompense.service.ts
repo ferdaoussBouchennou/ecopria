@@ -60,6 +60,12 @@ export class RecompenseService {
       .pipe(catchError(this.handleError));
   }
 
+  getOffresByPartenaire(partenaireUserId: number): Observable<RecompenseItemDto[]> {
+    return this.http
+      .get<RecompenseItemDto[]>(`${API}/public/partenaire/${partenaireUserId}/offres`)
+      .pipe(catchError(this.handleError));
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     let message = 'Une erreur inattendue est survenue.';
     if (error.status === 0) {
