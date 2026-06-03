@@ -1,0 +1,86 @@
+<section class="space-page scanner-page">
+  <div class="hero-card hero-card--scanner">
+    <div class="hero-copy">
+      <span class="eyebrow-pill">Jour J</span>
+      <h2>Scannez le QR code affiché par l'organisateur</h2>
+      <p>
+        Présentez-vous sur le lieu de l'action et scannez le QR code pour valider votre présence
+        et recevoir vos points.
+      </p>
+    </div>
+  </div>
+
+  <div class="today-banner" *ngIf="todayActions.length">
+    <p class="today-banner__label">Actions prévues aujourd'hui</p>
+    <ul>
+      <li *ngFor="let action of todayActions" [class.is-highlight]="action.actionId === highlightedActionId">
+        <strong>{{ action.title }}</strong>
+        <span>{{ action.city }} · {{ action.dateLabel }}</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="mode-tabs">
+    <button type="button" [class.active]="mode === 'scan'" (click)="setMode('scan')">Scanner</button>
+    <button type="button" [class.active]="mode === 'pin'" (click)="setMode('pin')">Code PIN</button>
+    <button type="button" [class.active]="mode === 'manual'" (click)="setMode('manual')">QR manuel</button>
+  </div>
+
+  <div class="panel-card scanner-panel">
+    <ng-container *ngIf="mode === 'scan'">
+      <div class="camera-wrap" *ngIf="scannerEnabled && !loading">
+        <zxing-scanner
+          [formats]="allowedFormats"
+          [tryHarder]="true"
+          (scanSuccess)="onScanSuccess($event)"
+          (scanError)="onScanError($event)"
+        ></zxing-scanner>
+      </div>
+      <p class="camera-hint" *ngIf="!cameraError">
+        Placez le QR code de l'action dans le cadre de la caméra.
+      </p>
+      <p class="camera-error" *ngIf="cameraError">{{ cameraError }}</p>
+      <p class="loading-hint" *ngIf="loading">Validation en cours…</p>
+      <p class="loading-hint" *ngIf="!scannerEnabled && !loading">Scanner en pause — prêt dans quelques secondes.</p>
+    </ng-container>
+
+    <ng-container *ngIf="mode === 'pin'">
+      <label for="pinCode">Code PIN affiché par l'association</label>
+      <input
+        id="pinCode"
+        type="text"
+        inputmode="numeric"
+        maxlength="6"
+        class="pin-input"
+        [(ngModel)]="pinCode"
+        placeholder="Ex : 482910"
+      />
+      <button type="button" class="btn-primary" (click)="validatePin()" [disabled]="loading || pinCode.trim().length < 4">
+        {{ loading ? 'Validation…' : 'Valider avec le PIN' }}
+      </button>
+    </ng-container>
+
+    <ng-container *ngIf="mode === 'manual'">
+      <label for="manualQr">Contenu du QR code</label>
+      <input
+        id="manualQr"
+        type="text"
+        class="text-input"
+        [(ngModel)]="manualQr"
+        placeholder="Collez ou saisissez le code QR"
+      />
+      <button type="button" class="btn-primary" (click)="validateManualQr()" [disabled]="loading || !manualQr.trim()">
+        {{ loading ? 'Validation…' : 'Valider le QR' }}
+      </button>
+    </ng-container>
+
+    <div class="result-message" *ngIf="message" [class.error]="isError" [class.success]="!isError">
+      <span class="result-icon">{{ isError ? '✕' : '✓' }}</span>
+      <p>{{ message }}</p>
+    </div>
+  </div>
+
+  <p class="footer-link">
+    <a routerLink="/espace/actions">← Retour à mes actions</a>
+  </p>
+</section>

@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { PageShellComponent } from './shared/components/page-shell/page-shell.component';
 import { InscriptionFormComponent } from './features/inscription/components/inscription-form/inscription-form.component';
-import { MesInscriptionsComponent } from './features/inscription/components/mes-inscriptions/mes-inscriptions.component';
 import { ListeActionsComponent } from './features/action/liste-actions/liste-actions.component';
 import { DetailActionComponent } from './features/action/detail-action/detail-action.component';
 import { CarteActionsComponent } from './features/action/carte-actions/carte-actions.component';
@@ -16,6 +15,7 @@ import { DashboardComponent as AssociationDashboardComponent } from './features/
 import { CalendrierComponent } from './features/association/calendrier/calendrier.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { LoginComponent } from './features/auth/login/login.component';
+import { CompteEnAttenteComponent } from './features/auth/compte-en-attente/compte-en-attente.component';
 import { VerifyEmailComponent } from './features/auth/verify-email/verify-email.component';
 import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password.component';
 import { VerifyResetCodeComponent } from './features/auth/verify-reset-code/verify-reset-code.component';
@@ -41,6 +41,7 @@ import { ActionsComponent } from './features/utilisateur/actions/actions.compone
 import { LeaderboardComponent } from './features/utilisateur/leaderboard/leaderboard.component';
 import { RecompensesComponent } from './features/utilisateur/recompenses/recompenses.component';
 import { SettingsComponent } from './features/utilisateur/settings/settings.component';
+import { ScannerPresenceComponent } from './features/utilisateur/scanner-presence/scanner-presence.component';
 import { adminGuard } from './core/guards/admin.guard';
 import { authGuard, associationGuard, citizenGuard, partenaireGuard } from './core/guards/auth.guard';
 import { AdminShellComponent } from './features/admin/admin-shell/admin-shell.component';
@@ -65,14 +66,19 @@ export const routes: Routes = [
       { path: 'carte', component: CarteActionsComponent },
       { path: 'action/:id', component: DetailActionComponent },
       { path: 'inscription/:actionId', component: InscriptionFormComponent, canActivate: [authGuard] },
-      { path: 'mes-inscriptions', component: MesInscriptionsComponent, canActivate: [authGuard] },
+      { path: 'mes-inscriptions', redirectTo: '/espace/actions', pathMatch: 'full' },
       { path: 'creer-compte', component: RegisterComponent },
       { path: 'verifier-email', component: VerifyEmailComponent },
       { path: 'connexion', component: LoginComponent },
+      { path: 'compte-en-attente', component: CompteEnAttenteComponent },
       { path: 'mot-de-passe-oublie', component: ForgotPasswordComponent },
       { path: 'reinitialiser-mot-de-passe/code', component: VerifyResetCodeComponent },
       { path: 'reinitialiser-mot-de-passe/nouveau', component: ResetPasswordComponent },
-      { path: 'valider-presence/:actionId', loadComponent: () => import('./features/inscription/components/scan-participant/scan-participant.component').then(m => m.ScanParticipantComponent) },
+      {
+        path: 'valider-presence/:actionId',
+        redirectTo: '/espace/scanner-presence/:actionId',
+        pathMatch: 'full',
+      },
       { path: 'partenaires', component: ListePartenairesComponent },
       { path: 'partenaires/:userId', component: ProfilPartenairePublicComponent },
     ],
@@ -128,6 +134,8 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'actions', component: ActionsComponent },
+      { path: 'scanner-presence/:actionId', component: ScannerPresenceComponent },
+      { path: 'scanner-presence', component: ScannerPresenceComponent },
       { path: 'recompenses', component: RecompensesComponent },
       { path: 'classement', component: LeaderboardComponent },
       { path: 'parametres', component: SettingsComponent },

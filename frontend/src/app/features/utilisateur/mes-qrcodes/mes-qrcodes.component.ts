@@ -5,6 +5,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { InscriptionService } from '../../inscription/inscription.service';
 import { PresenceService } from '../../presence/presence.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { InscriptionResponse } from '../../../core/models/inscription.model';
 import { ActionDTO } from '../../inscription/models/inscription.model';
 
@@ -29,12 +30,15 @@ export class MesQrcodesComponent implements OnInit {
   loading = true;
   erreurMessage = '';
 
-  private readonly userId = 1;
-
   constructor(
     private inscriptionService: InscriptionService,
-    private presenceService: PresenceService
+    private presenceService: PresenceService,
+    private auth: AuthService
   ) {}
+
+  private get userId(): number {
+    return this.auth.requireUserId();
+  }
 
   ngOnInit(): void {
     this.charger();

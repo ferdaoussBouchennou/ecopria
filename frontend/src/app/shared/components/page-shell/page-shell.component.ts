@@ -29,4 +29,11 @@ export class PageShellComponent {
     }
     return ['/connexion'];
   }
+
+  get recompensesQueryParams(): Record<string, string> {
+    if (this.auth.getRole() === 'USER') {
+      return {};
+    }
+    return { returnUrl: '/espace/recompenses' };
+  }
 }

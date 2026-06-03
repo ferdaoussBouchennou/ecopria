@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { forkJoin, map, of, switchMap } from 'rxjs';
 import { ActionRowViewModel, ActionSummary } from '../../action/models/action.model';
 import { ActionService } from '../../action/services/action.service';
@@ -12,7 +13,7 @@ import { MonInscriptionDto } from '../../inscription/models/inscription.model';
 @Component({
   selector: 'app-actions',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './actions.component.html',
   styleUrl: '../styles/user-space.scss'
 })
@@ -173,6 +174,16 @@ export class ActionsComponent implements OnInit {
       default:
         return '';
     }
+  }
+
+  isActionToday(dateStart: string): boolean {
+    const d = new Date(dateStart);
+    const now = new Date();
+    return (
+      d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate()
+    );
   }
 
   formatDateRange(start: string, end: string): string {

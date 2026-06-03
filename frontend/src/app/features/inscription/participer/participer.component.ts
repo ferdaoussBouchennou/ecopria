@@ -8,6 +8,7 @@ import {
   ReactiveFormsModule
 } from '@angular/forms';
 import { InscriptionService } from '../inscription.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { PresenceService } from '../../presence/presence.service';
 import { ActionDTO } from '../models/inscription.model';
 import { InscriptionResponse } from '../../../core/models/inscription.model';
@@ -37,14 +38,17 @@ export class ParticiperComponent implements OnInit {
   statut: PageStatut = 'loading_action';
   form!: FormGroup;
 
-  private readonly userId = 1;
-
   constructor(
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private inscriptionService: InscriptionService,
-    private presenceService: PresenceService
+    private presenceService: PresenceService,
+    private auth: AuthService
   ) {}
+
+  private get userId(): number {
+    return this.auth.requireUserId();
+  }
 
   ngOnInit(): void {
     const idParam =

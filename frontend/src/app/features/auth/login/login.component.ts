@@ -71,8 +71,9 @@ export class LoginComponent implements OnInit {
           return;
         }
         if (msg.includes('pending admin verification') || msg.includes('en attente')) {
-          this.error =
-            'Votre dossier est en cours de validation par l’équipe Ecopria. Vous recevrez un e-mail dès l’activation.';
+          void this.router.navigate(['/compte-en-attente'], {
+            queryParams: { email: this.email.trim().toLowerCase() },
+          });
           return;
         }
         this.error = msg;

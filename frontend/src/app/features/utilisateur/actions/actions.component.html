@@ -62,7 +62,17 @@
           <p>{{ action.categoryName }} · {{ formatDateRange(action.dateStart, action.dateEnd) }}</p>
           <div class="action-row__footer">
             <span>{{ action.associationName || 'Association locale' }}</span>
-            <strong>+{{ action.points }} pts</strong>
+            <div class="action-row__actions">
+              <a
+                *ngIf="action.statut === 'INSCRIT' && isActionToday(action.dateStart)"
+                [routerLink]="['/espace/scanner-presence']"
+                [queryParams]="{ actionId: action.actionId }"
+                class="qr-link"
+              >
+                Scanner le QR
+              </a>
+              <strong>+{{ action.points }} pts</strong>
+            </div>
           </div>
         </div>
       </article>

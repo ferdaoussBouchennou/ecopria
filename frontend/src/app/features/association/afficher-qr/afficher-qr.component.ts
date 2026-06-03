@@ -165,7 +165,7 @@ export class AfficherQRComponent implements OnInit {
   }
 
   retour(): void {
-    this.router.navigate(['/mes-actions']);
+    void this.router.navigate(['/association/mes-actions']);
   }
 
   formatDate(dateStr: string): string {

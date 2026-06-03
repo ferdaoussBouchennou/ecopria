@@ -82,8 +82,7 @@ export class VerifyEmailComponent implements OnInit {
         sessionStorage.removeItem(PENDING_PROFILE_KEY);
         this.submitting = false;
         if (pending?.profileType === 'association' || pending?.profileType === 'partenaire') {
-          this.info =
-            'E-mail confirmé. Votre dossier sera validé par l’équipe Ecopria sous peu.';
+          void this.router.navigate(['/compte-en-attente'], { queryParams: { email } });
           return;
         }
         void this.router.navigate(['/connexion']);

@@ -1,0 +1,21 @@
+<section class="pending-page">
+  <div class="pending-card">
+    <span class="pending-icon" aria-hidden="true">⏳</span>
+    <h1>Compte en cours de validation</h1>
+    <p>
+      Votre e-mail a bien été confirmé
+      @if (email) {
+        pour <strong>{{ email }}</strong>.
+      }
+      Votre dossier est examiné par l’équipe Ecopria.
+    </p>
+    <p class="pending-note">
+      Vous recevrez un e-mail dès que votre espace association ou partenaire sera activé.
+      Vous pourrez alors vous connecter normalement.
+    </p>
+    <div class="pending-actions">
+      <a routerLink="/" class="btn btn--ghost">Retour à l’accueil</a>
+      <a routerLink="/connexion" class="btn btn--primary">Se connecter</a>
+    </div>
+  </div>
+</section>

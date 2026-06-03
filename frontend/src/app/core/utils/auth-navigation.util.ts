@@ -28,11 +28,14 @@ export function defaultHomeForRole(role: RegisterRole | string | null | undefine
 
 const USER_PUBLIC_PREFIXES = [
   '/inscription/',
+  '/espace/scanner-presence',
+  '/espace/actions',
   '/mes-inscriptions',
   '/action/',
   '/actions',
   '/carte',
   '/accueil',
+  '/compte-en-attente',
   '/valider-presence/',
   '/partenaires/',
 ];

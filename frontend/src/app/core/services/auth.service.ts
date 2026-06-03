@@ -228,7 +228,26 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!this.getAccessToken();
+    const token = this.getAccessToken();
+    if (!token) {
+      return false;
+    }
+    if (!this.isAccessTokenExpired(token)) {
+      return true;
+    }
+    return !!localStorage.getItem(REFRESH_KEY);
+  }
+
+  private isAccessTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1])) as { exp?: number };
+      if (!payload.exp) {
+        return false;
+      }
+      return Date.now() >= payload.exp * 1000;
+    } catch {
+      return true;
+    }
   }
 
   profileTypeToRole(type: ProfileType): RegisterRole {
