@@ -6,6 +6,11 @@ export interface InscriptionRequest {
   conditions?: string;
   imageRights?: boolean;
   newsletter?: boolean;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  city?: string;
 }
 
 export interface InscriptionResponse {

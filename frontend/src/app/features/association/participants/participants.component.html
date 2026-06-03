@@ -26,25 +26,35 @@
 
   <div class="stats-cards">
     <div class="stat-card">
-      <div class="stat-label">Total</div>
+      <div class="stat-label">Inscrits actifs</div>
       <div class="stat-value">{{ stats.total }}</div>
     </div>
     <div class="stat-card stat-confirme">
-      <div class="stat-label">Confirmés</div>
+      <div class="stat-label">Inscrits confirmés</div>
       <div class="stat-value">{{ stats.confirmes }}</div>
     </div>
     <div class="stat-card stat-attente">
-      <div class="stat-label">En attente</div>
+      <div class="stat-label">Liste d'attente</div>
       <div class="stat-value">{{ stats.enAttente }}</div>
     </div>
-    <div class="stat-card stat-annule">
-      <div class="stat-label">Annulés</div>
-      <div class="stat-value">{{ stats.annules }}</div>
+    <div class="stat-card">
+      <div class="stat-label">Présences validées</div>
+      <div class="stat-value">{{ stats.presencesValidees }}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Points</div>
-      <div class="stat-value">+{{ getTotalPoints() }}</div>
+      <div class="stat-label">Points crédités</div>
+      <div class="stat-value">+{{ stats.pointsAttribues }}</div>
     </div>
+    <div class="stat-card stat-annule" *ngIf="stats.annules > 0">
+      <div class="stat-label">Désinscrits</div>
+      <div class="stat-value">{{ stats.annules }}</div>
+    </div>
+  </div>
+
+  <div class="status-legend">
+    <p><strong>Inscription confirmée</strong> : place réservée pour l'action.</p>
+    <p><strong>Liste d'attente</strong> : pas de place disponible ; passage automatique en confirmé si quelqu'un se désinscrit.</p>
+    <p><strong>Points crédités</strong> : uniquement après validation de présence (scan QR ou bouton Valider).</p>
   </div>
 
   <div class="filters-section">
@@ -77,14 +87,14 @@
         [class.active]="statutFilter === 'EN_ATTENTE'"
         (click)="onStatutFilterChange('EN_ATTENTE')"
       >
-        En attente <span class="count">{{ stats.enAttente }}</span>
+        Liste d'attente <span class="count">{{ stats.enAttente }}</span>
       </button>
       <button 
         class="filter-btn"
         [class.active]="statutFilter === 'ANNULEE'"
         (click)="onStatutFilterChange('ANNULEE')"
       >
-        Annulés <span class="count">{{ stats.annules }}</span>
+        Désinscrits <span class="count">{{ stats.annules }}</span>
       </button>
     </div>
   </div>
@@ -123,11 +133,12 @@
             </span>
           </th>
           <th class="sortable" (click)="onSort('statut')">
-            Statut
+            Inscription
             <span class="sort-indicator" *ngIf="sortColumn === 'statut'">
               {{ sortDirection === 'asc' ? '↑' : '↓' }}
             </span>
           </th>
+          <th>Présence</th>
           <th>Points</th>
           <th>Inscription</th>
           <th>Action</th>
@@ -155,11 +166,16 @@
             <td>{{ participant.city }}</td>
             <td>{{ formatDate(participant.dateInscription) }}</td>
             <td>
-              <span class="badge" [ngClass]="getStatutClass(participant.statut)">
+              <span class="badge" [ngClass]="getStatutClass(participant.statut)" [title]="getStatutHint(participant.statut)">
                 {{ getStatutLabel(participant.statut) }}
               </span>
             </td>
-            <td class="points-cell">{{ participant.pointsAction }}</td>
+            <td>
+              <span class="badge" [class.badge-presence--ok]="participant.presenceValidee">
+                {{ getPresenceLabel(participant) }}
+              </span>
+            </td>
+            <td class="points-cell">{{ getPointsLabel(participant) }}</td>
             <td>
               <button
                 type="button"
@@ -172,16 +188,17 @@
             </td>
             <td>
               <button 
-                *ngIf="participant.statut === 'CONFIRMEE' || participant.statut === 'EN_ATTENTE'"
+                *ngIf="canValiderPresence(participant)"
                 class="btn-valider" 
                 (click)="validerPresence(participant)"
                 [disabled]="validerLoading[participant.userId]">
-                {{ validerLoading[participant.userId] ? '...' : 'Valider' }}
+                {{ validerLoading[participant.userId] ? '...' : 'Valider présence' }}
               </button>
+              <span *ngIf="participant.presenceValidee" class="presence-done">Validé</span>
             </td>
           </tr>
           <tr class="detail-row" *ngIf="expandedInscriptionId === participant.inscriptionId">
-            <td colspan="10">
+            <td colspan="11">
               <div class="inscription-details">
                 <div class="detail-block">
                   <h4>Pourquoi participez-vous à cette action ?</h4>

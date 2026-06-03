@@ -114,19 +114,31 @@ export class MesActionsComponent implements OnInit {
   }
 
   annulerAction(actionId: number): void {
-    const raison = prompt('Raison de l\'annulation (optionnel) :');
-    if (raison !== null) {
-      this.associationService.annulerAction(actionId, raison).subscribe({
-        next: () => {
-          alert('Action annulée avec succès');
-          this.loadActions();
-        },
-        error: (err) => {
-          alert('Erreur lors de l\'annulation');
-          console.error(err);
-        }
-      });
+    const raison = prompt(
+      'Motif de l\'annulation (obligatoire)\n\nUn e-mail sera envoyé à tous les inscrits avec ce motif :'
+    );
+    if (raison === null) {
+      return;
     }
+    const trimmed = raison.trim();
+    if (!trimmed) {
+      alert('Le motif d\'annulation est obligatoire.');
+      return;
+    }
+    if (!confirm('Confirmer l\'annulation ? Tous les inscrits seront notifiés par e-mail.')) {
+      return;
+    }
+    this.associationService.annulerAction(actionId, trimmed).subscribe({
+      next: () => {
+        alert('Action annulée. Les participants ont été notifiés par e-mail.');
+        this.loadActions();
+      },
+      error: (err) => {
+        const msg = err?.error?.message || 'Erreur lors de l\'annulation';
+        alert(msg);
+        console.error(err);
+      }
+    });
   }
 
   formatDate(dateStr: string): string {

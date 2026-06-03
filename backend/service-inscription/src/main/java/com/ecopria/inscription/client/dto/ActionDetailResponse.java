@@ -12,6 +12,7 @@ public class ActionDetailResponse {
     private String city;
     private String address;
     private Long associationId;
+    private Long associationUserId;
     private LocalDateTime dateStart;
 
     public Long getId() { return id; }
@@ -32,6 +33,8 @@ public class ActionDetailResponse {
     public void setAddress(String address) { this.address = address; }
     public Long getAssociationId() { return associationId; }
     public void setAssociationId(Long associationId) { this.associationId = associationId; }
+    public Long getAssociationUserId() { return associationUserId; }
+    public void setAssociationUserId(Long associationUserId) { this.associationUserId = associationUserId; }
     public LocalDateTime getDateStart() { return dateStart; }
     public void setDateStart(LocalDateTime dateStart) { this.dateStart = dateStart; }
 }

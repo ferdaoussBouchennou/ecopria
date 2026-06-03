@@ -80,6 +80,10 @@ export class AssociationShellComponent implements OnInit {
 
   toggleNotifications(): void {
     this.showNotifications = !this.showNotifications;
+    if (this.showNotifications) {
+      const authId = this.associationService.getAssociationAuthId();
+      this.loadNotifications(authId);
+    }
   }
 
   markAllAsRead(): void {

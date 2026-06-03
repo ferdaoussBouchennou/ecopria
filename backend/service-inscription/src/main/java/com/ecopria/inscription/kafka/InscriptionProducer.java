@@ -36,6 +36,7 @@ public class InscriptionProducer {
                 inscription.getActionId(),
                 dateStart,
                 action.getAssociationId(),
+                action.getAssociationUserId(),
                 action.getTitre(),
                 action.getCity(),
                 action.getAddress(),

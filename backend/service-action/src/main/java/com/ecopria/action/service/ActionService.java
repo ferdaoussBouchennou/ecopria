@@ -220,17 +220,24 @@ public class ActionService {
             throw new RuntimeException("Cette action ne peut pas être annulée");
         }
 
+        if (reason == null || reason.isBlank()) {
+            throw new IllegalArgumentException("Le motif d'annulation est obligatoire");
+        }
+
         action.setStatus(ActionStatus.CANCELLED);
         actionRepository.save(action);
 
-        // publier sur Kafka → service-notification
         actionProducer.publishActionCancelled(ActionCancelledEvent.builder()
                 .actionId(actionId)
                 .title(action.getTitle())
-                .cancellationReason(reason)
+                .cancellationReason(reason.trim())
+                .city(action.getCity())
+                .address(action.getAddress())
+                .dateStart(action.getDateStart())
+                .associationName(action.getAssociation() != null ? action.getAssociation().getName() : null)
                 .build());
 
-        log.info("Action annulée id: {}", actionId);
+        log.info("Action annulée id: {} — motif: {}", actionId, reason.trim());
     }
 
     // ─── DASHBOARD ASSOCIATION ────────────────────────────────
@@ -412,6 +419,10 @@ public class ActionService {
                         .actionId(action.getId())
                         .title(action.getTitle())
                         .cancellationReason("Annulée par l'administrateur")
+                        .city(action.getCity())
+                        .address(action.getAddress())
+                        .dateStart(action.getDateStart())
+                        .associationName(action.getAssociation() != null ? action.getAssociation().getName() : null)
                         .build());
             }
         });
@@ -635,6 +646,7 @@ public class ActionService {
                         .map(ActionPhoto::getUrl)
                         .collect(Collectors.toList()))
                 .associationId(action.getAssociation() != null ? action.getAssociation().getId() : null)
+                .associationUserId(action.getAssociation() != null ? action.getAssociation().getUserId() : null)
                 .associationName(action.getAssociation() != null ? action.getAssociation().getName() : null)
                 .associationDescription(action.getAssociation() != null ? action.getAssociation().getDescription() : null)
                 .associationLogoUrl(action.getAssociation() != null ? action.getAssociation().getLogoUrl() : null)

@@ -18,8 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 public class PresenceService {
@@ -130,6 +132,12 @@ public class PresenceService {
      */
     public boolean estPresent(Long userId, Long actionId) {
         return presenceRepository.existsByUserIdAndActionId(userId, actionId);
+    }
+
+    public List<PresenceResponseDTO> getPresencesParAction(Long actionId) {
+        return presenceRepository.findByActionId(actionId).stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
     private void enregistrerTentativeEchouee(Long userId, Long actionId, String raison) {

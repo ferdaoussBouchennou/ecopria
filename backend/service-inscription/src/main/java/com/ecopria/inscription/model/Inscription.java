@@ -40,6 +40,21 @@ public class Inscription {
     @Column(nullable = false)
     private Boolean newsletter = false;
 
+    @Column(length = 100)
+    private String participantFirstName;
+
+    @Column(length = 100)
+    private String participantLastName;
+
+    @Column(length = 255)
+    private String participantEmail;
+
+    @Column(length = 30)
+    private String participantPhone;
+
+    @Column(length = 100)
+    private String participantCity;
+
     @Column(nullable = false)
     private Boolean penalise = false;
 
@@ -65,6 +80,16 @@ public class Inscription {
     public void setImageRights(Boolean imageRights) { this.imageRights = imageRights; }
     public Boolean getNewsletter() { return newsletter; }
     public void setNewsletter(Boolean newsletter) { this.newsletter = newsletter; }
+    public String getParticipantFirstName() { return participantFirstName; }
+    public void setParticipantFirstName(String participantFirstName) { this.participantFirstName = participantFirstName; }
+    public String getParticipantLastName() { return participantLastName; }
+    public void setParticipantLastName(String participantLastName) { this.participantLastName = participantLastName; }
+    public String getParticipantEmail() { return participantEmail; }
+    public void setParticipantEmail(String participantEmail) { this.participantEmail = participantEmail; }
+    public String getParticipantPhone() { return participantPhone; }
+    public void setParticipantPhone(String participantPhone) { this.participantPhone = participantPhone; }
+    public String getParticipantCity() { return participantCity; }
+    public void setParticipantCity(String participantCity) { this.participantCity = participantCity; }
     public Boolean getPenalise() { return penalise; }
     public void setPenalise(Boolean penalise) { this.penalise = penalise; }
 }

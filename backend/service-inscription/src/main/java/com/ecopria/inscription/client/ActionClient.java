@@ -48,6 +48,7 @@ public class ActionClient {
         dto.setCity(detail.getCity());
         dto.setAddress(detail.getAddress());
         dto.setAssociationId(detail.getAssociationId());
+        dto.setAssociationUserId(detail.getAssociationUserId());
         dto.setDateStart(detail.getDateStart() != null ? detail.getDateStart().toString() : null);
         return dto;
     }

@@ -11,6 +11,7 @@ public class ActionDTO {
     private String address;
     private Long associationId;
     private String dateStart;
+    private Long associationUserId;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -32,4 +33,6 @@ public class ActionDTO {
     public void setAssociationId(Long associationId) { this.associationId = associationId; }
     public String getDateStart() { return dateStart; }
     public void setDateStart(String dateStart) { this.dateStart = dateStart; }
+    public Long getAssociationUserId() { return associationUserId; }
+    public void setAssociationUserId(Long associationUserId) { this.associationUserId = associationUserId; }
 }

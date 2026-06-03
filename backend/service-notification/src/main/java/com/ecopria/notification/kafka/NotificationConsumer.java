@@ -138,13 +138,17 @@ public class NotificationConsumer {
             return;
         }
         String dateAction = formatEventDate(readStringAny(event, "", "dateAction", "date_action"));
-        String actionTitle = readStringAny(event, "l'action", "actionTitle", "title", "action_title");
+        String actionTitle = readStringAny(event, "", "actionTitle", "title", "action_title", "titre");
         String city = readStringAny(event, "", "city", "ville");
         String address = readStringAny(event, "", "address", "adresse");
         String firstName = readStringAny(event, "", "firstName", "first_name");
         Integer points = readIntAny(event, "pointsAction", "points_action");
         String statut = readStringAny(event, "CONFIRMEE", "statut");
-        Long associationId = firstLongId(event, "inscription.confirmee", "associationId", "association_id");
+        Long associationUserId = firstLongId(event, "inscription.confirmee",
+                "associationUserId", "association_user_id", "associationAuthId");
+        if (actionTitle.isBlank()) {
+            actionTitle = "Action EcoPria";
+        }
 
         String greeting = firstName.isBlank() ? "Bonjour," : "Bonjour " + firstName + ",";
         String locationLine = buildLocationLine(address, city);
@@ -198,10 +202,13 @@ public class NotificationConsumer {
                 mailBody,
                 emailFromEvent(event));
 
-        if (associationId != null && !enAttente) {
-            dispatcher.notifyUser(associationId,
+        if (associationUserId != null) {
+            String participantLabel = firstName.isBlank()
+                    ? "Un nouveau participant"
+                    : firstName + " s'est inscrit";
+            dispatcher.notifyUser(associationUserId,
                     "Nouvel inscrit",
-                    "Un nouveau participant s'est inscrit à votre action : " + actionTitle,
+                    participantLabel + " à votre action : " + actionTitle,
                     Notification.NotificationType.INFO,
                     null,
                     null,
@@ -229,6 +236,37 @@ public class NotificationConsumer {
         } catch (DateTimeParseException ignored) {
             return raw;
         }
+    }
+
+    private String formatEventDateFromEvent(Map<String, Object> event) {
+        Object raw = event.get("dateStart");
+        if (raw == null) {
+            raw = event.get("date_start");
+        }
+        if (raw == null) {
+            return formatEventDate(readStringAny(event, "", "dateAction", "date_action"));
+        }
+        if (raw instanceof List<?> list && list.size() >= 3) {
+            try {
+                int year = toInt(list.get(0));
+                int month = toInt(list.get(1));
+                int day = toInt(list.get(2));
+                int hour = list.size() > 3 ? toInt(list.get(3)) : 0;
+                int minute = list.size() > 4 ? toInt(list.get(4)) : 0;
+                LocalDateTime dt = LocalDateTime.of(year, month, day, hour, minute);
+                return dt.format(DateTimeFormatter.ofPattern("EEEE d MMMM yyyy 'a' HH:mm", Locale.FRENCH));
+            } catch (Exception e) {
+                return raw.toString();
+            }
+        }
+        return formatEventDate(raw.toString());
+    }
+
+    private static int toInt(Object v) {
+        if (v instanceof Number n) {
+            return n.intValue();
+        }
+        return Integer.parseInt(v.toString());
     }
 
     @KafkaListener(topics = "inscription.annulee", groupId = "notification-inscription-annulee-group")
@@ -334,35 +372,60 @@ public class NotificationConsumer {
         if (actionId == null) {
             return;
         }
-        String title = readStringAny(event, "Action", "title", "titre");
+        String title = readStringAny(event, "Action EcoPria", "title", "titre");
         String reason = readStringAny(event, "", "cancellationReason", "reason", "raison");
-        Set<Long> userIds = new LinkedHashSet<>();
+        String city = readStringAny(event, "", "city", "ville");
+        String address = readStringAny(event, "", "address", "adresse");
+        String associationName = readStringAny(event, "", "associationName", "association_name");
+        String dateAction = formatEventDateFromEvent(event);
+
+        String locationLine = buildLocationLine(address, city);
+        String motifBlock = reason.isBlank()
+                ? "Motif : non précisé par l'organisateur.\n"
+                : "Motif de l'annulation :\n\"" + reason + "\"\n";
+
+        int notified = 0;
         for (Map<String, Object> row : inscriptionInternalClient.listInscriptionsForAction(actionId)) {
             String statut = readString(row, "statut", "");
             if ("ANNULEE".equalsIgnoreCase(statut)) {
                 continue;
             }
-            if ("CONFIRMEE".equalsIgnoreCase(statut) || "EN_ATTENTE".equalsIgnoreCase(statut)) {
-                Object uid = row.get("userId");
-                if (uid != null) {
-                    userIds.add(toLong(uid));
-                }
+            if (!"CONFIRMEE".equalsIgnoreCase(statut) && !"EN_ATTENTE".equalsIgnoreCase(statut)) {
+                continue;
             }
-        }
-        for (Long uid : userIds) {
+            Object uidObj = row.get("userId");
+            if (uidObj == null) {
+                continue;
+            }
+            Long uid = toLong(uidObj);
+            String firstName = readStringAny(row, "", "firstName", "first_name");
+            String email = readStringAny(row, "", "email", "participantEmail");
+            String greeting = firstName.isBlank() ? "Bonjour," : "Bonjour " + firstName + ",";
+
+            String inAppMessage = "L'action \"" + title + "\" a été annulée."
+                    + (reason.isEmpty() ? "" : " Motif : " + reason);
+            String mailBody = greeting + "\n\n" +
+                    "Nous sommes désolés de vous informer que l'action suivante a été annulée par l'organisateur.\n\n" +
+                    "Action : " + title + "\n" +
+                    (associationName.isBlank() ? "" : "Organisateur : " + associationName + "\n") +
+                    (dateAction.isBlank() ? "" : "Date prévue : " + dateAction + "\n") +
+                    locationLine + "\n" +
+                    motifBlock + "\n" +
+                    "Votre inscription est automatiquement annulée. Aucun point ne sera crédité.\n" +
+                    "Découvrez d'autres actions près de chez vous : https://ecopria.ma/actions\n\n" +
+                    "- L'équipe EcoPria\n" +
+                    "https://ecopria.ma";
+
             dispatcher.notifyUser(uid,
-                    "Action annulee",
-                    "L'action \"" + title + "\" a ete annulee." + (reason.isEmpty() ? "" : " Raison : " + reason),
+                    "Action annulée",
+                    inAppMessage,
                     Notification.NotificationType.ALERT,
-                    "Action annulee — " + title,
-                    "Bonjour,\n\n" +
-                            "L'action a laquelle vous etiez inscrit a ete annulee.\n\n" +
-                            title + "\n" +
-                            (reason.isEmpty() ? "" : "❌ " + reason + "\n") +
-                            "\nhttps://ecopria.ma\n" +
-                            "- L'equipe EcoPria",
-                    null);
+                    "Action annulée — " + title,
+                    mailBody,
+                    email.isBlank() ? null : email);
+            notified++;
         }
+        log.info("[action.annulee] actionId={} — {} participant(s) notifié(s)", actionId, notified);
     }
 
     @KafkaListener(topics = "action.places.mises.a.jour", groupId = "notification-action-places-group")

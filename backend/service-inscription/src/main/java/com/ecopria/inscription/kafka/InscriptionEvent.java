@@ -8,6 +8,7 @@ public class InscriptionEvent {
     private Long actionId;
     private LocalDateTime dateAction;
     private Long associationId;
+    private Long associationUserId;
     private String title;
     private String city;
     private String address;
@@ -23,6 +24,7 @@ public class InscriptionEvent {
                             Long actionId,
                             LocalDateTime dateAction,
                             Long associationId,
+                            Long associationUserId,
                             String title,
                             String city,
                             String address,
@@ -35,6 +37,7 @@ public class InscriptionEvent {
         this.actionId = actionId;
         this.dateAction = dateAction;
         this.associationId = associationId;
+        this.associationUserId = associationUserId;
         this.title = title;
         this.city = city;
         this.address = address;
@@ -54,6 +57,10 @@ public class InscriptionEvent {
     public void setDateAction(LocalDateTime d) { this.dateAction = d; }
     public Long getAssociationId() { return associationId; }
     public void setAssociationId(Long a) { this.associationId = a; }
+    public Long getAssociationUserId() { return associationUserId; }
+    public void setAssociationUserId(Long associationUserId) { this.associationUserId = associationUserId; }
+    /** Alias pour le consumer notification (Kafka Map). */
+    public String getActionTitle() { return title; }
     public String getTitle() { return title; }
     public void setTitle(String t) { this.title = t; }
     public String getCity() { return city; }

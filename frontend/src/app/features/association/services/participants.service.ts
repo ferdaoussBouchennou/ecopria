@@ -1,29 +1,48 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, forkJoin } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { Participant, ParticipantsStats } from '../models/participant.model';
 import { InscriptionResponse } from '../../inscription/models/inscription.model';
+import { PresenceResponse } from '../../../core/models/presence.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ParticipantsService {
   private readonly apiInscriptions = environment.inscriptionApi;
+  private readonly apiPresences = environment.presenceApi;
 
   constructor(private http: HttpClient) {}
 
   getParticipants(actionId: number): Observable<Participant[]> {
-    return this.http
-      .get<InscriptionResponse[]>(`${this.apiInscriptions}/action/${actionId}`)
-      .pipe(
-        map((inscriptions) => inscriptions.map((inscription) => this.toParticipant(inscription))),
+    return forkJoin({
+      inscriptions: this.http.get<InscriptionResponse[]>(`${this.apiInscriptions}/action/${actionId}`).pipe(
         catchError((error) => {
           console.error('Erreur récupération participants:', error);
-          return of([]);
+          return of([] as InscriptionResponse[]);
         })
-      );
+      ),
+      presences: this.http.get<PresenceResponse[]>(`${this.apiPresences}/action/${actionId}`).pipe(
+        catchError((error) => {
+          console.error('Erreur récupération présences:', error);
+          return of([] as PresenceResponse[]);
+        })
+      ),
+    }).pipe(
+      map(({ inscriptions, presences }) => {
+        const presenceByUser = new Map(presences.map((p) => [p.userId, p]));
+        return inscriptions.map((inscription) => {
+          const presence = presenceByUser.get(inscription.userId);
+          return {
+            ...this.toParticipant(inscription),
+            presenceValidee: !!presence,
+            pointsGagnes: presence?.points ?? null,
+          };
+        });
+      })
+    );
   }
 
   private toParticipant(inscription: InscriptionResponse): Participant {
@@ -49,11 +68,15 @@ export class ParticipantsService {
   }
 
   calculateStats(participants: Participant[]): ParticipantsStats {
+    const actifs = participants.filter((p) => p.statut !== 'ANNULEE');
+    const valides = actifs.filter((p) => p.presenceValidee);
     return {
-      total: participants.length,
-      confirmes: participants.filter((p) => p.statut === 'CONFIRMEE').length,
-      enAttente: participants.filter((p) => p.statut === 'EN_ATTENTE').length,
-      annules: participants.filter((p) => p.statut === 'ANNULEE').length
+      total: actifs.length,
+      confirmes: actifs.filter((p) => p.statut === 'CONFIRMEE').length,
+      enAttente: actifs.filter((p) => p.statut === 'EN_ATTENTE').length,
+      annules: participants.filter((p) => p.statut === 'ANNULEE').length,
+      presencesValidees: valides.length,
+      pointsAttribues: valides.reduce((sum, p) => sum + (p.pointsGagnes ?? 0), 0),
     };
   }
 
@@ -65,8 +88,9 @@ export class ParticipantsService {
       'Téléphone',
       'Ville',
       'Date inscription',
-      'Statut',
-      'Points',
+      'Statut inscription',
+      'Présence validée',
+      'Points crédités',
       'Motivation',
       'Conditions médicales / allergies',
       'Droit à l\'image',
@@ -80,7 +104,8 @@ export class ParticipantsService {
       p.city || '',
       this.formatDate(p.dateInscription),
       this.getStatutLabel(p.statut),
-      p.pointsAction.toString(),
+      p.presenceValidee ? 'Oui' : 'Non',
+      p.presenceValidee ? String(p.pointsGagnes ?? 0) : '0',
       p.motivation || '',
       p.conditions || '',
       p.imageRights ? 'Oui' : 'Non',
@@ -125,9 +150,9 @@ export class ParticipantsService {
 
   private getStatutLabel(statut: string): string {
     const labels: Record<string, string> = {
-      CONFIRMEE: 'Confirmé',
-      EN_ATTENTE: 'En attente',
-      ANNULEE: 'Annulé'
+      CONFIRMEE: 'Inscrit confirmé',
+      EN_ATTENTE: 'Liste d\'attente',
+      ANNULEE: 'Désinscrit'
     };
     return labels[statut] || statut;
   }
