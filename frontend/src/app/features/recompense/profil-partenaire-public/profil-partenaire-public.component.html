@@ -7,7 +7,7 @@
   <div *ngIf="!loading && erreur" class="state state--error">
     <h1>Profil indisponible</h1>
     <p>{{ erreur }}</p>
-    <a routerLink="/accueil" class="btn-back">Retour a l'accueil</a>
+    <a routerLink="/partenaires" class="btn-back">Retour aux partenaires</a>
   </div>
 
   <section *ngIf="!loading && profil" class="hero">
@@ -18,22 +18,110 @@
       <span class="chip">{{ profil.category || 'Partenaire Ecopria' }}</span>
       <h1>{{ profil.name }}</h1>
       <p *ngIf="profil.description">{{ profil.description }}</p>
-      <p *ngIf="!profil.description">Ce partenaire fait partie du reseau Ecopria.</p>
+      <p *ngIf="!profil.description">Ce partenaire fait partie du réseau Ecopria.</p>
       <div class="meta">
-        <span *ngIf="profil.city">{{ profil.city }}</span>
+        <span *ngIf="profil.city">📍 {{ profil.city }}</span>
         <span *ngIf="profil.address">{{ profil.address }}</span>
       </div>
     </div>
   </section>
 
   <section *ngIf="!loading && profil" class="content">
-    <div class="card">
-      <h2>A propos</h2>
-      <p>{{ profil.description || 'Ce partenaire fait partie du reseau Ecopria et propose des offres responsables.' }}</p>
-      <p *ngIf="profil.openingHours"><strong>Horaires:</strong> {{ profil.openingHours }}</p>
-      <p *ngIf="profil.phone"><strong>Telephone:</strong> {{ profil.phone }}</p>
+    <!-- Solde de points (si connecté) -->
+    <div class="card points-banner" *ngIf="isUserConnected">
+      <div class="points-info">
+        <span class="points-icon">💰</span>
+        <div class="points-text">
+          <h3>Votre solde de points</h3>
+          <p class="points-value" *ngIf="!loadingSolde">{{ soldePoints }} points</p>
+          <p class="points-loading" *ngIf="loadingSolde">Chargement...</p>
+        </div>
+      </div>
     </div>
 
+    <!-- Message de connexion (si non connecté) -->
+    <div class="card login-banner" *ngIf="!isUserConnected">
+      <p>
+        <strong>💡 Connectez-vous</strong> pour échanger vos points contre ces offres exclusives !
+      </p>
+      <a routerLink="/connexion" [queryParams]="{ returnUrl: router.url }" class="btn-login">
+        Se connecter
+      </a>
+    </div>
+
+    <!-- À propos -->
+    <div class="card">
+      <h2>À propos</h2>
+      <p>{{ profil.description || 'Ce partenaire fait partie du réseau Ecopria et propose des offres responsables.' }}</p>
+      <p *ngIf="profil.openingHours"><strong>Horaires :</strong> {{ profil.openingHours }}</p>
+      <p *ngIf="profil.phone"><strong>Téléphone :</strong> {{ profil.phone }}</p>
+      <p *ngIf="profil.address"><strong>Adresse :</strong> {{ profil.address }}, {{ profil.city }}</p>
+    </div>
+
+    <!-- Offres actives -->
+    <div class="card" *ngIf="!loadingOffres && offres.length > 0">
+      <h2>Offres disponibles</h2>
+      <p class="section-subtitle">Échangez vos points contre ces offres exclusives</p>
+      <div class="offres-grid">
+        <article *ngFor="let offre of offres" class="offre-card">
+          <div class="offre-card__image">
+            <img
+              *ngIf="offre.imageUrl"
+              [src]="offre.imageUrl"
+              [alt]="offre.title"
+            />
+            <div *ngIf="!offre.imageUrl" class="offre-card__image-placeholder">
+              <span>{{ offre.type }}</span>
+            </div>
+            <span class="offre-badge" [class]="'offre-badge--' + offre.type.toLowerCase()">
+              {{ getTypeLabel(offre.type) }}
+            </span>
+            <span *ngIf="offre.stock" class="stock-badge" [class.stock-low]="offre.stock <= 5">
+              STOCK {{ offre.stock }}
+            </span>
+          </div>
+          <div class="offre-card__content">
+            <h3>{{ offre.title }}</h3>
+            <p *ngIf="offre.description" class="description">
+              {{ offre.description | slice:0:100 }}<span *ngIf="offre.description.length > 100">...</span>
+            </p>
+            <div class="offre-card__meta">
+              <span *ngIf="offre.discountPercentage" class="discount-tag">
+                -{{ offre.discountPercentage }}%
+              </span>
+              <span *ngIf="offre.valeurDh" class="value-tag">
+                {{ offre.valeurDh }} DH
+              </span>
+            </div>
+            <div class="offre-card__footer">
+              <span class="points">
+                <strong>{{ offre.pointsNecessaires }}</strong> pts
+              </span>
+              <button 
+                class="btn-exchange" 
+                [disabled]="!offre.isAvailable || echangeEnCours === offre.id || !isUserConnected || !hasEnoughPoints(offre)"
+                [class.btn-insufficient]="isUserConnected && !hasEnoughPoints(offre)"
+                (click)="echangerOffre(offre)"
+                [title]="!isUserConnected ? 'Connectez-vous pour échanger' : !hasEnoughPoints(offre) ? 'Points insuffisants - Il vous manque ' + getPointsManquants(offre) + ' points' : 'Échanger cette offre'"
+              >
+                <span *ngIf="echangeEnCours !== offre.id && (!isUserConnected || hasEnoughPoints(offre))">Échanger</span>
+                <span *ngIf="echangeEnCours !== offre.id && isUserConnected && !hasEnoughPoints(offre)">
+                  Manque {{ getPointsManquants(offre) }} pts
+                </span>
+                <span *ngIf="echangeEnCours === offre.id">⏳</span>
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- Message si pas d'offres -->
+    <div class="card" *ngIf="!loadingOffres && offres.length === 0 && !erreurOffres">
+      <p class="muted">Aucune offre disponible pour le moment.</p>
+    </div>
+
+    <!-- Galerie -->
     <div class="card" *ngIf="profil.galleryImages?.length">
       <h2>Galerie</h2>
       <div class="gallery-grid">
@@ -41,13 +129,69 @@
       </div>
     </div>
 
+    <!-- Réseaux sociaux -->
     <div class="card" *ngIf="profil.website || profil.instagramUrl || profil.facebookUrl">
       <h2>Suivre ce partenaire</h2>
-      <div class="links">
-        <a *ngIf="profil.website" [href]="profil.website" target="_blank" rel="noopener">Site web</a>
-        <a *ngIf="profil.instagramUrl" [href]="profil.instagramUrl" target="_blank" rel="noopener">Instagram</a>
-        <a *ngIf="profil.facebookUrl" [href]="profil.facebookUrl" target="_blank" rel="noopener">Facebook</a>
+      <div class="social-links">
+        <a *ngIf="profil.website" [href]="profil.website" target="_blank" rel="noopener noreferrer" class="social-btn">
+          🔗 Site web
+        </a>
+        <a *ngIf="profil.instagramUrl" [href]="profil.instagramUrl" target="_blank" rel="noopener noreferrer" class="social-btn">
+          📸 Instagram
+        </a>
+        <a *ngIf="profil.facebookUrl" [href]="profil.facebookUrl" target="_blank" rel="noopener noreferrer" class="social-btn">
+          f Facebook
+        </a>
       </div>
     </div>
+
+    <!-- Bouton retour -->
+    <div class="back-link">
+      <a routerLink="/partenaires" class="btn-link">← Retour aux partenaires</a>
+    </div>
   </section>
+</div>
+
+
+<!-- Modal de succès -->
+<div class="modal-overlay" *ngIf="showSuccessModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <button class="modal-close" (click)="closeModal()">✕</button>
+    
+    <div class="modal-header">
+      <span class="modal-icon">🎉</span>
+      <h2>Félicitations !</h2>
+    </div>
+
+    <div class="modal-body">
+      <p class="success-message">Votre échange a été effectué avec succès !</p>
+      
+      <div class="coupon-info" *ngIf="couponGenere">
+        <h3>{{ couponGenere.recompenseTitle }}</h3>
+        <p class="partenaire-name">Chez {{ profil?.name }}</p>
+        
+        <div class="coupon-code">
+          <span class="code-label">Code coupon:</span>
+          <span class="code-value">{{ couponGenere.code }}</span>
+        </div>
+
+        <p class="coupon-instructions">
+          Présentez ce code chez {{ profil?.name }} pour bénéficier de votre offre.
+        </p>
+        
+        <p class="coupon-expiry" *ngIf="couponGenere.expireLe">
+          Valable jusqu'au {{ couponGenere.expireLe | date: 'dd/MM/yyyy' }}
+        </p>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-primary" (click)="allerVersMesCoupons()">
+        Voir mes coupons
+      </button>
+      <button class="btn-secondary" (click)="closeModal()">
+        Continuer
+      </button>
+    </div>
+  </div>
 </div>

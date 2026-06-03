@@ -9,7 +9,7 @@
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Accueil</a>
       <a routerLink="/carte" routerLinkActive="active">Carte</a>
       <a routerLink="/actions" routerLinkActive="active">Actions</a>
-      <a routerLink="/partenaires/1" routerLinkActive="active">Partenaires</a>
+      <a routerLink="/partenaires" routerLinkActive="active">Partenaires</a>
       <a routerLink="/creer-compte" routerLinkActive="active">Associations</a>
       <a [routerLink]="recompensesLink" routerLinkActive="active">Récompenses</a>
       <a routerLink="/" fragment="comment-ca-marche" routerLinkActive="active">Comment ça marche</a>
@@ -52,7 +52,7 @@
         <ul>
           <li><a [routerLink]="isLoggedIn ? monEspaceLink : ['/connexion']">Mon espace</a></li>
           <li><a routerLink="/creer-compte">Associations</a></li>
-          <li><a routerLink="/partenaires/1">Partenaires</a></li>
+          <li><a routerLink="/partenaires">Partenaires</a></li>
           <li><a routerLink="/actions" class="nav-soon">Administration</a></li>
         </ul>
       </div>
