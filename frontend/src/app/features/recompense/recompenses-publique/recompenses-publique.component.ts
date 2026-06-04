@@ -53,6 +53,9 @@ export class RecompensesPubliqueComponent implements OnInit, OnDestroy {
   mystereScenePhase: MystereScenePhase = 'idle';
   mystereOffreEnAttente: RecompenseItemDto | null = null;
   private openingTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Images cassées ou URL invalides → placeholder. */
+  imageErrors: Record<number, boolean> = {};
+  partnerImageErrors: Record<number, boolean> = {};
 
   readonly filters: { key: FilterKey; label: string }[] = [
     { key: 'ALL', label: 'Tout' },
@@ -190,6 +193,32 @@ export class RecompensesPubliqueComponent implements OnInit, OnDestroy {
 
   trackOffre(_: number, o: RecompenseItemDto): number {
     return o.id;
+  }
+
+  hasCardImage(o: RecompenseItemDto): boolean {
+    return !!o.imageUrl && !this.imageErrors[o.id];
+  }
+
+  onCardImageError(id: number): void {
+    this.imageErrors = { ...this.imageErrors, [id]: true };
+  }
+
+  cardInitial(o: RecompenseItemDto): string {
+    const t = o.title?.trim();
+    return t ? t.charAt(0).toUpperCase() : '?';
+  }
+
+  hasPartnerImage(p: PartenaireProfil): boolean {
+    return !!p.imageUrl && !this.partnerImageErrors[p.userId];
+  }
+
+  onPartnerImageError(userId: number): void {
+    this.partnerImageErrors = { ...this.partnerImageErrors, [userId]: true };
+  }
+
+  partnerInitial(p: PartenaireProfil): string {
+    const n = p.name?.trim();
+    return n ? n.charAt(0).toUpperCase() : '?';
   }
 
   ouvrirDetail(o: RecompenseItemDto): void {
