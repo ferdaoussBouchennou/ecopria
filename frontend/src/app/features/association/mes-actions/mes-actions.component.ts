@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { AssociationService, AssociationStats } from '../services/association.service';
+import { AssociationUiService } from '../services/association-ui.service';
 import { httpErrorMessage } from '../../../core/utils/http-error.util';
 import { ActionSummary } from '../../action/models/action.model';
+import { formatNaiveTime, parseNaiveDateTime } from '../../../core/utils/datetime-local.util';
 
 type ActionView = 'upcoming' | 'history' | 'drafts' | 'cancelled';
 
@@ -28,7 +30,8 @@ export class MesActionsComponent implements OnInit {
 
   constructor(
     private associationService: AssociationService,
-    private router: Router
+    private router: Router,
+    private ui: AssociationUiService
   ) {}
 
   ngOnInit(): void {
@@ -99,45 +102,54 @@ export class MesActionsComponent implements OnInit {
   }
 
   publierBrouillon(actionId: number): void {
-    if (confirm('Voulez-vous publier cette action ?')) {
+    this.ui.confirm({
+      title: 'Publier l\'action',
+      message: 'Voulez-vous publier cette action ? Elle sera visible par tous les utilisateurs.',
+      confirmLabel: 'Publier'
+    }).subscribe((ok) => {
+      if (!ok) return;
       this.associationService.publierAction(actionId).subscribe({
         next: () => {
-          alert('Action publiée avec succès !');
+          this.ui.toast('Action publiée avec succès.', 'success');
           this.loadActions();
         },
         error: (err) => {
-          alert('Erreur lors de la publication');
+          this.ui.toast('Erreur lors de la publication.', 'error');
           console.error(err);
         }
       });
-    }
+    });
   }
 
   annulerAction(actionId: number): void {
-    const raison = prompt(
-      'Motif de l\'annulation (obligatoire)\n\nUn e-mail sera envoyé à tous les inscrits avec ce motif :'
-    );
-    if (raison === null) {
-      return;
-    }
-    const trimmed = raison.trim();
-    if (!trimmed) {
-      alert('Le motif d\'annulation est obligatoire.');
-      return;
-    }
-    if (!confirm('Confirmer l\'annulation ? Tous les inscrits seront notifiés par e-mail.')) {
-      return;
-    }
-    this.associationService.annulerAction(actionId, trimmed).subscribe({
-      next: () => {
-        alert('Action annulée. Les participants ont été notifiés par e-mail.');
-        this.loadActions();
-      },
-      error: (err) => {
-        const msg = err?.error?.message || 'Erreur lors de l\'annulation';
-        alert(msg);
-        console.error(err);
-      }
+    this.ui.prompt({
+      title: 'Annuler l\'action',
+      message: 'Motif obligatoire — un e-mail sera envoyé à tous les inscrits avec ce motif.',
+      placeholder: 'Ex. : conditions météo défavorables…',
+      required: true,
+      confirmLabel: 'Continuer'
+    }).subscribe((raison) => {
+      if (raison === null) return;
+      const trimmed = raison.trim();
+      this.ui.confirm({
+        title: 'Confirmer l\'annulation',
+        message: 'Tous les inscrits seront notifiés par e-mail. Cette action est irréversible.',
+        confirmLabel: 'Annuler l\'action',
+        danger: true
+      }).subscribe((ok) => {
+        if (!ok) return;
+        this.associationService.annulerAction(actionId, trimmed).subscribe({
+          next: () => {
+            this.ui.toast('Action annulée. Les participants ont été notifiés.', 'success');
+            this.loadActions();
+          },
+          error: (err) => {
+            const msg = err?.error?.message || 'Erreur lors de l\'annulation';
+            this.ui.toast(msg, 'error');
+            console.error(err);
+          }
+        });
+      });
     });
   }
 
@@ -151,15 +163,12 @@ export class MesActionsComponent implements OnInit {
   }
 
   formatTime(dateStr: string): string {
-    return new Date(dateStr).toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return formatNaiveTime(dateStr);
   }
 
   formatDateRange(action: ActionSummary): string {
-    const start = new Date(action.dateStart);
-    const end = new Date(action.dateEnd);
+    const start = parseNaiveDateTime(action.dateStart);
+    const end = parseNaiveDateTime(action.dateEnd);
 
     if (start.toDateString() === end.toDateString()) {
       return `${this.formatDate(action.dateStart)} · ${this.formatTime(action.dateStart)} - ${this.formatTime(action.dateEnd)}`;
@@ -308,7 +317,7 @@ export class MesActionsComponent implements OnInit {
     }
     if (this.historyActions.length > 0) {
       return [...this.historyActions].sort(
-        (a, b) => new Date(b.dateStart).getTime() - new Date(a.dateStart).getTime()
+        (a, b) => parseNaiveDateTime(b.dateStart).getTime() - parseNaiveDateTime(a.dateStart).getTime()
       )[0];
     }
     return null;
@@ -439,13 +448,13 @@ export class MesActionsComponent implements OnInit {
     return this.allActions.reduce((sum, action) => sum + (action.registeredCount ?? 0), 0);
   }
 
-  get totalPointsDistributed(): number {
+  get totalPointsCredited(): number {
     if (this.globalStats) {
       return this.globalStats.totalPoints;
     }
 
     return this.allActions.reduce(
-      (sum, action) => sum + action.points * (action.registeredCount ?? 0),
+      (sum, action) => sum + (action.pointsCredited ?? 0),
       0
     );
   }
@@ -463,7 +472,7 @@ export class MesActionsComponent implements OnInit {
   getMonthActionsCount(): number {
     const now = new Date();
     return this.upcomingActions.filter((action) => {
-      const start = new Date(action.dateStart);
+      const start = parseNaiveDateTime(action.dateStart);
       return start.getMonth() === now.getMonth() && start.getFullYear() === now.getFullYear();
     }).length;
   }
@@ -553,7 +562,7 @@ export class MesActionsComponent implements OnInit {
       return 'Action déjà réalisée';
     }
 
-    const start = new Date(action.dateStart);
+    const start = parseNaiveDateTime(action.dateStart);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -626,7 +635,7 @@ export class MesActionsComponent implements OnInit {
 
   private sortByDate(actions: ActionSummary[]): ActionSummary[] {
     return [...actions].sort(
-      (a, b) => new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime()
+      (a, b) => parseNaiveDateTime(a.dateStart).getTime() - parseNaiveDateTime(b.dateStart).getTime()
     );
   }
 

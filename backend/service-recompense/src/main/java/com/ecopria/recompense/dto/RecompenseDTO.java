@@ -9,6 +9,7 @@ import java.util.List;
 public class RecompenseDTO {
     private Long id;
     private Long partenaireId;
+    private Long partenaireUserId;
     private String partenaireName;
     private String partenaireCategory;
     private String title;

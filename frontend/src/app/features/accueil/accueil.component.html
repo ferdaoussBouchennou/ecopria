@@ -10,7 +10,8 @@
       </p>
       <div class="accueil-hero__cta">
         <a routerLink="/carte" class="btn btn--primary">Explorer la carte</a>
-        <a routerLink="/accueil" fragment="comment-ca-marche" class="btn btn--outline">Comment ça marche</a>
+        <a routerLink="/recompenses" class="btn btn--outline btn--recompenses">Voir les récompenses</a>
+        <a routerLink="/accueil" fragment="comment-ca-marche" class="btn btn--ghost-sm">Comment ça marche</a>
       </div>
       <div class="accueil-stats">
         @for (stat of stats; track stat.label) {
@@ -174,6 +175,47 @@
         loading="lazy"
       />
     </div>
+  </section>
+
+  <!-- Récompenses (aperçu) -->
+  <section class="accueil-section accueil-recompenses" id="recompenses">
+    <div class="accueil-section__head">
+      <div>
+        <p class="accueil-eyebrow"><span class="eyebrow-line"></span> Récompenses</p>
+        <h2 class="accueil-section__title">Échangez vos points, ouvrez une boîte mystère.</h2>
+        <p class="accueil-recompenses__lead">
+          Offres locales de nos partenaires — visibles sans compte. Connectez-vous pour échanger.
+        </p>
+      </div>
+      <a routerLink="/recompenses" class="accueil-link-arrow">Tout le catalogue →</a>
+    </div>
+
+    @if (loadingOffres) {
+      <p class="accueil-muted">Chargement des offres…</p>
+    } @else if (previewOffres.length === 0) {
+      <p class="accueil-muted">Le catalogue arrive bientôt. En attendant, découvrez nos partenaires.</p>
+      <a routerLink="/recompenses" class="btn btn--primary" style="margin-top: 1rem">Explorer les récompenses</a>
+    } @else {
+      <div class="accueil-recompenses__grid">
+        @for (o of previewOffres; track o.id) {
+          <a class="accueil-offre-card" [class.accueil-offre-card--mystere]="o.hasMystereBox" routerLink="/recompenses">
+            @if (o.imageUrl) {
+              <img [src]="o.imageUrl" [alt]="o.title" loading="lazy" />
+            } @else {
+              <div class="accueil-offre-card__ph"></div>
+            }
+            @if (o.hasMystereBox) {
+              <span class="accueil-offre-mystere">🎁 Mystère</span>
+            }
+            <div class="accueil-offre-card__body">
+              <span class="accueil-offre-pts">{{ o.pointsNecessaires }} pts</span>
+              <h3>{{ o.title }}</h3>
+              <p>{{ o.partenaireName }}</p>
+            </div>
+          </a>
+        }
+      </div>
+    }
   </section>
 
   <!-- Partenaires -->

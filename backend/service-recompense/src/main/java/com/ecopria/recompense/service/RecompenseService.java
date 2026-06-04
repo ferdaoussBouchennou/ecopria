@@ -635,6 +635,7 @@ public class RecompenseService {
         return RecompenseDTO.builder()
                 .id(r.getId())
                 .partenaireId(r.getPartenaire().getId())
+                .partenaireUserId(r.getPartenaire().getUserId())
                 .partenaireName(r.getPartenaire().getName())
                 .partenaireCategory(r.getPartenaire().getCategory())
                 .title(r.getTitle())

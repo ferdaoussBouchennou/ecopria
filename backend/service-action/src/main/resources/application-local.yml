@@ -41,6 +41,10 @@ spring:
         spring.json.use.type.headers: false
         spring.json.value.default.type: java.util.Map
 
+service:
+  presence:
+    url: http://localhost:8085
+
 management:
   endpoints:
     web:

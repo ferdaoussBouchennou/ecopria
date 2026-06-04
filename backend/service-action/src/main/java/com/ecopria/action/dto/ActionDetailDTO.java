@@ -22,6 +22,8 @@ public class ActionDetailDTO {
     private LocalDateTime dateStart;
     private LocalDateTime dateEnd;
     private Integer points;
+    /** Points effectivement crédités (présences validées). */
+    private Integer pointsCredited;
     private Integer availablePlaces;
     private Integer maxParticipants;
     private Integer registeredCount; // calculé

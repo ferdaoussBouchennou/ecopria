@@ -15,8 +15,8 @@
       </div>
     </div>
     <div class="header-actions">
-      <a class="btn-secondary" [routerLink]="['/valider-presence', actionId]">
-        Scanner les présences
+      <a class="btn-secondary" [routerLink]="['/association/action', actionId, 'valider-presence']">
+        Valider les présences
       </a>
       <button class="btn-export" (click)="exportCSV()" [disabled]="filteredParticipants.length === 0">
         Exporter CSV
@@ -53,7 +53,8 @@
 
   <div class="status-legend">
     <p><strong>Inscription confirmée</strong> : place réservée pour l'action.</p>
-    <p><strong>Liste d'attente</strong> : pas de place disponible ; passage automatique en confirmé si quelqu'un se désinscrit.</p>
+    <p><strong>Liste d'attente (places)</strong> : action complète ; promotion automatique si désinscription.</p>
+    <p><strong>Attente confiance</strong> : score de confiance &lt; 70 (absences passées = −20 pts/nuit) ; confirmé seulement si le score remonte.</p>
     <p><strong>Points crédités</strong> : uniquement après validation de présence (scan QR ou bouton Valider).</p>
   </div>
 
@@ -166,8 +167,8 @@
             <td>{{ participant.city }}</td>
             <td>{{ formatDate(participant.dateInscription) }}</td>
             <td>
-              <span class="badge" [ngClass]="getStatutClass(participant.statut)" [title]="getStatutHint(participant.statut)">
-                {{ getStatutLabel(participant.statut) }}
+              <span class="badge" [ngClass]="getStatutBadgeClass(participant)" [title]="getStatutHint(participant.statut, participant)">
+                {{ getStatutLabel(participant.statut, participant) }}
               </span>
             </td>
             <td>
@@ -187,11 +188,31 @@
               </button>
             </td>
             <td>
-              <button 
+              <ng-container *ngIf="canModererConfiance(participant)">
+                <button
+                  type="button"
+                  class="btn-valider btn-valider--confirm"
+                  (click)="confirmerInscription(participant)"
+                  [disabled]="moderateLoading[participant.inscriptionId]"
+                >
+                  {{ moderateLoading[participant.inscriptionId] ? '...' : 'Confirmer' }}
+                </button>
+                <button
+                  type="button"
+                  class="btn-valider btn-valider--reject"
+                  (click)="refuserInscription(participant)"
+                  [disabled]="moderateLoading[participant.inscriptionId]"
+                >
+                  Refuser
+                </button>
+              </ng-container>
+              <button
                 *ngIf="canValiderPresence(participant)"
-                class="btn-valider" 
+                type="button"
+                class="btn-valider"
                 (click)="validerPresence(participant)"
-                [disabled]="validerLoading[participant.userId]">
+                [disabled]="validerLoading[participant.userId]"
+              >
                 {{ validerLoading[participant.userId] ? '...' : 'Valider présence' }}
               </button>
               <span *ngIf="participant.presenceValidee" class="presence-done">Validé</span>
@@ -209,9 +230,9 @@
                   <p>{{ participant.conditions || 'Non renseigné' }}</p>
                 </div>
                 <div class="detail-meta">
+                  <span *ngIf="participant.trustScore != null">Score de confiance : {{ participant.trustScore }}/100</span>
                   <span>Droit à l'image : {{ participant.imageRights ? 'Oui' : 'Non' }}</span>
                   <span>Newsletter : {{ participant.newsletter ? 'Oui' : 'Non' }}</span>
-                  <span *ngIf="participant.accompagnants != null">Accompagnants : {{ participant.accompagnants }}</span>
                 </div>
               </div>
             </td>

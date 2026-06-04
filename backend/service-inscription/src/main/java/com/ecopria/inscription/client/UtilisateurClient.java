@@ -1,11 +1,13 @@
 package com.ecopria.inscription.client;
 
+import com.ecopria.inscription.dto.InscriptionRequestDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -44,6 +46,38 @@ public class UtilisateurClient {
         } catch (RestClientException e) {
             // En cas d'erreur réseau, on accepte (fail-open)
             return 100;
+        }
+    }
+
+    /** Met à jour le profil citoyen avant notification (e-mail utilisé par service-notification). */
+    public void syncParticipantProfile(InscriptionRequestDTO request) {
+        if (request == null || request.getUserId() == null) {
+            return;
+        }
+        Map<String, Object> body = new HashMap<>();
+        putIfPresent(body, "firstName", request.getFirstName());
+        putIfPresent(body, "lastName", request.getLastName());
+        putIfPresent(body, "email", request.getEmail());
+        putIfPresent(body, "phone", request.getPhone());
+        putIfPresent(body, "city", request.getCity());
+        if (body.isEmpty()) {
+            return;
+        }
+        String base = utilisateurServiceUrl.endsWith("/")
+                ? utilisateurServiceUrl.substring(0, utilisateurServiceUrl.length() - 1)
+                : utilisateurServiceUrl;
+        String url = base + "/api/users/" + request.getUserId() + "/profile";
+        try {
+            restTemplate.put(url, body);
+        } catch (RestClientException e) {
+            System.err.println("[Inscription] MAJ profil utilisateur ignorée userId="
+                    + request.getUserId() + " : " + e.getMessage());
+        }
+    }
+
+    private static void putIfPresent(Map<String, Object> body, String key, String value) {
+        if (value != null && !value.isBlank()) {
+            body.put(key, value.trim());
         }
     }
 

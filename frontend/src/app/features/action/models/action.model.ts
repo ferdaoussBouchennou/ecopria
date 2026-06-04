@@ -10,6 +10,8 @@ export interface ActionSummary {
   dateStart: string;
   dateEnd: string;
   points: number;
+  /** Points crédités après validation de présence. */
+  pointsCredited?: number;
   availablePlaces: number;
   maxParticipants: number;
   registeredCount: number;

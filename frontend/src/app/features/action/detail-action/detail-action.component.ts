@@ -86,11 +86,23 @@ export class DetailActionComponent implements OnInit {
     return this.action ? isActionFull(this.action) : false;
   }
 
+  /** Action association complète : inscription possible en liste d'attente. */
+  get isWaitlistOnly(): boolean {
+    return !!this.action && !this.action.isFixed && this.isFull();
+  }
+
+  get participateLabel(): string {
+    if (!this.action) return 'Participer';
+    if (this.action.isFixed) return 'Participer';
+    if (this.isWaitlistOnly) return 'Rejoindre la liste d\'attente';
+    return 'Participer';
+  }
+
   participate(): void {
-    if (!this.action || this.isFull()) {
+    if (!this.action) {
       return;
     }
-    
+
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/connexion'], {
         queryParams: { returnUrl: `/inscription/${this.action.id}` },

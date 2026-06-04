@@ -14,6 +14,7 @@ public class UpdateActionDTO {
     @Size(max = 200)
     private String title;
     private String description;
+    private Long categoryId;
     private String address;
     private String city;
     private Double latitude;

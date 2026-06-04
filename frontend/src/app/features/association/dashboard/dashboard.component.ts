@@ -45,6 +45,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   @ViewChild('fillRateChart') fillRateChartRef!: ElementRef<HTMLCanvasElement>;
 
   loading: boolean = true;
+  statsError: string | null = null;
+  actionsError: string | null = null;
   stats: DashboardStats = {
     inscritsCeMois: 0,
     actionsPubliees: 0,
@@ -76,22 +78,34 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   loadDashboardData(): void {
     this.loading = true;
+    this.statsError = null;
+    this.actionsError = null;
 
     this.associationService.getMesStats().subscribe({
       next: (stats) => {
         this.globalStats = stats;
+        this.statsError = null;
       },
-      error: (err) => console.error('Erreur chargement stats:', err)
+      error: (err) => {
+        console.error('Erreur chargement stats:', err);
+        this.statsError =
+          'Impossible de charger les statistiques globales. Vérifiez que service-action (9090) est démarré.';
+      }
     });
 
     this.associationService.getMesActions().pipe(
       catchError((err) => {
         console.error('Erreur chargement actions (dashboard):', err);
+        this.actionsError =
+          'Impossible de charger vos actions. Vérifiez service-action (9090) et les données de test.';
         return of([] as ActionSummary[]);
       })
     ).subscribe({
       next: (actions) => {
         this.actions = actions;
+        if (actions.length > 0) {
+          this.actionsError = null;
+        }
         this.calculateStats(actions);
         this.calculateCategories(actions);
         this.calculateTopActions(actions);
@@ -106,6 +120,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Erreur chargement dashboard:', err);
+        this.actionsError = 'Erreur inattendue lors du chargement du tableau de bord.';
         this.loading = false;
       }
     });

@@ -11,6 +11,7 @@ export interface MystereBoxItem {
 export interface RecompenseItemDto {
   id: number;
   partenaireId: number;
+  partenaireUserId?: number;
   partenaireName: string;
   partenaireCategory?: string;
   title: string;

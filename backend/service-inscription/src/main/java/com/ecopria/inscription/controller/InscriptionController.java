@@ -53,6 +53,29 @@ public class InscriptionController {
         }
     }
 
+    @PostMapping("/{id}/confirmer-confiance")
+    public ResponseEntity<?> confirmerAttenteConfiance(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(inscriptionService.confirmerAttenteConfiance(id));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erreur", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erreur", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/refuser-confiance")
+    public ResponseEntity<?> refuserAttenteConfiance(@PathVariable Long id) {
+        try {
+            inscriptionService.refuserAttenteConfiance(id);
+            return ResponseEntity.ok(Map.of("message", "Inscription refusée"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erreur", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erreur", e.getMessage()));
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> desinscrire(@PathVariable Long id) {
         try {

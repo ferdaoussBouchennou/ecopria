@@ -10,12 +10,17 @@ public class InscriptionEvent {
     private Long associationId;
     private Long associationUserId;
     private String title;
+    /** Alias explicite pour les consumers Kafka (Map). */
+    private String actionTitle;
     private String city;
     private String address;
     private String statut;
+    private String enAttenteMotif;
     private String email;
     private String firstName;
     private Integer pointsAction;
+    /** true si promotion depuis la liste d'attente (évite le doublon « inscription confirmée »). */
+    private Boolean promotionFromWaitlist;
 
     public InscriptionEvent() {}
 
@@ -39,6 +44,7 @@ public class InscriptionEvent {
         this.associationId = associationId;
         this.associationUserId = associationUserId;
         this.title = title;
+        this.actionTitle = title;
         this.city = city;
         this.address = address;
         this.statut = statut;
@@ -59,20 +65,34 @@ public class InscriptionEvent {
     public void setAssociationId(Long a) { this.associationId = a; }
     public Long getAssociationUserId() { return associationUserId; }
     public void setAssociationUserId(Long associationUserId) { this.associationUserId = associationUserId; }
-    /** Alias pour le consumer notification (Kafka Map). */
-    public String getActionTitle() { return title; }
     public String getTitle() { return title; }
-    public void setTitle(String t) { this.title = t; }
+    public void setTitle(String t) {
+        this.title = t;
+        this.actionTitle = t;
+    }
+    public String getActionTitle() { return actionTitle != null ? actionTitle : title; }
+    public void setActionTitle(String actionTitle) {
+        this.actionTitle = actionTitle;
+        if (this.title == null) {
+            this.title = actionTitle;
+        }
+    }
     public String getCity() { return city; }
     public void setCity(String c) { this.city = c; }
     public String getAddress() { return address; }
     public void setAddress(String a) { this.address = a; }
     public String getStatut() { return statut; }
     public void setStatut(String statut) { this.statut = statut; }
+    public String getEnAttenteMotif() { return enAttenteMotif; }
+    public void setEnAttenteMotif(String enAttenteMotif) { this.enAttenteMotif = enAttenteMotif; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public Integer getPointsAction() { return pointsAction; }
     public void setPointsAction(Integer pointsAction) { this.pointsAction = pointsAction; }
+    public Boolean getPromotionFromWaitlist() { return promotionFromWaitlist; }
+    public void setPromotionFromWaitlist(Boolean promotionFromWaitlist) {
+        this.promotionFromWaitlist = promotionFromWaitlist;
+    }
 }

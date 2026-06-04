@@ -10,6 +10,10 @@ import {
 import { InscriptionService } from '../inscription.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { PresenceService } from '../../presence/presence.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+import { catchError, switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { ActionDTO } from '../models/inscription.model';
 import { InscriptionResponse } from '../../../core/models/inscription.model';
 
@@ -43,7 +47,8 @@ export class ParticiperComponent implements OnInit {
     private fb: FormBuilder,
     private inscriptionService: InscriptionService,
     private presenceService: PresenceService,
-    private auth: AuthService
+    private auth: AuthService,
+    private http: HttpClient
   ) {}
 
   private get userId(): number {
@@ -61,11 +66,31 @@ export class ParticiperComponent implements OnInit {
       nom: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       telephone: ['', [Validators.required, Validators.pattern(/^[0-9+\s]{8,15}$/)]],
-      age: ['', [Validators.required, Validators.min(16), Validators.max(99)]],
-      accompagnants: [0, [Validators.required, Validators.min(0), Validators.max(10)]]
+      ville: ['', [Validators.required, Validators.minLength(2)]],
+      age: ['', [Validators.required, Validators.min(16), Validators.max(99)]]
     });
 
     this.chargerAction();
+    this.chargerProfil();
+  }
+
+  private chargerProfil(): void {
+    this.http.get<{ firstName?: string; lastName?: string; email?: string; phone?: string; city?: string }>(
+      `${environment.userApi}/${this.userId}/profile`
+    ).subscribe({
+      next: (profile) => {
+        if (profile) {
+          this.form.patchValue({
+            prenom: profile.firstName || '',
+            nom: profile.lastName || '',
+            email: profile.email || '',
+            telephone: profile.phone || '',
+            ville: profile.city || ''
+          });
+        }
+      },
+      error: () => { /* profil vide ou nouveau compte */ }
+    });
   }
 
   private chargerAction(): void {
@@ -91,10 +116,33 @@ export class ParticiperComponent implements OnInit {
     this.statut = 'submitting';
     this.erreurMessage = '';
 
-    this.inscriptionService.inscrire({
-      userId: this.userId,
-      actionId: this.actionId
-    }).subscribe({
+    const formData = this.form.value;
+    const profileUpdate = {
+      firstName: formData.prenom,
+      lastName: formData.nom,
+      email: formData.email,
+      phone: formData.telephone,
+      city: formData.ville
+    };
+
+    this.http.put(`${environment.userApi}/${this.userId}/profile`, profileUpdate).pipe(
+      catchError((err) => {
+        console.error('Erreur MAJ profil, on continue l\'inscription', err);
+        return of(null);
+      }),
+      switchMap(() => this.inscriptionService.inscrire({
+        userId: this.userId,
+        actionId: this.actionId,
+        firstName: formData.prenom,
+        lastName: formData.nom,
+        email: formData.email,
+        phone: formData.telephone,
+        city: formData.ville,
+        motivation: '',
+        imageRights: false,
+        newsletter: false
+      }))
+    ).subscribe({
       next: (res: InscriptionResponse) => {
         this.inscription = res;
         if (res.statut === 'CONFIRMEE') {
@@ -131,7 +179,7 @@ export class ParticiperComponent implements OnInit {
   recommencer(): void {
     this.statut = 'idle';
     this.erreurMessage = '';
-    this.form.reset({ accompagnants: 0 });
+    this.form.reset();
   }
 
   hasError(field: string, type: string): boolean {
@@ -158,10 +206,6 @@ export class ParticiperComponent implements OnInit {
     return new Date(this.action.dateAction).toLocaleDateString('fr-FR', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
-  }
-
-  get accompagnantsOptions(): number[] {
-    return [0, 1, 2, 3, 4, 5];
   }
 
   get isFixedAction(): boolean {

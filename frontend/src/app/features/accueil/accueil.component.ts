@@ -12,7 +12,8 @@ import {
 } from '../action/utils/action-format.utils';
 import { AuthService } from '../../core/services/auth.service';
 import { PartenaireService } from '../recompense/partenaire.service';
-import { PartenaireProfil } from '../../core/models/recompense.model';
+import { RecompenseService } from '../recompense/recompense.service';
+import { PartenaireProfil, RecompenseItemDto } from '../../core/models/recompense.model';
 import {
   ACCUEIL_CATEGORY_CARDS,
   ACCUEIL_FEATURED_DEMO,
@@ -40,11 +41,14 @@ export class AccueilComponent implements OnInit {
   loadingFeatured = true;
   partenaires: PartenaireProfil[] = [];
   loadingPartenaires = true;
+  previewOffres: RecompenseItemDto[] = [];
+  loadingOffres = true;
 
   constructor(
     public auth: AuthService,
     private actionService: ActionService,
-    private partenaireService: PartenaireService
+    private partenaireService: PartenaireService,
+    private recompenseService: RecompenseService
   ) {}
 
   ngOnInit(): void {
@@ -59,6 +63,20 @@ export class AccueilComponent implements OnInit {
         this.featuredActions = [...ACCUEIL_FEATURED_DEMO];
         this.spotlightAction = this.featuredActions[0] ?? null;
         this.loadingFeatured = false;
+      },
+    });
+
+    this.recompenseService.getCatalogue().subscribe({
+      next: (offres) => {
+        const dispo = offres.filter((o) => o.isAvailable);
+        const mystere = dispo.filter((o) => o.hasMystereBox);
+        const autres = dispo.filter((o) => !o.hasMystereBox);
+        this.previewOffres = [...mystere, ...autres].slice(0, 4);
+        this.loadingOffres = false;
+      },
+      error: () => {
+        this.previewOffres = [];
+        this.loadingOffres = false;
       },
     });
 

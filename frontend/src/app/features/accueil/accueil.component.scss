@@ -92,6 +92,29 @@
     padding: 0.85rem 1.75rem;
     font-size: 0.95rem;
   }
+
+  &--recompenses {
+    background: linear-gradient(135deg, var(--ec-brand-almond), var(--ec-cream-deep));
+    border-color: var(--ec-brand-sand);
+    color: var(--ec-brand-earth);
+
+    &:hover {
+      border-color: var(--ec-brand-moss);
+      color: var(--ec-brand-earth-dark);
+    }
+  }
+
+  &--ghost-sm {
+    background: transparent;
+    border-color: transparent;
+    color: var(--ec-text-muted);
+    font-weight: 500;
+    padding: 0.7rem 0.5rem;
+
+    &:hover {
+      color: var(--ec-sage);
+    }
+  }
 }
 
 .accueil-stats {
@@ -527,6 +550,87 @@
   box-shadow: none;
 }
 
+.accueil-recompenses__lead {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+  color: var(--ec-text-soft);
+  max-width: 48ch;
+}
+
+.accueil-recompenses__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.accueil-offre-card {
+  position: relative;
+  display: block;
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid var(--ec-border);
+  background: var(--ec-card);
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(45, 70, 53, 0.1);
+  }
+
+  &--mystere {
+    border-color: rgba(149, 113, 79, 0.35);
+    background: linear-gradient(180deg, var(--ec-brand-almond) 0%, #fff 35%);
+  }
+
+  img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+  }
+}
+
+.accueil-offre-card__ph {
+  aspect-ratio: 4/3;
+  background: linear-gradient(135deg, var(--ec-mint), var(--ec-cream-deep));
+}
+
+.accueil-offre-mystere {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--ec-brand-earth), var(--ec-brand-moss));
+  color: #fff;
+}
+
+.accueil-offre-card__body {
+  padding: 0.85rem 1rem 1rem;
+
+  h3 {
+    font-family: var(--ec-font-serif);
+    font-size: 1rem;
+    margin: 0.25rem 0 0.15rem;
+    line-height: 1.2;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--ec-text-muted);
+  }
+}
+
+.accueil-offre-pts {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ec-sage);
+}
+
 .partenaires-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -607,6 +711,10 @@
     grid-template-columns: 1fr 1fr;
   }
 
+  .accueil-recompenses__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .partenaires-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -647,6 +755,10 @@
   }
 
   .accueil-events {
+    grid-template-columns: 1fr;
+  }
+
+  .accueil-recompenses__grid {
     grid-template-columns: 1fr;
   }
 
