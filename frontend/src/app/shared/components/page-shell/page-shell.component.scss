@@ -62,6 +62,26 @@
       background: #245a43;
     }
   }
+
+  &--logout {
+    background: transparent;
+    color: #b42318;
+    border: 1px solid #fecdca;
+    cursor: pointer;
+    font-family: inherit;
+
+    &:hover {
+      background: #fef3f2;
+      border-color: #fda29b;
+    }
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .footer-palette {

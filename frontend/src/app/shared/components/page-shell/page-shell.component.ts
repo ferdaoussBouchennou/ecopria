@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -11,7 +11,7 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrl: './page-shell.component.scss',
 })
 export class PageShellComponent {
-  constructor(public auth: AuthService) {}
+  constructor(public auth: AuthService, private router: Router) {}
 
   get isLoggedIn(): boolean {
     return this.auth.isLoggedIn();
@@ -25,6 +25,11 @@ export class PageShellComponent {
     if (role === 'PARTNER') {
       return ['/partenaire'];
     }
-    return ['/mes-inscriptions'];
+    return ['/espace', 'dashboard'];
+  }
+
+  logout(): void {
+    this.auth.clearSession();
+    this.router.navigate(['/connexion']);
   }
 }

@@ -16,7 +16,10 @@
     </nav>
 
     @if (isLoggedIn) {
-      <a [routerLink]="monEspaceLink" class="btn-header btn-header--space">Mon espace</a>
+      <div class="header-actions">
+        <a [routerLink]="monEspaceLink" class="btn-header btn-header--space">Mon espace</a>
+        <button type="button" class="btn-header btn-header--logout" (click)="logout()">Déconnexion</button>
+      </div>
     } @else {
       <a routerLink="/creer-compte" class="btn-header btn-header--join">Rejoindre Ecopria</a>
     }
