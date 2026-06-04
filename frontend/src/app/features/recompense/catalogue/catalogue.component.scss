@@ -90,7 +90,7 @@
 }
 
 .btn--mystere {
-  background: linear-gradient(135deg, #6b21a8, #9333ea);
+  background: linear-gradient(135deg, var(--ec-brand-earth, #95714f), var(--ec-brand-moss, #8c916c));
   color: #fff;
   border: none;
   padding: 0.65rem 1rem;

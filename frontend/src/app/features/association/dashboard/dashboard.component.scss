@@ -419,6 +419,20 @@
   color: #A8A29E;
 }
 
+.dashboard-errors {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #991b1b;
+  font-size: 0.875rem;
+
+  p {
+    margin: 0.25rem 0;
+  }
+}
+
 /* ===== LOADING ===== */
 .state-box {
   text-align: center;

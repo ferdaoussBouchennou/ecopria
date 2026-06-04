@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { AssociationService } from '../services/association.service';
+import { AssociationUiService } from '../services/association-ui.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { AppNotification } from '../../../core/models/notification.model';
 import { httpErrorMessage } from '../../../core/utils/http-error.util';
@@ -10,7 +12,7 @@ import { AuthService } from '../../../core/services/auth.service';
 @Component({
   selector: 'app-association-shell',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterOutlet],
+  imports: [CommonModule, FormsModule, RouterLink, RouterOutlet],
   templateUrl: './association-shell.component.html',
   styleUrls: ['./association-shell.component.css']
 })
@@ -28,7 +30,8 @@ export class AssociationShellComponent implements OnInit {
     private router: Router,
     private associationService: AssociationService,
     private notificationService: NotificationService,
-    private authService: AuthService
+    private authService: AuthService,
+    public ui: AssociationUiService
   ) {}
 
   ngOnInit(): void {
@@ -132,9 +135,20 @@ export class AssociationShellComponent implements OnInit {
   }
 
   logout(): void {
-    if (confirm('Voulez-vous vous déconnecter ?')) {
-      this.authService.logout();
-      void this.router.navigate(['/']);
-    }
+    this.ui.confirm({
+      title: 'Déconnexion',
+      message: 'Voulez-vous vous déconnecter ?',
+      confirmLabel: 'Se déconnecter',
+      cancelLabel: 'Annuler'
+    }).subscribe((ok) => {
+      if (ok) {
+        this.authService.logout();
+        void this.router.navigate(['/']);
+      }
+    });
+  }
+
+  onPromptInput(value: string): void {
+    this.ui.setPromptValue(value);
   }
 }

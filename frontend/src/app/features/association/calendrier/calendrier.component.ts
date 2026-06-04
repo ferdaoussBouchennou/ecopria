@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, of } from 'rxjs';
 import { AssociationService } from '../services/association.service';
 import { ActionSummary } from '../../action/models/action.model';
+import { formatNaiveTimeRange, parseNaiveDateTime } from '../../../core/utils/datetime-local.util';
 
 interface CalendarDay {
   date: Date;
@@ -132,7 +133,7 @@ export class CalendrierComponent implements OnInit {
 
         // Distribute actions to calendar days
         actions.forEach(action => {
-          const actionDate = new Date(action.dateStart);
+          const actionDate = parseNaiveDateTime(action.dateStart);
           actionDate.setHours(0, 0, 0, 0);
 
           const calendarDay = this.calendarDays.find(day => {
@@ -255,22 +256,14 @@ export class CalendrierComponent implements OnInit {
   }
 
   formatHourRange(action: ActionSummary): string {
-    const start = new Date(action.dateStart).toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    const end = new Date(action.dateEnd).toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    return `${start} - ${end}`;
+    return formatNaiveTimeRange(action.dateStart, action.dateEnd).replace(' — ', ' - ');
   }
 
   private get monthActions(): ActionSummary[] {
     const month = this.currentDate.getMonth();
     const year = this.currentDate.getFullYear();
     return this.actions.filter((action) => {
-      const date = new Date(action.dateStart);
+      const date = parseNaiveDateTime(action.dateStart);
       return date.getMonth() === month && date.getFullYear() === year;
     });
   }

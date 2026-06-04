@@ -1,5 +1,6 @@
 package com.ecopria.action.service;
 
+import com.ecopria.action.client.PresenceClient;
 import com.ecopria.action.dto.*;
 import com.ecopria.action.kafka.ActionProducer;
 import com.ecopria.action.kafka.event.*;
@@ -19,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -33,6 +35,7 @@ public class ActionService {
     private final AssociationRepository associationRepository;
     private final CategorieRepository categorieRepository;
     private final ActionProducer actionProducer;
+    private final PresenceClient presenceClient;
 
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
@@ -67,7 +70,9 @@ public class ActionService {
             }
         }
 
-        return toDetailDTO(action);
+        ActionDetailDTO detail = toDetailDTO(action);
+        detail.setPointsCredited(presenceClient.pointsForAction(actionId));
+        return detail;
     }
 
     // ─── CARTE ────────────────────────────────────────────────
@@ -201,12 +206,29 @@ public class ActionService {
             action.setDateEnd(dto.getDateEnd());
         if (dto.getPoints() != null)
             action.setPoints(dto.getPoints());
+        if (dto.getMaxParticipants() != null) {
+            int inscrits = action.getRegisteredCount();
+            int newMax = dto.getMaxParticipants();
+            if (newMax < inscrits) {
+                throw new IllegalArgumentException(
+                        "Le nombre max de participants ne peut pas être inférieur aux inscrits (" + inscrits + ")");
+            }
+            action.setMaxParticipants(newMax);
+            action.setAvailablePlaces(newMax - inscrits);
+        }
+        if (dto.getCategoryId() != null) {
+            Categorie category = categorieRepository.findById(dto.getCategoryId())
+                    .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"));
+            action.setCategory(category);
+        }
         if (dto.getProgram() != null)
             action.setProgram(dto.getProgram());
         if (dto.getPracticalInfos() != null)
             action.setPracticalInfos(dto.getPracticalInfos());
 
-        return toDetailDTO(actionRepository.save(action));
+        Action saved = actionRepository.save(action);
+        publishPlacesUpdated(saved);
+        return toDetailDTO(saved);
     }
 
     // ─── ANNULER ──────────────────────────────────────────────
@@ -252,8 +274,8 @@ public class ActionService {
                             .build();
                     return associationRepository.save(assoc);
                 });
-        return actionRepository.findByAssociationId(association.getId())
-                .stream().map(this::toSummaryDTO).collect(Collectors.toList());
+        List<Action> actions = actionRepository.findByAssociationId(association.getId());
+        return enrichSummariesWithPointsCredited(actions);
     }
 
     @Transactional(readOnly = false) // changed to false to allow saving
@@ -275,7 +297,8 @@ public class ActionService {
                 .count();
         int totalParticipants = actions.stream().mapToInt(Action::getRegisteredCount).sum();
         int totalPlaces = actions.stream().mapToInt(Action::getMaxParticipants).sum();
-        int totalPoints = actions.stream().mapToInt(a -> a.getPoints() * a.getRegisteredCount()).sum();
+        List<Long> actionIds = actions.stream().map(Action::getId).toList();
+        int totalPoints = presenceClient.sumPointsForActions(actionIds);
         
         return AssociationStatsDTO.builder()
                 .totalActions(totalActions)
@@ -597,6 +620,18 @@ public class ActionService {
                                 : "Association #" + associationOrUserId)
                         .city("Ville non définie")
                         .build()));
+    }
+
+    private List<ActionSummaryDTO> enrichSummariesWithPointsCredited(List<Action> actions) {
+        if (actions.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> actionIds = actions.stream().map(Action::getId).toList();
+        Map<Long, Integer> credited = presenceClient.pointsByAction(actionIds);
+        return actions.stream()
+                .map(this::toSummaryDTO)
+                .peek(dto -> dto.setPointsCredited(credited.getOrDefault(dto.getId(), 0)))
+                .collect(Collectors.toList());
     }
 
     private ActionSummaryDTO toSummaryDTO(Action action) {

@@ -23,6 +23,7 @@ ecopria:
     # Mettre à true uniquement en production (si EMAIL_USERNAME est requis obligatoirement)
     enforce: ${MAIL_ENFORCE:false}
   internal:
+    auth-base-url: ${SERVICE_AUTH_URL:http://localhost:8081}
     utilisateur-base-url: ${SERVICE_UTILISATEUR_URL:http://localhost:8082}
     inscription-base-url: ${SERVICE_INSCRIPTION_URL:http://localhost:8084}
 
@@ -72,5 +73,11 @@ spring:
       mail:
         smtp:
           auth: true
+          connectiontimeout: 15000
+          timeout: 15000
+          writetimeout: 15000
           starttls:
             enable: true
+            required: true
+          ssl:
+            trust: smtp.gmail.com

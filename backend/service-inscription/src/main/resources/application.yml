@@ -38,7 +38,8 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "*"
-        spring.json.type.mapping: "com.ecopria.action.kafka.event.ActionPlacesUpdatedEvent:com.ecopria.inscription.kafka.ActionPlacesEvent"
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: java.util.LinkedHashMap
 
 service:
   action:
@@ -47,4 +48,4 @@ service:
   presence:
     url: ${SERVICE_PRESENCE_URL:http://localhost:8085}
   utilisateur:
-    url: ${SERVICE_UTILISATEUR_URL:http://localhost:8081}
+    url: ${SERVICE_UTILISATEUR_URL:http://localhost:8082}

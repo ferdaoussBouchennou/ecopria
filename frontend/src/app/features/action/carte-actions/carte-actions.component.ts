@@ -7,6 +7,7 @@ import 'leaflet.markercluster';
 import { ActionService } from '../services/action.service';
 import { ActionSummary, Category } from '../models/action.model';
 import { getCategoryMeta } from '../constants/category-meta';
+import { formatNaiveTime, parseNaiveDateTime } from '../../../core/utils/datetime-local.util';
 
 @Component({
   selector: 'app-carte-actions',
@@ -436,7 +437,7 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   formatDate(dateStr: string): string {
-    const date = new Date(dateStr);
+    const date = parseNaiveDateTime(dateStr);
     const days = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
     const months = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 
@@ -444,8 +445,7 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   formatTime(dateStr: string): string {
-    const date = new Date(dateStr);
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return formatNaiveTime(dateStr);
   }
 
   getAvailabilityClass(action: ActionSummary): string {

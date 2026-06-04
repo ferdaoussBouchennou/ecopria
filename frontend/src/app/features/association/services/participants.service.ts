@@ -63,8 +63,23 @@ export class ParticipantsService {
       conditions: inscription.conditions?.trim() || undefined,
       imageRights: inscription.imageRights,
       newsletter: inscription.newsletter,
-      accompagnants: inscription.accompagnants
+      trustScore: inscription.trustScore,
+      enAttenteMotif: inscription.enAttenteMotif as Participant['enAttenteMotif'],
     };
+  }
+
+  confirmerAttenteConfiance(inscriptionId: number): Observable<InscriptionResponse> {
+    return this.http.post<InscriptionResponse>(
+      `${this.apiInscriptions}/${inscriptionId}/confirmer-confiance`,
+      {}
+    );
+  }
+
+  refuserAttenteConfiance(inscriptionId: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.apiInscriptions}/${inscriptionId}/refuser-confiance`,
+      {}
+    );
   }
 
   calculateStats(participants: Participant[]): ParticipantsStats {

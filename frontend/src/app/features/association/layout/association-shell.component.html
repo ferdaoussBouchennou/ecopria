@@ -181,3 +181,51 @@
   </main>
 </div>
 
+@if (ui.toast$ | async; as toast) {
+  <div class="asso-toast" [class.asso-toast--error]="toast.type === 'error'" [class.asso-toast--success]="toast.type === 'success'" role="status">
+    <span>{{ toast.message }}</span>
+    <button type="button" class="asso-toast-close" (click)="ui.dismissToast()" aria-label="Fermer">×</button>
+  </div>
+}
+
+@if (ui.isConfirmOpen && ui.activeConfirm; as dlg) {
+  <div class="asso-overlay" role="dialog" aria-modal="true">
+    <div class="asso-dialog">
+      <h3>{{ dlg.title }}</h3>
+      <p>{{ dlg.message }}</p>
+      <div class="asso-dialog-actions">
+        <button type="button" class="asso-btn asso-btn--ghost" (click)="ui.resolveConfirm(false)">
+          {{ dlg.cancelLabel || 'Annuler' }}
+        </button>
+        <button type="button" class="asso-btn" [class.asso-btn--danger]="dlg.danger" (click)="ui.resolveConfirm(true)">
+          {{ dlg.confirmLabel || 'Confirmer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (ui.isPromptOpen && ui.activePrompt; as dlg) {
+  <div class="asso-overlay" role="dialog" aria-modal="true">
+    <div class="asso-dialog">
+      <h3>{{ dlg.title }}</h3>
+      <p>{{ dlg.message }}</p>
+      <textarea
+        class="asso-prompt-input"
+        rows="4"
+        [placeholder]="dlg.placeholder || ''"
+        [value]="ui.promptInputValue"
+        (input)="onPromptInput($any($event.target).value)"
+      ></textarea>
+      <div class="asso-dialog-actions">
+        <button type="button" class="asso-btn asso-btn--ghost" (click)="ui.resolvePrompt(null)">
+          {{ dlg.cancelLabel || 'Annuler' }}
+        </button>
+        <button type="button" class="asso-btn" (click)="ui.resolvePrompt(ui.promptInputValue)">
+          {{ dlg.confirmLabel || 'Continuer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

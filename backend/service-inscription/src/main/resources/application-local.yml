@@ -6,8 +6,15 @@ spring:
     bootstrap-servers: localhost:29092
     listener:
       auto-startup: true
+    consumer:
+      properties:
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: java.util.LinkedHashMap
 
 service:
   action:
-    # Appel direct au service-action local (pas besoin de gateway pour ce lien)
     url: http://localhost:9090
+  utilisateur:
+    url: http://localhost:8082
+  presence:
+    url: http://localhost:8085

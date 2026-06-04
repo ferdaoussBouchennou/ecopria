@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ActionService } from '../../action/services/action.service';
 import { AssociationService } from '../services/association.service';
+import { AssociationUiService } from '../services/association-ui.service';
 import { ActionDetail } from '../../action/models/action.model';
 import {
   formatActionDate,
@@ -33,7 +34,8 @@ export class DetailActionAssoComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private actionService: ActionService,
-    private associationService: AssociationService
+    private associationService: AssociationService,
+    private ui: AssociationUiService
   ) {}
 
   ngOnInit(): void {
@@ -98,7 +100,7 @@ export class DetailActionAssoComponent implements OnInit {
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert('Veuillez autoriser les pop-ups pour imprimer le QR code');
+      this.ui.toast('Autorisez les fenêtres pop-up pour imprimer le QR code.', 'error');
       return;
     }
 
@@ -174,30 +176,33 @@ export class DetailActionAssoComponent implements OnInit {
   annulerAction(): void {
     if (!this.action || !this.canCancelAction()) return;
 
-    const raison = prompt(
-      'Motif de l\'annulation (obligatoire)\n\nUn e-mail sera envoyé à tous les inscrits avec ce motif :'
-    );
-    if (raison === null) {
-      return;
-    }
-    const trimmed = raison.trim();
-    if (!trimmed) {
-      alert('Le motif d\'annulation est obligatoire.');
-      return;
-    }
-    if (!confirm('Confirmer l\'annulation ? Tous les inscrits seront notifiés par e-mail.')) {
-      return;
-    }
-    this.associationService.annulerAction(this.action.id, trimmed).subscribe({
-      next: () => {
-        alert('Action annulée. Les participants ont été notifiés par e-mail.');
-        this.router.navigate(['/association/mes-actions']);
-      },
-      error: (err) => {
-        const msg = err?.error?.message || 'Erreur lors de l\'annulation';
-        alert(msg);
-        console.error(err);
-      }
+    this.ui.prompt({
+      title: 'Annuler l\'action',
+      message: 'Motif obligatoire — un e-mail sera envoyé à tous les inscrits.',
+      placeholder: 'Motif d\'annulation…',
+      required: true
+    }).subscribe((raison) => {
+      if (raison === null) return;
+      const trimmed = raison.trim();
+      this.ui.confirm({
+        title: 'Confirmer l\'annulation',
+        message: 'Tous les inscrits seront notifiés par e-mail.',
+        confirmLabel: 'Annuler l\'action',
+        danger: true
+      }).subscribe((ok) => {
+        if (!ok) return;
+        this.associationService.annulerAction(this.action!.id, trimmed).subscribe({
+          next: () => {
+            this.ui.toast('Action annulée. Les participants ont été notifiés.', 'success');
+            this.router.navigate(['/association/mes-actions']);
+          },
+          error: (err) => {
+            const msg = err?.error?.message || 'Erreur lors de l\'annulation';
+            this.ui.toast(msg, 'error');
+            console.error(err);
+          }
+        });
+      });
     });
   }
 
@@ -208,6 +213,18 @@ export class DetailActionAssoComponent implements OnInit {
   voirParticipants(): void {
     if (this.action) {
       this.router.navigate(['/association/action', this.action.id, 'participants']);
+    }
+  }
+
+  ouvrirQrPleinEcran(): void {
+    if (this.action) {
+      void this.router.navigate(['/association/action', this.action.id, 'qr']);
+    }
+  }
+
+  validerPresences(): void {
+    if (this.action) {
+      void this.router.navigate(['/association/action', this.action.id, 'valider-presence']);
     }
   }
 

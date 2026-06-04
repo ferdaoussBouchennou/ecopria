@@ -152,7 +152,9 @@ export interface CreateActionDTO {
   practicalInfos?: string[];
 }
 
-export interface UpdateActionDTO extends Partial<CreateActionDTO> {}
+export interface UpdateActionDTO extends Partial<CreateActionDTO> {
+  categoryId?: number;
+}
 
 export interface QRCodeResponse {
   actionId: number;

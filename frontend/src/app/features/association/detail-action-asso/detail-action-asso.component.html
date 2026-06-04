@@ -52,7 +52,7 @@
           <span class="meta-separator">•</span>
           <span>{{ formatLieu(action.address, action.city) }}</span>
           <span class="meta-separator">•</span>
-          <span>{{ action.points }} points</span>
+          <span>+{{ action.pointsCredited ?? 0 }} crédités · {{ action.points }} pts/action</span>
         </div>
 
         <div class="hero-stats">
@@ -96,8 +96,12 @@
               </div>
             }
             <div class="info-row">
-              <dt>Points</dt>
+              <dt>Points par présence</dt>
               <dd class="points-value">{{ action.points }}</dd>
+            </div>
+            <div class="info-row">
+              <dt>Points crédités</dt>
+              <dd class="points-value">+{{ action.pointsCredited ?? 0 }}</dd>
             </div>
             @if (getMapsUrl(); as mapsUrl) {
               <div class="info-row">
@@ -237,6 +241,14 @@
             <button type="button" class="btn-secondary" (click)="voirParticipants()">
               Consulter les participants
             </button>
+            @if (action.registeredCount > 0) {
+              <button type="button" class="btn-secondary" (click)="ouvrirQrPleinEcran()">
+                QR code plein écran
+              </button>
+              <button type="button" class="btn-secondary" (click)="validerPresences()">
+                Valider les présences
+              </button>
+            }
             @if (canModifyAction()) {
               <button type="button" class="btn-secondary" (click)="modifierAction()">
                 Mettre à jour la fiche

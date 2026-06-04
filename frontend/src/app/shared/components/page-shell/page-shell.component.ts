@@ -24,10 +24,7 @@ export class PageShellComponent {
   }
 
   get recompensesLink(): string[] {
-    if (this.auth.getRole() === 'USER') {
-      return ['/espace/recompenses'];
-    }
-    return ['/connexion'];
+    return ['/recompenses'];
   }
 
   get recompensesQueryParams(): Record<string, string> {

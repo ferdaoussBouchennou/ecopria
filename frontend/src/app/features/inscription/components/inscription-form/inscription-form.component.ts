@@ -64,7 +64,7 @@ export class InscriptionFormComponent implements OnInit {
       nom:           ['', [Validators.required, Validators.minLength(2)]],
       email:         ['', [Validators.required, Validators.email]],
       telephone:     ['', [Validators.required, Validators.pattern(/^[0-9+\s]{8,15}$/)]],
-      age:           ['', [Validators.required, Validators.min(16), Validators.max(99)]],
+      ville:         ['', [Validators.required, Validators.minLength(2)]],
       motivation:    [''],
       conditions:    [''],
       rulesAccepted: [false, Validators.requiredTrue],
@@ -83,7 +83,8 @@ export class InscriptionFormComponent implements OnInit {
             prenom: profile.firstName || '',
             nom: profile.lastName || '',
             email: profile.email || '',
-            telephone: profile.phone || ''
+            telephone: profile.phone || '',
+            ville: profile.city || ''
           });
         }
       },
@@ -121,6 +122,7 @@ export class InscriptionFormComponent implements OnInit {
       lastName: formData.nom,
       email: formData.email,
       phone: formData.telephone,
+      city: formData.ville,
       auth_id: this.userId
     };
 
@@ -135,11 +137,11 @@ export class InscriptionFormComponent implements OnInit {
           return this.inscriptionService.inscrire({
             userId:   this.userId,
             actionId: this.actionId,
-            accompagnants: 0,
             firstName: formData.prenom,
             lastName: formData.nom,
             email: formData.email,
             phone: formData.telephone,
+            city: formData.ville,
             motivation: formData.motivation,
             conditions: formData.conditions,
             imageRights: formData.imageRights,
@@ -150,13 +152,11 @@ export class InscriptionFormComponent implements OnInit {
       .subscribe({
         next: (res: InscriptionResponse) => {
           this.inscription = res;
-          const queryParams: Record<string, string> = { inscriptionOk: '1' };
           if (res.statut === 'EN_ATTENTE') {
-            queryParams['listeAttente'] = '1';
+            this.statut = 'en_attente';
           } else {
-            queryParams['emailSent'] = '1';
+            this.statut = 'confirmee';
           }
-          void this.router.navigate(['/espace/actions'], { queryParams });
         },
         error: (err: Error) => {
           this.erreurMessage = err.message;

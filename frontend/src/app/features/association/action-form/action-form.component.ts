@@ -3,10 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AssociationService, CreateActionDTO } from '../services/association.service';
+import { AssociationUiService } from '../services/association-ui.service';
 import { ActionService } from '../../action/services/action.service';
 import { ActionDetail } from '../../action/models/action.model';
 import { Observable } from 'rxjs';
 import * as L from 'leaflet';
+import {
+  datetimeLocalToApi,
+  nowDatetimeLocalInput,
+  toDatetimeLocalInput,
+} from '../../../core/utils/datetime-local.util';
 
 interface Category {
   id: number;
@@ -48,15 +54,14 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
     private route: ActivatedRoute,
     private router: Router,
     private associationService: AssociationService,
-    private actionService: ActionService
+    private actionService: ActionService,
+    private ui: AssociationUiService
   ) {
     this.initForm();
   }
 
   ngOnInit(): void {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    this.minDateTime = now.toISOString().slice(0, 16);
+    this.minDateTime = nowDatetimeLocalInput();
 
     this.loadCategories();
 
@@ -297,8 +302,8 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
 
   populateForm(action: ActionDetail): void {
     // Convertir les dates au format datetime-local
-    const dateStart = new Date(action.dateStart).toISOString().slice(0, 16);
-    const dateEnd = new Date(action.dateEnd).toISOString().slice(0, 16);
+    const dateStart = toDatetimeLocalInput(action.dateStart);
+    const dateEnd = toDatetimeLocalInput(action.dateEnd);
 
     this.actionForm.patchValue({
       titre: action.title,
@@ -376,11 +381,11 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
     }
 
     const actionData: CreateActionDTO = {
-      title: formValue.titre,  // Changed from 'titre' to 'title'
+      title: formValue.titre,
       description: formValue.description,
-      categoryId: formValue.categoryId,
-      dateStart: formValue.dateStart,
-      dateEnd: formValue.dateEnd,
+      categoryId: Number(formValue.categoryId),
+      dateStart: datetimeLocalToApi(formValue.dateStart),
+      dateEnd: datetimeLocalToApi(formValue.dateEnd),
       address: formValue.address,
       city: formValue.city,
       latitude: formValue.latitude,  // Now required
@@ -412,7 +417,10 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           console.error('Erreur modification:', err);
-          this.error = 'Erreur lors de la modification de l\'action';
+          const msg = err?.error?.message || err?.error || err?.message;
+          this.error = typeof msg === 'string' && msg.length > 0
+            ? msg
+            : 'Erreur lors de la modification de l\'action';
           this.submitting = false;
         }
       });
@@ -451,7 +459,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
           const message = wasPublished ?
             (this.isEditMode ? 'Action publiée avec succès !' : 'Action créée et publiée !') :
             (this.isEditMode ? 'Action modifiée avec succès !' : 'Action enregistrée en brouillon !');
-          alert(message);
+          this.ui.toast(message, 'success');
           this.router.navigate(['/association/mes-actions']);
         },
         error: (err) => {
@@ -459,7 +467,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
           const message = this.isEditMode ?
             'Action modifiée mais erreur lors de l\'upload de la photo' :
             'Action créée mais erreur lors de l\'upload de la photo';
-          alert(message);
+          this.ui.toast(message, 'error');
           this.router.navigate(['/association/mes-actions']);
         }
       });
@@ -467,7 +475,7 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
       const message = wasPublished ?
         (this.isEditMode ? 'Action publiée avec succès !' : 'Action créée et publiée !') :
         (this.isEditMode ? 'Action modifiée avec succès !' : 'Action enregistrée en brouillon !');
-      alert(message);
+      this.ui.toast(message, 'success');
       this.router.navigate(['/association/mes-actions']);
     }
   }
@@ -497,15 +505,24 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
   }
 
   publier(): void {
-    if (confirm('Voulez-vous publier cette action ? Elle sera visible par tous les utilisateurs.')) {
-      this.onSubmit(true);
-    }
+    this.ui.confirm({
+      title: 'Publier l\'action',
+      message: 'Elle sera visible par tous les utilisateurs.',
+      confirmLabel: 'Publier'
+    }).subscribe((ok) => {
+      if (ok) this.onSubmit(true);
+    });
   }
 
   annuler(): void {
-    if (confirm('Voulez-vous annuler ? Les modifications non enregistrées seront perdues.')) {
-      this.router.navigate(['/association/mes-actions']);
-    }
+    this.ui.confirm({
+      title: 'Abandonner les modifications',
+      message: 'Les modifications non enregistrées seront perdues.',
+      confirmLabel: 'Quitter',
+      danger: true
+    }).subscribe((ok) => {
+      if (ok) this.router.navigate(['/association/mes-actions']);
+    });
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {
@@ -849,5 +866,15 @@ export class ActionFormComponent implements OnInit, AfterViewInit {
     }
 
     return new Date(end).getTime() > new Date(start).getTime();
+  }
+
+  /** Aperçu étape récap (évite le pipe date Angular qui interprète en UTC). */
+  formatPreviewDateTime(value: string): string {
+    if (!value || value.length < 16) {
+      return '—';
+    }
+    const [datePart, timePart] = value.split('T');
+    const [y, m, d] = datePart.split('-');
+    return `${d}/${m}/${y} ${timePart}`;
   }
 }

@@ -44,19 +44,16 @@ public class InscriptionService {
         }
 
         ActionDTO action = actionClient.getAction(request.getActionId());
+        utilisateurClient.syncParticipantProfile(request);
         Map<String, Object> profile = utilisateurClient.getParticipantProfile(request.getUserId());
-        String participantEmail = stringValue(profile.get("email"));
-        String participantFirstName = stringValue(profile.get("firstName"));
+        String participantEmail = firstNonBlank(request.getEmail(), stringValue(profile.get("email")));
+        String participantFirstName = firstNonBlank(request.getFirstName(), stringValue(profile.get("firstName")));
 
         Inscription inscription = new Inscription();
         inscription.setUserId(request.getUserId());
         inscription.setActionId(request.getActionId());
         inscription.setDateInscription(LocalDateTime.now());
         inscription.setPointsAction(action.getPoints());
-        
-        if (request.getAccompagnants() != null) {
-            inscription.setAccompagnants(request.getAccompagnants());
-        }
         inscription.setMotivation(request.getMotivation());
         inscription.setConditions(request.getConditions());
         inscription.setParticipantFirstName(trimToNull(request.getFirstName()));
@@ -73,24 +70,35 @@ public class InscriptionService {
 
         if (action.getPlacesDisponibles() <= 0) {
             inscription.setStatut("EN_ATTENTE");
+            inscription.setEnAttenteMotif(Inscription.MOTIF_PLACES);
             Inscription saved = inscriptionRepository.save(inscription);
-            inscriptionProducer.envoyerNotification(saved, action, participantEmail, participantFirstName);
+            publishInscriptionNotification(saved, action, participantEmail, participantFirstName);
             return toResponseDTO(saved);
         }
 
-        // Vérifier le Trust Score : si < seuil, mise en attente automatique
         int trustScore = utilisateurClient.getTrustScore(request.getUserId());
-        if (trustScore < 70) {
+        if (trustScore < TRUST_SCORE_SEUIL) {
             inscription.setStatut("EN_ATTENTE");
+            inscription.setEnAttenteMotif(Inscription.MOTIF_TRUST);
             Inscription saved = inscriptionRepository.save(inscription);
-            inscriptionProducer.envoyerNotification(saved, action, participantEmail, participantFirstName);
+            publishInscriptionNotification(saved, action, participantEmail, participantFirstName);
             return toResponseDTO(saved);
         }
 
         inscription.setStatut("CONFIRMEE");
+        inscription.setEnAttenteMotif(null);
         Inscription saved = inscriptionRepository.save(inscription);
-        inscriptionProducer.envoyerNotification(saved, action, participantEmail, participantFirstName);
+        publishInscriptionNotification(saved, action, participantEmail, participantFirstName);
         return toResponseDTO(saved);
+    }
+
+    private void publishInscriptionNotification(Inscription inscription,
+                                                ActionDTO action,
+                                                String profileEmail,
+                                                String profileFirstName) {
+        String email = firstNonBlank(inscription.getParticipantEmail(), profileEmail);
+        String firstName = firstNonBlank(inscription.getParticipantFirstName(), profileFirstName);
+        inscriptionProducer.envoyerNotification(inscription, action, email, firstName);
     }
 
     public List<InscriptionResponseDTO> getMesInscriptions(Long userId) {
@@ -124,6 +132,56 @@ public class InscriptionService {
         return count;
     }
 
+    /** Confirmation manuelle d'une inscription en attente pour score de confiance (espace association). */
+    @Transactional
+    public InscriptionResponseDTO confirmerAttenteConfiance(Long inscriptionId) {
+        Inscription inscription = inscriptionRepository.findById(inscriptionId)
+                .orElseThrow(() -> new RuntimeException("Inscription introuvable : id=" + inscriptionId));
+
+        if (!"EN_ATTENTE".equals(inscription.getStatut())) {
+            throw new IllegalStateException("Seules les inscriptions en attente peuvent être confirmées.");
+        }
+        if (!Inscription.MOTIF_TRUST.equals(inscription.getEnAttenteMotif())) {
+            throw new IllegalStateException(
+                    "La confirmation manuelle ne concerne que les inscriptions en revue (score de confiance).");
+        }
+
+        ActionDTO action = actionClient.getAction(inscription.getActionId());
+        if (action.getPlacesDisponibles() <= 0) {
+            throw new IllegalStateException("Aucune place disponible pour confirmer cette inscription.");
+        }
+
+        inscription.setStatut("CONFIRMEE");
+        inscription.setEnAttenteMotif(null);
+        Inscription saved = inscriptionRepository.save(inscription);
+
+        String email = firstNonBlank(saved.getParticipantEmail(),
+                stringValue(utilisateurClient.getParticipantProfile(saved.getUserId()).get("email")));
+        String firstName = firstNonBlank(saved.getParticipantFirstName(),
+                stringValue(utilisateurClient.getParticipantProfile(saved.getUserId()).get("firstName")));
+        publishInscriptionNotification(saved, action, email, firstName);
+        return toResponseDTO(saved);
+    }
+
+    /** Refus manuel d'une inscription en attente pour score de confiance. */
+    @Transactional
+    public void refuserAttenteConfiance(Long inscriptionId) {
+        Inscription inscription = inscriptionRepository.findById(inscriptionId)
+                .orElseThrow(() -> new RuntimeException("Inscription introuvable : id=" + inscriptionId));
+
+        if (!"EN_ATTENTE".equals(inscription.getStatut())) {
+            throw new IllegalStateException("Seules les inscriptions en attente peuvent être refusées.");
+        }
+        if (!Inscription.MOTIF_TRUST.equals(inscription.getEnAttenteMotif())) {
+            throw new IllegalStateException(
+                    "Le refus manuel ne concerne que les inscriptions en revue (score de confiance).");
+        }
+
+        inscription.setStatut("ANNULEE");
+        inscription.setEnAttenteMotif(null);
+        inscriptionRepository.save(inscription);
+    }
+
     @Transactional
     public void desinscrire(Long inscriptionId) {
         Inscription inscription = inscriptionRepository.findById(inscriptionId)
@@ -133,9 +191,15 @@ public class InscriptionService {
             throw new IllegalStateException("Cette inscription est déjà annulée.");
         }
 
+        String statutAvant = inscription.getStatut();
         inscription.setStatut("ANNULEE");
         inscriptionRepository.save(inscription);
-        inscriptionProducer.envoyerAnnulation(inscription);
+        String actionTitle = null;
+        try {
+            actionTitle = actionClient.getAction(inscription.getActionId()).getTitre();
+        } catch (Exception ignored) {
+        }
+        inscriptionProducer.envoyerAnnulation(inscription, statutAvant, actionTitle);
     }
 
     private InscriptionResponseDTO toResponseDTO(Inscription inscription) {
@@ -157,7 +221,12 @@ public class InscriptionService {
         dto.setConditions(inscription.getConditions());
         dto.setImageRights(inscription.getImageRights());
         dto.setNewsletter(inscription.getNewsletter());
-        dto.setAccompagnants(inscription.getAccompagnants());
+        dto.setEnAttenteMotif(inscription.getEnAttenteMotif());
+        try {
+            dto.setTrustScore(utilisateurClient.getTrustScore(inscription.getUserId()));
+        } catch (Exception e) {
+            dto.setTrustScore(null);
+        }
         return dto;
     }
 

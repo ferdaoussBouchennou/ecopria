@@ -4,6 +4,7 @@ package com.ecopria.presence.service;
 
 import com.ecopria.presence.client.ActionClient;
 import com.ecopria.presence.dto.ActionDTO;
+import com.ecopria.presence.dto.PointsByActionsDTO;
 import com.ecopria.presence.dto.PresenceResponseDTO;
 import com.ecopria.presence.dto.ValidationByPinDTO;
 import com.ecopria.presence.dto.ValidationRequestDTO;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -138,6 +141,21 @@ public class PresenceService {
         return presenceRepository.findByActionId(actionId).stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    /** Somme des points crédités (présences validées) pour une ou plusieurs actions. */
+    public PointsByActionsDTO getPointsByActions(List<Long> actionIds) {
+        if (actionIds == null || actionIds.isEmpty()) {
+            return new PointsByActionsDTO(0L, Collections.emptyMap());
+        }
+        Long total = presenceRepository.sumPointsByActionIds(actionIds);
+        Map<Long, Integer> byAction = new HashMap<>();
+        for (Object[] row : presenceRepository.sumPointsGroupedByActionIds(actionIds)) {
+            Long actionId = (Long) row[0];
+            Number sum = (Number) row[1];
+            byAction.put(actionId, sum != null ? sum.intValue() : 0);
+        }
+        return new PointsByActionsDTO(total != null ? total : 0L, byAction);
     }
 
     private void enregistrerTentativeEchouee(Long userId, Long actionId, String raison) {

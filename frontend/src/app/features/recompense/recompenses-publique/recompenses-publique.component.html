@@ -1,0 +1,426 @@
+<div class="rew-page">
+  <header class="rew-hero">
+    <p class="rew-eyebrow"><span class="rew-eyebrow__dash" aria-hidden="true"></span> Récompenses</p>
+    <h1 class="rew-hero__title">
+      <span class="rew-hero__line">Vos points, transformés en</span>
+      <span class="rew-hero__line">plaisirs choisis avec soin.</span>
+    </h1>
+    <p class="rew-hero__lead">
+      <span class="rew-hero__line">Cafés, artisans, mobilité douce : une sélection éditoriale</span>
+      <span class="rew-hero__line">de partenaires qui partagent nos valeurs.</span>
+    </p>
+    @if (isLoggedInCitizen) {
+      <div class="rew-hero__wallet">
+        <span class="rew-hero__wallet-label">Votre solde</span>
+        <span class="rew-hero__wallet-value">
+          @if (loadingSolde) { … } @else { {{ soldePoints }} pts }
+        </span>
+        <a routerLink="/espace/recompenses" class="rew-hero__wallet-link">Mes coupons →</a>
+      </div>
+    } @else {
+      <p class="rew-hero__hint">
+        Parcourez le catalogue librement.
+        <a routerLink="/connexion" [queryParams]="{ returnUrl: '/recompenses' }">Connectez-vous</a>
+        pour réserver une offre ou ouvrir une boîte mystère.
+      </p>
+    }
+  </header>
+
+  <hr class="rew-divider" />
+
+  <nav class="rew-subnav" aria-label="Navigation du catalogue">
+    <div class="rew-subnav__filters" role="tablist">
+      @for (f of filters; track f.key) {
+        <button
+          type="button"
+          role="tab"
+          class="rew-subnav__tab"
+          [class.rew-subnav__tab--active]="activeFilter === f.key"
+          [attr.aria-selected]="activeFilter === f.key"
+          (click)="setFilter(f.key)"
+        >
+          {{ f.label }}
+        </button>
+      }
+    </div>
+    <div class="rew-subnav__tools">
+      <label class="rew-search">
+        <span class="visually-hidden">Rechercher</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M20 20L16 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <input type="search" placeholder="Rechercher…" [(ngModel)]="searchQuery" />
+      </label>
+      <a routerLink="/partenaires" class="rew-subnav__anchor">Partenaires</a>
+    </div>
+  </nav>
+
+  @if (erreur) {
+    <div class="rew-alert" role="alert">{{ erreur }}</div>
+  }
+  @if (erreurAction) {
+    <div class="rew-alert" role="alert">{{ erreurAction }}</div>
+  }
+
+  <section class="rew-catalogue" id="catalogue" aria-labelledby="catalogue-heading">
+    <h2 id="catalogue-heading" class="visually-hidden">Catalogue des offres</h2>
+
+    @if (loading) {
+      <div class="rew-loading">
+        <div class="rew-spinner"></div>
+        <p>Chargement du catalogue…</p>
+      </div>
+    } @else if (gridOffres.length === 0) {
+      <div class="rew-empty">
+        <p>Aucune offre ne correspond à votre recherche.</p>
+        <button type="button" class="rew-btn rew-btn--outline" (click)="searchQuery = ''; setFilter('ALL')">
+          Réinitialiser
+        </button>
+      </div>
+    } @else {
+      <div class="rew-grid">
+        @for (o of gridOffres; track trackOffre($index, o)) {
+          <article class="rew-card" [class.rew-card--with-box]="o.hasMystereBox">
+            <div class="rew-card__surface">
+              <button type="button" class="rew-card__media-btn" (click)="ouvrirDetail(o)">
+                @if (hasCardImage(o)) {
+                  <img
+                    [src]="o.imageUrl"
+                    [alt]=""
+                    loading="lazy"
+                    (error)="onCardImageError(o.id)"
+                  />
+                } @else {
+                  <div class="rew-card__placeholder" aria-hidden="true">
+                    <span class="rew-card__ph-letter">{{ cardInitial(o) }}</span>
+                  </div>
+                }
+                @if (discountLabel(o); as disc) {
+                  <span class="rew-card__tag rew-card__tag--discount">{{ disc }}</span>
+                }
+                @if (o.hasMystereBox) {
+                  <span class="rew-card__tag rew-card__tag--mystere">Boîte mystère</span>
+                }
+              </button>
+
+              <div class="rew-card__body">
+                <p class="rew-card__meta">{{ metaLine(o) }}</p>
+                <button type="button" class="rew-card__title-btn" (click)="ouvrirDetail(o)">
+                  <h3>{{ o.title }}</h3>
+                </button>
+
+                <div class="rew-card__pricing">
+                  <span class="rew-card__pts">{{ o.pointsNecessaires }} pts</span>
+                  @if (stockLabel(o); as stock) {
+                    <span class="rew-card__stock">{{ stock }}</span>
+                  }
+                </div>
+
+                @if (o.hasMystereBox && o.mystereBoxPoints) {
+                  <div class="rew-card__actions rew-card__actions--dual">
+                    <button
+                      type="button"
+                      class="rew-btn rew-btn--primary rew-btn--block"
+                      [disabled]="!o.isAvailable || actionId === o.id"
+                      (click)="echanger(o)"
+                    >
+                      {{ actionId === o.id ? '…' : 'Réserver' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="rew-card__mystere-btn"
+                      [disabled]="!o.isAvailable || actionId === o.id"
+                      [attr.aria-label]="'Ouvrir la boîte mystère pour ' + o.title"
+                      (click)="clicBoiteFermee(o, $event)"
+                    >
+                      <span class="gift-box gift-box--mini" aria-hidden="true">
+                        <span class="gift-box__lid"></span>
+                        <span class="gift-box__body"></span>
+                        <span class="gift-box__ribbon-v"></span>
+                        <span class="gift-box__ribbon-h"></span>
+                      </span>
+                      <span class="rew-card__mystere-label">Ouvrir la boîte · {{ o.mystereBoxPoints }} pts</span>
+                    </button>
+                  </div>
+                } @else {
+                  <div class="rew-card__actions">
+                    <button
+                      type="button"
+                      class="rew-btn rew-btn--primary rew-btn--block"
+                      [disabled]="!o.isAvailable || actionId === o.id"
+                      (click)="echanger(o)"
+                    >
+                      {{ actionId === o.id ? '…' : 'Échanger' }}
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  @if (partenaires.length > 0) {
+    <section class="rew-partners" id="partenaires" aria-labelledby="partners-heading">
+      <div class="rew-partners__head">
+        <div class="rew-partners__intro">
+          <h2 id="partners-heading" class="rew-section-title">Nos partenaires</h2>
+          <p class="rew-partners__sub">
+            {{ partenaires.length }} commerce{{ partenaires.length > 1 ? 's' : '' }} engagé{{ partenaires.length > 1 ? 's' : '' }} avec EcoPria
+          </p>
+        </div>
+        <a routerLink="/partenaires" class="rew-partners__all">Tous les partenaires →</a>
+      </div>
+
+      <div class="rew-partners__track" tabindex="0" role="list">
+        @for (p of partenaires; track p.userId) {
+          <a
+            class="rew-partner-card"
+            role="listitem"
+            [routerLink]="['/partenaires', p.userId]"
+          >
+            <div class="rew-partner-card__media">
+              @if (hasPartnerImage(p)) {
+                <img
+                  [src]="p.imageUrl"
+                  alt=""
+                  loading="lazy"
+                  (error)="onPartnerImageError(p.userId)"
+                />
+              } @else {
+                <div class="rew-partner-card__placeholder" aria-hidden="true">
+                  <span class="rew-partner-card__letter">{{ partnerInitial(p) }}</span>
+                </div>
+              }
+            </div>
+            <div class="rew-partner-card__body">
+              @if (p.category) {
+                <span class="rew-partner-card__cat">{{ p.category }}</span>
+              }
+              <h3 class="rew-partner-card__name">{{ p.name }}</h3>
+              @if (p.city) {
+                <p class="rew-partner-card__city">{{ p.city }}</p>
+              }
+              <span class="rew-partner-card__cta">Voir le profil →</span>
+            </div>
+          </a>
+        }
+      </div>
+    </section>
+  }
+</div>
+
+<!-- Popup détail offre -->
+@if (selectedOffre; as o) {
+  <div class="rew-overlay" role="dialog" aria-modal="true" aria-labelledby="detail-title" (click)="fermerDetail()">
+    <div class="rew-detail" (click)="$event.stopPropagation()">
+      <button type="button" class="rew-detail__close" aria-label="Fermer" (click)="fermerDetail()">×</button>
+
+      @if (detailLoading) {
+        <div class="rew-detail__loading"><div class="rew-spinner"></div></div>
+      }
+
+      <div class="rew-detail__layout" [class.rew-detail__layout--loading]="detailLoading">
+        <div class="rew-detail__media">
+          @if (o.imageUrl) {
+            <img [src]="o.imageUrl" [alt]="o.title" />
+          } @else {
+            <div class="rew-detail__placeholder"></div>
+          }
+        </div>
+        <div class="rew-detail__content">
+          <p class="rew-card__meta">{{ metaLine(o) }}</p>
+          <h2 id="detail-title" class="rew-detail__title">{{ o.title }}</h2>
+
+          @if (o.description) {
+            <p class="rew-detail__desc">{{ o.description }}</p>
+          }
+
+          @if (o.hasMystereBox && o.mystereBoxPoints) {
+            <div class="rew-detail__dual">
+              <div class="rew-detail__choice-block">
+                <h3>Offre visible</h3>
+                <p>Réservez exactement ce qui est affiché.</p>
+                <p class="rew-detail__price">{{ o.pointsNecessaires }} pts</p>
+                <button
+                  type="button"
+                  class="rew-btn rew-btn--primary"
+                  [disabled]="!o.isAvailable || actionId === o.id"
+                  (click)="echanger(o)"
+                >
+                  Réserver l'offre
+                </button>
+              </div>
+              <div class="rew-detail__choice-sep" aria-hidden="true">ou</div>
+              <div class="rew-detail__choice-block rew-detail__choice-block--box">
+                <h3>Boîte mystère</h3>
+                <p>{{ mystereHiddenCount(o) }} surprises cachées — le résultat peut être meilleur ou moins avantageux.</p>
+                <button
+                  type="button"
+                  class="gift-box-btn gift-box-btn--large"
+                  (click)="clicBoiteFermee(o, $event)"
+                  [attr.aria-label]="'Ouvrir la boîte mystère'"
+                >
+                  <span class="gift-box" aria-hidden="true">
+                    <span class="gift-box__lid"></span>
+                    <span class="gift-box__body"></span>
+                    <span class="gift-box__ribbon-v"></span>
+                    <span class="gift-box__ribbon-h"></span>
+                  </span>
+                  <span class="gift-box-btn__label">Ouvrir · {{ o.mystereBoxPoints }} pts</span>
+                </button>
+              </div>
+            </div>
+          } @else {
+            <dl class="rew-detail__facts">
+              <div>
+                <dt>Points</dt>
+                <dd>{{ o.pointsNecessaires }} pts</dd>
+              </div>
+              @if (o.stock != null) {
+                <div><dt>Stock</dt><dd>{{ o.stock }}</dd></div>
+              }
+            </dl>
+            <div class="rew-detail__actions">
+              <button
+                type="button"
+                class="rew-btn rew-btn--primary"
+                [disabled]="!o.isAvailable || actionId === o.id"
+                (click)="echanger(o)"
+              >
+                Échanger · {{ o.pointsNecessaires }} pts
+              </button>
+            </div>
+          }
+
+          <a [routerLink]="partenaireLink(o)" class="rew-detail__partner" (click)="fermerDetail()">
+            Voir {{ o.partenaireName }} →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Scène boîte mystère (animation + tirage) -->
+@if (mystereSceneOffre; as sceneOffre) {
+  <div class="rew-overlay rew-overlay--scene" role="dialog" aria-modal="true" aria-labelledby="scene-title">
+    <div class="rew-scene" (click)="$event.stopPropagation()">
+      <button type="button" class="rew-detail__close" aria-label="Fermer" (click)="fermerSceneBoite()">×</button>
+
+      <p class="rew-card__meta">{{ metaLine(sceneOffre) }}</p>
+      <h2 id="scene-title" class="rew-scene__title">{{ sceneOffre.title }}</h2>
+
+      <div
+        class="rew-scene__stage"
+        [class.rew-scene__stage--open]="mystereScenePhase !== 'idle'"
+        [class.rew-scene__stage--result]="mystereScenePhase === 'result'"
+      >
+        @for (i of flyoutSlots; track i) {
+          <div
+            class="gift-flyout"
+            [style.--i]="i"
+            [class.gift-flyout--up]="mystereScenePhase === 'opening' || mystereScenePhase === 'confirm' || mystereScenePhase === 'result'"
+            [class.gift-flyout--winner]="mystereScenePhase === 'result' && mystereReveal && i === 1"
+          >
+            @if (mystereScenePhase === 'result' && mystereReveal && i === 1 && mystereResult) {
+              <span class="gift-flyout__prize">{{ mystereResult.titrePrix }}</span>
+            } @else {
+              <span>?</span>
+            }
+          </div>
+        }
+
+        <div
+          class="gift-box gift-box--hero"
+          [class.gift-box--open]="mystereScenePhase === 'opening' || mystereScenePhase === 'confirm' || mystereScenePhase === 'result'"
+        >
+          <span class="gift-box__lid"></span>
+          <span class="gift-box__body"></span>
+          <span class="gift-box__ribbon-v"></span>
+          <span class="gift-box__ribbon-h"></span>
+        </div>
+      </div>
+
+      @if (mystereScenePhase === 'confirm') {
+        <div class="rew-scene__confirm">
+          <p>Les offres cachées sortent de la boîte. Confirmez l'ouverture :</p>
+          <p class="rew-scene__cost"><strong>{{ sceneOffre.mystereBoxPoints }} points</strong> · solde {{ soldePoints }} pts</p>
+          <div class="rew-dialog__actions">
+            <button type="button" class="rew-btn rew-btn--ghost" (click)="fermerSceneBoite()">Annuler</button>
+            <button
+              type="button"
+              class="rew-btn rew-btn--earth"
+              [disabled]="actionId === sceneOffre.id"
+              (click)="confirmerOuvertureBoite()"
+            >
+              {{ actionId === sceneOffre.id ? 'Tirage…' : 'Confirmer l\'ouverture' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (mystereScenePhase === 'result' && mystereResult && mystereReveal) {
+        <div class="rew-scene__result" [class.rew-scene__result--good]="isPrizeGood()" [class.rew-scene__result--bad]="!isPrizeGood()">
+          <p class="rew-mystere-label">{{ isPrizeGood() ? 'Bonne surprise !' : 'Surprise modeste' }}</p>
+          <h3 class="rew-mystere-prize">{{ mystereResult.titrePrix }}</h3>
+          @if (mystereResult.descriptionPrix) {
+            <p>{{ mystereResult.descriptionPrix }}</p>
+          }
+          <p class="rew-coupon-code"><code>{{ mystereResult.coupon.code }}</code></p>
+          <button type="button" class="rew-btn rew-btn--primary" (click)="fermerSceneBoite()">Fermer</button>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+@if (pendingOffre && pendingAction === 'echanger') {
+  <div class="rew-overlay" role="dialog" aria-modal="true">
+    <div class="rew-dialog" (click)="$event.stopPropagation()">
+      <h3>Réserver l'offre</h3>
+      <p class="rew-dialog__offer">« {{ pendingOffre.title }} »</p>
+      <p class="rew-dialog__cost">Coût : <strong>{{ pendingOffre.pointsNecessaires }} points</strong></p>
+      <p class="rew-dialog__hint">Solde actuel : {{ soldePoints }} pts</p>
+      <div class="rew-dialog__actions">
+        <button type="button" class="rew-btn rew-btn--ghost" (click)="annulerPending()">Annuler</button>
+        <button type="button" class="rew-btn rew-btn--primary" (click)="confirmerPending()">Confirmer</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showLoginHint) {
+  <div class="rew-overlay" role="dialog" aria-modal="true" (click)="fermerModals()">
+    <div class="rew-dialog" (click)="$event.stopPropagation()">
+      <h3>Connectez-vous</h3>
+      <p>
+        @if (mystereOffreEnAttente) {
+          Pour ouvrir la boîte mystère de « {{ mystereOffreEnAttente.title }} », connectez-vous avec un compte citoyen.
+        } @else {
+          Pour réserver une offre ou ouvrir une boîte mystère, connectez-vous avec un compte citoyen.
+        }
+      </p>
+      <div class="rew-dialog__actions">
+        <button type="button" class="rew-btn rew-btn--ghost" (click)="fermerModals()">Continuer la visite</button>
+        <button type="button" class="rew-btn rew-btn--primary" (click)="allerConnexion()">Se connecter</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showCouponModal && dernierCoupon) {
+  <div class="rew-overlay" role="dialog" aria-modal="true" (click)="fermerModals()">
+    <div class="rew-dialog rew-dialog--success" (click)="$event.stopPropagation()">
+      <span class="rew-success-icon" aria-hidden="true">✓</span>
+      <h3>Offre réservée</h3>
+      <p class="rew-dialog__offer">{{ dernierCoupon.recompenseTitle }}</p>
+      <p class="rew-coupon-code"><code>{{ dernierCoupon.code }}</code></p>
+      <p class="rew-dialog__hint">À présenter chez {{ dernierCoupon.partenaireName }}</p>
+      <button type="button" class="rew-btn rew-btn--primary" (click)="fermerModals()">Parfait</button>
+    </div>
+  </div>
+}

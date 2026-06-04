@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AssociationService } from '../services/association.service';
+import { AssociationUiService } from '../services/association-ui.service';
 import { ActionService } from '../../action/services/action.service';
 import { ActionDetail } from '../../action/models/action.model';
 import { QRCodeModule } from 'angularx-qrcode';
@@ -24,7 +25,8 @@ export class AfficherQRComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private associationService: AssociationService,
-    private actionService: ActionService
+    private actionService: ActionService,
+    private ui: AssociationUiService
   ) {}
 
   ngOnInit(): void {
@@ -94,7 +96,7 @@ export class AfficherQRComponent implements OnInit {
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert('Veuillez autoriser les pop-ups pour imprimer le QR code');
+      this.ui.toast('Autorisez les fenêtres pop-up pour imprimer le QR code.', 'error');
       return;
     }
 
@@ -165,7 +167,11 @@ export class AfficherQRComponent implements OnInit {
   }
 
   retour(): void {
-    void this.router.navigate(['/association/mes-actions']);
+    if (this.action?.id) {
+      void this.router.navigate(['/association/action', this.action.id]);
+    } else {
+      void this.router.navigate(['/association/mes-actions']);
+    }
   }
 
   formatDate(dateStr: string): string {

@@ -61,7 +61,10 @@
                         <div class="notif-list">
                             <div class="notif-item" *ngFor="let n of filteredNotifs" [class.unread]="!n.isRead">
                                 <div style="display: flex; justify-content: space-between; gap: 1rem;">
-                                    <p class="notif-text">{{ n.message }}</p>
+                                    <div>
+                                      <p class="notif-title" *ngIf="n.title">{{ n.title }}</p>
+                                      <p class="notif-text">{{ n.message }}</p>
+                                    </div>
                                     <button *ngIf="!n.isRead" class="mark-one-btn" (click)="markAsRead(n.id)"
                                         title="Transférer vers l'historique">✓</button>
                                 </div>

@@ -144,8 +144,8 @@
 }
 
 .status-completed {
-  background: #EDE9FE;
-  color: #5B21B6;
+  background: var(--ec-brand-almond, #eaded0);
+  color: var(--ec-brand-earth, #95714f);
 }
 
 .status-cancelled {

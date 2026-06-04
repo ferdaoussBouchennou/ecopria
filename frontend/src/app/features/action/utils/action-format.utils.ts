@@ -1,18 +1,14 @@
+import {
+  formatNaiveDate,
+  formatNaiveTimeRange,
+} from '../../../core/utils/datetime-local.util';
+
 export function formatActionDate(dateIso: string): string {
-  const date = new Date(dateIso);
-  return date.toLocaleDateString('fr-FR', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  return formatNaiveDate(dateIso);
 }
 
 export function formatTimeRange(startIso: string, endIso: string): string {
-  const opts: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
-  const start = new Date(startIso).toLocaleTimeString('fr-FR', opts);
-  const end = new Date(endIso).toLocaleTimeString('fr-FR', opts);
-  return `${start} — ${end}`;
+  return formatNaiveTimeRange(startIso, endIso);
 }
 
 export function isActionFull(action: { availablePlaces: number }): boolean {

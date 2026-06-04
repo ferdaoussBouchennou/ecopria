@@ -5,11 +5,11 @@ export interface Participant {
   actionId: number;
   dateInscription: string;
   statut: 'CONFIRMEE' | 'EN_ATTENTE' | 'ANNULEE';
-  /** Points potentiels de l'action (non crédités tant que la présence n'est pas validée) */
   pointsAction: number;
   presenceValidee?: boolean;
-  /** Points réellement crédités après validation de présence */
   pointsGagnes?: number | null;
+  trustScore?: number;
+  enAttenteMotif?: 'PLACES_COMPLETES' | 'TRUST_SCORE';
   // Détails utilisateur (à récupérer séparément)
   firstName?: string;
   lastName?: string;
@@ -21,7 +21,6 @@ export interface Participant {
   conditions?: string;
   imageRights?: boolean;
   newsletter?: boolean;
-  accompagnants?: number;
 }
 
 // Statistiques des participants
