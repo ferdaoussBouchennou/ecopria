@@ -4,9 +4,8 @@
     <div class="sidebar-header">
       <button class="sidebar-close" type="button" (click)="sidebarOpen = false" aria-label="Fermer le menu">×</button>
       <img class="sidebar-logo" src="assets/logo.png" alt="Ecopria" />
-      <p class="sidebar-badge">Espace partenaire</p>
-      <h2 class="commerce-name">{{ profil?.name || 'Mon établissement' }}</h2>
-      <p class="commerce-category" *ngIf="profil?.category as category">{{ category }}</p>
+      <h2 class="partenaire-name">{{ partenaireName }}</h2>
+      <p class="partenaire-caption" *ngIf="profil?.category">{{ profil!.category }}</p>
     </div>
 
     <nav class="sidebar-nav">
@@ -79,21 +78,23 @@
         <span></span><span></span><span></span>
       </button>
       <div class="navbar-left">
-        <p class="navbar-caption">Pilotage partenaire</p>
+        <p class="navbar-caption">Tableau de pilotage partenaire</p>
       </div>
-      <div class="navbar-right" *ngIf="profil">
+      <div class="navbar-right">
         <a routerLink="/partenaire/profil" class="navbar-profile">
           <div class="profile-avatar">
-            <img *ngIf="profil.imageUrl" [src]="profil.imageUrl" [alt]="profil.name" />
-            <span *ngIf="!profil.imageUrl">{{ getInitials(profil.name) }}</span>
+            <img *ngIf="partenaireLogo" [src]="partenaireLogo" [alt]="partenaireName" class="avatar-img" />
+            <span *ngIf="!partenaireLogo">{{ getInitials() }}</span>
           </div>
-          <span class="profile-name">{{ profil.name }}</span>
+          <span class="profile-name">{{ partenaireName }}</span>
         </a>
       </div>
     </header>
 
-    <div class="partenaire-page">
-      <router-outlet />
+    <div *ngIf="profileLoadError" class="profile-load-error" role="alert">
+      {{ profileLoadError }}
     </div>
+
+    <router-outlet />
   </main>
 </div>

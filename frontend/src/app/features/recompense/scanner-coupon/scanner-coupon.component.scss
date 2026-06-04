@@ -120,254 +120,40 @@
   padding: 0.6rem 1rem;
 }
 
-// ─── Camera Scanner ───────────────────────────────────────────
-.camera-scanner {
-  padding: 1.5rem;
-  background: #f9fafb;
+// ─── Camera Scanner (zxing) ───────────────────────────────────
+.camera-panel {
+  text-align: center;
+}
+
+.camera-wrap {
+  max-width: 420px;
+  margin: 0 auto 1rem;
   border-radius: 12px;
-  margin-bottom: 1rem;
-
-  .qr-reader-container {
-    max-width: 100%;
-    margin: 0 auto 1rem;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-
-  .scanner-status {
-    text-align: center;
-    font-size: 0.875rem;
-    color: #059669;
-    font-weight: 600;
-    margin: 0.75rem 0;
-    padding: 0.5rem;
-    background: #d1fae5;
-    border-radius: 6px;
-  }
-
-  .scanner-error {
-    text-align: center;
-    font-size: 0.875rem;
-    color: #dc2626;
-    font-weight: 600;
-    margin: 0.75rem 0;
-    padding: 0.5rem;
-    background: #fee2e2;
-    border-radius: 6px;
-  }
-
-  .btn--sm {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    margin: 0 auto;
-    display: block;
-  }
-}
-
-// ─── Upload Zone ──────────────────────────────────────────────
-.upload-zone-wrapper {
-  text-align: left;
-}
-
-.dropzone {
-  border: 3px dashed var(--p-border);
-  border-radius: 16px;
-  padding: 2.5rem 2rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: var(--p-cream-deep);
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
   overflow: hidden;
-
-  &:hover {
-    border-color: var(--p-sage-light);
-    background: var(--p-mint);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-  }
-
-  &.drag-active {
-    border-color: var(--p-sage);
-    background: var(--p-mint);
-    box-shadow: 0 0 0 4px rgba(107, 142, 112, 0.15);
-    transform: scale(1.02);
-  }
-
-  &.has-preview {
-    border-color: var(--p-sage-light);
-    background: var(--p-mint);
-    padding: 0;
-    min-height: 240px;
-  }
+  border: 2px solid var(--p-border);
+  background: #000;
 }
 
-.dropzone-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.65rem;
-  user-select: none;
-
-  .upload-icon {
-    font-size: 3.5rem;
-    color: var(--p-sage-light);
-    opacity: 0.7;
-  }
-
-  .upload-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--p-text);
-    margin: 0;
-  }
-
-  .upload-sub {
-    font-size: 0.875rem;
-    color: var(--p-text-muted);
-    margin: 0;
-  }
-
-  .upload-badge {
-    margin-top: 0.65rem;
-    background: var(--p-sage-light);
-    color: #FFFFFF;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 0.35rem 0.85rem;
-    border-radius: 20px;
-  }
-}
-
-// Prévisualisation image
-.preview-wrap {
+.camera-wrap zxing-scanner,
+.camera-wrap video {
   width: 100%;
-  height: 100%;
-  min-height: 220px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  .preview-img {
-    max-width: 100%;
-    max-height: 280px;
-    border-radius: 12px;
-    object-fit: contain;
-    display: block;
-    margin: 0 auto;
-    padding: 0.75rem;
-  }
-
-  .preview-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    color: white;
-
-    p {
-      font-size: 0.9rem;
-      font-weight: 600;
-      margin: 0;
-    }
-  }
+  display: block;
 }
 
-// Spinner QR
-.spinner-qr {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(255,255,255,0.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+.camera-hint,
+.loading-hint {
+  font-size: 0.875rem;
+  color: var(--p-text-muted);
+  margin: 0.5rem 0;
 }
 
-// Erreur upload
-.upload-error {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: #FEF2F2;
-  border: 1px solid #FECACA;
-  border-radius: 8px;
+.camera-error {
   font-size: 0.875rem;
   color: #B91C1C;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-
-  .btn-link {
-    background: none;
-    border: none;
-    color: #059669;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 0.85rem;
-    padding: 0;
-    text-decoration: underline;
-    margin-left: auto;
-
-    &:hover { color: #047857; }
-  }
-}
-
-// Code QR détecté
-.detected-code {
-  margin-top: 1.5rem;
-  padding: 1.25rem 1.5rem;
-  background: var(--p-mint);
-  border: 2px solid var(--p-sage-light);
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  flex-wrap: wrap;
-  animation: fadeIn 0.3s ease;
-  box-shadow: var(--shadow-md);
-
-  .detected-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--p-sage-dark);
-    flex-shrink: 0;
-  }
-
-  .detected-value {
-    flex: 1;
-    font-family: monospace;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--p-text);
-    background: white;
-    padding: 0.45rem 0.9rem;
-    border-radius: 8px;
-    letter-spacing: 0.08em;
-    border: 1px solid var(--p-border);
-  }
-
-  .btn--sm {
-    flex-shrink: 0;
-    padding: 0.6rem 1.5rem;
-    font-size: 0.875rem;
-  }
+  background: #FEF2F2;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  margin: 0.75rem 0;
 }
 
 // ─── Résultat ─────────────────────────────────────────────────
@@ -477,18 +263,4 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-
-// Styles pour html5-qrcode
-:host ::ng-deep {
-  #qr-reader {
-    border: 3px solid var(--p-sage-light) !important;
-    border-radius: 12px !important;
-
-    video { border-radius: 12px !important; }
-
-    #qr-shaded-region {
-      border: 2px solid var(--p-sage) !important;
-    }
-  }
 }

@@ -10,7 +10,7 @@ import { PartenaireProfil } from '../../../core/models/recompense.model';
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './liste-partenaires.component.html',
-  styleUrl: './liste-partenaires.component.scss'
+  styleUrls: ['./liste-partenaires.component.scss']
 })
 export class ListePartenairesComponent implements OnInit {
   partenaires: PartenaireProfil[] = [];
@@ -83,5 +83,10 @@ export class ListePartenairesComponent implements OnInit {
     this.searchText = '';
     this.selectedCategory = '';
     this.filteredPartenaires = [...this.partenaires];
+  }
+
+  onImgError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = '/assets/images/event-affiche-2.jpg';
   }
 }

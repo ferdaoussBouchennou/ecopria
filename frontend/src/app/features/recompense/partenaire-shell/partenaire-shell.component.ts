@@ -15,6 +15,9 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class PartenaireShellComponent implements OnInit {
   profil: PartenaireProfil | null = null;
+  partenaireName = 'Mon établissement';
+  partenaireLogo = '';
+  profileLoadError = '';
   sidebarOpen = false;
 
   constructor(
@@ -24,10 +27,8 @@ export class PartenaireShellComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.partenaireService.getProfil().subscribe({
-      next: (p) => (this.profil = p),
-      error: () => {}
-    });
+    this.loadProfil();
+    this.partenaireService.onProfilUpdated().subscribe(() => this.loadProfil());
 
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd)
@@ -36,7 +37,25 @@ export class PartenaireShellComponent implements OnInit {
     });
   }
 
-  getInitials(name: string): string {
+  loadProfil(): void {
+    this.partenaireService.getProfil().subscribe({
+      next: (p) => {
+        this.profil = p;
+        this.partenaireName = p.name?.trim() || 'Mon établissement';
+        this.partenaireLogo = p.imageUrl?.trim() || '';
+        this.profileLoadError = '';
+      },
+      error: (e: Error) => {
+        this.profileLoadError = e.message;
+      }
+    });
+  }
+
+  getInitials(): string {
+    return this.initialsFrom(this.partenaireName);
+  }
+
+  private initialsFrom(name: string): string {
     const parts = name.trim().split(/\s+/).filter(Boolean);
     if (parts.length === 0) return 'P';
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();

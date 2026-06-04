@@ -91,7 +91,7 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
 
-  &.type--stock      { background: #EFF6FF; color: #1D4ED8; }
+  &.type--stock      { background: var(--p-mint); color: var(--p-sage-dark); }
   &.type--reduction  { background: #FEF3C7; color: #D97706; }
   &.type--service    { background: #F0FDF4; color: #15803D; }
   &.type--experience { background: #FDF4FF; color: #7E22CE; }

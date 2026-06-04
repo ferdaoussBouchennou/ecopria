@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, Subject, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import {
   AvisPartenaire,
@@ -14,11 +14,15 @@ import {
   VisibilitePartenaire
 } from '../../core/models/recompense.model';
 import { DevContextService } from '../../core/services/dev-context.service';
+import { apiPath } from '../../core/utils/api-url.util';
+import { environment } from '../../../environments/environment';
 
-const API_PARTENAIRE = '/api/partenaire';
+const API_PARTENAIRE = apiPath(environment.partenaireApi);
 
 @Injectable({ providedIn: 'root' })
 export class PartenaireService {
+
+  private readonly profilUpdated = new Subject<void>();
 
   constructor(
     private http: HttpClient,
@@ -31,6 +35,14 @@ export class PartenaireService {
 
   private headers(): HttpHeaders {
     return new HttpHeaders({ 'X-User-Id': String(this.userId) });
+  }
+
+  onProfilUpdated(): Observable<void> {
+    return this.profilUpdated.asObservable();
+  }
+
+  notifyProfilUpdated(): void {
+    this.profilUpdated.next();
   }
 
   getDashboard(): Observable<DashboardPartenaire> {
@@ -98,15 +110,39 @@ export class PartenaireService {
       .pipe(catchError(this.handleError));
   }
 
+  uploadProfilCover(file: File): Observable<{ imageUrl: string }> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.http
+      .post<{ imageUrl: string }>(`${API_PARTENAIRE}/profil/cover`, formData, { headers: this.headers() })
+      .pipe(catchError(this.handleError));
+  }
+
+  uploadProfilGallery(file: File): Observable<{ imageUrl: string }> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.http
+      .post<{ imageUrl: string }>(`${API_PARTENAIRE}/profil/gallery`, formData, { headers: this.headers() })
+      .pipe(catchError(this.handleError));
+  }
+
+  uploadOffreImage(offreId: number, file: File): Observable<{ imageUrl: string }> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.http
+      .post<{ imageUrl: string }>(`${API_PARTENAIRE}/offres/${offreId}/image`, formData, { headers: this.headers() })
+      .pipe(catchError(this.handleError));
+  }
+
   getProfilPublic(partenaireUserId: number): Observable<PartenaireProfil> {
     return this.http
-      .get<PartenaireProfil>(`/api/recompenses/public/partenaire/${partenaireUserId}`)
+      .get<PartenaireProfil>(apiPath(`${environment.recompenseApi}/public/partenaire/${partenaireUserId}`))
       .pipe(catchError(this.handleError));
   }
 
   getPartenairesPublics(): Observable<PartenaireProfil[]> {
     return this.http
-      .get<PartenaireProfil[]>('/api/recompenses/public/partenaires')
+      .get<PartenaireProfil[]>(apiPath(`${environment.recompenseApi}/public/partenaires`))
       .pipe(catchError(this.handleError));
   }
 

@@ -8,6 +8,8 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
+import { of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { PartenaireService } from '../partenaire.service';
 import { CreateRecompenseRequest, RecompenseType } from '../../../core/models/recompense.model';
 
@@ -25,6 +27,9 @@ export class CreerOffreComponent implements OnInit {
   erreur = '';
   succes = '';
   editId: number | null = null;
+  imageFile: File | null = null;
+  imagePreview: string | null = null;
+  imageUploadError = '';
 
   readonly types: { value: RecompenseType; label: string }[] = [
     { value: 'STOCK',      label: 'Stock (objet physique)' },
@@ -44,7 +49,6 @@ export class CreerOffreComponent implements OnInit {
     this.form = this.fb.group({
       title:             ['', [Validators.required, Validators.maxLength(200)]],
       description:       [''],
-      imageUrl:          [''],
       pointsNecessaires: [150, [Validators.required, Validators.min(1)]],
       type:              ['STOCK' as RecompenseType, Validators.required],
       stock:             [10],
@@ -100,10 +104,10 @@ export class CreerOffreComponent implements OnInit {
           this.loadingOffre = false;
           return;
         }
+        this.imagePreview = o.imageUrl ?? null;
         this.form.patchValue({
           title:             o.title,
           description:       o.description ?? '',
-          imageUrl:          o.imageUrl ?? '',
           pointsNecessaires: o.pointsNecessaires,
           type:              o.type,
           stock:             o.stock ?? 0,
@@ -155,6 +159,36 @@ export class CreerOffreComponent implements OnInit {
     }
   }
 
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.imageUploadError = '';
+    if (!file.type.match(/image\/(jpeg|jpg|png|webp)/)) {
+      this.imageUploadError = 'Format non supporté. Utilisez JPG, PNG ou WEBP.';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.imageUploadError = 'Fichier trop volumineux (maximum 5 Mo).';
+      return;
+    }
+    this.imageFile = file;
+    if (this.imagePreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(this.imagePreview);
+    }
+    this.imagePreview = URL.createObjectURL(file);
+    input.value = '';
+  }
+
+  removeImage(): void {
+    this.imageFile = null;
+    if (this.imagePreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(this.imagePreview);
+    }
+    this.imagePreview = null;
+    this.imageUploadError = '';
+  }
+
   submit(): void {
     this.erreur = '';
     this.succes = '';
@@ -163,17 +197,28 @@ export class CreerOffreComponent implements OnInit {
     if (this.hasMystereBoxValue) {
       const items = this.mystereItems.controls;
       if (items.length < 2) {
-        this.erreur = 'La boîte mystère doit contenir au moins 2 options.';
+        this.erreur = 'Ajoutez au moins 2 offres secrètes dans la boîte mystère.';
         return;
       }
       for (const item of items) {
         if (!item.get('titre')?.value?.trim()) {
-          this.erreur = 'Chaque option de la boîte mystère doit avoir un titre.';
+          this.erreur = 'Chaque offre secrète doit avoir un titre.';
+          return;
+        }
+        const secretTitle = item.get('titre')?.value?.trim().toLowerCase();
+        const mainTitle = this.form.get('title')?.value?.trim().toLowerCase();
+        if (mainTitle && secretTitle === mainTitle) {
+          this.erreur = 'Une offre secrète ne peut pas avoir le même titre que l\'offre principale.';
           return;
         }
       }
       if (this.probaTotal !== 100) {
         this.erreur = `La somme des probabilités doit être 100 % (actuel : ${this.probaTotal} %).`;
+        return;
+      }
+      const mbPoints = Number(this.form.get('mystereBoxPoints')?.value);
+      if (!mbPoints || mbPoints < 1) {
+        this.erreur = 'Indiquez le coût en points de la boîte mystère.';
         return;
       }
     }
@@ -203,7 +248,6 @@ export class CreerOffreComponent implements OnInit {
     const dto: CreateRecompenseRequest = {
       title:             raw.title.trim(),
       description:       raw.description?.trim() || undefined,
-      imageUrl:          raw.imageUrl?.trim() || undefined,
       pointsNecessaires: Number(raw.pointsNecessaires),
       type:              raw.type,
       stock:             this.showStock ? Number(raw.stock) : undefined,
@@ -224,11 +268,18 @@ export class CreerOffreComponent implements OnInit {
 
     this.loading = true;
 
-    const req = this.editId
+    const save$ = this.editId
       ? this.partenaireService.modifierOffre(this.editId, dto)
       : this.partenaireService.creerOffre(dto);
 
-    req.subscribe({
+    save$.pipe(
+      switchMap((result) => {
+        if (!this.imageFile) return of(result);
+        return this.partenaireService.uploadOffreImage(result.id, this.imageFile).pipe(
+          switchMap(() => of(result))
+        );
+      })
+    ).subscribe({
       next: (result) => {
         this.succes = this.editId
           ? `✓ Offre "${result.title}" mise à jour avec succès.`

@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +26,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RecompenseService {
 
+    private static final int MAX_GALLERY_IMAGES = 3;
+
     private final RecompenseRepository recompenseRepository;
     private final PartenaireRepository partenaireRepository;
     private final CouponRepository couponRepository;
@@ -34,6 +37,7 @@ public class RecompenseService {
     private final UtilisateurClient utilisateurClient;
     private final RecompenseProducer recompenseProducer;
     private final CodeCouponGenerator codeGenerator;
+    private final ImageUploadService imageUploadService;
 
     // ─── CATALOGUE PUBLIC ────────────────────────────────────
 
@@ -239,13 +243,57 @@ public class RecompenseService {
         if (dto.getCity() != null) p.setCity(dto.getCity());
         if (dto.getDescription() != null) p.setDescription(dto.getDescription());
         if (dto.getImageUrl() != null) p.setImageUrl(dto.getImageUrl());
-        if (dto.getGalleryImages() != null) p.setGalleryImages(joinGallery(dto.getGalleryImages()));
+        if (dto.getGalleryImages() != null) {
+            List<String> gallery = dto.getGalleryImages().stream()
+                    .map(String::trim)
+                    .filter(s -> !s.isBlank())
+                    .limit(MAX_GALLERY_IMAGES)
+                    .collect(Collectors.toList());
+            p.setGalleryImages(joinGallery(gallery));
+        }
         if (dto.getPhone() != null) p.setPhone(dto.getPhone());
         if (dto.getWebsite() != null) p.setWebsite(dto.getWebsite());
         if (dto.getInstagramUrl() != null) p.setInstagramUrl(dto.getInstagramUrl());
         if (dto.getFacebookUrl() != null) p.setFacebookUrl(dto.getFacebookUrl());
         if (dto.getOpeningHours() != null) p.setOpeningHours(dto.getOpeningHours());
         return toProfilDTO(partenaireRepository.save(p));
+    }
+
+    @Transactional
+    public String uploadPartenaireCover(Long userId, MultipartFile image) {
+        Partenaire p = resolvePartenaireAccount(userId);
+        String url = imageUploadService.storePartenaireCover(image, userId);
+        p.setImageUrl(url);
+        partenaireRepository.save(p);
+        return url;
+    }
+
+    @Transactional
+    public String uploadPartenaireGallery(Long userId, MultipartFile image) {
+        Partenaire p = resolvePartenaireAccount(userId);
+        List<String> gallery = new ArrayList<>(splitGallery(p.getGalleryImages()));
+        if (gallery.size() >= MAX_GALLERY_IMAGES) {
+            throw new RuntimeException("La galerie est limitée à " + MAX_GALLERY_IMAGES + " photos maximum");
+        }
+        String url = imageUploadService.storePartenaireGallery(image, userId);
+        gallery.add(url);
+        p.setGalleryImages(joinGallery(gallery));
+        partenaireRepository.save(p);
+        return url;
+    }
+
+    @Transactional
+    public String uploadOffreImage(Long recompenseId, Long userId, MultipartFile image) {
+        Partenaire partenaire = resolvePartenaireAccount(userId);
+        Recompense recompense = recompenseRepository.findById(recompenseId)
+                .orElseThrow(() -> new RuntimeException("Récompense non trouvée"));
+        if (!recompense.getPartenaire().getId().equals(partenaire.getId())) {
+            throw new RuntimeException("Vous n'êtes pas le propriétaire de cette offre");
+        }
+        String url = imageUploadService.storeOffreImage(image, recompenseId);
+        recompense.setImageUrl(url);
+        recompenseRepository.save(recompense);
+        return url;
     }
 
     @Transactional
@@ -397,29 +445,7 @@ public class RecompenseService {
                 .isActive(true)
                 .build();
 
-        // Gestion de la boîte mystère
-        if (Boolean.TRUE.equals(dto.getHasMystereBox())) {
-            if (dto.getMystereBoxPoints() == null)
-                throw new RuntimeException("Le coût en points de la boîte mystère est obligatoire");
-            if (dto.getMystereBoxItems() == null || dto.getMystereBoxItems().size() < 2)
-                throw new RuntimeException("La boîte mystère doit contenir au moins 2 options");
-            int totalProba = dto.getMystereBoxItems().stream().mapToInt(MystereBoxItemDTO::getProbabilite).sum();
-            if (totalProba != 100)
-                throw new RuntimeException("La somme des probabilités doit égaler 100 (actuel: " + totalProba + ")");
-
-            recompense.setHasMystereBox(true);
-            recompense.setMystereBoxPoints(dto.getMystereBoxPoints());
-
-            List<MystereBoxItem> items = dto.getMystereBoxItems().stream()
-                    .map(i -> MystereBoxItem.builder()
-                            .recompense(recompense)
-                            .titre(i.getTitre())
-                            .description(i.getDescription())
-                            .probabilite(i.getProbabilite())
-                            .build())
-                    .collect(Collectors.toList());
-            recompense.getMystereBoxItems().addAll(items);
-        }
+        applyMystereBox(recompense, dto);
 
         return toDTO(recompenseRepository.save(recompense));
     }
@@ -456,6 +482,8 @@ public class RecompenseService {
         recompense.setValeurDh(dto.getValeurDh());
         // dateExpiration : toujours mettre à jour (peut être null)
         recompense.setDateExpiration(dto.getDateExpiration());
+
+        applyMystereBox(recompense, dto);
 
         return toDTO(recompenseRepository.save(recompense));
     }
@@ -600,10 +628,10 @@ public class RecompenseService {
             throw new RuntimeException("Points insuffisants. Solde: " + solde +
                     " — Requis: " + recompense.getMystereBoxPoints());
 
-        // ── Tirage aléatoire pondéré ──
-        int tirage = new Random().nextInt(100); // nombre entre 0 et 99
+        // ── Tirage aléatoire pondéré (0–99, probabilités totalisant 100) ──
+        int tirage = new Random().nextInt(100);
         int cumul = 0;
-        MystereBoxItem itemGagne = items.get(items.size() - 1); // fallback = dernier item
+        MystereBoxItem itemGagne = items.get(items.size() - 1);
         for (MystereBoxItem item : items) {
             cumul += item.getProbabilite();
             if (tirage < cumul) {
@@ -648,6 +676,44 @@ public class RecompenseService {
     }
 
     // ─── MÉTHODES PRIVÉES ────────────────────────────────────────
+
+    private void applyMystereBox(Recompense recompense, CreateRecompenseDTO dto) {
+        if (!Boolean.TRUE.equals(dto.getHasMystereBox())) {
+            recompense.setHasMystereBox(false);
+            recompense.setMystereBoxPoints(null);
+            recompense.getMystereBoxItems().clear();
+            return;
+        }
+
+        if (dto.getMystereBoxPoints() == null || dto.getMystereBoxPoints() < 1) {
+            throw new RuntimeException("Le coût en points de la boîte mystère est obligatoire");
+        }
+        if (dto.getMystereBoxItems() == null || dto.getMystereBoxItems().size() < 2) {
+            throw new RuntimeException("La boîte mystère doit contenir au moins 2 offres secrètes");
+        }
+        int totalProba = dto.getMystereBoxItems().stream().mapToInt(MystereBoxItemDTO::getProbabilite).sum();
+        if (totalProba != 100) {
+            throw new RuntimeException("La somme des probabilités doit égaler 100 (actuel: " + totalProba + ")");
+        }
+        String mainTitle = dto.getTitle() != null ? dto.getTitle().trim().toLowerCase() : "";
+        for (MystereBoxItemDTO item : dto.getMystereBoxItems()) {
+            if (item.getTitre() != null && item.getTitre().trim().equalsIgnoreCase(mainTitle)) {
+                throw new RuntimeException("Une offre secrète ne peut pas reprendre le titre de l'offre principale");
+            }
+        }
+
+        recompense.setHasMystereBox(true);
+        recompense.setMystereBoxPoints(dto.getMystereBoxPoints());
+        recompense.getMystereBoxItems().clear();
+        for (MystereBoxItemDTO i : dto.getMystereBoxItems()) {
+            recompense.getMystereBoxItems().add(MystereBoxItem.builder()
+                    .recompense(recompense)
+                    .titre(i.getTitre())
+                    .description(i.getDescription())
+                    .probabilite(i.getProbabilite())
+                    .build());
+        }
+    }
 
     private Partenaire requirePartenaire(Long userId) {
         return partenaireRepository.findByUserId(userId)

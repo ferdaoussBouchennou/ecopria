@@ -1,12 +1,15 @@
-<!-- ─── LOADING ─────────────────────────────────────────────── -->
 <div *ngIf="loading" class="loading-page">
   <div class="spinner"></div>
   <p>Chargement du profil…</p>
 </div>
 
-<div *ngIf="!loading && erreur" class="state-card state-card--error" role="alert">
-  <h2>Impossible de charger le profil</h2>
-  <p>{{ erreur }}</p>
+<div *ngIf="!loading && erreur && !profil" class="p-page">
+  <div class="p-section">
+    <div class="state-card state-card--error" role="alert">
+      <h2>Impossible de charger le profil</h2>
+      <p>{{ erreur }}</p>
+    </div>
+  </div>
 </div>
 
 <div *ngIf="!loading && (profil || erreur === '')" class="p-page">
@@ -15,171 +18,199 @@
       <span class="page-eyebrow">Profil public</span>
       <h1 class="page-title">Votre vitrine Ecopria</h1>
       <p class="page-sub">
-        Ces informations sont visibles par les utilisateurs. Un profil complet améliore votre visibilité.
+        Complétez votre fiche pour attirer plus de clients. Ces informations sont visibles dans le catalogue.
       </p>
     </div>
-    <button class="btn btn--outline" (click)="voirPagePublique()" type="button">
+    <button class="btn btn--outline" (click)="voirPagePublique()" type="button" [disabled]="!profil">
       Voir ma page publique
     </button>
   </div>
 
-  <div class="p-section">
-  <div *ngIf="succes" class="alert alert--success">
-    <div class="alert-inner">
-      <svg class="p-page-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
-        <path d="M6.5 10.2L9 12.7L13.8 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <div><strong>{{ succes }}</strong></div>
+  <div class="p-section profil-page">
+    <div *ngIf="succes" class="alert alert--success">
+      <div class="alert-inner">
+        <strong>{{ succes }}</strong>
+      </div>
     </div>
-  </div>
+    <div *ngIf="erreur" class="alert alert--error">
+      <div class="alert-inner"><p>{{ erreur }}</p></div>
+    </div>
 
-  <div class="p-profil-layout profil-layout">
-
-    <!-- ─── Formulaire ─────────────────────────────────────── -->
-    <div class="card form-card">
-      <h2 class="card-title">Informations générales</h2>
-
-      <div class="form-group">
-        <label class="form-label" for="name">Nom de l'enseigne <span class="required">*</span></label>
-        <input
-          id="name"
-          class="form-control"
-          type="text"
-          [(ngModel)]="form.name"
-          placeholder="Ex : Café Botanique"
-        />
+    <div class="profil-overview">
+      <div class="overview-card">
+        <span class="overview-kicker">Profil complété</span>
+        <strong>{{ profileCompletion }}%</strong>
+        <span>{{ profileCompletion >= 80 ? 'Excellent' : 'À compléter' }}</span>
       </div>
-
-      <div class="form-group">
-        <label class="form-label" for="category">Catégorie</label>
-        <select id="category" class="form-control" [(ngModel)]="form.category">
-          <option value="">— Sélectionner —</option>
-          <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
-        </select>
+      <div class="overview-card">
+        <span class="overview-kicker">Galerie</span>
+        <strong>{{ galleryCount }} / {{ MAX_GALLERY }}</strong>
+        <span>photos publiques</span>
       </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label" for="address">Adresse</label>
-          <input
-            id="address"
-            class="form-control"
-            type="text"
-            [(ngModel)]="form.address"
-            placeholder="Ex : 12 rue des Jardins"
-          />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="city">Ville</label>
-          <input
-            id="city"
-            class="form-control"
-            type="text"
-            [(ngModel)]="form.city"
-            placeholder="Ex : Tétouan"
-          />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="description">Description</label>
-        <textarea
-          id="description"
-          class="form-control"
-          rows="4"
-          [(ngModel)]="form.description"
-          placeholder="Décrivez votre enseigne en quelques lignes… (max 500 caractères)"
-          maxlength="500"
-        ></textarea>
-        <span class="form-hint">{{ (form.description?.length || 0) }} / 500 caractères</span>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="imageUrl">URL de l'image</label>
-        <input
-          id="imageUrl"
-          class="form-control"
-          type="url"
-          [(ngModel)]="form.imageUrl"
-          placeholder="https://…"
-        />
-        <span class="form-hint">Image de couverture (recommandé : 1200 × 600 px, format paysage)</span>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="galleryUrls">Galerie photos (plusieurs URLs)</label>
-        <textarea
-          id="galleryUrls"
-          class="form-control"
-          rows="4"
-          [(ngModel)]="galleryText"
-          placeholder="Une URL par ligne&#10;https://...&#10;https://..."
-        ></textarea>
-        <span class="form-hint">Ajoutez une photo par ligne pour enrichir la page publique.</span>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label" for="phone">Téléphone</label>
-          <input id="phone" class="form-control" type="text" [(ngModel)]="form.phone" placeholder="+212 ..." />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="openingHours">Horaires</label>
-          <input id="openingHours" class="form-control" type="text" [(ngModel)]="form.openingHours" placeholder="Lun-Dim 08:00-22:00" />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="website">Site web</label>
-        <input id="website" class="form-control" type="url" [(ngModel)]="form.website" placeholder="https://..." />
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label" for="instagramUrl">Instagram</label>
-          <input id="instagramUrl" class="form-control" type="url" [(ngModel)]="form.instagramUrl" placeholder="https://instagram.com/..." />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="facebookUrl">Facebook</label>
-          <input id="facebookUrl" class="form-control" type="url" [(ngModel)]="form.facebookUrl" placeholder="https://facebook.com/..." />
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button
-          class="btn btn--primary"
-          (click)="enregistrer()"
-          [disabled]="saving"
-        >
-          <span *ngIf="saving" class="spinner-sm"></span>
-          <span *ngIf="!saving">💾</span>
-          {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
-        </button>
+      <div class="overview-card">
+        <span class="overview-kicker">Catégorie</span>
+        <strong>{{ form.category || '—' }}</strong>
+        <span>secteur d'activité</span>
       </div>
     </div>
 
-    <!-- ─── Aperçu image ───────────────────────────────────── -->
-    <div class="preview-panel">
-      <h2 class="card-title">Aperçu de l'image</h2>
-      <div class="image-preview" *ngIf="form.imageUrl">
-        <img [src]="form.imageUrl" [alt]="form.name || 'Aperçu'" (error)="onImgError($event)" />
-      </div>
-      <div class="image-preview image-preview--empty" *ngIf="!form.imageUrl">
-        <svg class="p-page-icon--lg empty-img-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
-          <circle cx="9" cy="10" r="1.5" fill="currentColor"/>
-          <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <p>Aucune image sélectionnée</p>
+    <div class="profil-layout">
+      <div class="profil-main">
+        <!-- Identité -->
+        <section class="card form-section">
+          <h2 class="card-title">Identité de l'enseigne</h2>
+          <div class="form-group">
+            <label class="form-label" for="name">Nom de l'enseigne <span class="required">*</span></label>
+            <input id="name" class="form-control" type="text" [(ngModel)]="form.name" placeholder="Ex : Café Botanique" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="category">Catégorie</label>
+            <select id="category" class="form-control" [(ngModel)]="form.category">
+              <option value="">— Sélectionner —</option>
+              <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="description">Description</label>
+            <textarea id="description" class="form-control" rows="4" [(ngModel)]="form.description"
+              placeholder="Présentez votre enseigne, vos valeurs et ce que proposent vos offres Ecopria…"
+              maxlength="500"></textarea>
+            <span class="form-hint">{{ (form.description?.length || 0) }} / 500 caractères</span>
+          </div>
+        </section>
+
+        <!-- Localisation -->
+        <section class="card form-section">
+          <h2 class="card-title">Localisation</h2>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="address">Adresse</label>
+              <input id="address" class="form-control" type="text" [(ngModel)]="form.address" placeholder="Ex : 12 rue des Jardins" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="city">Ville</label>
+              <input id="city" class="form-control" type="text" [(ngModel)]="form.city" placeholder="Ex : Tétouan" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="openingHours">Horaires d'ouverture</label>
+            <input id="openingHours" class="form-control" type="text" [(ngModel)]="form.openingHours" placeholder="Lun-Dim 08:00-22:00" />
+          </div>
+        </section>
+
+        <!-- Médias -->
+        <section class="card form-section">
+          <h2 class="card-title">Photos & vitrine</h2>
+
+          <div class="form-group">
+            <label class="form-label">Image de couverture</label>
+            <p class="form-hint form-hint--block">Grande bannière affichée en tête de votre page publique.</p>
+            <div class="upload-zone" *ngIf="!coverPreview">
+              <input id="cover-image" type="file" accept="image/jpeg,image/png,image/jpg,image/webp"
+                class="upload-input" (change)="onCoverSelected($event)" />
+              <label for="cover-image" class="upload-label">
+                <span>Choisir une image de couverture</span>
+                <span class="form-hint">JPG, PNG ou WEBP — max. 5 Mo · format paysage</span>
+              </label>
+            </div>
+            <div class="upload-preview upload-preview--cover" *ngIf="coverPreview">
+              <img [src]="coverPreview" [alt]="form.name || 'Couverture'" (error)="onImgError($event)" />
+              <label for="cover-image-replace" class="btn btn--ghost btn--sm">Remplacer</label>
+              <input id="cover-image-replace" type="file" accept="image/jpeg,image/png,image/jpg,image/webp"
+                class="visually-hidden" (change)="onCoverSelected($event)" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Galerie photos <span class="label-count">({{ galleryCount }} / {{ MAX_GALLERY }})</span></label>
+            <p class="form-hint form-hint--block">
+              Ajoutez jusqu'à {{ MAX_GALLERY }} photos supplémentaires. Vous pouvez en sélectionner plusieurs en une fois.
+            </p>
+
+            <div class="gallery-slots">
+              <div class="gallery-slot" *ngFor="let img of form.galleryImages">
+                <img [src]="img" alt="Galerie" (error)="onImgError($event)" />
+                <button type="button" class="gallery-slot__remove" (click)="removeGalleryImage(img)" title="Supprimer">✕</button>
+              </div>
+              <div class="gallery-slot gallery-slot--empty" *ngFor="let s of emptyGallerySlots">
+                <span>Emplacement libre</span>
+              </div>
+            </div>
+
+            <div class="upload-zone upload-zone--compact" *ngIf="gallerySlotsRemaining > 0">
+              <input id="gallery-images" type="file" accept="image/jpeg,image/png,image/jpg,image/webp"
+                class="upload-input" multiple [disabled]="uploadingGallery"
+                (change)="onGallerySelected($event)" />
+              <label for="gallery-images" class="upload-label">
+                <span>{{ uploadingGallery ? galleryUploadProgress : 'Ajouter des photos' }}</span>
+                <span class="form-hint">
+                  {{ gallerySlotsRemaining }} emplacement(s) restant(s) · sélection multiple possible
+                </span>
+              </label>
+            </div>
+            <p class="form-hint form-hint--muted" *ngIf="gallerySlotsRemaining === 0">
+              Galerie complète. Supprimez une photo pour en ajouter une autre.
+            </p>
+            <span class="form-error" *ngIf="uploadError">{{ uploadError }}</span>
+          </div>
+        </section>
+
+        <!-- Contact -->
+        <section class="card form-section">
+          <h2 class="card-title">Contact & réseaux</h2>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="phone">Téléphone</label>
+              <input id="phone" class="form-control" type="text" [(ngModel)]="form.phone" placeholder="+212 6…" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="website">Site web</label>
+              <input id="website" class="form-control" type="url" [(ngModel)]="form.website" placeholder="https://…" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="instagramUrl">Instagram</label>
+              <input id="instagramUrl" class="form-control" type="url" [(ngModel)]="form.instagramUrl" placeholder="https://instagram.com/…" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="facebookUrl">Facebook</label>
+              <input id="facebookUrl" class="form-control" type="url" [(ngModel)]="form.facebookUrl" placeholder="https://facebook.com/…" />
+            </div>
+          </div>
+        </section>
+
+        <div class="form-actions form-actions--sticky">
+          <button class="btn btn--primary btn--lg" (click)="enregistrer()" [disabled]="saving || uploadingGallery">
+            <span *ngIf="saving" class="spinner-sm"></span>
+            {{ saving ? 'Enregistrement…' : 'Enregistrer le profil' }}
+          </button>
+        </div>
       </div>
 
-      <h3 class="sub-title">Galerie</h3>
-      <div class="gallery-preview" *ngIf="form.galleryImages?.length">
-        <img *ngFor="let img of form.galleryImages" [src]="img" alt="Galerie partenaire" (error)="onImgError($event)" />
-      </div>
-      <p class="gallery-empty" *ngIf="!form.galleryImages?.length">Aucune photo de galerie.</p>
+      <!-- Aperçu -->
+      <aside class="preview-panel">
+        <h2 class="card-title">Aperçu public</h2>
+        <p class="preview-lead">Voici ce que verront les participants sur votre page partenaire.</p>
+
+        <div class="preview-hero" [class.preview-hero--empty]="!coverPreview">
+          <img *ngIf="coverPreview" [src]="coverPreview" [alt]="form.name || 'Couverture'" (error)="onImgError($event)" />
+          <div class="preview-hero__placeholder" *ngIf="!coverPreview">Couverture</div>
+          <div class="preview-hero__overlay">
+            <span class="preview-chip">{{ form.category || 'Partenaire' }}</span>
+            <h3>{{ form.name || 'Nom de l\'enseigne' }}</h3>
+            <p *ngIf="form.city">📍 {{ form.city }}</p>
+          </div>
+        </div>
+
+        <p class="preview-desc">{{ form.description || 'Ajoutez une description pour présenter votre enseigne.' }}</p>
+
+        <h3 class="sub-title">Galerie</h3>
+        <div class="gallery-preview" *ngIf="form.galleryImages?.length">
+          <img *ngFor="let img of form.galleryImages" [src]="img" alt="Galerie" (error)="onImgError($event)" />
+        </div>
+        <p class="gallery-empty" *ngIf="!form.galleryImages?.length">Aucune photo de galerie pour le moment.</p>
+      </aside>
     </div>
-  </div>
   </div>
 </div>

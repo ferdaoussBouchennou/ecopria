@@ -68,6 +68,11 @@ spring:
           predicates:
             - Path=/api/recompenses/**,/api/partenaire/**
 
+        - id: service-recompense-uploads
+          uri: ${GATEWAY_RECOMPENSE_URI:http://localhost:9093}
+          predicates:
+            - Path=/uploads/partenaires/**,/uploads/recompenses/**
+
         - id: service-inscription
           uri: ${GATEWAY_INSCRIPTION_URI:http://localhost:8084}
           predicates:

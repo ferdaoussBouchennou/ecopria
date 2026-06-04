@@ -5,9 +5,12 @@ import com.ecopria.recompense.service.RecompenseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/partenaire")
@@ -88,6 +91,28 @@ public class PartenaireController {
             @RequestBody UpdatePartenaireProfilDTO dto,
             @RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(recompenseService.updateProfil(userId, dto));
+    }
+
+    @PostMapping(value = "/profil/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> uploadProfilCover(
+            @RequestParam("image") MultipartFile image,
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(Map.of("imageUrl", recompenseService.uploadPartenaireCover(userId, image)));
+    }
+
+    @PostMapping(value = "/profil/gallery", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> uploadProfilGallery(
+            @RequestParam("image") MultipartFile image,
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(Map.of("imageUrl", recompenseService.uploadPartenaireGallery(userId, image)));
+    }
+
+    @PostMapping(value = "/offres/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> uploadOffreImage(
+            @PathVariable Long id,
+            @RequestParam("image") MultipartFile image,
+            @RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(Map.of("imageUrl", recompenseService.uploadOffreImage(id, userId, image)));
     }
 
     @GetMapping("/visibilite")

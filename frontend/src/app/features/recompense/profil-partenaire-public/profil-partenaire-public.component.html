@@ -1,229 +1,226 @@
-<div class="public-profil-page">
-  <div *ngIf="loading" class="state state--loading">
+<div class="partner-page">
+  <div *ngIf="loading" class="state-box">
     <div class="spinner"></div>
-    <p>Chargement du profil partenaire...</p>
+    <p>Chargement du partenaire…</p>
   </div>
 
-  <div *ngIf="!loading && erreur" class="state state--error">
-    <h1>Profil indisponible</h1>
+  <div *ngIf="!loading && erreur" class="state-box state-error">
+    <h1>Partenaire introuvable</h1>
     <p>{{ erreur }}</p>
-    <a routerLink="/partenaires" class="btn-back">Retour aux partenaires</a>
+    <a routerLink="/partenaires" class="btn btn--outline">Retour au catalogue</a>
   </div>
 
-  <section *ngIf="!loading && profil" class="hero">
-    <img *ngIf="profil.imageUrl" [src]="profil.imageUrl" [alt]="profil.name" class="hero-image" />
-    <div class="hero-overlay"></div>
+  <ng-container *ngIf="!loading && profil">
+    <nav class="breadcrumb" aria-label="Fil d'Ariane">
+      <a routerLink="/partenaires">Partenaires</a>
+      <span aria-hidden="true">/</span>
+      <span>{{ profil.name }}</span>
+    </nav>
 
-    <div class="hero-content">
-      <span class="chip">{{ profil.category || 'Partenaire Ecopria' }}</span>
-      <h1>{{ profil.name }}</h1>
-      <p *ngIf="profil.description">{{ profil.description }}</p>
-      <p *ngIf="!profil.description">Ce partenaire fait partie du réseau Ecopria.</p>
-      <div class="meta">
-        <span *ngIf="profil.city">📍 {{ profil.city }}</span>
-        <span *ngIf="profil.address">{{ profil.address }}</span>
-      </div>
-    </div>
-  </section>
+    <!-- Fiche identité compacte (sans bannière plein écran) -->
+    <header class="spotlight">
+      <div class="spotlight__identity">
+        <div class="avatar" [class.avatar--photo]="profil.imageUrl">
+          <img
+            *ngIf="profil.imageUrl"
+            [src]="profil.imageUrl"
+            [alt]="profil.name"
+            (error)="onCoverError($event)"
+          />
+          <span *ngIf="!profil.imageUrl" class="avatar__letter">{{ partnerInitial }}</span>
+        </div>
 
-  <section *ngIf="!loading && profil" class="content">
-    <!-- Solde de points (si connecté) -->
-    <div class="card points-banner" *ngIf="isUserConnected">
-      <div class="points-info">
-        <span class="points-icon">💰</span>
-        <div class="points-text">
-          <h3>Votre solde de points</h3>
-          <p class="points-value" *ngIf="!loadingSolde">{{ soldePoints }} points</p>
-          <p class="points-loading" *ngIf="loadingSolde">Chargement...</p>
+        <div class="spotlight__copy">
+          <p class="eyebrow"><span class="eyebrow__line"></span> Partenaire local</p>
+          <h1>{{ profil.name }}</h1>
+          <p class="tagline" *ngIf="profil.description">{{ profil.description }}</p>
+          <p class="tagline tagline--muted" *ngIf="!profil.description">Commerce engagé du réseau Ecopria.</p>
         </div>
       </div>
-    </div>
 
-    <!-- Message de connexion (si non connecté) -->
-    <div class="card login-banner" *ngIf="!isUserConnected">
-      <p>
-        <strong>💡 Connectez-vous</strong> pour échanger vos points contre ces offres exclusives !
-      </p>
-      <a routerLink="/connexion" [queryParams]="{ returnUrl: loginReturnUrl }" class="btn-login">
-        Se connecter
-      </a>
-    </div>
+      <div class="spotlight__stats">
+        <div class="stat-pill" *ngIf="profil.category">
+          <span class="stat-pill__label">Secteur</span>
+          <span class="stat-pill__value">{{ profil.category }}</span>
+        </div>
+        <div class="stat-pill" *ngIf="profil.city">
+          <span class="stat-pill__label">Ville</span>
+          <span class="stat-pill__value">{{ profil.city }}</span>
+        </div>
+        <div class="stat-pill" *ngIf="!loadingOffres">
+          <span class="stat-pill__label">Offres</span>
+          <span class="stat-pill__value">{{ offersCount }}</span>
+        </div>
+        <div class="stat-pill" *ngIf="profil.openingHours">
+          <span class="stat-pill__label">Horaires</span>
+          <span class="stat-pill__value stat-pill__value--sm">{{ profil.openingHours }}</span>
+        </div>
+      </div>
+    </header>
 
-    <!-- À propos -->
-    <div class="card">
-      <h2>À propos</h2>
-      <p>{{ profil.description || 'Ce partenaire fait partie du réseau Ecopria et propose des offres responsables.' }}</p>
-      <p *ngIf="profil.openingHours"><strong>Horaires :</strong> {{ profil.openingHours }}</p>
-      <p *ngIf="profil.phone"><strong>Téléphone :</strong> {{ profil.phone }}</p>
-      <p *ngIf="profil.address"><strong>Adresse :</strong> {{ profil.address }}, {{ profil.city }}</p>
-    </div>
+    <!-- Mosaïque visuelle (petites tuiles, pas de grand bandeau) -->
+    <section class="mosaic" *ngIf="hasShowcase" aria-label="Photos du partenaire">
+      <div
+        class="mosaic__tile"
+        *ngFor="let img of showcaseImages; let i = index"
+        [class.mosaic__tile--hero]="i === 0 && showcaseImages.length > 1"
+        [class.mosaic__tile--solo]="showcaseImages.length === 1"
+      >
+        <img [src]="img" [alt]="profil.name + ' — visuel ' + (i + 1)" loading="lazy" (error)="onGalleryError($event)" />
+      </div>
+    </section>
 
-    <!-- Offres actives -->
-    <div class="card" *ngIf="!loadingOffres && offres.length > 0">
-      <h2>Offres disponibles</h2>
-      <p class="section-subtitle">Échangez vos points contre ces offres exclusives</p>
-      <div class="offres-grid">
-        <article *ngFor="let offre of offres" class="offre-card">
-          <div class="offre-card__image">
-            <img
-              *ngIf="offre.imageUrl"
-              [src]="offre.imageUrl"
-              [alt]="offre.title"
-            />
-            <div *ngIf="!offre.imageUrl" class="offre-card__image-placeholder">
-              <span>{{ offre.type }}</span>
-            </div>
-            <span class="offre-badge" [class]="'offre-badge--' + offre.type.toLowerCase()">
-              {{ getTypeLabel(offre.type) }}
-            </span>
-            <span *ngIf="offre.stock" class="stock-badge" [class.stock-low]="offre.stock <= 5">
-              STOCK {{ offre.stock }}
+    <div class="page-grid">
+      <main class="page-main">
+        <!-- Bandeau participant -->
+        <div class="citizen-strip citizen-strip--wallet" *ngIf="isLoggedInCitizen">
+          <div class="citizen-strip__icon" aria-hidden="true">◎</div>
+          <div>
+            <span class="citizen-strip__label">Vos points participant</span>
+            <span class="citizen-strip__value">
+              <ng-container *ngIf="!loadingSolde">{{ soldePoints }} pts</ng-container>
+              <ng-container *ngIf="loadingSolde">…</ng-container>
             </span>
           </div>
-          <div class="offre-card__content">
-            <h3>{{ offre.title }}</h3>
-            <p *ngIf="offre.description" class="description">
-              {{ offre.description | slice:0:100 }}<span *ngIf="offre.description.length > 100">...</span>
-            </p>
-            <div class="offre-card__meta">
-              <span *ngIf="offre.discountPercentage" class="discount-tag">
-                -{{ offre.discountPercentage }}%
-              </span>
-              <span *ngIf="offre.valeurDh" class="value-tag">
-                {{ offre.valeurDh }} DH
-              </span>
+          <a routerLink="/espace/recompenses" class="citizen-strip__action">Mes coupons →</a>
+        </div>
+
+        <div class="citizen-strip citizen-strip--login" *ngIf="!auth.isLoggedIn()">
+          <p>Connectez-vous avec votre <strong>compte participant</strong> pour échanger vos points ici.</p>
+          <a routerLink="/connexion" [queryParams]="{ returnUrl: loginReturnUrl }" class="btn btn--primary btn--sm">Se connecter</a>
+        </div>
+
+    
+
+        <!-- Offres -->
+        <section class="panel">
+          <div class="panel__head">
+            <div>
+              <h2 class="panel__title">Offres à échanger</h2>
+              <p class="panel__sub" *ngIf="!loadingOffres && offres.length">
+                {{ offres.length }} récompense{{ offres.length > 1 ? 's' : '' }} chez {{ profil.name }}
+              </p>
             </div>
-            <div class="offre-card__footer">
-              <span class="points">
-                <strong>{{ offre.pointsNecessaires }}</strong> pts
-              </span>
-              <button 
-                class="btn-exchange" 
-                [disabled]="!offre.isAvailable || echangeEnCours === offre.id || !isUserConnected || !hasEnoughPoints(offre)"
-                [class.btn-insufficient]="isUserConnected && !hasEnoughPoints(offre)"
-                (click)="echangerOffre(offre)"
-                [title]="!isUserConnected ? 'Connectez-vous pour échanger' : !hasEnoughPoints(offre) ? 'Points insuffisants - Il vous manque ' + getPointsManquants(offre) + ' points' : 'Échanger cette offre'"
-              >
-                <span *ngIf="echangeEnCours !== offre.id && (!isUserConnected || hasEnoughPoints(offre))">Échanger</span>
-                <span *ngIf="echangeEnCours !== offre.id && isUserConnected && !hasEnoughPoints(offre)">
-                  Manque {{ getPointsManquants(offre) }} pts
-                </span>
-                <span *ngIf="echangeEnCours === offre.id">⏳</span>
-              </button>
-            </div>
+            <a routerLink="/recompenses" class="panel__link">Catalogue →</a>
           </div>
-        </article>
-      </div>
-    </div>
 
-    <!-- Message si pas d'offres -->
-    <div class="card" *ngIf="!loadingOffres && offres.length === 0 && !erreurOffres">
-      <p class="muted">Aucune offre disponible pour le moment.</p>
-    </div>
+          <div *ngIf="loadingOffres" class="state-inline">
+            <div class="spinner spinner--sm"></div>
+            <span>Chargement…</span>
+          </div>
 
-    <!-- Galerie -->
-    <div class="card" *ngIf="profil.galleryImages?.length">
-      <h2>Galerie</h2>
-      <div class="gallery-grid">
-        <img *ngFor="let img of profil.galleryImages" [src]="img" [alt]="profil.name + ' photo'" />
-      </div>
-    </div>
+          <div *ngIf="!loadingOffres && erreurOffres" class="state-inline state-inline--error">{{ erreurOffres }}</div>
 
-    <!-- Réseaux sociaux -->
-    <div class="card" *ngIf="profil.website || profil.instagramUrl || profil.facebookUrl">
-      <h2>Suivre ce partenaire</h2>
-      <div class="social-links">
-        <a *ngIf="profil.website" [href]="profil.website" target="_blank" rel="noopener noreferrer" class="social-btn">
-          🔗 Site web
-        </a>
-        <a *ngIf="profil.instagramUrl" [href]="profil.instagramUrl" target="_blank" rel="noopener noreferrer" class="social-btn">
-          📸 Instagram
-        </a>
-        <a *ngIf="profil.facebookUrl" [href]="profil.facebookUrl" target="_blank" rel="noopener noreferrer" class="social-btn">
-          f Facebook
-        </a>
-      </div>
-    </div>
+          <div *ngIf="!loadingOffres && !erreurOffres && offres.length === 0" class="empty-block">
+            <p>Aucune offre active pour le moment.</p>
+            <a routerLink="/recompenses" class="text-link">Parcourir le catalogue</a>
+          </div>
 
-    <!-- Bouton retour -->
-    <div class="back-link">
-      <a routerLink="/partenaires" class="btn-link">← Retour aux partenaires</a>
+          <div class="offers-track" *ngIf="!loadingOffres && offres.length > 0">
+            <article class="offer-tile" *ngFor="let offre of offres">
+              <div class="offer-tile__top">
+                <div class="offer-tile__thumb">
+                  <img *ngIf="offre.imageUrl" [src]="offre.imageUrl" [alt]="offre.title" loading="lazy" (error)="onOfferImgError($event)" />
+                  <span *ngIf="!offre.imageUrl" class="offer-tile__ph">{{ getTypeLabel(offre.type).charAt(0) }}</span>
+                </div>
+                <div class="offer-tile__info">
+                  <span class="offer-tile__type">{{ getTypeLabel(offre.type) }}</span>
+                  <h3>{{ offre.title }}</h3>
+                  <p *ngIf="offre.description" class="offer-tile__desc">
+                    {{ offre.description | slice:0:85 }}<span *ngIf="offre.description.length > 85">…</span>
+                  </p>
+                  <div class="offer-tile__tags">
+                    <span *ngIf="offre.discountPercentage" class="mini-tag">-{{ offre.discountPercentage }}%</span>
+                    <span *ngIf="offre.valeurDh" class="mini-tag">{{ offre.valeurDh }} DH</span>
+                    <span *ngIf="offre.hasMystereBox" class="mini-tag mini-tag--mystere">Mystère</span>
+                  </div>
+                </div>
+              </div>
+              <div class="offer-tile__bar">
+                <div class="offer-tile__pts">
+                  <strong>{{ offre.pointsNecessaires }}</strong>
+                  <span>points</span>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn--primary btn--sm"
+                  [disabled]="echangeEnCours === offre.id || (isLoggedInCitizen && !canExchange(offre))"
+                  (click)="echangerOffre(offre)"
+                  [title]="exchangeTitle(offre)"
+                >
+                  <span *ngIf="echangeEnCours === offre.id">…</span>
+                  <span *ngIf="echangeEnCours !== offre.id && !isLoggedInCitizen">Se connecter</span>
+                  <span *ngIf="echangeEnCours !== offre.id && isLoggedInCitizen && canExchange(offre)">Échanger</span>
+                  <span *ngIf="echangeEnCours !== offre.id && isLoggedInCitizen && !canExchange(offre)">−{{ getPointsManquants(offre) }} pts</span>
+                </button>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <aside class="page-aside">
+        <div class="contact-card">
+          <h2>Où nous trouver</h2>
+          <ul class="contact-list">
+            <li *ngIf="profil.address || profil.city">
+              <span class="contact-list__ico" aria-hidden="true">⌖</span>
+              <div>
+                <strong>Adresse</strong>
+                <p><span *ngIf="profil.address">{{ profil.address }}<br></span>{{ profil.city }}</p>
+              </div>
+            </li>
+            <li *ngIf="profil.openingHours">
+              <span class="contact-list__ico" aria-hidden="true">◷</span>
+              <div>
+                <strong>Horaires</strong>
+                <p>{{ profil.openingHours }}</p>
+              </div>
+            </li>
+            <li *ngIf="profil.phone">
+              <span class="contact-list__ico" aria-hidden="true">☎</span>
+              <div>
+                <strong>Téléphone</strong>
+                <p><a [href]="'tel:' + profil.phone">{{ profil.phone }}</a></p>
+              </div>
+            </li>
+          </ul>
+
+          <div class="social-row" *ngIf="hasSocialLinks">
+            <a *ngIf="profil.website" [href]="profil.website" target="_blank" rel="noopener noreferrer" class="social-chip">Web</a>
+            <a *ngIf="profil.instagramUrl" [href]="profil.instagramUrl" target="_blank" rel="noopener noreferrer" class="social-chip">Instagram</a>
+            <a *ngIf="profil.facebookUrl" [href]="profil.facebookUrl" target="_blank" rel="noopener noreferrer" class="social-chip">Facebook</a>
+          </div>
+        </div>
+
+        <a routerLink="/partenaires" class="back-link">← Retour aux partenaires</a>
+      </aside>
     </div>
-  </section>
+  </ng-container>
 </div>
 
-
-<!-- Modal de succès -->
+<!-- Modal -->
 <div class="modal-overlay" *ngIf="showSuccessModal" (click)="closeModal()">
-  <div class="modal-content modal--success" (click)="$event.stopPropagation()">
-    <button class="modal-close" (click)="closeModal()">✕</button>
-    
-    <div class="modal-header">
-      <span class="modal-icon">🎉</span>
-      <h2>Félicitations !</h2>
+  <div class="modal" (click)="$event.stopPropagation()">
+    <button type="button" class="modal__close" (click)="closeModal()" aria-label="Fermer">✕</button>
+    <div class="modal__header">
+      <h2>Échange confirmé</h2>
+      <p>Présentez ce coupon chez {{ profil?.name }}.</p>
     </div>
-
-    <div class="modal-body">
-      <p class="success-message">Votre échange a été effectué avec succès !</p>
-      
-      <div class="coupon-info" *ngIf="couponGenere">
-        <h3>{{ couponGenere.recompenseTitle }}</h3>
-        <p class="partenaire-name">Chez {{ profil?.name }}</p>
-        
-        <!-- QR Code -->
-        <div class="qr-code-container">
-          <div class="qr-code-loading" *ngIf="qrCodeLoading">
-            <div class="spinner"></div>
-            <p>Génération du QR code...</p>
-          </div>
-          
-          <div class="qr-code-image" *ngIf="!qrCodeLoading && qrCodeDataUrl">
-            <img [src]="qrCodeDataUrl" alt="QR Code du coupon" />
-            <p class="qr-code-hint">Scannez ce QR code chez le partenaire</p>
-          </div>
-
-          <div class="qr-code-error" *ngIf="!qrCodeLoading && !qrCodeDataUrl">
-            <p>QR code non disponible</p>
-          </div>
-        </div>
-
-        <!-- Code coupon -->
-        <div class="coupon-code-box">
-          <span class="code-label">Code coupon:</span>
-          <div class="code-value-container">
-            <span class="code-value">{{ couponGenere.code }}</span>
-            <button 
-              class="btn-copy" 
-              (click)="copierCode(couponGenere.code)"
-              title="Copier le code">
-              📋
-            </button>
-          </div>
-        </div>
-
-        <p class="coupon-instructions">
-          Présentez ce code ou le QR code chez {{ profil?.name }} pour bénéficier de votre offre.
-        </p>
-        
-        <p class="coupon-expiry" *ngIf="couponGenere.expireLe">
-          Valable jusqu'au {{ couponGenere.expireLe | date: 'dd/MM/yyyy' }}
-        </p>
+    <div class="modal__body" *ngIf="couponGenere">
+      <h3>{{ couponGenere.recompenseTitle }}</h3>
+      <div class="qr-wrap">
+        <div *ngIf="qrCodeLoading" class="state-inline"><div class="spinner spinner--sm"></div></div>
+        <img *ngIf="!qrCodeLoading && qrCodeDataUrl" [src]="qrCodeDataUrl" alt="QR code" class="qr-img" />
+      </div>
+      <div class="code-box">
+        <code>{{ couponGenere.code }}</code>
+        <button type="button" class="btn btn--ghost btn--sm" (click)="copierCode(couponGenere.code)">Copier</button>
       </div>
     </div>
-
-    <div class="modal-actions">
-      <button 
-        class="btn-secondary" 
-        (click)="telechargerQRCode()"
-        *ngIf="qrCodeDataUrl && couponGenere">
-        📥 Télécharger QR Code
-      </button>
-      <button class="btn-primary" (click)="allerVersMesCoupons()">
-        Voir mes coupons
-      </button>
-      <button class="btn-secondary" (click)="closeModal()">
-        Continuer
-      </button>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--primary" (click)="allerVersMesCoupons()">Mes coupons</button>
+      <button type="button" class="btn btn--outline" (click)="closeModal()">Fermer</button>
     </div>
   </div>
 </div>

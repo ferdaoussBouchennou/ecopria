@@ -42,9 +42,16 @@
     <!-- ─── Colonne principale ─────────────────────────────────── -->
     <div class="form-main">
 
-      <!-- Infos générales -->
-      <div class="card form-section">
-        <h2 class="section-head">Informations générales</h2>
+      <!-- Offre principale (visible catalogue) -->
+      <div class="card form-section form-section--public">
+        <div class="section-head-row">
+          <h2 class="section-head">Offre principale</h2>
+          <span class="visibility-badge">Visible par les participants</span>
+        </div>
+        <p class="section-intro">
+          C'est la seule offre affichée dans le catalogue Ecopria. Les clients peuvent l'échanger
+          directement contre les points indiqués plus bas.
+        </p>
 
         <div class="form-group">
           <label class="form-label" for="title">Titre de l'offre <span class="req">*</span></label>
@@ -68,17 +75,31 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="imageUrl">URL de l'image</label>
-          <input id="imageUrl" type="url" class="form-control"
-            formControlName="imageUrl"
-            placeholder="https://images.unsplash.com/…" />
-          <span class="form-hint">Image illustrant l'offre (recommandé : format carré ou 4:3)</span>
+          <label class="form-label">Image de l'offre</label>
+          <div class="upload-zone" *ngIf="!imagePreview">
+            <input id="offre-image" type="file" accept="image/jpeg,image/png,image/jpg,image/webp"
+              class="upload-input" (change)="onImageSelected($event)" />
+            <label for="offre-image" class="upload-label">
+              <span>Choisir une image</span>
+              <span class="form-hint">JPG, PNG ou WEBP — max. 5 Mo</span>
+            </label>
+          </div>
+          <div class="upload-preview" *ngIf="imagePreview">
+            <img [src]="imagePreview" alt="Aperçu de l'offre" />
+            <label for="offre-image-replace" class="btn btn--ghost btn--sm">Remplacer l'image</label>
+          <input id="offre-image-replace" type="file" accept="image/jpeg,image/png,image/jpg,image/webp"
+            class="visually-hidden" (change)="onImageSelected($event)" />
+          </div>
+          <span class="form-error" *ngIf="imageUploadError">{{ imageUploadError }}</span>
         </div>
       </div>
 
-      <!-- Type et points -->
+      <!-- Type et points (échange direct) -->
       <div class="card form-section">
-        <h2 class="section-head">Type et points</h2>
+        <h2 class="section-head">Échange direct</h2>
+        <p class="section-intro">
+          Points et conditions pour obtenir <strong>l'offre principale</strong> telle qu'affichée aux participants.
+        </p>
 
         <div class="form-row">
           <div class="form-group">
@@ -89,10 +110,11 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="points">Points nécessaires <span class="req">*</span></label>
+            <label class="form-label" for="points">Points — échange direct <span class="req">*</span></label>
             <input id="points" type="number" class="form-control" min="1"
               formControlName="pointsNecessaires"
               [class.is-invalid]="form.get('pointsNecessaires')?.invalid && form.get('pointsNecessaires')?.touched" />
+            <span class="form-hint">Coût pour réserver l'offre principale visible (sans boîte mystère)</span>
           </div>
         </div>
 
@@ -129,12 +151,18 @@
         </div>
       </div>
 
-      <!-- Boîte mystère -->
-      <div class="card form-section">
+      <!-- Boîte mystère (offres secrètes) -->
+      <div class="card form-section form-section--mystere">
         <div class="mysterebox-header">
           <div>
-            <h2 class="section-head" style="margin:0">Boîte mystère</h2>
-            <p class="section-sub">Option surprise pour vos clients — ils ne savent pas ce qu'ils gagnent !</p>
+            <div class="section-head-row">
+              <h2 class="section-head" style="margin:0">Boîte mystère</h2>
+              <span class="visibility-badge visibility-badge--hidden">Non visible — tirage aléatoire</span>
+            </div>
+            <p class="section-sub">
+              Option facultative : les participants choisissent entre l'offre principale
+              <em>ou</em> un tirage surprise à un autre tarif en points.
+            </p>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" formControlName="hasMystereBox" (change)="onMystereToggle()" />
@@ -143,15 +171,27 @@
         </div>
 
         <div *ngIf="form.get('hasMystereBox')?.value" class="mystere-body">
+          <div class="info-callout info-callout--mystere">
+            <strong>À comprendre</strong>
+            <ul>
+              <li>Seule l'<strong>offre principale</strong> (titre, photo, description) apparaît dans le catalogue.</li>
+              <li>Les lignes ci-dessous sont des <strong>offres secrètes</strong> : les participants ne les voient pas avant d'ouvrir la boîte.</li>
+              <li>Ajoutez <strong>au minimum 2 offres secrètes</strong>, différentes de l'offre principale.</li>
+              <li>Les probabilités doivent totaliser <strong>100&nbsp;%</strong> (chance de gagner chaque surprise).</li>
+            </ul>
+          </div>
+
           <div class="form-group">
-            <label class="form-label" for="mbPoints">Coût en points (boîte mystère)</label>
+            <label class="form-label" for="mbPoints">Points — ouverture boîte mystère</label>
             <input id="mbPoints" type="number" class="form-control" min="1"
               formControlName="mystereBoxPoints" />
-            <span class="form-hint">Points à dépenser pour ouvrir la boîte mystère</span>
+            <span class="form-hint">
+              Coût pour tenter le tirage (souvent inférieur aux {{ form.get('pointsNecessaires')?.value || '…' }} pts de l'offre principale)
+            </span>
           </div>
 
           <div class="mystere-items-header">
-            <span class="form-label" style="margin:0">Lots possibles</span>
+            <span class="form-label" style="margin:0">Offres secrètes <span class="req">*</span> <span class="label-min">(min. 2)</span></span>
             <span class="proba-total" [class.ok]="probaTotal === 100" [class.nok]="probaTotal !== 100">
               Total : {{ probaTotal }}% / 100%
             </span>
@@ -163,14 +203,14 @@
               [formGroupName]="i"
               class="item-row"
             >
-              <div class="item-num">{{ i + 1 }}</div>
+              <div class="item-num" title="Offre secrète">{{ i + 1 }}</div>
               <div class="item-fields">
                 <input type="text" class="form-control" formControlName="titre"
-                  placeholder="Nom du lot" />
+                  placeholder="Titre de l'offre secrète (ex : -20% sur tout le magasin)" />
                 <input type="text" class="form-control" formControlName="description"
-                  placeholder="Description (optionnel)" />
+                  placeholder="Détail caché (optionnel — révélé après le tirage)" />
               </div>
-              <div class="item-proba">
+              <div class="item-proba" title="Probabilité de tomber sur cette offre">
                 <input type="number" class="form-control proba-input"
                   formControlName="probabilite" min="1" max="100" />
                 <span class="proba-pct">%</span>
@@ -178,12 +218,12 @@
               <button type="button" class="btn btn--danger btn--sm item-del"
                 (click)="supprimerItemMystere(i)"
                 [disabled]="mystereItems.length <= 2"
-                title="Supprimer">✕</button>
+                title="Supprimer cette offre secrète">✕</button>
             </div>
           </div>
 
           <button type="button" class="btn btn--ghost btn--sm" (click)="ajouterItemMystere()">
-            + Ajouter un lot
+            + Ajouter une offre secrète
           </button>
         </div>
       </div>
@@ -191,10 +231,25 @@
 
     <!-- ─── Sidebar droite ─────────────────────────────────────── -->
     <aside class="form-sidebar">
+      <!-- Aperçu participant -->
+      <div class="card preview-card preview-card--catalogue" *ngIf="form.get('title')?.value?.trim()">
+        <h3 class="preview-title">Ce que voient les participants</h3>
+        <div class="catalogue-preview">
+          <img *ngIf="imagePreview" [src]="imagePreview" alt="" class="catalogue-preview__img" />
+          <div *ngIf="!imagePreview" class="catalogue-preview__img catalogue-preview__img--empty">Photo</div>
+          <p class="catalogue-preview__title">{{ form.get('title')?.value }}</p>
+          <p class="catalogue-preview__pts">{{ form.get('pointsNecessaires')?.value || '—' }} pts · échange direct</p>
+          <span class="catalogue-preview__tag" *ngIf="hasMystereBoxValue">+ option boîte mystère</span>
+        </div>
+        <p class="preview-footnote" *ngIf="hasMystereBoxValue">
+          Les {{ mystereItems.length }} offre(s) secrète(s) restent cachées — seul le nombre de surprises est indiqué.
+        </p>
+      </div>
+
       <!-- Aperçu image -->
-      <div class="card preview-card" *ngIf="form.get('imageUrl')?.value">
+      <div class="card preview-card" *ngIf="imagePreview">
         <h3 class="preview-title">Aperçu</h3>
-        <img [src]="form.get('imageUrl')?.value" alt="Aperçu"
+        <img [src]="imagePreview" alt="Aperçu"
           class="preview-img"
           (error)="$any($event.target).style.display='none'" />
       </div>

@@ -1,109 +1,100 @@
-<div class="liste-partenaires">
-  <!-- Header -->
-  <section class="liste-partenaires__header">
-    <div class="header-content">
-      <h1>Nos Partenaires</h1>
-      <p class="lead">Découvrez tous les commerces et services engagés avec Ecopria.</p>
-    </div>
-  </section>
+<div class="catalog-page">
+  <header class="page-hero">
+    <p class="eyebrow">— Partenaires Ecopria</p>
+    <h1>Découvrez les commerces engagés près de chez vous</h1>
+    <p class="lead">
+      Restauration, artisanat, bien-être… Parcourez les partenaires locaux et échangez vos points contre leurs offres.
+    </p>
+  </header>
 
-  <!-- Filtres -->
-  <section class="liste-partenaires__filters">
-    <div class="filters-wrapper">
-      <!-- Recherche par texte -->
-      <div class="filter-group">
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Chercher un partenaire..."
-          [(ngModel)]="searchText"
-          (input)="onSearchChange()"
-          aria-label="Rechercher un partenaire"
-        />
-      </div>
-
-      <!-- Filtre par catégorie -->
-      <div class="filter-group">
-        <select
-          class="category-select"
-          [(ngModel)]="selectedCategory"
-          (change)="onCategoryChange()"
-          aria-label="Filtrer par catégorie"
-        >
-          <option value="">Toutes les catégories</option>
-          <option *ngFor="let cat of categories" [value]="cat">
-            {{ cat }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Bouton réinitialiser -->
+  <nav class="filters-row" aria-label="Filtres partenaires">
+    <div class="category-pills" role="group" aria-label="Catégories">
       <button
-        class="btn btn--outline"
-        (click)="clearFilters()"
+        type="button"
+        class="pill"
+        [class.active]="!selectedCategory"
+        (click)="selectedCategory = ''; applyFilters()"
+      >
+        Toutes
+      </button>
+      <button
+        type="button"
+        class="pill"
+        *ngFor="let cat of categories"
+        [class.active]="selectedCategory === cat"
+        (click)="selectedCategory = cat; applyFilters()"
+      >
+        {{ cat }}
+      </button>
+    </div>
+
+    <div class="search-wrap">
+      <label class="visually-hidden" for="search-partners">Rechercher</label>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M20 20L16 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <input
+        id="search-partners"
+        type="search"
+        placeholder="Rechercher un partenaire…"
+        [(ngModel)]="searchText"
+        (input)="onSearchChange()"
+      />
+    </div>
+  </nav>
+
+  <div class="toolbar-row">
+    <p class="results-count">{{ filteredPartenaires.length }} partenaire{{ filteredPartenaires.length > 1 ? 's' : '' }}</p>
+    <div class="toolbar-links">
+      <a routerLink="/recompenses" class="toolbar-link">Voir les offres →</a>
+      <button
+        type="button"
+        class="toolbar-link toolbar-link--btn"
         *ngIf="searchText || selectedCategory"
+        (click)="clearFilters()"
       >
         Réinitialiser
       </button>
     </div>
-  </section>
+  </div>
 
-  <!-- État de chargement -->
-  <div *ngIf="loading" class="state state--loading">
+  <div *ngIf="loading" class="state-box">
     <div class="spinner"></div>
-    <p>Chargement des partenaires...</p>
+    <p>Chargement des partenaires…</p>
   </div>
 
-  <!-- État d'erreur -->
-  <div *ngIf="!loading && erreur" class="state state--error">
-    <h2>Erreur</h2>
+  <div *ngIf="!loading && erreur" class="state-box state-error">
     <p>{{ erreur }}</p>
-    <button class="btn btn--primary" (click)="loadPartenaires()">Réessayer</button>
+    <button type="button" class="btn-primary" (click)="loadPartenaires()">Réessayer</button>
   </div>
 
-  <!-- Liste vide -->
-  <div *ngIf="!loading && !erreur && filteredPartenaires.length === 0" class="state state--empty">
-    <h2>Aucun partenaire trouvé</h2>
-    <p>Essayez de modifier vos critères de recherche.</p>
-    <button class="btn btn--outline" (click)="clearFilters()">Voir tous les partenaires</button>
+  <div *ngIf="!loading && !erreur && filteredPartenaires.length === 0" class="state-box state-empty">
+    <p>Aucun partenaire ne correspond à votre recherche.</p>
+    <button type="button" class="btn-outline" (click)="clearFilters()">Voir tous les partenaires</button>
   </div>
 
-  <!-- Grille de partenaires -->
-  <section class="liste-partenaires__grid" *ngIf="!loading && !erreur && filteredPartenaires.length > 0">
-    <div class="results-info">
-      <span class="count">{{ filteredPartenaires.length }} partenaire<span *ngIf="filteredPartenaires.length > 1">s</span></span>
-    </div>
-
-    <div class="partenaires-grid">
-      <article *ngFor="let partenaire of filteredPartenaires" class="partenaire-card">
-        <a [routerLink]="['/partenaires', partenaire.userId]" class="partenaire-card__link">
-          <!-- Image -->
-          <div class="partenaire-card__image">
-            <img
-              [src]="partenaire.imageUrl || 'https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=500&h=300&fit=crop'"
-              [alt]="partenaire.name"
-              loading="lazy"
-            />
-            <span *ngIf="partenaire.category" class="category-badge">
-              {{ partenaire.category }}
-            </span>
-          </div>
-
-          <!-- Contenu -->
-          <div class="partenaire-card__content">
-            <h3 class="partenaire-card__name">{{ partenaire.name }}</h3>
-            <p *ngIf="partenaire.city" class="partenaire-card__city">
-              📍 {{ partenaire.city }}
-            </p>
-            <p *ngIf="partenaire.description" class="partenaire-card__description">
-              {{ partenaire.description | slice:0:100 }}<span *ngIf="partenaire.description.length > 100">...</span>
-            </p>
-            <div class="partenaire-card__footer">
-              <span class="btn-small">Voir le profil →</span>
-            </div>
-          </div>
-        </a>
-      </article>
-    </div>
-  </section>
+  <div class="partners-grid" *ngIf="!loading && !erreur && filteredPartenaires.length > 0">
+    <article class="partner-card" *ngFor="let partenaire of filteredPartenaires">
+      <a [routerLink]="['/partenaires', partenaire.userId]" class="card-link">
+        <div class="card-image">
+          <img
+            [src]="partenaire.imageUrl || '/assets/images/event-affiche-2.jpg'"
+            [alt]="partenaire.name"
+            loading="lazy"
+            (error)="onImgError($event)"
+          />
+          <span class="badge badge-cat" *ngIf="partenaire.category">{{ partenaire.category }}</span>
+        </div>
+        <div class="card-body">
+          <p class="card-city" *ngIf="partenaire.city">{{ partenaire.city }}</p>
+          <h3 class="card-title">{{ partenaire.name }}</h3>
+          <p class="card-desc" *ngIf="partenaire.description">
+            {{ partenaire.description | slice:0:110 }}<span *ngIf="partenaire.description.length > 110">…</span>
+          </p>
+          <span class="card-cta">Voir le profil →</span>
+        </div>
+      </a>
+    </article>
+  </div>
 </div>

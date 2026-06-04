@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PartenaireService } from '../partenaire.service';
@@ -22,20 +22,22 @@ export class ProfilPartenairePublicComponent implements OnInit {
   loadingOffres = true;
   erreur = '';
   erreurOffres = '';
-  
-  // Pour l'échange
+
   echangeEnCours: number | null = null;
   showSuccessModal = false;
   couponGenere: CouponDto | null = null;
-  
-  // Solde de points de l'utilisateur
-  soldePoints: number = 0;
-  isUserConnected: boolean = false;
-  loadingSolde: boolean = false;
 
-  // Propriétés pour le QR code
-  qrCodeDataUrl: string = '';
-  qrCodeLoading: boolean = false;
+  /** Solde du participant connecté (rôle USER uniquement). */
+  soldePoints = 0;
+  loadingSolde = false;
+
+  qrCodeDataUrl = '';
+  qrCodeLoading = false;
+
+  private readonly fallbackImage = '/assets/images/event-affiche-2.jpg';
+
+  /** Exposé au template pour distinguer visiteur / autre rôle. */
+  readonly auth = inject(AuthService);
 
   constructor(
     private route: ActivatedRoute,
@@ -43,33 +45,73 @@ export class ProfilPartenairePublicComponent implements OnInit {
     private partenaireService: PartenaireService,
     private recompenseService: RecompenseService,
     private userService: UserService,
-    private auth: AuthService,
     private qrCodeService: QrCodeService
   ) {}
+
+  /** Seuls les participants (citoyens) possèdent et dépensent des points. */
+  get isLoggedInCitizen(): boolean {
+    return this.auth.isLoggedIn() && this.auth.getRole() === 'USER';
+  }
 
   get loginReturnUrl(): string {
     return this.router.url;
   }
 
+  get partnerInitial(): string {
+    const name = this.profil?.name?.trim();
+    return name ? name.charAt(0).toUpperCase() : 'P';
+  }
+
+
+  get hasSocialLinks(): boolean {
+    const p = this.profil;
+    return !!(p?.website || p?.instagramUrl || p?.facebookUrl);
+  }
+
+  get hasContactInfo(): boolean {
+    const p = this.profil;
+    return !!(p?.address || p?.city || p?.phone || p?.openingHours);
+  }
+
+  /** Visuels pour la mosaïque (couverture + galerie, max 4). */
+  get showcaseImages(): string[] {
+    const imgs: string[] = [];
+    if (this.profil?.imageUrl) imgs.push(this.profil.imageUrl);
+    (this.profil?.galleryImages ?? []).forEach((u) => {
+      if (u && !imgs.includes(u)) imgs.push(u);
+    });
+    return imgs.slice(0, 4);
+  }
+
+  get hasShowcase(): boolean {
+    return this.showcaseImages.length > 0;
+  }
+
+  get offersCount(): number {
+    return this.offres.length;
+  }
+
   ngOnInit(): void {
     const rawId = this.route.snapshot.paramMap.get('userId');
-    const userId = Number(rawId);
-    if (!userId || Number.isNaN(userId)) {
+    const partenaireUserId = Number(rawId);
+    if (!partenaireUserId || Number.isNaN(partenaireUserId)) {
       this.erreur = 'Identifiant partenaire invalide.';
       this.loading = false;
       return;
     }
 
-    // Vérifier si l'utilisateur est connecté et charger son solde de points
-    this.checkUserAuthentication();
+    if (this.isLoggedInCitizen) {
+      const participantId = this.auth.getUserId();
+      if (participantId != null) {
+        this.loadParticipantPoints(participantId);
+      }
+    }
 
-    // Charger le profil
-    this.partenaireService.getProfilPublic(userId).subscribe({
+    this.partenaireService.getProfilPublic(partenaireUserId).subscribe({
       next: (profil) => {
         this.profil = profil;
         this.loading = false;
-        // Charger les offres du partenaire
-        this.loadOffres(userId);
+        this.loadOffres(partenaireUserId);
       },
       error: (e: Error) => {
         this.erreur = e.message;
@@ -78,87 +120,34 @@ export class ProfilPartenairePublicComponent implements OnInit {
     });
   }
 
-  checkUserAuthentication(): void {
-    const userId = this.auth.getUserId();
-    
-    // 🔍 DEBUG: Afficher les informations de connexion
-    console.log('🔍 Vérification authentification:');
-    console.log('   - User ID:', userId);
-    console.log('   - Is Logged In:', this.auth.isLoggedIn());
-    console.log('   - localStorage userId:', localStorage.getItem('ecopria_user_id'));
-    console.log('   - localStorage role:', localStorage.getItem('ecopria_role'));
-    
-    if (userId != null && this.auth.isLoggedIn()) {
-      this.isUserConnected = true;
-      this.loadUserPoints(userId);
-    } else {
-      console.warn('⚠️ Utilisateur non connecté ou ID manquant');
-    }
-  }
-
-  loadUserPoints(userId: number): void {
-    // Validation de l'ID
-    if (!userId || userId <= 0) {
-      console.error('❌ ID utilisateur invalide:', userId);
-      this.soldePoints = 0;
-      this.loadingSolde = false;
-      return;
-    }
-
+  loadParticipantPoints(participantUserId: number): void {
     this.loadingSolde = true;
-    
-    // 🔍 DEBUG: Afficher l'appel API
-    console.log(`🔍 Appel API: GET /api/users/${userId}/points`);
-    
-    this.userService.getPoints(userId).subscribe({
+    this.userService.getPoints(participantUserId).subscribe({
       next: (response) => {
-        // 🔍 DEBUG: Afficher la réponse
-        console.log('✅ Réponse API reçue:', response);
-        
-        // Vérifier que la réponse est valide
-        if (response && typeof response.totalPoints === 'number') {
-          this.soldePoints = response.totalPoints;
-          console.log(` Solde de points assigné: ${this.soldePoints} points`);
-        } else {
-          console.warn('⚠️ Réponse API invalide ou totalPoints manquant:', response);
-          this.soldePoints = 0;
-        }
-        
+        this.soldePoints = typeof response?.totalPoints === 'number' ? response.totalPoints : 0;
         this.loadingSolde = false;
       },
-      error: (e: Error) => {
-        console.error('❌ Erreur lors du chargement du solde de points:', e);
-        console.error('❌ Message d\'erreur:', e.message);
-        console.error('❌ Stack trace:', e.stack);
+      error: () => {
         this.soldePoints = 0;
         this.loadingSolde = false;
       }
     });
   }
 
-  loadOffres(userId: number): void {
-    // Utiliser le nouvel endpoint qui filtre côté backend
-    this.recompenseService.getOffresByPartenaire(userId).subscribe({
+  loadOffres(partenaireUserId: number): void {
+    this.loadingOffres = true;
+    this.recompenseService.getOffresByPartenaire(partenaireUserId).subscribe({
       next: (offres) => {
-        // Le backend retourne déjà les offres filtrées pour ce partenaire
         this.offres = offres.filter(o => o.isActive && o.isAvailable);
         this.loadingOffres = false;
       },
-      error: (e: Error) => {
-        // Si l'endpoint n'existe pas encore, fallback sur l'ancien système
-        console.warn('Endpoint spécifique non disponible, utilisation du catalogue complet', e);
+      error: () => {
         this.recompenseService.getCatalogue().subscribe({
           next: (toutes) => {
             const nomPartenaire = this.profil?.name;
-            if (nomPartenaire) {
-              this.offres = toutes.filter(o => 
-                o.partenaireName === nomPartenaire && 
-                o.isActive && 
-                o.isAvailable
-              );
-            } else {
-              this.offres = [];
-            }
+            this.offres = nomPartenaire
+              ? toutes.filter(o => o.partenaireName === nomPartenaire && o.isActive && o.isAvailable)
+              : [];
             this.loadingOffres = false;
           },
           error: (e2: Error) => {
@@ -171,38 +160,19 @@ export class ProfilPartenairePublicComponent implements OnInit {
   }
 
   echangerOffre(offre: RecompenseItemDto): void {
-    if (!offre.isAvailable || this.echangeEnCours) return;
-
-    // Vérifier si l'utilisateur est connecté
-    const userId = this.auth.getUserId();
-    if (userId == null || !this.isUserConnected) {
-      // Rediriger vers la page de connexion
-      alert('Vous devez être connecté pour échanger des points.');
-      this.router.navigate(['/connexion'], { 
-        queryParams: { returnUrl: this.router.url } 
-      });
+    if (!this.isLoggedInCitizen || !offre.isAvailable || this.echangeEnCours) {
+      if (!this.isLoggedInCitizen) {
+        this.router.navigate(['/connexion'], { queryParams: { returnUrl: this.router.url } });
+      }
       return;
     }
 
-    // Vérifier si l'utilisateur a assez de points
-    if (this.soldePoints < offre.pointsNecessaires) {
-      alert(
-        `Points insuffisants !\n\n` +
-        `Votre solde : ${this.soldePoints} points\n` +
-        `Requis : ${offre.pointsNecessaires} points\n` +
-        `Manquant : ${offre.pointsNecessaires - this.soldePoints} points`
-      );
-      return;
-    }
+    if (this.soldePoints < offre.pointsNecessaires) return;
 
-    // Confirmer l'échange
     const confirmation = confirm(
-      `Voulez-vous échanger ${offre.pointsNecessaires} points contre cette offre ?\n\n` +
-      `"${offre.title}"\n\n` +
-      `Votre solde actuel : ${this.soldePoints} points\n` +
-      `Solde après échange : ${this.soldePoints - offre.pointsNecessaires} points`
+      `Échanger ${offre.pointsNecessaires} points contre « ${offre.title} » ?\n\n` +
+      `Votre solde participant : ${this.soldePoints} pts → ${this.soldePoints - offre.pointsNecessaires} pts`
     );
-
     if (!confirmation) return;
 
     this.echangeEnCours = offre.id;
@@ -210,34 +180,23 @@ export class ProfilPartenairePublicComponent implements OnInit {
     this.recompenseService.echanger(offre.id).subscribe({
       next: async (coupon) => {
         this.couponGenere = coupon;
-        
-        // Générer le QR code
         this.qrCodeLoading = true;
         try {
           this.qrCodeDataUrl = await this.qrCodeService.generateQRCode(coupon.code);
-        } catch (error) {
-          console.error('Erreur génération QR code:', error);
-          this.qrCodeDataUrl = ''; // On affiche quand même le coupon sans QR
+        } catch {
+          this.qrCodeDataUrl = '';
         } finally {
           this.qrCodeLoading = false;
         }
-        
+
         this.showSuccessModal = true;
         this.echangeEnCours = null;
-        
-        // Recharger le solde de points
-        const userId = this.auth.getUserId();
-        if (userId != null) {
-          this.loadUserPoints(userId);
-        }
-        
-        // Recharger les offres pour mettre à jour le stock
-        if (this.profil) {
-          this.loadOffres(this.profil.userId);
-        }
+
+        const participantId = this.auth.getUserId();
+        if (participantId != null) this.loadParticipantPoints(participantId);
+        if (this.profil) this.loadOffres(this.profil.userId);
       },
       error: (e: Error) => {
-        // Le backend retourne des erreurs claires (points insuffisants, offre non disponible, etc.)
         alert(`Erreur : ${e.message}`);
         this.echangeEnCours = null;
       }
@@ -246,20 +205,26 @@ export class ProfilPartenairePublicComponent implements OnInit {
 
   getTypeLabel(type: string): string {
     const labels: Record<string, string> = {
-      'STOCK': 'Produit',
-      'REDUCTION': 'Réduction',
-      'SERVICE': 'Service',
-      'EXPERIENCE': 'Expérience'
+      STOCK: 'Produit',
+      REDUCTION: 'Réduction',
+      SERVICE: 'Service',
+      EXPERIENCE: 'Expérience'
     };
     return labels[type] || type;
   }
 
-  hasEnoughPoints(offre: RecompenseItemDto): boolean {
-    return this.isUserConnected && this.soldePoints >= offre.pointsNecessaires;
+  canExchange(offre: RecompenseItemDto): boolean {
+    return this.isLoggedInCitizen && this.soldePoints >= offre.pointsNecessaires;
   }
 
   getPointsManquants(offre: RecompenseItemDto): number {
     return Math.max(0, offre.pointsNecessaires - this.soldePoints);
+  }
+
+  exchangeTitle(offre: RecompenseItemDto): string {
+    if (!this.isLoggedInCitizen) return 'Connectez-vous avec un compte participant';
+    if (!this.canExchange(offre)) return `Il vous manque ${this.getPointsManquants(offre)} points`;
+    return 'Échanger avec vos points';
   }
 
   closeModal(): void {
@@ -270,25 +235,19 @@ export class ProfilPartenairePublicComponent implements OnInit {
 
   async telechargerQRCode(): Promise<void> {
     if (!this.couponGenere) return;
-    
     try {
       await this.qrCodeService.downloadQRCode(
         this.couponGenere.code,
         `coupon-${this.couponGenere.code}.png`
       );
-    } catch (error) {
+    } catch {
       alert('Erreur lors du téléchargement du QR code');
     }
   }
 
   copierCode(code: string): void {
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(code).then(() => {
-        alert('Code copié dans le presse-papiers!');
-      }).catch(err => {
-        console.error('Erreur lors de la copie:', err);
-        this.fallbackCopyCode(code);
-      });
+      navigator.clipboard.writeText(code).then(() => alert('Code copié !')).catch(() => this.fallbackCopyCode(code));
     } else {
       this.fallbackCopyCode(code);
     }
@@ -301,19 +260,24 @@ export class ProfilPartenairePublicComponent implements OnInit {
     textArea.style.left = '-999999px';
     document.body.appendChild(textArea);
     textArea.select();
-    try {
-      document.execCommand('copy');
-      alert('Code copié!');
-    } catch (err) {
-      console.error('Erreur fallback copy:', err);
-    }
+    try { document.execCommand('copy'); alert('Code copié !'); } catch { /* ignore */ }
     document.body.removeChild(textArea);
   }
 
   allerVersMesCoupons(): void {
     this.closeModal();
-    // Créer la route /espace/mes-coupons si elle n'existe pas encore
-    // Pour l'instant, on va juste vers l'espace
     this.router.navigate(['/espace/recompenses']);
+  }
+
+  onCoverError(event: Event): void {
+    (event.target as HTMLImageElement).src = this.fallbackImage;
+  }
+
+  onGalleryError(event: Event): void {
+    (event.target as HTMLImageElement).style.display = 'none';
+  }
+
+  onOfferImgError(event: Event): void {
+    (event.target as HTMLImageElement).style.display = 'none';
   }
 }

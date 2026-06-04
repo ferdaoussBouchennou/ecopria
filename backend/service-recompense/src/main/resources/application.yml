@@ -15,6 +15,10 @@ management:
 spring:
   application:
     name: service-recompense
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   jackson:
     deserialization:
       fail-on-unknown-properties: false
@@ -51,6 +55,11 @@ spring:
 kafka:
   topics:
     recompense-echangee: recompense.echangee
+
+app:
+  upload:
+    dir: ${APP_UPLOAD_DIR:uploads}
+  base-url: ${APP_BASE_URL:}
 
 services:
   utilisateur:

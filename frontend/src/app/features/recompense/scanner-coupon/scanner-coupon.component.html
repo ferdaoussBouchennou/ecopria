@@ -1,21 +1,13 @@
-<!-- ─── LOADING ─────────────────────────────────────────────── -->
-<div *ngIf="loading && !coupon" class="loading-page">
-  <div class="spinner"></div>
-  <p>Validation en cours…</p>
-</div>
-
-<!-- ─── CONTENU ───────────────────────────────────────────── -->
 <div class="p-page">
   <div class="p-page-head">
     <div>
       <span class="page-eyebrow">Scanner coupon</span>
       <h1 class="page-title">Validation en magasin</h1>
-      <p class="page-sub">Validez le coupon par saisie, caméra ou import d'image.</p>
+      <p class="page-sub">Scannez le QR code du coupon avec la caméra ou saisissez le code manuellement.</p>
     </div>
   </div>
   <div class="p-section">
 
-  <!-- Succès dernier scan -->
   <div *ngIf="coupon && !erreur" class="alert alert--success">
     <div class="alert-inner">
       <svg class="p-page-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -42,26 +34,25 @@
       </svg>
     </div>
     <h2 class="scan-title">Scanner un coupon</h2>
-    <p class="scan-hint">Choisissez votre méthode de validation</p>
+    <p class="scan-hint">Placez le QR code du client dans le cadre de la caméra</p>
 
-    <!-- Toggle Mode Scanner — 2 onglets (Scanner QR retiré) -->
     <div class="scanner-mode-toggle">
       <button
         type="button"
         class="btn btn--toggle"
-        [class.active]="scannerMode === 'upload'"
-        (click)="switchToUpload()">
+        [class.active]="scannerMode === 'camera'"
+        (click)="setMode('camera')">
         <svg class="p-page-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M4 6H16V14C16 15.1 15.1 16 14 16H6C4.9 16 4 15.1 4 14V6Z" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M4 8H16" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="3" y="5" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
         </svg>
-        Importer image
+        Caméra
       </button>
       <button
         type="button"
         class="btn btn--toggle"
         [class.active]="scannerMode === 'manual'"
-        (click)="scannerMode = 'manual'">
+        (click)="setMode('manual')">
         <svg class="p-page-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <rect x="3" y="5" width="14" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
           <path d="M6 8H8M6 11H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -70,75 +61,25 @@
       </button>
     </div>
 
-    <!-- ── MODE UPLOAD IMAGE ───────────────────────────────── -->
-    <div class="upload-zone-wrapper" *ngIf="scannerMode === 'upload'">
-
-      <!-- Dropzone -->
-      <div
-        class="dropzone"
-        [class.drag-active]="dragOver"
-        [class.has-preview]="uploadPreview"
-        (dragover)="onDragOver($event)"
-        (dragleave)="onDragLeave()"
-        (drop)="onDrop($event)"
-        (click)="fileInput.click()">
-
-        <!-- Prévisualisation -->
-        <div *ngIf="uploadPreview" class="preview-wrap">
-          <img [src]="uploadPreview" alt="Image uploadée" class="preview-img" />
-          <div *ngIf="uploadProcessing" class="preview-overlay">
-            <div class="spinner-qr"></div>
-            <p>Lecture QR en cours…</p>
-          </div>
-        </div>
-
-        <!-- État vide -->
-        <div *ngIf="!uploadPreview" class="dropzone-empty">
-          <svg class="p-page-icon--lg upload-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
-            <circle cx="9" cy="10" r="1.5" fill="currentColor"/>
-            <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <p class="upload-title">Glissez-déposez une image ici</p>
-          <p class="upload-sub">ou cliquez pour sélectionner</p>
-          <span class="upload-badge">PNG · JPG · WebP</span>
-        </div>
+    <div class="camera-panel" *ngIf="scannerMode === 'camera'">
+      <div class="camera-wrap" *ngIf="scannerEnabled && !loading">
+        <zxing-scanner
+          [formats]="allowedFormats"
+          [tryHarder]="true"
+          (scanSuccess)="onScanSuccess($event)"
+          (scanError)="onScanError($event)"
+        ></zxing-scanner>
       </div>
-
-      <!-- Input fichier caché -->
-      <input
-        #fileInput
-        type="file"
-        accept="image/*"
-        style="display:none"
-        (change)="onFileSelected($event)"
-      />
-
-      <!-- Erreur upload -->
-      <div *ngIf="uploadError" class="upload-error">
-        <svg class="p-page-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M10 6V11M10 14H10.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
-        {{ uploadError }}
-        <button class="btn-link" (click)="fileInput.click()">Essayer une autre image</button>
-      </div>
-
-      <!-- Code détecté en attente de validation -->
-      <div *ngIf="code && !loading && scannerMode === 'upload'" class="detected-code">
-        <span class="detected-label">Code détecté :</span>
-        <code class="detected-value">{{ code }}</code>
-        <button class="btn btn--primary btn--sm" (click)="valider()" [disabled]="loading">
-          <span *ngIf="loading" class="spinner-sm"></span>
-          {{ loading ? 'Validation…' : 'Valider' }}
-        </button>
-      </div>
-
-      <!-- Div caché requis par html5-qrcode pour scanFile -->
-      <div id="qr-upload-hidden" style="display:none"></div>
+      <p class="camera-hint" *ngIf="!cameraError && !loading">
+        Le coupon sera validé automatiquement après la lecture du QR code.
+      </p>
+      <p class="camera-error" *ngIf="cameraError">{{ cameraError }}</p>
+      <p class="loading-hint" *ngIf="loading">Validation en cours…</p>
+      <p class="loading-hint" *ngIf="!scannerEnabled && !loading && !cameraError">
+        Scanner en pause — prêt dans quelques secondes.
+      </p>
     </div>
 
-    <!-- ── MODE SAISIE MANUELLE ────────────────────────────── -->
     <div class="scan-form" *ngIf="scannerMode === 'manual'">
       <input
         type="text"
@@ -164,7 +105,6 @@
     <p class="scan-error" *ngIf="erreur">{{ erreur }}</p>
   </div>
 
-  <!-- Résultat du coupon validé -->
   <div class="coupon-result card" *ngIf="coupon">
     <h2 class="result-title">Détail du coupon validé</h2>
     <div class="coupon-detail-grid">

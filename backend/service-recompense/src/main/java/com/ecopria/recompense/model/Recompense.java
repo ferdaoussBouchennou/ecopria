@@ -63,7 +63,8 @@ public class Recompense {
     private LocalDateTime dateExpiration;
 
     // ── BOÎTE MYSTÈRE (optionnelle) ──────────────────────────
-    // Si true, le citoyen peut choisir entre l'offre normale OU la boîte mystère
+    // Offre principale = visible catalogue (title, image, pointsNecessaires).
+    // Boîte mystère = tirage parmi ≥2 offres secrètes (non exposées au public).
     @Column(name = "has_mystere_box", nullable = false)
     @Builder.Default
     private Boolean hasMystereBox = false;
