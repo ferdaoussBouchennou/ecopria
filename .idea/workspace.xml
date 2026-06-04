@@ -5,18 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c693b60b-5826-43ee-948c-0a9d2aca6a30" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUIDE_TEST_INTERACTIF.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/RESUME_FINAL_DESIGN.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/RESUME_FINAL_PRET_TEST.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/service-recompense/src/main/java/com/ecopria/recompense/controller/RecompenseController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-recompense/src/main/java/com/ecopria/recompense/controller/RecompenseController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/service-inscription/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-inscription/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/service-notification/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-notification/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/service-recompense/src/main/java/com/ecopria/recompense/client/UtilisateurClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-recompense/src/main/java/com/ecopria/recompense/client/UtilisateurClient.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/service-recompense/src/main/java/com/ecopria/recompense/service/RecompenseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-recompense/src/main/java/com/ecopria/recompense/service/RecompenseService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/app.routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/app.routes.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/profil-partenaire-public/profil-partenaire-public.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/profil-partenaire-public/profil-partenaire-public.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/profil-partenaire-public/profil-partenaire-public.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/profil-partenaire-public/profil-partenaire-public.component.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/profil-partenaire-public/profil-partenaire-public.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/profil-partenaire-public/profil-partenaire-public.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/recompense.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/recompense.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/shared/components/page-shell/page-shell.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/shared/components/page-shell/page-shell.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/service-utilisateur/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-utilisateur/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/service-utilisateur/src/main/java/com/ecopria/utilisateur/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-utilisateur/src/main/java/com/ecopria/utilisateur/controller/UserController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/service-utilisateur/src/main/java/com/ecopria/utilisateur/kafka/UserConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-utilisateur/src/main/java/com/ecopria/utilisateur/kafka/UserConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/service-utilisateur/src/main/java/com/ecopria/utilisateur/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-utilisateur/src/main/java/com/ecopria/utilisateur/service/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/partenaire.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/partenaire.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/scanner-coupon/scanner-coupon.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/scanner-coupon/scanner-coupon.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/scanner-coupon/scanner-coupon.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/scanner-coupon/scanner-coupon.component.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/scanner-coupon/scanner-coupon.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/scanner-coupon/scanner-coupon.component.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,7 +31,7 @@
     <execution />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="679" />
+    <option name="cachedIndexableFilesCount" value="885" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
@@ -70,7 +74,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "git-widget-placeholder": "frontend-v2",
+    "git-widget-placeholder": "frontend-v3",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/user/Desktop/ecopria",
     "node.js.detected.package.eslint": "true",
@@ -78,14 +82,21 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "settings.editor.selected.configurable": "configurable.group.build",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Spring Boot.ServiceInscriptionApplication">
     <configuration name="ServiceInscriptionApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="service-inscription" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.ecopria.inscription.ServiceInscriptionApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ServicePresenceApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="service-presence" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.ecopria.presence.ServicePresenceApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -122,6 +133,8 @@
       <workItem from="1780318635846" duration="494000" />
       <workItem from="1780400490715" duration="5360000" />
       <workItem from="1780499122886" duration="9975000" />
+      <workItem from="1780527720265" duration="2459000" />
+      <workItem from="1780573352477" duration="7734000" />
     </task>
     <servers />
   </component>
