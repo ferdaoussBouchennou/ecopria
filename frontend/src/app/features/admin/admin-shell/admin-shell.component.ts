@@ -26,6 +26,7 @@ export class AdminShellComponent implements OnInit {
     { path: '/admin/comptes', label: 'Validation comptes' },
     { path: '/admin/actions-fixes', label: 'Action' },
     { path: '/admin/categories', label: 'Catégories' },
+    { path: '/admin/associations', label: 'Associations' },
     { path: '/admin/moderation', label: 'Modération' },
     { path: '/admin/users', label: 'Utilisateurs' },
     { path: '/admin/configurations', label: 'Configurations' },

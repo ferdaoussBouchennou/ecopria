@@ -70,6 +70,7 @@ public class AdminCategorieService {
         Categorie categorie = categorieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Catégorie introuvable: " + id));
 
+        String previousNom = categorie.getNom();
         String nom = request.getNom() == null ? "" : request.getNom().trim();
         if (nom.isEmpty()) {
             throw new IllegalArgumentException("Le nom de catégorie est obligatoire");
@@ -87,6 +88,10 @@ public class AdminCategorieService {
         }
         categorie.setUpdatedAt(LocalDateTime.now());
         categorie = categorieRepository.save(categorie);
+
+        if (!nom.equalsIgnoreCase(previousNom)) {
+            categorySyncService.deleteFromActionDb(previousNom);
+        }
 
         publishModified(categorie);
         categorySyncService.syncToActionDb(

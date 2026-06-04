@@ -20,6 +20,7 @@ export class AdminCategoriesComponent implements OnInit {
   error = '';
   message = '';
   items: AdminCategorie[] = [];
+  editingId: number | null = null;
 
   form: AdminCategorieRequest = this.emptyForm();
   imagePreview: string | null = null;
@@ -49,7 +50,27 @@ export class AdminCategoriesComponent implements OnInit {
     });
   }
 
-  create(): void {
+  startCreate(): void {
+    this.editingId = null;
+    this.resetForm();
+    this.message = '';
+  }
+
+  startEdit(item: AdminCategorie): void {
+    this.editingId = item.id;
+    this.message = '';
+    this.imageUploadError = '';
+    this.form = {
+      nom: item.nom,
+      description: item.description ?? '',
+      imageUrl: item.imageUrl ?? '',
+      published: item.published !== false,
+    };
+    this.imageFileName = '';
+    this.imagePreview = item.imageUrl?.trim() ? this.resolveImageUrl(item.imageUrl) : null;
+  }
+
+  submit(): void {
     if (!this.form.nom?.trim()) {
       this.error = 'Le nom de la catégorie est obligatoire.';
       return;
@@ -61,18 +82,27 @@ export class AdminCategoriesComponent implements OnInit {
       nom: this.form.nom.trim(),
       description: this.form.description?.trim() || undefined,
       imageUrl: this.form.imageUrl?.trim() || undefined,
-      published: true,
+      published: this.form.published !== false,
     };
-    this.admin.createCategory(body).subscribe({
+
+    const call =
+      this.editingId != null
+        ? this.admin.updateCategory(this.editingId, body)
+        : this.admin.createCategory(body);
+
+    call.subscribe({
       next: () => {
         this.saving = false;
-        this.message = `Catégorie « ${body.nom} » créée.`;
-        this.resetForm();
+        this.message =
+          this.editingId != null
+            ? `Catégorie « ${body.nom} » mise à jour.`
+            : `Catégorie « ${body.nom} » créée.`;
+        this.startCreate();
         this.reload();
       },
       error: (err: HttpErrorResponse) => {
         this.saving = false;
-        this.error = this.extractError(err, 'Création impossible.');
+        this.error = this.extractError(err, 'Enregistrement impossible.');
       },
     });
   }
@@ -104,6 +134,9 @@ export class AdminCategoriesComponent implements OnInit {
     this.admin.deleteCategory(item.id).subscribe({
       next: () => {
         this.message = `Catégorie « ${item.nom} » supprimée.`;
+        if (this.editingId === item.id) {
+          this.startCreate();
+        }
         this.reload();
       },
       error: (err: HttpErrorResponse) => {
@@ -117,11 +150,7 @@ export class AdminCategoriesComponent implements OnInit {
 
   imageSrc(item: AdminCategorie): string {
     if (item.imageUrl?.trim()) {
-      const url = item.imageUrl.trim();
-      if (url.startsWith('http') || url.startsWith('/')) {
-        return url;
-      }
-      return '/' + url;
+      return this.resolveImageUrl(item.imageUrl);
     }
     const slug = getCategoryMeta(item.nom).slug;
     const fallback = SITE_IMAGES.categories[slug as keyof typeof SITE_IMAGES.categories];
@@ -162,7 +191,7 @@ export class AdminCategoriesComponent implements OnInit {
         if (this.imagePreview?.startsWith('blob:')) {
           URL.revokeObjectURL(this.imagePreview);
         }
-        this.imagePreview = res.imageUrl;
+        this.imagePreview = this.resolveImageUrl(res.imageUrl);
       },
       error: (err: HttpErrorResponse) => {
         this.uploadingImage = false;
@@ -188,13 +217,15 @@ export class AdminCategoriesComponent implements OnInit {
   }
 
   previewSrc(): string | null {
-    if (!this.imagePreview) {
-      return null;
+    return this.imagePreview;
+  }
+
+  private resolveImageUrl(url: string): string {
+    const trimmed = url.trim();
+    if (trimmed.startsWith('http') || trimmed.startsWith('/')) {
+      return trimmed;
     }
-    if (this.imagePreview.startsWith('blob:') || this.imagePreview.startsWith('http')) {
-      return this.imagePreview;
-    }
-    return this.imagePreview.startsWith('/') ? this.imagePreview : '/' + this.imagePreview;
+    return '/' + trimmed;
   }
 
   private resetForm(): void {
@@ -203,7 +234,7 @@ export class AdminCategoriesComponent implements OnInit {
   }
 
   private emptyForm(): AdminCategorieRequest {
-    return { nom: '', description: '', imageUrl: '' };
+    return { nom: '', description: '', imageUrl: '', published: true };
   }
 
   private extractError(err: HttpErrorResponse, fallback: string): string {

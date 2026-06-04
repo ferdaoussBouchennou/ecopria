@@ -184,6 +184,34 @@ export interface ModerationAction {
   photoUrls?: string[];
 }
 
+export interface AdminAssociationProfile {
+  id: number;
+  userId: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  description?: string;
+  logoUrl?: string;
+  validated?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  temporaryPassword?: string;
+}
+
+export interface AdminAssociationProfileRequest {
+  name: string;
+  email: string;
+  password?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  description?: string;
+  logoUrl?: string;
+  validated?: boolean;
+}
+
 export interface AdminCategorieRequest {
   nom: string;
   description?: string;

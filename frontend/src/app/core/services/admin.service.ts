@@ -18,6 +18,8 @@ import {
   AdminPendingAccount,
   AdminCategorie,
   AdminCategorieRequest,
+  AdminAssociationProfile,
+  AdminAssociationProfileRequest,
   ModerationAction,
   AdminUser,
   AdminUserActionResult,
@@ -270,6 +272,38 @@ export class AdminService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<{ imageUrl: string }>(`${this.base}/categories/upload-image`, formData, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  getAssociationProfiles(): Observable<AdminAssociationProfile[]> {
+    return this.http.get<AdminAssociationProfile[]>(`${this.base}/association-profiles`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  getAssociationProfile(id: number): Observable<AdminAssociationProfile> {
+    return this.http.get<AdminAssociationProfile>(`${this.base}/association-profiles/${id}`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  createAssociationProfile(body: AdminAssociationProfileRequest): Observable<AdminAssociationProfile> {
+    return this.http.post<AdminAssociationProfile>(`${this.base}/association-profiles`, body, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  updateAssociationProfile(id: number, body: AdminAssociationProfileRequest): Observable<AdminAssociationProfile> {
+    return this.http.put<AdminAssociationProfile>(`${this.base}/association-profiles/${id}`, body, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  uploadAssociationLogo(id: number, file: File): Observable<{ logoUrl: string }> {
+    const formData = new FormData();
+    formData.append('logo', file);
+    return this.http.post<{ logoUrl: string }>(`${this.base}/association-profiles/${id}/logo`, formData, {
       headers: this.writeHeaders(),
     });
   }

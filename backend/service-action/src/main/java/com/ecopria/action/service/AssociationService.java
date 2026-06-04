@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.ecopria.action.dto.AssociationOptionDTO;
+import com.ecopria.action.dto.AssociationDetailDTO;
+import com.ecopria.action.dto.AdminAssociationManageRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +36,93 @@ public class AssociationService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<AssociationDetailDTO> listDetailsForAdmin() {
+        return associationRepository.findAll().stream()
+                .sorted(Comparator.comparing(Association::getName, String.CASE_INSENSITIVE_ORDER))
+                .map(this::toDetailDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public AssociationDetailDTO getDetailForAdmin(Long id) {
+        Association association = associationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Association introuvable: " + id));
+        return toDetailDTO(association);
+    }
+
+    @Transactional
+    public AssociationDetailDTO adminCreate(AdminAssociationManageRequest request) {
+        return associationRepository.findByUserId(request.getUserId())
+                .map(existing -> adminUpdate(existing.getId(), request))
+                .orElseGet(() -> {
+                    boolean validated = request.getValidated() == null || request.getValidated();
+                    Association association = Association.builder()
+                            .userId(request.getUserId())
+                            .name(request.getName().trim())
+                            .description(trimOrNull(request.getDescription()))
+                            .logoUrl(trimOrNull(request.getLogoUrl()))
+                            .city(trimOrNull(request.getCity()))
+                            .isValidated(validated)
+                            .build();
+                    return toDetailDTO(associationRepository.save(association));
+                });
+    }
+
+    @Transactional
+    public AssociationDetailDTO adminUpdate(Long id, AdminAssociationManageRequest request) {
+        Association association = associationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Association introuvable: " + id));
+
+        if (request.getName() != null && !request.getName().isBlank()) {
+            association.setName(request.getName().trim());
+        }
+        association.setDescription(trimOrNull(request.getDescription()));
+        association.setLogoUrl(trimOrNull(request.getLogoUrl()));
+        association.setCity(trimOrNull(request.getCity()));
+        if (request.getValidated() != null) {
+            association.setIsValidated(request.getValidated());
+        }
+        if (request.getUserId() != null && !request.getUserId().equals(association.getUserId())) {
+            if (associationRepository.existsByUserId(request.getUserId())) {
+                throw new RuntimeException("userId déjà utilisé: " + request.getUserId());
+            }
+            association.setUserId(request.getUserId());
+        }
+
+        return toDetailDTO(associationRepository.save(association));
+    }
+
+    @Transactional
+    public AssociationDetailDTO adminUpdateLogoUrl(Long id, String logoUrl) {
+        Association association = associationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Association introuvable: " + id));
+        association.setLogoUrl(trimOrNull(logoUrl));
+        return toDetailDTO(associationRepository.save(association));
+    }
+
+    private AssociationDetailDTO toDetailDTO(Association association) {
+        return AssociationDetailDTO.builder()
+                .id(association.getId())
+                .userId(association.getUserId())
+                .name(association.getName())
+                .description(association.getDescription())
+                .logoUrl(association.getLogoUrl())
+                .city(association.getCity())
+                .validated(association.getIsValidated())
+                .createdAt(association.getCreatedAt())
+                .updatedAt(association.getUpdatedAt())
+                .build();
+    }
+
+    private static String trimOrNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
     // appelé par le consumer Kafka quand asso.validee
     @Transactional
     public void createValidatedFromKafkaEvent(Map<String, Object> event) {
@@ -53,6 +142,7 @@ public class AssociationService {
                 .description(event.get("description") != null ? event.get("description").toString() : null)
                 .logoUrl(event.get("logoUrl") != null ? event.get("logoUrl").toString() : null)
                 .city(eventCity)
+                .isValidated(true)
                 .build();
 
         associationRepository.save(association);
