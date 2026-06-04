@@ -6,14 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="c693b60b-5826-43ee-948c-0a9d2aca6a30" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RESUME-COMPLET-SESSION.md" beforeDir="false" afterPath="$PROJECT_DIR$/RESUME-COMPLET-SESSION.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/commissions/commissions.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/commissions/commissions.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/commissions/commissions.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/commissions/commissions.component.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/commissions/commissions.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/commissions/commissions.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/scanner-coupon/scanner-coupon.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/scanner-coupon/scanner-coupon.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/scanner-coupon/scanner-coupon.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/scanner-coupon/scanner-coupon.component.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/app/features/recompense/scanner-coupon/scanner-coupon.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/app/features/recompense/scanner-coupon/scanner-coupon.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/service-recompense/src/main/java/com/ecopria/recompense/service/RecompenseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service-recompense/src/main/java/com/ecopria/recompense/service/RecompenseService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -127,7 +120,7 @@
       <workItem from="1780400490715" duration="5360000" />
       <workItem from="1780499122886" duration="9975000" />
       <workItem from="1780527720265" duration="2459000" />
-      <workItem from="1780573352477" duration="10226000" />
+      <workItem from="1780573352477" duration="11882000" />
     </task>
     <servers />
   </component>

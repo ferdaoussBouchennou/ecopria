@@ -487,26 +487,30 @@ public class RecompenseService {
                         .build());
 
         // calculer et enregistrer la commission
-        // Calcul de la commission selon la logique métier unifiée :
-        // - Si l'offre a un pourcentage de réduction (% > 0) ET une valeurDh -> on commissionne la remise.
-        // - Si c'est 100% gratuit (pas de %) -> pas de commission.
+        // Calcul de la commission selon la logique métier :
+        // - Pour type REDUCTION : base = valeurDh
+        // - Pour autres types avec % et valeurDh : base = valeurDh × % / 100
+        // - Pour autres types avec seulement valeurDh : base = valeurDh
+        // Commission = base × taux_partenaire / 100
 
         Double baseCommission = null;
         Recompense r = coupon.getRecompense();
 
-        if (r.getDiscountPercentage() != null && r.getValeurDh() != null) {
-            // ex: T-shirt 150 DH à -50% -> base = 150 * 50% = 75 DH
-            // ex: Type REDUCTION 15% (valeurDh=50) -> base = 50 * 15% / 15% (déjà inclus) -> 
-            // Attention: pour le type REDUCTION pur, valeurDh est déjà la valeur de la remise.
-            
-            if (r.getType() == com.ecopria.recompense.model.Recompense.RecompenseType.REDUCTION) {
+        // Déterminer la base de commission selon le type d'offre
+        if (r.getType() == com.ecopria.recompense.model.Recompense.RecompenseType.REDUCTION) {
+            // Type REDUCTION : valeurDh représente déjà la valeur de la réduction
+            if (r.getValeurDh() != null && r.getValeurDh() > 0) {
                 baseCommission = r.getValeurDh();
-            } else {
-                baseCommission = r.getValeurDh() * r.getDiscountPercentage() / 100.0;
             }
+        } else if (r.getDiscountPercentage() != null && r.getValeurDh() != null) {
+            // Offre avec pourcentage de réduction (ex: T-shirt 150 DH à -50%)
+            baseCommission = r.getValeurDh() * r.getDiscountPercentage() / 100.0;
+        } else if (r.getValeurDh() != null && r.getValeurDh() > 0) {
+            // Offre avec seulement valeurDh (considérée comme 100% gratuite)
+            baseCommission = r.getValeurDh();
         }
 
-        if (baseCommission != null) {
+        if (baseCommission != null && baseCommission > 0) {
             double montant = baseCommission * partenaire.getCommissionRate() / 100;
 
             Commission commission = Commission.builder()
@@ -518,9 +522,10 @@ public class RecompenseService {
                     .build();
 
             commissionRepository.save(commission);
-            log.info("Commission {} DH calculée pour coupon {} (base={} DH)", montant, code, baseCommission);
+            log.info("Commission {} DH calculée pour coupon {} (base={} DH, taux={}%)", 
+                     montant, code, baseCommission, partenaire.getCommissionRate());
         } else {
-            log.info("Aucune commission calculée pour coupon {} (offre gratuite sans remise monétaire)", code);
+            log.info("Aucune commission calculée pour coupon {} (offre sans valeur monétaire)", code);
         }
 
         log.info("Coupon {} validé par partenaire {}", code, partenaire.getName());
