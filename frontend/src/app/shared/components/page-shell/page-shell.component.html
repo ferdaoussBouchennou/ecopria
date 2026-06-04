@@ -10,23 +10,122 @@
       <a routerLink="/carte" routerLinkActive="active">Carte</a>
       <a routerLink="/actions" routerLinkActive="active">Actions</a>
       <a routerLink="/partenaires" routerLinkActive="active">Partenaires</a>
-      <a routerLink="/creer-compte" routerLinkActive="active">Associations</a>
-      <a [routerLink]="recompensesLink" [queryParams]="recompensesQueryParams" routerLinkActive="active">Récompenses</a>
-      <a routerLink="/" fragment="comment-ca-marche" routerLinkActive="active">Comment ça marche</a>
+      <a [routerLink]="recompensesLink" routerLinkActive="active">Récompenses</a>
+
+      @if (isCitizen) {
+        <span class="site-nav__sep" aria-hidden="true"></span>
+        <a routerLink="/espace/actions" routerLinkActive="active">Mes inscriptions</a>
+        <a routerLink="/espace/classement" routerLinkActive="active">Classement</a>
+      } @else {
+        <a routerLink="/" fragment="comment-ca-marche">Comment ça marche</a>
+      }
     </nav>
 
-    @if (isLoggedIn) {
-      <div class="header-actions">
+    <div class="header-actions">
+      @if (isCitizen) {
+        <div class="notif-wrapper">
+          <button type="button" class="notif-btn" aria-label="Notifications" (click)="toggleNotifs()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 17H9c-2.5 0-4-1.5-4-4V9c0-3 1.5-5 4-5h6c2.5 0 4 2 4 5v4c0 2.5-1.5 4-4 4Z" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            @if (unreadCount > 0) {
+              <span class="notif-btn__badge">{{ unreadCount }}</span>
+            }
+          </button>
+
+          @if (showNotifs) {
+            <div class="notif-dropdown card-soft" role="dialog" aria-label="Notifications" (click)="$event.stopPropagation()">
+              <div class="notif-header">
+                <h4>Notifications</h4>
+                @if (unreadCount > 0 && notifTab === 'recent') {
+                  <button type="button" class="mark-all-btn" (click)="markAllRead()">Tout marquer lu</button>
+                }
+              </div>
+              <div class="notif-tabs">
+                <button type="button" [class.active]="notifTab === 'recent'" (click)="notifTab = 'recent'">
+                  Récentes ({{ unreadCount }})
+                </button>
+                <button type="button" [class.active]="notifTab === 'history'" (click)="notifTab = 'history'">
+                  Historique
+                </button>
+              </div>
+              <div class="notif-list">
+                @for (n of filteredNotifs; track n.id) {
+                  <div class="notif-item" [class.unread]="!n.isRead">
+                    <div class="notif-item__row">
+                      <div>
+                        @if (n.title) {
+                          <p class="notif-title">{{ n.title }}</p>
+                        }
+                        <p class="notif-text">{{ n.message }}</p>
+                      </div>
+                      @if (!n.isRead) {
+                        <button type="button" class="mark-one-btn" (click)="markAsRead(n.id)" title="Marquer comme lu">✓</button>
+                      }
+                    </div>
+                    <span class="notif-time">{{ n.createdAt | date:'dd/MM HH:mm' }}</span>
+                  </div>
+                } @empty {
+                  <div class="notif-empty">
+                    {{ notifTab === 'recent' ? 'Aucune nouvelle notification.' : 'Historique vide.' }}
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="account-menu">
+          <button type="button" class="account-menu__trigger" (click)="toggleAccountMenu()" [attr.aria-expanded]="showAccountMenu">
+            @if (profile?.photo) {
+              <img [src]="profile!.photo" class="account-menu__avatar" alt="" />
+            } @else {
+              <span class="account-menu__avatar account-menu__avatar--initials">{{ profileInitials }}</span>
+            }
+            <span class="account-menu__name">{{ profile?.firstName ?? 'Mon compte' }}</span>
+            <span class="account-menu__chevron" aria-hidden="true">▾</span>
+          </button>
+
+          @if (showAccountMenu) {
+            <div class="account-menu__panel" role="menu" (click)="$event.stopPropagation()">
+              <a routerLink="/espace/dashboard" routerLinkActive="active" role="menuitem" (click)="closeMenus()">Tableau de bord</a>
+              <a routerLink="/espace/actions" routerLinkActive="active" role="menuitem" (click)="closeMenus()">Mes inscriptions</a>
+              <a routerLink="/espace/scanner-presence" routerLinkActive="active" role="menuitem" (click)="closeMenus()">Scanner QR</a>
+              <a routerLink="/espace/recompenses" routerLinkActive="active" role="menuitem" (click)="closeMenus()">Mes récompenses</a>
+              <a routerLink="/espace/classement" routerLinkActive="active" role="menuitem" (click)="closeMenus()">Classement</a>
+              <a routerLink="/espace/parametres" routerLinkActive="active" role="menuitem" (click)="closeMenus()">Paramètres</a>
+              <button type="button" class="account-menu__logout" role="menuitem" (click)="logout()">Déconnexion</button>
+            </div>
+          }
+        </div>
+      } @else if (isLoggedIn) {
         <a [routerLink]="monEspaceLink" class="btn-header btn-header--space">Mon espace</a>
         <button type="button" class="btn-header btn-header--logout" (click)="logout()">Déconnexion</button>
-      </div>
-    } @else {
-      <a routerLink="/creer-compte" class="btn-header btn-header--join">Rejoindre Ecopria</a>
-    }
+      } @else {
+        <a routerLink="/connexion" class="btn-header btn-header--ghost">Connexion</a>
+        <a routerLink="/creer-compte" class="btn-header btn-header--join">Rejoindre Ecopria</a>
+      }
+    </div>
   </header>
 
-  <main class="site-main">
-    <router-outlet />
+  @if (showCitizenSubheader) {
+    <div class="citizen-subheader">
+      <div class="citizen-subheader__inner">
+        @if (pageEyebrow) {
+          <p class="citizen-subheader__eyebrow">{{ pageEyebrow }}</p>
+        }
+        @if (pageTitle) {
+          <h1 class="citizen-subheader__title">{{ pageTitle }}</h1>
+        }
+      </div>
+    </div>
+  }
+
+  <main class="site-main" [class.site-main--citizen]="isCitizenRoute" (click)="closeMenus()">
+    <div class="site-main__inner" [class.citizen-page]="isCitizenRoute">
+      <router-outlet />
+    </div>
   </main>
 
   <footer class="site-footer">
@@ -46,20 +145,28 @@
         <ul>
           <li><a routerLink="/carte">Carte interactive</a></li>
           <li><a routerLink="/actions">Actions</a></li>
-          <li><a [routerLink]="recompensesLink" [queryParams]="recompensesQueryParams">Récompenses</a></li>
-          <li><a routerLink="/" fragment="comment-ca-marche">Comment ça marche</a></li>
+          <li><a [routerLink]="recompensesLink">Récompenses</a></li>
+          @if (isCitizen) {
+            <li><a routerLink="/espace/actions">Mes inscriptions</a></li>
+          } @else {
+            <li><a routerLink="/" fragment="comment-ca-marche">Comment ça marche</a></li>
+          }
         </ul>
       </div>
       <div class="footer-col">
-        <h4>Espaces</h4>
+        <h4>Mon compte</h4>
         <ul>
-          <li><a [routerLink]="isLoggedIn ? monEspaceLink : ['/connexion']">Mon espace</a></li>
+          @if (isCitizen) {
+            <li><a routerLink="/espace/dashboard">Tableau de bord</a></li>
+            <li><a routerLink="/espace/parametres">Paramètres</a></li>
+          } @else {
+            <li><a [routerLink]="isLoggedIn ? monEspaceLink : ['/connexion']">Mon espace</a></li>
+          }
           <li><a routerLink="/creer-compte">Associations</a></li>
           <li><a routerLink="/partenaires">Partenaires</a></li>
-          <li><a routerLink="/admin">Administration</a></li>
         </ul>
       </div>
     </div>
-    <p class="footer-copy">© 2026 Ecopria — Cultivé avec soin. <span class="footer-palette">Sage · Cream · Earth</span></p>
+    <p class="footer-copy">© 2026 Ecopria — Cultivé avec soin.</p>
   </footer>
 </div>

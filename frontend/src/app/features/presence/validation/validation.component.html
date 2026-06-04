@@ -97,14 +97,14 @@
             <div class="qr-grid-visual">
               <ng-container *ngFor="let _ of [].constructor(64); let i = index">
                 <div class="qr-cell"
-                     [class.qr-cell--dark]="item.qr.token.charCodeAt(i % item.qr.token.length) % 2 === 0">
+                     [class.qr-cell--dark]="item.qr.qrCode.charCodeAt(i % item.qr.qrCode.length) % 2 === 0">
                 </div>
               </ng-container>
             </div>
           </div>
           <div class="qr-token">
             <span class="token-label">TOKEN D'ACCÈS</span>
-            <span class="token-value">{{ item.qr.token | slice:0:20 }}…</span>
+            <span class="token-value">{{ item.qr.qrCode | slice:0:20 }}…</span>
           </div>
         </div>
 
@@ -112,7 +112,7 @@
         <div class="qr-card__info">
           <div class="info-row">
             <span class="info-label">Généré le</span>
-            <span class="info-value">{{ formatDate(item.qr.generatedAt) }}</span>
+            <span class="info-value">{{ formatDate(item.qr.createdAt) }}</span>
           </div>
           <div class="info-row">
             <span class="info-label">Expire le</span>
@@ -155,7 +155,7 @@
             {{ item.action?.titre || 'Action #' + item.qr.actionId }}
           </span>
           <span class="archive-sub" *ngIf="item.qr.used">
-            Présence validée le {{ item.qr.usedAt ? formatDate(item.qr.usedAt) : '—' }}
+            Présence validée le {{ item.qr.used ? formatDate(item.qr.createdAt) : '—' }}
           </span>
           <span class="archive-sub" *ngIf="!item.qr.used">
             Expiré le {{ formatExpiry(item.qr.expiresAt) }}

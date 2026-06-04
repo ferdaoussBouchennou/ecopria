@@ -61,15 +61,14 @@ export class ScannerCouponComponent implements OnInit, OnDestroy {
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0
         },
-        (decodedText) => {
-          // QR code scanné avec succès
+        (decodedText: string) => {
           console.log('QR Code scanné:', decodedText);
           this.code = decodedText;
           this.stopScanner();
           this.scannerMode = 'manual';
           this.valider();
         },
-        (errorMessage) => {
+        (_errorMessage: string) => {
           // Erreurs de scan (ignorées, très fréquentes)
         }
       );
@@ -87,7 +86,7 @@ export class ScannerCouponComponent implements OnInit, OnDestroy {
         .then(() => {
           this.isScannerActive = false;
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
           console.error('Erreur arrêt scanner:', error);
           this.isScannerActive = false;
         });

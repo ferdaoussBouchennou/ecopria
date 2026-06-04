@@ -38,7 +38,6 @@ import { CommissionsComponent } from './features/recompense/commissions/commissi
 import { ProfilPartenairePublicComponent } from './features/recompense/profil-partenaire-public/profil-partenaire-public.component';
 import { ListePartenairesComponent } from './features/recompense/liste-partenaires/liste-partenaires.component';
 import { RecompensesPubliqueComponent } from './features/recompense/recompenses-publique/recompenses-publique.component';
-import { EspaceShellComponent } from './features/utilisateur/espace-shell/espace-shell.component';
 import { DashboardComponent } from './features/utilisateur/dashboard/dashboard.component';
 import { ActionsComponent } from './features/utilisateur/actions/actions.component';
 import { LeaderboardComponent } from './features/utilisateur/leaderboard/leaderboard.component';
@@ -85,6 +84,20 @@ export const routes: Routes = [
       { path: 'recompenses', component: RecompensesPubliqueComponent },
       { path: 'partenaires', component: ListePartenairesComponent },
       { path: 'partenaires/:userId', component: ProfilPartenairePublicComponent },
+      {
+        path: 'espace',
+        canActivate: [citizenGuard],
+        children: [
+          { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+          { path: 'dashboard', component: DashboardComponent },
+          { path: 'actions', component: ActionsComponent },
+          { path: 'scanner-presence/:actionId', component: ScannerPresenceComponent },
+          { path: 'scanner-presence', component: ScannerPresenceComponent },
+          { path: 'recompenses', component: RecompensesComponent },
+          { path: 'classement', component: LeaderboardComponent },
+          { path: 'parametres', component: SettingsComponent },
+        ],
+      },
     ],
   },
   
@@ -130,23 +143,6 @@ export const routes: Routes = [
       { path: 'profil', component: ProfilComponent },
     ],
   },
-  // Routes utilisateur/espace personnel
-  {
-    path: 'espace',
-    component: EspaceShellComponent,
-    canActivate: [citizenGuard],
-    children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: DashboardComponent },
-      { path: 'actions', component: ActionsComponent },
-      { path: 'scanner-presence/:actionId', component: ScannerPresenceComponent },
-      { path: 'scanner-presence', component: ScannerPresenceComponent },
-      { path: 'recompenses', component: RecompensesComponent },
-      { path: 'classement', component: LeaderboardComponent },
-      { path: 'parametres', component: SettingsComponent },
-    ],
-  },
-
   // ── Espace Admin ──────────────────────────────────────────────
   {
     path: 'admin',
