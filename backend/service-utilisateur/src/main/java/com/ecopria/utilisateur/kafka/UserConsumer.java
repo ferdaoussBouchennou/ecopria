@@ -105,17 +105,14 @@ public class UserConsumer {
         }
     }
 
-    /** Événement {@code RecompenseEchangeeEvent} : userId, pointsUtilises. */
+    /** Événement {@code RecompenseEchangeeEvent} : notification seulement — les points sont
+     *  déjà déduits directement par service-recompense via HTTP (utilisateurClient.deduirePoints).
+     *  Ce consumer sert uniquement à la journalisation. */
     @KafkaListener(topics = "recompense.echangee", groupId = "utilisateur-group")
     public void onRecompenseEchangee(Map<String, Object> event) {
-        log.info("[Kafka] recompense.echangee reçu : {}", event);
-        try {
-            Long authId = readLong(event, "userId", "auth_id");
-            Integer points = readInt(event, "pointsUtilises", "points_used");
-            userService.deductPoints(authId, points);
-        } catch (Exception e) {
-            log.error("Erreur conversion debit points (recompense.echangee) : {}", e.getMessage());
-        }
+        log.info("[Kafka] recompense.echangee reçu (notification uniquement, points déjà déduits) : {}", event);
+        // Les points sont déjà déduits via appel HTTP direct dans service-recompense.
+        // Pas de nouvelle déduction ici pour éviter la double soustraction.
     }
 
     private Long readLong(Map<String, Object> event, String... keys) {

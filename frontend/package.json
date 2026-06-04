@@ -25,6 +25,7 @@
     "@zxing/ngx-scanner": "17.0.4",
     "angularx-qrcode": "^17.0.1",
     "chart.js": "^4.5.1",
+    "html5-qrcode": "^2.3.8",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "rxjs": "~7.8.0",

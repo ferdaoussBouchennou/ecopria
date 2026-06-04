@@ -40,10 +40,43 @@
     <div class="scan-icon-area">
       <span class="scan-icon">📱</span>
     </div>
-    <h2 class="scan-title">Entrez le code coupon</h2>
-    <p class="scan-hint">Le client vous présente un code du type ECO-2025-XXXX</p>
+    <h2 class="scan-title">Scanner un coupon</h2>
+    <p class="scan-hint">Scannez le QR code ou saisissez le code manuellement</p>
 
-    <div class="scan-form">
+    <!-- Toggle Mode Scanner -->
+    <div class="scanner-mode-toggle">
+      <button 
+        class="btn btn--toggle"
+        [class.active]="scannerMode === 'manual'"
+        (click)="scannerMode = 'manual'; stopScanner()">
+        ⌨️ Saisie manuelle
+      </button>
+      <button 
+        class="btn btn--toggle"
+        [class.active]="scannerMode === 'camera'"
+        (click)="toggleScannerMode()">
+        📷 Scanner QR
+      </button>
+    </div>
+
+    <!-- Zone Scanner Caméra -->
+    <div class="camera-scanner" *ngIf="scannerMode === 'camera'">
+      <div id="qr-reader" class="qr-reader-container"></div>
+      <p class="scanner-status" *ngIf="isScannerActive">
+        🎥 Caméra active - Présentez le QR code devant la caméra
+      </p>
+      <p class="scanner-error" *ngIf="scannerError">
+        ⚠️ {{ scannerError }}
+      </p>
+      <button 
+        class="btn btn--secondary btn--sm"
+        (click)="scannerMode = 'manual'; stopScanner()">
+        Annuler le scan
+      </button>
+    </div>
+
+    <!-- Zone Saisie Manuelle -->
+    <div class="scan-form" *ngIf="scannerMode === 'manual'">
       <input
         type="text"
         id="code-coupon"
