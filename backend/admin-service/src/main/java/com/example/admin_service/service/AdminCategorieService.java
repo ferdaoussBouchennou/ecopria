@@ -2,7 +2,10 @@ package com.example.admin_service.service;
 
 
 import com.example.admin_service.dto.request.CategorieRequest;
+import com.example.admin_service.dto.response.ActionDbCategoryResponse;
 import com.example.admin_service.dto.response.CategorieResponse;
+import com.example.admin_service.dto.response.CategoryDeletePreviewResponse;
+import com.example.admin_service.dto.response.LinkedActionSummary;
 import com.example.admin_service.kafka.event.CategorieEvent;
 import com.example.admin_service.kafka.producer.AdminKafkaProducer;
 import com.example.admin_service.model.Categorie;
@@ -56,7 +59,8 @@ public class AdminCategorieService {
                 .build());
 
         publishCreated(categorie);
-        categorySyncService.syncToActionDb(
+        categorySyncService.syncUpdateToActionDb(
+                null,
                 categorie.getNom(),
                 categorie.getDescription(),
                 categorie.getImageUrl(),
@@ -89,12 +93,9 @@ public class AdminCategorieService {
         categorie.setUpdatedAt(LocalDateTime.now());
         categorie = categorieRepository.save(categorie);
 
-        if (!nom.equalsIgnoreCase(previousNom)) {
-            categorySyncService.deleteFromActionDb(previousNom);
-        }
-
-        publishModified(categorie);
-        categorySyncService.syncToActionDb(
+        publishModified(categorie, previousNom);
+        categorySyncService.syncUpdateToActionDb(
+                previousNom,
                 categorie.getNom(),
                 categorie.getDescription(),
                 categorie.getImageUrl(),
@@ -111,8 +112,9 @@ public class AdminCategorieService {
         categorie.setUpdatedAt(LocalDateTime.now());
         categorie = categorieRepository.save(categorie);
 
-        publishModified(categorie);
-        categorySyncService.syncToActionDb(
+        publishModified(categorie, null);
+        categorySyncService.syncUpdateToActionDb(
+                categorie.getNom(),
                 categorie.getNom(),
                 categorie.getDescription(),
                 categorie.getImageUrl(),
@@ -123,13 +125,44 @@ public class AdminCategorieService {
 
     @Transactional
     public void delete(Long id, Long adminId) {
+        delete(id, adminId, false);
+    }
+
+    @Transactional
+    public void delete(Long id, Long adminId, boolean cascade) {
         Categorie categorie = categorieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Catégorie introuvable: " + id));
 
-        categorySyncService.deleteFromActionDb(categorie.getNom());
+        if (!cascade) {
+            long usage = categorySyncService.countActionsUsingCategory(categorie.getNom());
+            if (usage > 0) {
+                throw new RuntimeException(
+                        "Impossible de supprimer « " + categorie.getNom() + " » : "
+                                + usage + " action(s) utilisent cette catégorie."
+                );
+            }
+        }
+
+        categorySyncService.deleteFromActionDb(categorie.getNom(), cascade);
         categorieRepository.delete(categorie);
         saveLog(adminId, "SUPPRIMER_CATEGORIE", id, "CATEGORIE");
-        log.info("Catégorie supprimée: {}", categorie.getNom());
+        log.info("Catégorie supprimée: {} (cascade={})", categorie.getNom(), cascade);
+    }
+
+    public List<ActionDbCategoryResponse> getActionDbCategories() {
+        return categorySyncService.listActionDbCategories();
+    }
+
+    public CategoryDeletePreviewResponse getDeletePreview(Long id) {
+        Categorie categorie = categorieRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Catégorie introuvable: " + id));
+        List<LinkedActionSummary> linked = categorySyncService.listLinkedActions(categorie.getNom());
+        return CategoryDeletePreviewResponse.builder()
+                .id(categorie.getId())
+                .nom(categorie.getNom())
+                .actionCount(linked.size())
+                .linkedActions(linked)
+                .build();
     }
 
     private void publishCreated(Categorie categorie) {
@@ -141,9 +174,10 @@ public class AdminCategorieService {
                 .build());
     }
 
-    private void publishModified(Categorie categorie) {
+    private void publishModified(Categorie categorie, String previousNom) {
         kafkaProducer.publishCategorieModifiee(CategorieEvent.builder()
                 .nom(categorie.getNom())
+                .previousNom(previousNom)
                 .description(categorie.getDescription())
                 .imageUrl(categorie.getImageUrl())
                 .published(categorie.getPublished())

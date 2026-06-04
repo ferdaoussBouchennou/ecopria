@@ -219,6 +219,43 @@ export interface AdminCategorieRequest {
   published?: boolean;
 }
 
+export interface ActionDbCategory {
+  id: number;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  published?: boolean;
+  actionCount: number;
+}
+
+export interface CategoryLinkedAction {
+  id: number;
+  title: string;
+  status?: string;
+  city?: string;
+  associationName?: string;
+  isFixed?: boolean;
+}
+
+export interface CategoryDeletePreview {
+  id: number;
+  nom: string;
+  actionCount: number;
+  linkedActions: CategoryLinkedAction[];
+}
+
+/** Unified card for admin + db_action categories on one page */
+export interface CategoryCardView {
+  key: string;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  published?: boolean;
+  actionCount: number;
+  adminItem: AdminCategorie | null;
+  actionDbId?: number;
+}
+
 export type AdminUserRole = 'USER' | 'ASSOCIATION' | 'PARTNER' | 'ADMIN';
 
 export type AdminUserStatusFilter = 'all' | 'active' | 'banned' | 'unverified';

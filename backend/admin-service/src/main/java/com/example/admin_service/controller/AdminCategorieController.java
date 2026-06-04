@@ -2,7 +2,9 @@ package com.example.admin_service.controller;
 
 
 import com.example.admin_service.dto.request.CategorieRequest;
+import com.example.admin_service.dto.response.ActionDbCategoryResponse;
 import com.example.admin_service.dto.response.CategorieResponse;
+import com.example.admin_service.dto.response.CategoryDeletePreviewResponse;
 import com.example.admin_service.dto.response.CategoryImageUploadResponse;
 import com.example.admin_service.service.AdminCategorieService;
 import com.example.admin_service.service.CategoryImageStorageService;
@@ -26,6 +28,16 @@ public class AdminCategorieController {
             @RequestParam("file") MultipartFile file) {
         String imageUrl = imageStorageService.store(file);
         return ResponseEntity.ok(CategoryImageUploadResponse.builder().imageUrl(imageUrl).build());
+    }
+
+    @GetMapping("/action-db")
+    public ResponseEntity<List<ActionDbCategoryResponse>> getActionDbCategories() {
+        return ResponseEntity.ok(service.getActionDbCategories());
+    }
+
+    @GetMapping("/{id}/delete-preview")
+    public ResponseEntity<CategoryDeletePreviewResponse> deletePreview(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getDeletePreview(id));
     }
 
     @GetMapping
@@ -69,8 +81,9 @@ public class AdminCategorieController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean cascade,
             @RequestHeader("X-User-Id") Long adminId) {
-        service.delete(id, adminId);
+        service.delete(id, adminId, cascade);
         return ResponseEntity.noContent().build();
     }
 }

@@ -14,4 +14,6 @@ public interface CategorieRepository extends JpaRepository<Categorie, Long> {
     boolean existsByNameIgnoreCase(String name);
 
     List<Categorie> findByPublishedTrueOrderByNameAsc();
+
+    List<Categorie> findAllByOrderByNameAsc();
 }

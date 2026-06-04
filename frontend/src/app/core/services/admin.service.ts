@@ -18,6 +18,8 @@ import {
   AdminPendingAccount,
   AdminCategorie,
   AdminCategorieRequest,
+  ActionDbCategory,
+  CategoryDeletePreview,
   AdminAssociationProfile,
   AdminAssociationProfileRequest,
   ModerationAction,
@@ -206,9 +208,22 @@ export class AdminService {
     });
   }
 
-  deleteCategory(id: number): Observable<void> {
+  deleteCategory(id: number, cascade = false): Observable<void> {
     return this.http.delete<void>(`${this.base}/categories/${id}`, {
       headers: this.writeHeaders(),
+      params: cascade ? { cascade: 'true' } : {},
+    });
+  }
+
+  getCategoryDeletePreview(id: number): Observable<CategoryDeletePreview> {
+    return this.http.get<CategoryDeletePreview>(`${this.base}/categories/${id}/delete-preview`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  getActionDbCategories(): Observable<ActionDbCategory[]> {
+    return this.http.get<ActionDbCategory[]>(`${this.base}/categories/action-db`, {
+      headers: this.authHeaders(),
     });
   }
 

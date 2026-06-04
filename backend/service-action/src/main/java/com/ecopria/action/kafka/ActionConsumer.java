@@ -79,9 +79,10 @@ public class ActionConsumer {
 
     @KafkaListener(topics = "categorie.modifiee", groupId = "service-action")
     public void onCategorieUpdated(Map<String, Object> event) {
-        String name = event.get("nom").toString();
-        log.info("Modification catégorie : {}", name);
-
-        actionService.updateCategorie(name, event);
+        log.info("Modification catégorie (Kafka) : {}", event.get("nom"));
+        actionService.updateCategorie(
+                event.get("nom") != null ? event.get("nom").toString() : "",
+                event
+        );
     }
 }
