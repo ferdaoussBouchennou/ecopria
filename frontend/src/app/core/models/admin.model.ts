@@ -116,6 +116,22 @@ export interface ActionNonFixe {
   city?: string;
 }
 
+export interface AdminCategorie {
+  id: number;
+  nom: string;
+  description?: string;
+  imageUrl?: string;
+  published?: boolean;
+  updatedAt?: string;
+}
+
+export interface AdminCategorieRequest {
+  nom: string;
+  description?: string;
+  imageUrl?: string;
+  published?: boolean;
+}
+
 export type AdminNavId =
   | 'vue-globale'
   | 'comptes'

@@ -5,17 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CategorieResponse {
-    private Long id;
-    private String nom;
-    private String description;
+public class CategoryImageUploadResponse {
     private String imageUrl;
-    private Boolean published;
-    private LocalDateTime updatedAt;
 }

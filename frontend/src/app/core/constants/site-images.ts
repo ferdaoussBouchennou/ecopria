@@ -8,11 +8,11 @@ export const SITE_IMAGES = {
   howItWorks: '/assets/images/how-qr.jpg',
   /** Visuels distincts pour les cartes « À l'affiche » */
   featured: {
-    nettoyage: '/assets/images/hero-planting.jpg',
+    nettoyage: '/assets/images/cat-nettoyage.jpg',
     reboisement: '/assets/images/cat-reboisement.jpg',
-    sensibilisation: '/assets/images/how-qr.jpg',
-    recyclage: '/assets/images/how-qr.jpg',
-    compostage: '/assets/images/cat-reboisement.jpg',
+    sensibilisation: '/assets/images/cat-sensibilisation.jpg',
+    recyclage: '/assets/images/cat-recyclage.jpg',
+    compostage: '/assets/images/cat-compostage.jpg',
   },
   /** Fallback par index si la catégorie n'est pas reconnue */
   featuredFallback: [
@@ -21,10 +21,10 @@ export const SITE_IMAGES = {
     '/assets/images/how-qr.jpg',
   ] as const,
   categories: {
-    nettoyage: '/assets/images/hero-planting.jpg',
+    nettoyage: '/assets/images/cat-nettoyage.jpg',
     reboisement: '/assets/images/cat-reboisement.jpg',
-    sensibilisation: '/assets/images/how-qr.jpg',
-    recyclage: '/assets/images/how-qr.jpg',
-    compostage: '/assets/images/cat-reboisement.jpg',
+    sensibilisation: '/assets/images/cat-sensibilisation.jpg',
+    recyclage: '/assets/images/cat-recyclage.jpg',
+    compostage: '/assets/images/cat-compostage.jpg',
   },
 } as const;

@@ -66,13 +66,15 @@ public class ActionConsumer {
     public void onCategorieCreated(Map<String, Object> event) {
         log.info("Nouvelle catégorie reçue : {}", event.get("nom"));
 
-        com.ecopria.action.model.Categorie cat = com.ecopria.action.model.Categorie.builder()
-                .name(event.get("nom").toString())
-                .description(event.get("description") != null ? event.get("description").toString() : null)
-                .imageUrl(event.get("imageUrl") != null ? event.get("imageUrl").toString() : null)
-                .build();
+        boolean published = event.get("published") == null
+                || Boolean.parseBoolean(event.get("published").toString());
 
-        actionService.saveCategorie(cat);
+        actionService.ensureCategoryExists(
+                event.get("nom").toString(),
+                event.get("description") != null ? event.get("description").toString() : null,
+                event.get("imageUrl") != null ? event.get("imageUrl").toString() : null,
+                published
+        );
     }
 
     @KafkaListener(topics = "categorie.modifiee", groupId = "service-action")

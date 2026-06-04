@@ -16,6 +16,11 @@ spring:
   application:
     name: service-admin
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3312/db_admin?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
     username: ${SPRING_DATASOURCE_USERNAME:ecopria}
@@ -41,6 +46,9 @@ jwt:
   secret: EcopriaProject2026SecretKeyForJwtTokenSigning
   expiration: 86400000
   refresh-expiration: 604800000
+
+app:
+  category-upload-dir: ${APP_CATEGORY_UPLOAD_DIR:uploads/categories}
 
 services:
   auth-url: ${AUTH_SERVICE_URL:http://localhost:8081}

@@ -14,6 +14,8 @@ import {
   ActionFixeRequest,
   ActionNonFixe,
   AdminPendingAccount,
+  AdminCategorie,
+  AdminCategorieRequest,
 } from '../models/admin.model';
 
 @Injectable({ providedIn: 'root' })
@@ -142,6 +144,50 @@ export class AdminService {
 
   deactivateActionNonFixe(id: number, raison?: string): Observable<void> {
     return this.http.put<void>(`${this.base}/actions/${id}/deactivate`, { raison }, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  getCategories(): Observable<AdminCategorie[]> {
+    return this.http.get<AdminCategorie[]>(`${this.base}/categories`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  createCategory(body: AdminCategorieRequest): Observable<void> {
+    return this.http.post<void>(`${this.base}/categories`, body, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  updateCategory(id: number, body: AdminCategorieRequest): Observable<void> {
+    return this.http.put<void>(`${this.base}/categories/${id}`, body, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  publishCategory(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/categories/${id}/publish`, null, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  unpublishCategory(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/categories/${id}/unpublish`, null, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  deleteCategory(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/categories/${id}`, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  uploadCategoryImage(file: File): Observable<{ imageUrl: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{ imageUrl: string }>(`${this.base}/categories/upload-image`, formData, {
       headers: this.writeHeaders(),
     });
   }

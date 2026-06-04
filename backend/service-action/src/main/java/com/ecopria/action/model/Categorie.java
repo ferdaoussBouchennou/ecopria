@@ -23,4 +23,8 @@ public class Categorie {
 
     @Column(length = 255)
     private String imageUrl;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean published = true;
 }

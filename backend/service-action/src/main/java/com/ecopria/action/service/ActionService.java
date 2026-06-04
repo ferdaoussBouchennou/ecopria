@@ -664,11 +664,26 @@ public class ActionService {
 
     @Transactional
     public Categorie ensureCategoryExists(String categorieName, String description, String imageUrl) {
+        return ensureCategoryExists(categorieName, description, imageUrl, true);
+    }
+
+    @Transactional
+    public Categorie ensureCategoryExists(
+            String categorieName,
+            String description,
+            String imageUrl,
+            Boolean published
+    ) {
         String name = categorieName == null ? "" : categorieName.trim();
         if (name.isEmpty()) {
             throw new RuntimeException("La catégorie est obligatoire");
         }
+        boolean isPublished = published == null || published;
         return categorieRepository.findByNameIgnoreCase(name)
+                .map(existing -> {
+                    applyCategoryFields(existing, description, imageUrl, isPublished);
+                    return categorieRepository.save(existing);
+                })
                 .orElseGet(() -> {
                     Categorie created = categorieRepository.save(Categorie.builder()
                             .name(name)
@@ -676,6 +691,7 @@ public class ActionService {
                                     ? description
                                     : "Catégorie synchronisée depuis l'administration")
                             .imageUrl(imageUrl)
+                            .published(isPublished)
                             .build());
                     log.info("Catégorie créée dans db_action: {}", name);
                     return created;
@@ -683,15 +699,62 @@ public class ActionService {
     }
 
     @Transactional
+    public void deleteCategory(Long id) {
+        Categorie categorie = categorieRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Catégorie introuvable: " + id));
+        deleteCategoryEntity(categorie);
+    }
+
+    @Transactional
+    public void deleteCategoryByName(String name) {
+        String trimmed = name == null ? "" : name.trim();
+        Categorie categorie = categorieRepository.findByNameIgnoreCase(trimmed)
+                .orElse(null);
+        if (categorie == null) {
+            log.info("Catégorie '{}' absente de db_action — rien à supprimer", trimmed);
+            return;
+        }
+        deleteCategoryEntity(categorie);
+    }
+
+    private void deleteCategoryEntity(Categorie categorie) {
+        if (actionRepository.countByCategoryId(categorie.getId()) > 0) {
+            throw new RuntimeException(
+                    "Impossible de supprimer cette catégorie : des actions y sont rattachées."
+            );
+        }
+        categorieRepository.delete(categorie);
+        log.info("Catégorie supprimée dans db_action: {}", categorie.getName());
+    }
+
+    @Transactional
     public void updateCategorie(String name, Map<String, Object> event) {
-        categorieRepository.findByName(name).ifPresent(cat -> {
+        categorieRepository.findByNameIgnoreCase(name).ifPresent(cat -> {
             if (event.containsKey("description"))
                 cat.setDescription(event.get("description").toString());
             if (event.containsKey("imageUrl"))
                 cat.setImageUrl(event.get("imageUrl").toString());
+            if (event.containsKey("published") && event.get("published") != null) {
+                cat.setPublished(Boolean.parseBoolean(event.get("published").toString()));
+            }
             categorieRepository.save(cat);
             log.info("Catégorie mise à jour en local: {}", name);
         });
+    }
+
+    private void applyCategoryFields(
+            Categorie categorie,
+            String description,
+            String imageUrl,
+            boolean published
+    ) {
+        if (description != null && !description.isBlank()) {
+            categorie.setDescription(description);
+        }
+        if (imageUrl != null && !imageUrl.isBlank()) {
+            categorie.setImageUrl(imageUrl);
+        }
+        categorie.setPublished(published);
     }
 
     // ─── UPLOAD PHOTO ─────────────────────────────────────────
