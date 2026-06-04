@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { NotificationPreferences } from '../../../core/models/user.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
+import { UserProfileService } from '../../../core/services/user-profile.service';
 import { UiService } from '../../../core/services/ui.user.service';
 
 @Component({
@@ -14,11 +16,11 @@ import { UiService } from '../../../core/services/ui.user.service';
   styleUrl: '../styles/user-space.scss'
 })
 export class SettingsComponent implements OnInit {
-  readonly userId = 1;
-
   firstName = '';
   lastName = '';
   city = '';
+  address = '';
+  phone = '';
   email = '';
   photo?: string;
   isEditingPhoto = false;
@@ -31,65 +33,126 @@ export class SettingsComponent implements OnInit {
   };
 
   message = '';
+  errorMessage = '';
+  loading = true;
 
   constructor(
     private readonly userService: UserService,
-    private readonly uiSvc: UiService
+    private readonly profileSvc: UserProfileService,
+    private readonly uiSvc: UiService,
+    private readonly auth: AuthService,
+    private readonly router: Router
   ) {}
 
   ngOnInit(): void {
     this.uiSvc.setPageHeader('Mon profil', 'PARAMÈTRES');
 
-    this.userService.getProfile(this.userId).subscribe({
+    let userId: number;
+    try {
+      userId = this.auth.requireUserId();
+    } catch {
+      void this.router.navigate(['/connexion']);
+      return;
+    }
+
+    this.userService.getProfile(userId).subscribe({
       next: (profile) => {
-        this.firstName = profile.firstName;
-        this.lastName = profile.lastName;
-        this.city = profile.city || '';
-        this.photo = profile.photo;
+        this.applyProfile(profile);
+        this.profileSvc.setProfile(profile);
+        this.loading = false;
       },
       error: () => {
-        this.firstName = '';
-        this.lastName = '';
-        this.city = '';
-        this.photo = undefined;
+        this.errorMessage = 'Impossible de charger le profil.';
+        this.loading = false;
       }
     });
 
-    this.userService.getPreferences(this.userId).subscribe((prefs) => {
-      this.prefs = prefs;
+    this.userService.getPreferences(userId).subscribe({
+      next: (prefs) => {
+        this.prefs = prefs;
+      }
     });
   }
 
-  onFileSelected(event: any): void {
-    const file: File = event.target.files[0];
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.photo = e.target.result;
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        this.photo = e.target?.result as string;
       };
       reader.readAsDataURL(file);
     }
   }
 
-  triggerPhotoEdit(): void {
-    this.isEditingPhoto = !this.isEditingPhoto;
-  }
-
   saveProfile(): void {
-    this.userService.updateProfile(this.userId, {
-      firstName: this.firstName,
-      lastName: this.lastName,
-      city: this.city,
+    this.message = '';
+    this.errorMessage = '';
+
+    let userId: number;
+    try {
+      userId = this.auth.requireUserId();
+    } catch {
+      void this.router.navigate(['/connexion']);
+      return;
+    }
+
+    this.userService.updateProfile(userId, {
+      firstName: this.firstName.trim(),
+      lastName: this.lastName.trim(),
+      email: this.email.trim(),
+      phone: this.phone.trim() || undefined,
+      city: this.city.trim() || undefined,
+      address: this.address.trim() || undefined,
       photo: this.photo
-    }).subscribe(() => {
-      this.message = 'Profil enregistré avec succès.';
-      this.isEditingPhoto = false;
+    }).subscribe({
+      next: (profile) => {
+        this.applyProfile(profile);
+        this.profileSvc.setProfile(profile);
+        this.message = 'Profil enregistré avec succès.';
+        this.isEditingPhoto = false;
+      },
+      error: (err: Error) => {
+        this.errorMessage = err.message || 'Impossible d’enregistrer le profil.';
+      }
     });
   }
 
   savePreferences(): void {
-    this.userService.updatePreferences(this.userId, this.prefs).subscribe(() => {
-      this.message = 'Préférences enregistrées avec succès.';
+    let userId: number;
+    try {
+      userId = this.auth.requireUserId();
+    } catch {
+      void this.router.navigate(['/connexion']);
+      return;
+    }
+
+    this.userService.updatePreferences(userId, this.prefs).subscribe({
+      next: () => {
+        this.message = 'Préférences enregistrées avec succès.';
+      },
+      error: (err: Error) => {
+        this.errorMessage = err.message || 'Impossible d’enregistrer les préférences.';
+      }
     });
+  }
+
+  private applyProfile(profile: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    city?: string;
+    address?: string;
+    phone?: string;
+    photo?: string;
+  }): void {
+    this.firstName = profile.firstName;
+    this.lastName = profile.lastName;
+    this.email = profile.email ?? '';
+    this.city = profile.city ?? '';
+    this.address = profile.address ?? '';
+    this.phone = profile.phone ?? '';
+    this.photo = profile.photo;
   }
 }

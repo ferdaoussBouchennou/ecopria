@@ -2,7 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, from, map, switchMap, tap } from 'rxjs';
+import { Router } from '@angular/router';
 import { Profile } from '../../../core/models/user.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { UiService } from '../../../core/services/ui.user.service';
 import { RecompenseService } from '../../recompense/recompense.service';
@@ -21,7 +23,7 @@ import {
   styleUrl: '../styles/user-space.scss'
 })
 export class RecompensesComponent implements OnInit {
-  readonly userId = 1;
+  userId = 0;
   readonly pageSize = 4;
 
   allCatalogue: RecompenseItemDto[] = [];
@@ -45,11 +47,19 @@ export class RecompensesComponent implements OnInit {
   constructor(
     private readonly userService: UserService,
     private readonly recompenseService: RecompenseService,
-    private readonly uiService: UiService
+    private readonly uiService: UiService,
+    private readonly auth: AuthService,
+    private readonly router: Router
   ) {}
 
   ngOnInit(): void {
     this.uiService.setPageHeader('Mes récompenses', 'ESPACE GAGNANT');
+    try {
+      this.userId = this.auth.requireUserId();
+    } catch {
+      void this.router.navigate(['/connexion']);
+      return;
+    }
     this.reload();
   }
 

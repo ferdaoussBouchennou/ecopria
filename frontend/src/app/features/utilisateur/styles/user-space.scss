@@ -973,6 +973,12 @@
   color: var(--primary);
 }
 
+.badge-points-hint {
+  font-size: 0.72rem;
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
+}
+
 .badge-item--dashboard p {
   margin: 0;
   font-size: 0.72rem;

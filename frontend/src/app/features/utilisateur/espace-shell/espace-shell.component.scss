@@ -104,6 +104,37 @@
   color: var(--primary-foreground);
 }
 
+.nav-item--muted {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.btn-logout {
+  width: 100%;
+  padding: 0.72rem 1rem;
+  background: #fef3f2;
+  color: #b42318;
+  border: 1px solid #fecdca;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+
+  &:hover {
+    background: #fee4e2;
+    border-color: #fda29b;
+  }
+}
+
 .user-sidebar-info h3 {
   font-family: var(--font-display);
   font-size: 1.4rem;

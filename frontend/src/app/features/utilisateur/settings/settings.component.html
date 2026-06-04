@@ -17,26 +17,37 @@
 
     <div class="input-group">
       <label>Prénom</label>
-      <input type="text" [(ngModel)]="firstName" placeholder="Camille">
+      <input type="text" [(ngModel)]="firstName" placeholder="Prénom">
     </div>
 
     <div class="input-group">
       <label>Nom</label>
-      <input type="text" [(ngModel)]="lastName" placeholder="Renard">
+      <input type="text" [(ngModel)]="lastName" placeholder="Nom">
     </div>
 
     <div class="input-group">
       <label>Email</label>
-      <input type="text" [(ngModel)]="email" placeholder="camille@exemple.com">
+      <input type="email" [(ngModel)]="email" placeholder="email@exemple.com">
     </div>
 
     <div class="input-group">
-      <label>Adresse / Ville</label>
-      <input type="text" [(ngModel)]="city" placeholder="14 rue des Tilleuls, Lyon">
+      <label>Téléphone</label>
+      <input type="tel" [(ngModel)]="phone" placeholder="0612345678">
     </div>
 
-    <button class="btn-save" (click)="saveProfile()">Enregistrer les modifications</button>
+    <div class="input-group">
+      <label>Adresse</label>
+      <input type="text" [(ngModel)]="address" placeholder="14 rue des Tilleuls">
+    </div>
+
+    <div class="input-group">
+      <label>Ville</label>
+      <input type="text" [(ngModel)]="city" placeholder="Lyon">
+    </div>
+
+    <button class="btn-save" (click)="saveProfile()" [disabled]="loading">Enregistrer les modifications</button>
     <p *ngIf="message" style="margin-top: 1rem; color: var(--primary); font-weight: 600;">{{ message }}</p>
+    <p *ngIf="errorMessage" style="margin-top: 1rem; color: #b42318; font-weight: 600;">{{ errorMessage }}</p>
   </section>
 
   <section class="form-section">

@@ -184,6 +184,15 @@ export class AuthService {
     return raw ? Number(raw) : null;
   }
 
+  /** auth_id utilisé par les APIs utilisateur / inscriptions */
+  requireUserId(): number {
+    const id = this.getUserId();
+    if (id == null) {
+      throw new Error('Utilisateur non connecté');
+    }
+    return id;
+  }
+
   getRole(): RegisterRole | null {
     return localStorage.getItem(ROLE_KEY) as RegisterRole | null;
   }

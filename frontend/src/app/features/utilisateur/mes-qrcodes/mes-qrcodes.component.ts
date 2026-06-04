@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 import { InscriptionService } from '../../inscription/inscription.service';
 import { PresenceService } from '../../presence/presence.service';
 import { InscriptionResponse } from '../../../core/models/inscription.model';
@@ -29,14 +31,22 @@ export class MesQrcodesComponent implements OnInit {
   loading = true;
   erreurMessage = '';
 
-  private readonly userId = 1;
+  private userId = 0;
 
   constructor(
     private inscriptionService: InscriptionService,
-    private presenceService: PresenceService
+    private presenceService: PresenceService,
+    private auth: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
+    try {
+      this.userId = this.auth.requireUserId();
+    } catch {
+      void this.router.navigate(['/connexion']);
+      return;
+    }
     this.charger();
   }
 

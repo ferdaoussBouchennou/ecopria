@@ -9,12 +9,12 @@
       <span class="stat-lbl">Actions validées</span>
     </article>
     <article class="stat-card stat-card--dashboard">
-      <span class="stat-val">{{ badges.length || 0 }}</span>
+      <span class="stat-val">{{ unlockedBadgesCount }}</span>
       <span class="stat-lbl">Badges débloqués</span>
     </article>
     <article class="stat-card stat-card--dashboard">
-      <span class="stat-val">#{{ getMyRank() || '—' }}</span>
-      <span class="stat-lbl">Classement</span>
+      <span class="stat-val">{{ profile.trustScore }}</span>
+      <span class="stat-lbl">Score de confiance</span>
     </article>
   </div>
 
@@ -81,16 +81,20 @@
         <h2>Mes badges</h2>
       </div>
 
-      <div class="badges-grid badges-grid--dashboard">
+      <div class="badges-grid badges-grid--dashboard" *ngIf="badgeStatuses.length > 0">
         <article
-          *ngFor="let badge of displayBadges"
+          *ngFor="let badge of badgeStatuses"
           class="badge-item badge-item--dashboard"
-          [class.locked]="badge.locked">
-          <div class="badge-icon-circle badge-icon-circle--dashboard">{{ badge.icon }}</div>
+          [class.locked]="!badge.obtained">
+          <div class="badge-icon-circle badge-icon-circle--dashboard">{{ badge.icon || '●' }}</div>
           <h5>{{ badge.name }}</h5>
           <p>{{ badge.description }}</p>
+          <p class="badge-points-hint">{{ badge.requiredPoints }} pts</p>
         </article>
       </div>
+      <p *ngIf="badgeStatuses.length === 0" class="empty-state empty-state--dashboard">
+        Aucun badge configuré pour le moment.
+      </p>
     </aside>
   </div>
 </div>
