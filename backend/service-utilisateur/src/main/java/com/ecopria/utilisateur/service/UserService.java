@@ -1,10 +1,13 @@
 package com.ecopria.utilisateur.service;
 
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -338,6 +341,27 @@ public class UserService {
     public List<UserBadge> getBadges(Long authId) {
         Citizen citizen = getCitizen(authId);
         return userBadgeRepository.findByProfileId(citizen.getId());
+    }
+
+    public List<BadgeStatusDTO> getBadgesStatus(Long authId) {
+        Citizen citizen = getCitizen(authId);
+        Set<Long> earnedBadgeIds = userBadgeRepository.findByProfileId(citizen.getId()).stream()
+                .map(ub -> ub.getBadge().getId())
+                .collect(Collectors.toCollection(HashSet::new));
+
+        return badgeRepository.findAll().stream()
+                .sorted(Comparator.comparing(Badge::getRequiredPoints))
+                .map(badge -> {
+                    BadgeStatusDTO dto = new BadgeStatusDTO();
+                    dto.setId(badge.getId());
+                    dto.setName(badge.getName());
+                    dto.setDescription(badge.getDescription());
+                    dto.setIcon(badge.getIcon());
+                    dto.setRequiredPoints(badge.getRequiredPoints());
+                    dto.setObtained(earnedBadgeIds.contains(badge.getId()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     public NotificationPreference getPreferences(Long authId) {

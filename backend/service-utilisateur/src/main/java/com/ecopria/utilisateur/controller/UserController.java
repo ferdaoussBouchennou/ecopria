@@ -106,6 +106,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getBadges(id));
     }
 
+    @GetMapping("/{id}/badges/status")
+    public ResponseEntity<List<BadgeStatusDTO>> getBadgesStatus(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getBadgesStatus(id));
+    }
+
     @GetMapping("/leaderboard")
     public ResponseEntity<List<LeaderboardEntryDTO>> getLeaderboard(
             @RequestParam(defaultValue = "0") Long authId) {
