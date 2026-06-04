@@ -54,6 +54,15 @@ public class RecompenseController {
         return ResponseEntity.ok(recompenseService.getMesCoupons(userId));
     }
 
+    // POST /api/recompenses/coupons/{couponId}/renvoyer-email
+    @PostMapping("/coupons/{couponId}/renvoyer-email")
+    public ResponseEntity<Void> renvoyerCouponParEmail(
+            @PathVariable Long couponId,
+            @RequestHeader("X-User-Id") Long userId) {
+        recompenseService.renvoyerCouponParEmail(couponId, userId);
+        return ResponseEntity.accepted().build();
+    }
+
     // ── BOÎTE MYSTÈRE ────────────────────────────────────────
     // POST /api/recompenses/{id}/mystere-box
     // Le citoyen choisit d'ouvrir la boîte mystère plutôt que de prendre l'offre normale

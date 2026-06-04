@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { UiService } from '../../../core/services/ui.user.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { LeaderboardEntry } from '../../../core/models/user.model';
 
 @Component({

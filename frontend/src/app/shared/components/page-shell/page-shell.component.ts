@@ -31,10 +31,7 @@ export class PageShellComponent {
   }
 
   get recompensesQueryParams(): Record<string, string> {
-    if (this.auth.getRole() === 'USER') {
-      return {};
-    }
-    return ['/espace', 'dashboard'];
+    return {};
   }
 
   logout(): void {

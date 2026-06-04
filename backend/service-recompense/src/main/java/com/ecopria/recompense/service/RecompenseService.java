@@ -139,6 +139,34 @@ public class RecompenseService {
                 .collect(Collectors.toList());
     }
 
+    /** Renvoie l'e-mail du coupon (Kafka → service-notification). */
+    @Transactional(readOnly = true)
+    public void renvoyerCouponParEmail(Long couponId, Long userId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new RuntimeException("Coupon introuvable : " + couponId));
+        if (!coupon.getUserId().equals(userId)) {
+            throw new RuntimeException("Ce coupon ne vous appartient pas");
+        }
+        if (coupon.getStatus() == Coupon.CouponStatus.EXPIRE
+                || coupon.getExpireLe().isBefore(java.time.LocalDateTime.now())) {
+            throw new RuntimeException("Ce coupon est expiré");
+        }
+
+        Recompense recompense = coupon.getRecompense();
+        Integer solde = utilisateurClient.getPoints(userId);
+        recompenseProducer.publishRecompenseEchangee(
+                RecompenseEchangeeEvent.builder()
+                        .userId(userId)
+                        .recompenseId(recompense.getId())
+                        .codeCoupon(coupon.getCode())
+                        .pointsUtilises(coupon.getPointsUtilises())
+                        .pointsRestants(solde)
+                        .recompenseTitle(recompense.getTitle())
+                        .partenaireName(recompense.getPartenaire().getName())
+                        .build());
+        log.info("Renvoi e-mail coupon {} pour userId {}", coupon.getCode(), userId);
+    }
+
     // ─── DASHBOARD PARTENAIRE ────────────────────────────────
 
     @Transactional(readOnly = true)

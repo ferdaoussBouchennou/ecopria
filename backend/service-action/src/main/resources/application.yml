@@ -1,3 +1,9 @@
 spring:
-  profiles:
-    default: local
+  application:
+    name: service-action
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect

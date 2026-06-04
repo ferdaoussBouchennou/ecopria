@@ -35,7 +35,11 @@
           </div>
           <div class="action-points action-points--dashboard">
             <p class="pts-val">+{{ action.points }}</p>
-            <a routerLink="/espace/actions" class="qr-link">QR code</a>
+            <a
+              [routerLink]="['/espace/scanner-presence']"
+              [queryParams]="{ actionId: action.id }"
+              class="qr-link"
+            >QR code</a>
           </div>
         </article>
 

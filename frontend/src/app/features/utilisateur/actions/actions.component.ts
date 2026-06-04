@@ -8,7 +8,6 @@ import { ActionService } from '../../action/services/action.service';
 import { InscriptionService } from '../../inscription/inscription.service';
 import { UiService } from '../../../core/services/ui.user.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Router } from '@angular/router';
 import { MonInscriptionDto } from '../../inscription/models/inscription.model';
 
 @Component({
@@ -19,7 +18,6 @@ import { MonInscriptionDto } from '../../inscription/models/inscription.model';
   styleUrl: '../styles/user-space.scss'
 })
 export class ActionsComponent implements OnInit {
-  userId = 0;
   readonly pageSize = 3;
 
   allUpcoming: ActionRowViewModel[] = [];
@@ -41,9 +39,7 @@ export class ActionsComponent implements OnInit {
     private readonly uiService: UiService,
     private readonly auth: AuthService,
     private readonly router: Router,
-    private readonly auth: AuthService,
-    private readonly route: ActivatedRoute,
-    private readonly router: Router
+    private readonly route: ActivatedRoute
   ) {}
 
   private get userId(): number {
@@ -53,7 +49,7 @@ export class ActionsComponent implements OnInit {
   ngOnInit(): void {
     this.uiService.setPageHeader('Mes actions', 'ESPACE ENGAGÉ');
     try {
-      this.userId = this.auth.requireUserId();
+      this.auth.requireUserId();
     } catch {
       void this.router.navigate(['/connexion']);
       return;

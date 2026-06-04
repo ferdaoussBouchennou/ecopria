@@ -389,9 +389,11 @@
   background: #fdfdfd;
 }
 
-.coupon-card__qr img {
-  width: 90px;
-  height: 90px;
+.coupon-card__qr img,
+.coupon-card__qr canvas {
+  width: 140px;
+  height: 140px;
+  display: block;
 }
 
 .coupon-card__qr-hint {

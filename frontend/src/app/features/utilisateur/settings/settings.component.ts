@@ -7,7 +7,6 @@ import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { UserProfileService } from '../../../core/services/user-profile.service';
 import { UiService } from '../../../core/services/ui.user.service';
-import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-settings',
