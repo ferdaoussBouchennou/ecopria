@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { httpErrorMessage } from '../../../core/utils/http-error.util';
+import { resolvePostLoginUrl } from '../../../core/utils/auth-navigation.util';
 
 const REMEMBER_EMAIL_KEY = 'ecopria_remember_email';
 
@@ -14,21 +15,35 @@ const REMEMBER_EMAIL_KEY = 'ecopria_remember_email';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   email = '';
   password = '';
   rememberMe = false;
   submitting = false;
   error = '';
 
+  get authQueryParams(): Record<string, string> {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    return returnUrl ? { returnUrl } : {};
+  }
+
   constructor(
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     const saved = localStorage.getItem(REMEMBER_EMAIL_KEY);
     if (saved) {
       this.email = saved;
       this.rememberMe = true;
+    }
+  }
+
+  ngOnInit(): void {
+    if (this.auth.isLoggedIn()) {
+      const role = this.auth.getRole() ?? 'USER';
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+      void this.router.navigateByUrl(resolvePostLoginUrl(returnUrl, role));
     }
   }
 
@@ -44,7 +59,11 @@ export class LoginComponent {
           localStorage.removeItem(REMEMBER_EMAIL_KEY);
         }
         this.submitting = false;
-        this.redirectByRole(res.role);
+        if (res.role === 'ADMIN') {
+          localStorage.setItem('ecopria_admin_email', this.email.trim().toLowerCase());
+        }
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        void this.router.navigateByUrl(resolvePostLoginUrl(returnUrl, res.role));
       },
       error: (err) => {
         this.submitting = false;
@@ -52,6 +71,15 @@ export class LoginComponent {
         if (msg.includes('EMAIL_NOT_VERIFIED')) {
           this.error = 'Votre e-mail n’est pas encore vérifié.';
           void this.router.navigate(['/verifier-email'], {
+            queryParams: {
+              email: this.email.trim().toLowerCase(),
+              ...this.authQueryParams,
+            },
+          });
+          return;
+        }
+        if (msg.includes('pending admin verification') || msg.includes('en attente')) {
+          void this.router.navigate(['/compte-en-attente'], {
             queryParams: { email: this.email.trim().toLowerCase() },
           });
           return;
@@ -59,17 +87,5 @@ export class LoginComponent {
         this.error = msg;
       },
     });
-  }
-
-  private redirectByRole(role: string): void {
-    if (role === 'ASSOCIATION') {
-      void this.router.navigate(['/association']);
-      return;
-    }
-    if (role === 'PARTNER') {
-      void this.router.navigate(['/partenaire']);
-      return;
-    }
-    void this.router.navigate(['/']);
   }
 }

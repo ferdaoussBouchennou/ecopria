@@ -2,32 +2,30 @@ import { Injectable, inject } from '@angular/core';
 import { AuthService } from './auth.service';
 
 /**
- * Contexte utilisateur.
- * Utilise désormais l'ID de l'utilisateur connecté via AuthService.
+ * Identifiants utilisateur pour les appels API (authId / userId).
+ * N'utilise plus de fallbacks dev : l'utilisateur doit être connecté.
  */
 @Injectable({ providedIn: 'root' })
 export class DevContextService {
   private auth = inject(AuthService);
 
-  /** authId côté service-utilisateur (profil association) */
+  /** authId côté service-utilisateur (profil association). */
   getAssociationAuthId(): number {
-    return this.auth.getUserId() || 1;
+    return this.auth.requireUserId();
   }
 
-  /** authId du citoyen (inscriptions, présence, mes-inscriptions) */
+  /** authId du citoyen (inscriptions, présence, espace). */
   getParticipantUserId(): number {
-    return this.auth.getUserId() || 2;
+    return this.auth.requireUserId();
   }
 
-  /** Header X-User-Id pour service-action (user_id dans db_action.associations) */
+  /** Header X-User-Id pour service-action. */
   getAssociationActionUserId(): number {
     return this.getAssociationAuthId();
   }
 
-  /**
-   * userId partenaire pour l'espace partenaire.
-   */
+  /** userId partenaire pour l'espace partenaire. */
   getPartenaireUserId(): number {
-    return this.auth.getUserId() || 1;
+    return this.auth.requireUserId();
   }
 }

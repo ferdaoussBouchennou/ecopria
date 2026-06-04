@@ -6,6 +6,11 @@ export interface InscriptionRequest {
   conditions?: string;
   imageRights?: boolean;
   newsletter?: boolean;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  city?: string;
 }
 
 export interface InscriptionResponse {
@@ -21,6 +26,11 @@ export interface InscriptionResponse {
   phone?: string;
   city?: string;
   photoUrl?: string;
+  motivation?: string;
+  conditions?: string;
+  imageRights?: boolean;
+  newsletter?: boolean;
+  accompagnants?: number;
   /** Rempli côté front via service-presence si disponible */
   qrCode?: string;
 }

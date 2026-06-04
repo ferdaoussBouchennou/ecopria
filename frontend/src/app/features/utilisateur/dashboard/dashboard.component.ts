@@ -37,16 +37,12 @@ export class DashboardComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit(): void {
-    let userId: number;
-    try {
-      userId = this.auth.requireUserId();
-    } catch {
-      void this.router.navigate(['/connexion']);
-      return;
-    }
+  private get userId(): number {
+    return this.auth.requireUserId();
+  }
 
-    this.userSvc.getProfile(userId).subscribe({
+  ngOnInit() {
+    this.userSvc.getProfile(this.userId).subscribe({
       next: (p) => {
         this.profile = p;
         this.uiSvc.setPageHeader('Votre printemps engagé', `BONJOUR ${p.firstName}`);

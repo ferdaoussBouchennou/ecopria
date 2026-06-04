@@ -56,15 +56,28 @@ public class UserConsumer {
             if ("PARTNER".equalsIgnoreCase(role)) {
                 PartnerDTO dto = new PartnerDTO();
                 dto.setAuthId(authId);
-                dto.setName(nom);
-                dto.setEmail(email);
-                dto.setCategory("Général"); // Default category
+                dto.setName((String) event.get("nom"));
+                dto.setLogo((String) event.get("logoUrl"));
+                
+                if (event.get("email") != null) dto.setEmail((String) event.get("email"));
+                if (event.get("phone") != null) dto.setPhone((String) event.get("phone"));
+                if (event.get("address") != null) dto.setAddress((String) event.get("address"));
+                if (event.get("ville") != null) {
+                    dto.setCity((String) event.get("ville"));
+                } else if (event.get("city") != null) {
+                    dto.setCity((String) event.get("city"));
+                }
+                
+                dto.setDescription((String) event.get("description"));
                 userService.createPartner(dto);
             } else {
                 AssociationDTO dto = new AssociationDTO();
                 dto.setAuthId(authId);
                 dto.setName(nom);
                 dto.setEmail(email);
+                dto.setPhone(readOptionalString(event, "phone"));
+                dto.setAddress(readOptionalString(event, "address"));
+                dto.setCity(readOptionalString(event, "city", "ville"));
                 userService.createAssociation(dto);
             }
         } catch (Exception e) {

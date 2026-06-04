@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../../core/services/user.service';
 import { UserProfileService } from '../../../core/services/user-profile.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { UiService } from '../../../core/services/ui.user.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Profile } from '../../../core/models/user.model';
 import { AppNotification } from '../../../core/models/notification.model';
@@ -33,7 +35,14 @@ export class EspaceShellComponent implements OnInit {
     private uiSvc: UiService,
     private auth: AuthService,
     private router: Router
+    private uiSvc: UiService,
+    private auth: AuthService,
+    private router: Router
   ) {}
+
+  private get userId(): number {
+    return this.auth.requireUserId();
+  }
 
   ngOnInit() {
     try {
@@ -53,16 +62,13 @@ export class EspaceShellComponent implements OnInit {
     });
 
     this.notifSvc.unreadCount$.subscribe(count => this.unreadCount = count);
-    // refreshNotifs/loadUnreadCount are triggered once profile is available
 
-    // Sync Header
     this.uiSvc.currentTitle$.subscribe(title => this.pageTitle = title);
     this.uiSvc.currentEyebrow$.subscribe(eyebrow => this.pageEyebrow = eyebrow);
   }
 
   refreshNotifs() {
     this.notifSvc.getAll(this.userId).subscribe((n: AppNotification[]) => {
-      // Safety: if backend returns more than requested, keep only current user
       this.notifications = n.filter(item => item.userId === this.userId);
     });
   }
@@ -77,6 +83,13 @@ export class EspaceShellComponent implements OnInit {
 
   markAllRead() {
     this.notifSvc.markAllAsRead(this.userId).subscribe(() => this.refreshNotifs());
+  }
+
+  logout(): void {
+    if (confirm('Voulez-vous vous déconnecter ?')) {
+      this.auth.logout();
+      void this.router.navigate(['/']);
+    }
   }
 
   get filteredNotifs(): AppNotification[] {

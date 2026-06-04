@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, map, of, switchMap } from 'rxjs';
 import { ActionRowViewModel, ActionSummary } from '../../action/models/action.model';
 import { ActionService } from '../../action/services/action.service';
@@ -13,7 +14,7 @@ import { MonInscriptionDto } from '../../inscription/models/inscription.model';
 @Component({
   selector: 'app-actions',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './actions.component.html',
   styleUrl: '../styles/user-space.scss'
 })
@@ -32,14 +33,22 @@ export class ActionsComponent implements OnInit {
 
   loading = true;
   errorMessage = '';
+  successMessage = '';
 
   constructor(
     private readonly actionService: ActionService,
     private readonly inscriptionService: InscriptionService,
     private readonly uiService: UiService,
     private readonly auth: AuthService,
+    private readonly router: Router,
+    private readonly auth: AuthService,
+    private readonly route: ActivatedRoute,
     private readonly router: Router
   ) {}
+
+  private get userId(): number {
+    return this.auth.requireUserId();
+  }
 
   ngOnInit(): void {
     this.uiService.setPageHeader('Mes actions', 'ESPACE ENGAGÉ');
@@ -50,6 +59,25 @@ export class ActionsComponent implements OnInit {
       return;
     }
     this.loadActions();
+  }
+
+  private applyInscriptionFeedback(): void {
+    const params = this.route.snapshot.queryParamMap;
+    if (params.get('inscriptionOk') !== '1') {
+      return;
+    }
+    if (params.get('listeAttente') === '1') {
+      this.successMessage =
+        'Vous êtes en liste d\'attente. Un e-mail de confirmation vous sera envoyé si une place se libère.';
+    } else if (params.get('emailSent') === '1') {
+      this.successMessage =
+        'Inscription confirmée ! Un e-mail récapitulatif avec les détails de l\'action vient de vous être envoyé.';
+    }
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {},
+      replaceUrl: true,
+    });
   }
 
   private loadActions(): void {
@@ -178,6 +206,16 @@ export class ActionsComponent implements OnInit {
       default:
         return '';
     }
+  }
+
+  isActionToday(dateStart: string): boolean {
+    const d = new Date(dateStart);
+    const now = new Date();
+    return (
+      d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate()
+    );
   }
 
   formatDateRange(start: string, end: string): string {

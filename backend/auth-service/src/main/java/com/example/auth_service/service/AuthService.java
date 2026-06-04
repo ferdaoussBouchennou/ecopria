@@ -161,9 +161,15 @@ public class AuthService {
             user.setIsVerified(true);
             userRepository.save(user);
 
+            RegistrationProfile profile = emailVerificationService.getProfile(user.getUserId());
+
             kafkaProducer.publishAssociationValidated(UserRegisteredEvent.builder()
                     .userId(user.getUserId())
                     .nom(request.getNom())
+                    .email(user.getEmail())
+                    .phone(profile.getPhone())
+                    .address(profile.getAddress())
+                    .city(profile.getCity())
                     .document(null)
                     .role(user.getRole().name())
                     .build());
@@ -191,6 +197,10 @@ public class AuthService {
             kafkaProducer.publishAssociationPending(UserRegisteredEvent.builder()
                     .userId(user.getUserId())
                     .nom(profile.getNom())
+                    .email(user.getEmail())
+                    .phone(profile.getPhone())
+                    .address(profile.getAddress())
+                    .city(profile.getCity())
                     .document(profile.getDocument())
                     .role(user.getRole().name())
                     .build());

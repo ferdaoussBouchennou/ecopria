@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { resolvePostLoginUrl } from '../../../core/utils/auth-navigation.util';
 import { httpErrorMessage } from '../../../core/utils/http-error.util';
 import { environment } from '../../../../environments/environment';
 
@@ -67,7 +68,8 @@ export class VerifyEmailComponent implements OnInit {
         next: () => {
           sessionStorage.removeItem(PENDING_PROFILE_KEY);
           this.submitting = false;
-          void this.router.navigate(['/'], { queryParams: { bienvenue: '1' } });
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+          void this.router.navigateByUrl(resolvePostLoginUrl(returnUrl, 'USER'));
         },
         error: (err) => {
           this.submitting = false;
@@ -82,8 +84,7 @@ export class VerifyEmailComponent implements OnInit {
         sessionStorage.removeItem(PENDING_PROFILE_KEY);
         this.submitting = false;
         if (pending?.profileType === 'association' || pending?.profileType === 'partenaire') {
-          this.info =
-            'E-mail confirmé. Votre dossier sera validé par l’équipe Ecopria sous peu.';
+          void this.router.navigate(['/compte-en-attente'], { queryParams: { email } });
           return;
         }
         void this.router.navigate(['/connexion']);

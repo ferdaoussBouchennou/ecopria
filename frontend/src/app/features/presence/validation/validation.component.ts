@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PresenceService } from '../presence.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { QrCode } from '../../../core/models/presence.model';
 import { InscriptionService } from '../../inscription/inscription.service';
 import { ActionDTO } from '../../inscription/models/inscription.model';
@@ -25,13 +26,15 @@ export class ValidationComponent implements OnInit {
   loading = true;
   erreurMessage = '';
 
-  // TODO: remplacer par AuthService
-  private readonly userId = 1;
-
   constructor(
     private presenceService: PresenceService,
-    private inscriptionService: InscriptionService
+    private inscriptionService: InscriptionService,
+    private auth: AuthService
   ) {}
+
+  private get userId(): number {
+    return this.auth.requireUserId();
+  }
 
   ngOnInit(): void {
     this.charger();

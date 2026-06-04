@@ -35,20 +35,8 @@ public class ActionFixe {
     @Column(name = "association_name", length = 200)
     private String associationName;
 
-    @Column(length = 255)
-    private String lieu;
-
-    @Column
-    private Double latitude;
-
-    @Column
-    private Double longitude;
-
     @Column(nullable = false)
     private Integer points;
-
-    @Column(name = "places_total")
-    private Integer placesTotal;
 
     @Column(nullable = false)
     private Boolean active;

@@ -162,6 +162,31 @@
   &.stat-annule .stat-value { color: #6B7280; }
 }
 
+.status-legend {
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: #f8faf9;
+  border: 1px solid #e7e5e4;
+  font-size: 0.82rem;
+  color: #44403c;
+  line-height: 1.5;
+
+  p {
+    margin: 0 0 0.35rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.presence-done {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #065f46;
+}
+
 // Filtres
 .filters-section {
   background: white;
@@ -404,6 +429,11 @@
     background: #F3F4F6;
     color: #4B5563;
   }
+
+  &.badge-presence--ok {
+    background: #dbeafe;
+    color: #1e40af;
+  }
 }
 
 // Aucun résultat
@@ -431,6 +461,58 @@
       background: #6D9488;
     }
   }
+}
+
+.btn-details {
+  padding: 0.42rem 0.85rem;
+  background: white;
+  color: var(--ec-sage-dark);
+  border: 1px solid #D4D0C8;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 600;
+  transition: all 0.2s;
+
+  &:hover,
+  &--active {
+    background: #eef7f0;
+    border-color: var(--ec-sage-dark);
+  }
+}
+
+.detail-row td {
+  background: #f8faf9;
+  padding: 0 !important;
+}
+
+.inscription-details {
+  padding: 1rem 1.25rem 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.detail-block h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.detail-block p {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  color: #1f2937;
+}
+
+.detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  font-size: 0.82rem;
+  color: #57534e;
 }
 
 // Bouton de validation manuelle

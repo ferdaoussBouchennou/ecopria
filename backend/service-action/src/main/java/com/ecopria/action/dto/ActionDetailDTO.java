@@ -33,6 +33,8 @@ public class ActionDetailDTO {
 
     // infos de l'association organisatrice
     private Long associationId;
+    /** authId (service-auth) du compte association — pour notifications in-app */
+    private Long associationUserId;
     private String associationName;
     private String associationDescription;
     private String associationLogoUrl;

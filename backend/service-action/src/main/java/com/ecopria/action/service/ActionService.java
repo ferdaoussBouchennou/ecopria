@@ -105,7 +105,14 @@ public class ActionService {
     @Transactional
     public ActionDetailDTO create(CreateActionDTO dto, Long userId) {
         Association association = associationRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+                .orElseGet(() -> {
+                    Association assoc = Association.builder()
+                            .userId(userId)
+                            .name("Association")
+                            .build();
+                    log.info("Association par défaut créée pour userId: {}", userId);
+                    return associationRepository.save(assoc);
+                });
 
         Categorie category = categorieRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"));
@@ -213,33 +220,52 @@ public class ActionService {
             throw new RuntimeException("Cette action ne peut pas être annulée");
         }
 
+        if (reason == null || reason.isBlank()) {
+            throw new IllegalArgumentException("Le motif d'annulation est obligatoire");
+        }
+
         action.setStatus(ActionStatus.CANCELLED);
         actionRepository.save(action);
 
-        // publier sur Kafka → service-notification
         actionProducer.publishActionCancelled(ActionCancelledEvent.builder()
                 .actionId(actionId)
                 .title(action.getTitle())
-                .cancellationReason(reason)
+                .cancellationReason(reason.trim())
+                .city(action.getCity())
+                .address(action.getAddress())
+                .dateStart(action.getDateStart())
+                .associationName(action.getAssociation() != null ? action.getAssociation().getName() : null)
                 .build());
 
-        log.info("Action annulée id: {}", actionId);
+        log.info("Action annulée id: {} — motif: {}", actionId, reason.trim());
     }
 
     // ─── DASHBOARD ASSOCIATION ────────────────────────────────
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = false) // changed to false to allow saving
     public List<ActionSummaryDTO> getMyActions(Long userId) {
         Association association = associationRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+                .orElseGet(() -> {
+                    Association assoc = Association.builder()
+                            .userId(userId)
+                            .name("Association")
+                            .build();
+                    return associationRepository.save(assoc);
+                });
         return actionRepository.findByAssociationId(association.getId())
                 .stream().map(this::toSummaryDTO).collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = false) // changed to false to allow saving
     public AssociationStatsDTO getMyStats(Long userId) {
         Association association = associationRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+                .orElseGet(() -> {
+                    Association assoc = Association.builder()
+                            .userId(userId)
+                            .name("Association")
+                            .build();
+                    return associationRepository.save(assoc);
+                });
                 
         List<Action> actions = actionRepository.findByAssociationId(association.getId());
         
@@ -270,10 +296,16 @@ public class ActionService {
                 .stream().map(this::toSummaryDTO).collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = false) // changed to false to allow saving
     public List<ActionSummaryDTO> getMyDrafts(Long userId) {
         Association association = associationRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+                .orElseGet(() -> {
+                    Association assoc = Association.builder()
+                            .userId(userId)
+                            .name("Association")
+                            .build();
+                    return associationRepository.save(assoc);
+                });
         return actionRepository.findByAssociationIdAndStatus(association.getId(), ActionStatus.DRAFT)
                 .stream().map(this::toSummaryDTO).collect(Collectors.toList());
     }
@@ -313,15 +345,26 @@ public class ActionService {
         Long actionFixeId = event.containsKey("actionFixeId") ? Long.valueOf(event.get("actionFixeId").toString())
                 : (event.containsKey("id") ? Long.valueOf(event.get("id").toString()) : null);
 
+        int templatePlaces = 999;
+        LocalDateTime start = LocalDateTime.now().plusDays(1);
+        Association platformAssociation = resolvePlatformAssociation();
+
         Action action = Action.builder()
                 .title(event.get("titre").toString())
-                .city(event.get("lieu") != null ? event.get("lieu").toString() : "")
-                .latitude(Double.valueOf(event.get("latitude").toString()))
-                .longitude(Double.valueOf(event.get("longitude").toString()))
+                .description(event.containsKey("description") && event.get("description") != null
+                        ? event.get("description").toString()
+                        : null)
+                .address("Template Ecopria")
+                .city("Plateforme")
+                .latitude(33.5731)
+                .longitude(-7.5898)
+                .dateStart(start)
+                .dateEnd(start.plusYears(1))
                 .points(Integer.valueOf(event.get("points").toString()))
-                .maxParticipants(Integer.valueOf(event.get("placesTotal").toString()))
-                .availablePlaces(Integer.valueOf(event.get("placesTotal").toString()))
+                .maxParticipants(templatePlaces)
+                .availablePlaces(templatePlaces)
                 .category(category)
+                .association(platformAssociation)
                 .isFixed(true)
                 .actionFixeId(actionFixeId)
                 .status(ActionStatus.PUBLISHED)
@@ -342,21 +385,14 @@ public class ActionService {
         }
 
         actionRepository.findByActionFixeId(actionFixeId).ifPresent(action -> {
-            if (event.containsKey("titre"))
+            if (event.containsKey("titre")) {
                 action.setTitle(event.get("titre").toString());
-            if (event.containsKey("lieu"))
-                action.setCity(event.get("lieu").toString());
-            if (event.containsKey("latitude"))
-                action.setLatitude(Double.valueOf(event.get("latitude").toString()));
-            if (event.containsKey("longitude"))
-                action.setLongitude(Double.valueOf(event.get("longitude").toString()));
-            if (event.containsKey("points"))
+            }
+            if (event.containsKey("description") && event.get("description") != null) {
+                action.setDescription(event.get("description").toString());
+            }
+            if (event.containsKey("points")) {
                 action.setPoints(Integer.valueOf(event.get("points").toString()));
-            if (event.containsKey("placesTotal")) {
-                Integer newMax = Integer.valueOf(event.get("placesTotal").toString());
-                int diff = newMax - action.getMaxParticipants();
-                action.setMaxParticipants(newMax);
-                action.setAvailablePlaces(Math.max(0, action.getAvailablePlaces() + diff));
             }
             actionRepository.save(action);
             log.info("Action fixe mise à jour: {}", action.getTitle());
@@ -383,6 +419,10 @@ public class ActionService {
                         .actionId(action.getId())
                         .title(action.getTitle())
                         .cancellationReason("Annulée par l'administrateur")
+                        .city(action.getCity())
+                        .address(action.getAddress())
+                        .dateStart(action.getDateStart())
+                        .associationName(action.getAssociation() != null ? action.getAssociation().getName() : null)
                         .build());
             }
         });
@@ -395,6 +435,100 @@ public class ActionService {
         return actionRepository.findAll().stream()
                 .map(this::toSummaryDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ActionSummaryDTO> getNonFixedForAdmin() {
+        return actionRepository.findAll().stream()
+                .filter(a -> !Boolean.TRUE.equals(a.getIsFixed()))
+                .map(this::toSummaryDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ActionDetailDTO adminCreateNonFixedAction(AdminActionManageRequest request) {
+        Categorie category = resolveCategoryForAdmin(request.getCategorie());
+        Association association = resolveAssociationForAdmin(request.getAssociationId(), request.getAssociationName());
+
+        LocalDateTime start = LocalDateTime.now().plusDays(1);
+        LocalDateTime end = start.plusHours(2);
+        int max = request.getPlacesTotal() != null && request.getPlacesTotal() > 0 ? request.getPlacesTotal() : 20;
+
+        Action action = Action.builder()
+                .title(request.getTitre())
+                .description(request.getDescription())
+                .category(category)
+                .association(association)
+                .address(request.getLieu() != null ? request.getLieu() : "Adresse non définie")
+                .city(request.getLieu() != null ? request.getLieu() : "Ville non définie")
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
+                .dateStart(start)
+                .dateEnd(end)
+                .points(request.getPoints())
+                .maxParticipants(max)
+                .availablePlaces(max)
+                .program(List.of())
+                .practicalInfos(List.of())
+                .status(ActionStatus.PUBLISHED)
+                .isFixed(false)
+                .build();
+        return toDetailDTO(actionRepository.save(action));
+    }
+
+    @Transactional
+    public ActionDetailDTO adminUpdateNonFixedAction(Long actionId, AdminActionManageRequest request) {
+        Action action = actionRepository.findById(actionId)
+                .orElseThrow(() -> new RuntimeException("Action non trouvée: " + actionId));
+        if (Boolean.TRUE.equals(action.getIsFixed())) {
+            throw new RuntimeException("Action fixe non modifiable via cet endpoint");
+        }
+        Categorie category = resolveCategoryForAdmin(request.getCategorie());
+        Association association = resolveAssociationForAdmin(request.getAssociationId(), request.getAssociationName());
+
+        action.setTitle(request.getTitre());
+        action.setDescription(request.getDescription());
+        action.setCategory(category);
+        action.setAssociation(association);
+        action.setAddress(request.getLieu() != null ? request.getLieu() : action.getAddress());
+        action.setCity(request.getLieu() != null ? request.getLieu() : action.getCity());
+        action.setLatitude(request.getLatitude());
+        action.setLongitude(request.getLongitude());
+        action.setPoints(request.getPoints());
+        if (request.getPlacesTotal() != null && request.getPlacesTotal() > 0) {
+            int diff = request.getPlacesTotal() - action.getMaxParticipants();
+            action.setMaxParticipants(request.getPlacesTotal());
+            action.setAvailablePlaces(Math.max(0, action.getAvailablePlaces() + diff));
+        }
+        return toDetailDTO(actionRepository.save(action));
+    }
+
+    @Transactional
+    public void adminActivateNonFixedAction(Long actionId) {
+        Action action = actionRepository.findById(actionId)
+                .orElseThrow(() -> new RuntimeException("Action non trouvée: " + actionId));
+        if (Boolean.TRUE.equals(action.getIsFixed())) {
+            throw new RuntimeException("Action fixe non modifiable via cet endpoint");
+        }
+        if (action.getStatus() == ActionStatus.COMPLETED) {
+            throw new RuntimeException("Impossible d'activer une action complétée");
+        }
+        action.setStatus(ActionStatus.PUBLISHED);
+        actionRepository.save(action);
+    }
+
+    @Transactional
+    public void adminDeactivateNonFixedAction(Long actionId) {
+        Action action = actionRepository.findById(actionId)
+                .orElseThrow(() -> new RuntimeException("Action non trouvée: " + actionId));
+        if (Boolean.TRUE.equals(action.getIsFixed())) {
+            throw new RuntimeException("Action fixe non modifiable via cet endpoint");
+        }
+        if (action.getStatus() == ActionStatus.COMPLETED) {
+            throw new RuntimeException("Impossible de désactiver une action complétée");
+        }
+        action.setStatus(ActionStatus.CANCELLED);
+        actionRepository.save(action);
     }
 
     // ─── CRON — terminer les actions passées ──────────────────
@@ -425,11 +559,44 @@ public class ActionService {
         Action action = actionRepository.findById(actionId)
                 .orElseThrow(() -> new RuntimeException("Action non trouvée"));
         Association association = associationRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+                .orElseGet(() -> {
+                    Association assoc = Association.builder()
+                            .userId(userId)
+                            .name("Association")
+                            .build();
+                    return associationRepository.save(assoc);
+                });
         if (!action.getAssociation().getId().equals(association.getId())) {
             throw new RuntimeException("Vous n'êtes pas le propriétaire de cette action");
         }
         return action;
+    }
+
+    private Categorie resolveCategoryForAdmin(String categorieName) {
+        return ensureCategoryExists(categorieName, null, null);
+    }
+
+    private Association resolvePlatformAssociation() {
+        return associationRepository.findAll().stream()
+                .findFirst()
+                .orElseGet(() -> associationRepository.save(Association.builder()
+                        .userId(0L)
+                        .name("Ecopria Platform")
+                        .city("Plateforme")
+                        .description("Association technique pour les actions fixes")
+                        .build()));
+    }
+
+    private Association resolveAssociationForAdmin(Long associationOrUserId, String associationName) {
+        return associationRepository.findById(associationOrUserId)
+                .or(() -> associationRepository.findByUserId(associationOrUserId))
+                .orElseGet(() -> associationRepository.save(Association.builder()
+                        .userId(associationOrUserId)
+                        .name(associationName != null && !associationName.isBlank()
+                                ? associationName
+                                : "Association #" + associationOrUserId)
+                        .city("Ville non définie")
+                        .build()));
     }
 
     private ActionSummaryDTO toSummaryDTO(Action action) {
@@ -479,7 +646,10 @@ public class ActionService {
                         .map(ActionPhoto::getUrl)
                         .collect(Collectors.toList()))
                 .associationId(action.getAssociation() != null ? action.getAssociation().getId() : null)
+                .associationUserId(action.getAssociation() != null ? action.getAssociation().getUserId() : null)
                 .associationName(action.getAssociation() != null ? action.getAssociation().getName() : null)
+                .associationDescription(action.getAssociation() != null ? action.getAssociation().getDescription() : null)
+                .associationLogoUrl(action.getAssociation() != null ? action.getAssociation().getLogoUrl() : null)
                 .associationCity(action.getAssociation() != null ? action.getAssociation().getCity() : null)
                 .build();
     }
@@ -490,6 +660,26 @@ public class ActionService {
     public void saveCategorie(Categorie categorie) {
         categorieRepository.save(categorie);
         log.info("Catégorie sauvegardée en local: {}", categorie.getName());
+    }
+
+    @Transactional
+    public Categorie ensureCategoryExists(String categorieName, String description, String imageUrl) {
+        String name = categorieName == null ? "" : categorieName.trim();
+        if (name.isEmpty()) {
+            throw new RuntimeException("La catégorie est obligatoire");
+        }
+        return categorieRepository.findByNameIgnoreCase(name)
+                .orElseGet(() -> {
+                    Categorie created = categorieRepository.save(Categorie.builder()
+                            .name(name)
+                            .description(description != null && !description.isBlank()
+                                    ? description
+                                    : "Catégorie synchronisée depuis l'administration")
+                            .imageUrl(imageUrl)
+                            .build());
+                    log.info("Catégorie créée dans db_action: {}", name);
+                    return created;
+                });
     }
 
     @Transactional

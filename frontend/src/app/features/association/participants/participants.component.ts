@@ -27,7 +27,14 @@ export class ParticipantsComponent implements OnInit {
   // Données
   participants: Participant[] = [];
   filteredParticipants: Participant[] = [];
-  stats: ParticipantsStats = { total: 0, confirmes: 0, enAttente: 0, annules: 0 };
+  stats: ParticipantsStats = {
+    total: 0,
+    confirmes: 0,
+    enAttente: 0,
+    annules: 0,
+    presencesValidees: 0,
+    pointsAttribues: 0,
+  };
   
   // États
   loading = true;
@@ -42,6 +49,7 @@ export class ParticipantsComponent implements OnInit {
   // Tri
   sortColumn: SortColumn = 'dateInscription';
   sortDirection: SortDirection = 'desc';
+  expandedInscriptionId: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -176,11 +184,42 @@ export class ParticipantsComponent implements OnInit {
 
   getStatutLabel(statut: string): string {
     const labels: Record<string, string> = {
-      'CONFIRMEE': 'Confirmé',
-      'EN_ATTENTE': 'En attente',
-      'ANNULEE': 'Annulé'
+      'CONFIRMEE': 'Inscrit confirmé',
+      'EN_ATTENTE': 'Liste d\'attente',
+      'ANNULEE': 'Désinscrit'
     };
     return labels[statut] || statut;
+  }
+
+  getStatutHint(statut: string): string {
+    const hints: Record<string, string> = {
+      'CONFIRMEE': 'Place réservée — peut participer le jour J',
+      'EN_ATTENTE': 'Action complète — promu si une place se libère',
+      'ANNULEE': 'Désinscription enregistrée'
+    };
+    return hints[statut] || '';
+  }
+
+  getPresenceLabel(participant: Participant): string {
+    if (participant.statut === 'ANNULEE') {
+      return '—';
+    }
+    return participant.presenceValidee ? 'Présence validée' : 'En attente de validation';
+  }
+
+  getPointsLabel(participant: Participant): string {
+    if (participant.presenceValidee) {
+      return `+${participant.pointsGagnes ?? 0}`;
+    }
+    if (participant.statut === 'ANNULEE') {
+      return '—';
+    }
+    return `0 (${participant.pointsAction} pts si présent)`;
+  }
+
+  canValiderPresence(participant: Participant): boolean {
+    return participant.statut === 'CONFIRMEE'
+      && !participant.presenceValidee;
   }
 
   formatDate(isoDate: string): string {
@@ -215,7 +254,7 @@ export class ParticipantsComponent implements OnInit {
   }
 
   getTotalPoints(): number {
-    return this.participants.reduce((total, participant) => total + participant.pointsAction, 0);
+    return this.stats.pointsAttribues;
   }
 
   getLatestRegistrationLabel(): string {
@@ -257,7 +296,12 @@ export class ParticipantsComponent implements OnInit {
       return "Aucun participant n'est encore inscrit. Activez la communication ou partagez votre action pour lancer la mobilisation.";
     }
 
-    return `${this.stats.confirmes} participant(s) confirmé(s), ${this.stats.enAttente} en attente et ${this.stats.annules} annulé(s) pour cette action.`;
+    return `${this.stats.confirmes} inscrit(s) confirmé(s), ${this.stats.enAttente} en liste d'attente, ${this.stats.presencesValidees} présence(s) validée(s) et ${this.stats.pointsAttribues} point(s) crédité(s).`;
+  }
+
+  toggleDetails(inscriptionId: number): void {
+    this.expandedInscriptionId =
+      this.expandedInscriptionId === inscriptionId ? null : inscriptionId;
   }
 
   goBack(): void {

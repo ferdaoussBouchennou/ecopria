@@ -1,0 +1,90 @@
+<section class="admin-page">
+  <p class="admin-eyebrow"><span class="eyebrow-line"></span> Vue globale</p>
+  <h1 class="admin-page__title">Tableau de bord plateforme.</h1>
+
+  @if (loading) {
+    <p class="admin-muted">Chargement…</p>
+  } @else if (error) {
+    <div class="admin-alert admin-alert--error">{{ error }}</div>
+  } @else if (dashboard) {
+    <div class="kpi-grid">
+      <article class="kpi-card">
+        <span class="kpi-card__value">{{ formatNumber(dashboard.pendingValidations) }}</span>
+        <span class="kpi-card__label">Validations en attente</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-card__value">{{ formatNumber(dashboard.openFraudAlerts) }}</span>
+        <span class="kpi-card__label">Alertes fraude ouvertes</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-card__value">{{ formatNumber(dashboard.supportTickets) }}</span>
+        <span class="kpi-card__label">Tickets support</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-card__value">{{ formatCurrency(dashboard.commissionRevenue) }}</span>
+        <span class="kpi-card__label">Revenus commissions</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-card__value">{{ formatNumber(dashboard.activeUsers) }}</span>
+        <span class="kpi-card__label">Utilisateurs actifs</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-card__value">{{ formatNumber(dashboard.activeActions) }}</span>
+        <span class="kpi-card__label">Actions en cours</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-card__value">{{ formatNumber(dashboard.totalPointsDistributed) }}</span>
+        <span class="kpi-card__label">Points distribués</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-card__value">{{ formatNumber(dashboard.totalRewardsExchanged) }}</span>
+        <span class="kpi-card__label">Récompenses distribuées</span>
+      </article>
+    </div>
+
+    <div class="dashboard-panels">
+      <article class="panel panel--chart">
+        <h2>Activité (30 jours)</h2>
+        <p class="panel-sub">Inscriptions par jour — {{ formatNumber(dashboard.totalInscriptions) }} au total</p>
+        <div class="activity-chart" aria-hidden="true">
+          @for (h of activityBars; track $index) {
+            <span class="activity-chart__bar" [style.height.%]="h || 2"></span>
+          }
+        </div>
+      </article>
+
+      <article class="panel panel--list">
+        <h2>Demandes en attente</h2>
+        @if (dashboard.pendingRequests.length === 0) {
+          <p class="admin-muted">Aucune demande en attente.</p>
+        } @else {
+          <ul class="pending-list">
+            @for (item of dashboard.pendingRequests; track item.userId) {
+              <li>{{ item.label }} ({{ pendingDate(item.createdAt) }})</li>
+            }
+          </ul>
+        }
+        <a routerLink="/admin/comptes" class="panel-link">Tout voir →</a>
+      </article>
+    </div>
+
+    <article class="panel panel--commission">
+      <div class="commission-row">
+        <div>
+          <h2>Taux de commission global</h2>
+          <input
+            type="range"
+            min="5"
+            max="30"
+            [(ngModel)]="commissionRate"
+            (change)="saveCommissionRate()"
+          />
+          @if (commissionMessage) {
+            <p class="commission-msg">{{ commissionMessage }}</p>
+          }
+        </div>
+        <span class="commission-value">{{ commissionRate }}%</span>
+      </div>
+    </article>
+  }
+</section>

@@ -7,6 +7,11 @@ public class ActionDTO {
     private int placesTotales;
     private int points;
     private String statut;
+    private String city;
+    private String address;
+    private Long associationId;
+    private String dateStart;
+    private Long associationUserId;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -20,4 +25,14 @@ public class ActionDTO {
     public void setPoints(int points) { this.points = points; }
     public String getStatut() { return statut; }
     public void setStatut(String statut) { this.statut = statut; }
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    public Long getAssociationId() { return associationId; }
+    public void setAssociationId(Long associationId) { this.associationId = associationId; }
+    public String getDateStart() { return dateStart; }
+    public void setDateStart(String dateStart) { this.dateStart = dateStart; }
+    public Long getAssociationUserId() { return associationUserId; }
+    public void setAssociationUserId(Long associationUserId) { this.associationUserId = associationUserId; }
 }

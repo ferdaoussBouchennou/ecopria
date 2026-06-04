@@ -72,12 +72,10 @@ export class ProfilComponent implements OnInit {
 
   get contactSummary(): string {
     const parts = [
-      this.editedProfile.email ? 'email' : '',
-      this.editedProfile.phone ? 'téléphone' : '',
-      this.editedProfile.address ? 'adresse' : ''
-    ].filter(Boolean);
+      this.editedProfile.phone
+    ].filter(p => p && p.trim().length > 0);
 
-    return parts.length > 0 ? parts.join(' · ') : 'Coordonnées à compléter';
+    return parts.length > 0 ? parts.join(' · ') : 'Coordonnées partielles';
   }
 
   loadProfile(): void {
@@ -189,6 +187,25 @@ export class ProfilComponent implements OnInit {
     this.error = '';
     this.successMessage = '';
 
+    if (this.selectedFile) {
+      this.associationService.uploadLogo(this.authId, this.selectedFile).subscribe({
+        next: (response) => {
+          this.editedProfile.logo = response.logoUrl;
+          this.selectedFile = null;
+          this.submitProfileUpdate();
+        },
+        error: (err) => {
+          this.error = 'Erreur lors de l\'upload du logo';
+          this.saving = false;
+          console.error(err);
+        }
+      });
+    } else {
+      this.submitProfileUpdate();
+    }
+  }
+
+  private submitProfileUpdate(): void {
     this.associationService.updateProfile(this.authId, this.editedProfile).subscribe({
       next: (updatedProfile) => {
         this.profile = updatedProfile;
@@ -250,6 +267,7 @@ export class ProfilComponent implements OnInit {
             next: (response) => {
                 this.editedProfile.logo = response.logoUrl;
                 this.logoPreview = response.logoUrl;
+                this.selectedFile = null;
                 this.successMessage = 'Logo mis à jour avec succès';
                 setTimeout(() => { this.successMessage = ''; }, 3000);
             },

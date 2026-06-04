@@ -13,11 +13,14 @@ public class ActionPlacesConsumer {
 
     private final InscriptionRepository inscriptionRepository;
     private final InscriptionProducer inscriptionProducer;
+    private final com.ecopria.inscription.client.ActionClient actionClient;
 
     public ActionPlacesConsumer(InscriptionRepository inscriptionRepository,
-                                InscriptionProducer inscriptionProducer) {
+                                InscriptionProducer inscriptionProducer,
+                                com.ecopria.inscription.client.ActionClient actionClient) {
         this.inscriptionRepository = inscriptionRepository;
         this.inscriptionProducer = inscriptionProducer;
+        this.actionClient = actionClient;
     }
 
     @KafkaListener(topics = "action.places.mises.a.jour", groupId = "service-inscription")
@@ -36,6 +39,10 @@ public class ActionPlacesConsumer {
                         event.getActionId(), "EN_ATTENTE"
                 );
 
+        if (enAttente.isEmpty()) return;
+        
+        com.ecopria.inscription.dto.ActionDTO action = actionClient.getAction(event.getActionId());
+        
         int remaining = availablePlaces;
         for (Inscription inscription : enAttente) {
             if (remaining <= 0) {
@@ -43,7 +50,8 @@ public class ActionPlacesConsumer {
             }
             inscription.setStatut("CONFIRMEE");
             inscriptionRepository.save(inscription);
-            inscriptionProducer.envoyerConfirmation(inscription);
+            // L'e-mail est envoyé via le profil utilisateur (service-utilisateur)
+            inscriptionProducer.envoyerNotification(inscription, action, null, null);
             remaining--;
             System.out.println("Liste d'attente : userId=" + inscription.getUserId()
                     + " promu CONFIRMEE pour actionId=" + event.getActionId());

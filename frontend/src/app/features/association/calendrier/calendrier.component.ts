@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { catchError, of } from 'rxjs';
 import { AssociationService } from '../services/association.service';
 import { ActionSummary } from '../../action/models/action.model';
 
@@ -116,7 +117,12 @@ export class CalendrierComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    this.associationService.getMesActions().subscribe({
+    this.associationService.getMesActions().pipe(
+      catchError((err) => {
+        console.error('Erreur lors du chargement des actions (calendrier):', err);
+        return of([] as ActionSummary[]);
+      })
+    ).subscribe({
       next: (actions) => {
         this.actions = actions;
 

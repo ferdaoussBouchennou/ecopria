@@ -9,9 +9,9 @@
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Accueil</a>
       <a routerLink="/carte" routerLinkActive="active">Carte</a>
       <a routerLink="/actions" routerLinkActive="active">Actions</a>
-      <a routerLink="/partenaire" routerLinkActive="active">Partenaires</a>
+      <a routerLink="/partenaires" routerLinkActive="active">Partenaires</a>
       <a routerLink="/creer-compte" routerLinkActive="active">Associations</a>
-      <a routerLink="/recompenses" routerLinkActive="active">Récompenses</a>
+      <a [routerLink]="recompensesLink" [queryParams]="recompensesQueryParams" routerLinkActive="active">Récompenses</a>
       <a routerLink="/" fragment="comment-ca-marche" routerLinkActive="active">Comment ça marche</a>
     </nav>
 
@@ -46,7 +46,7 @@
         <ul>
           <li><a routerLink="/carte">Carte interactive</a></li>
           <li><a routerLink="/actions">Actions</a></li>
-          <li><a routerLink="/recompenses">Récompenses</a></li>
+          <li><a [routerLink]="recompensesLink" [queryParams]="recompensesQueryParams">Récompenses</a></li>
           <li><a routerLink="/" fragment="comment-ca-marche">Comment ça marche</a></li>
         </ul>
       </div>
@@ -55,8 +55,8 @@
         <ul>
           <li><a [routerLink]="isLoggedIn ? monEspaceLink : ['/connexion']">Mon espace</a></li>
           <li><a routerLink="/creer-compte">Associations</a></li>
-          <li><a routerLink="/partenaire">Partenaires</a></li>
-          <li><a routerLink="/actions" class="nav-soon">Administration</a></li>
+          <li><a routerLink="/partenaires">Partenaires</a></li>
+          <li><a routerLink="/admin">Administration</a></li>
         </ul>
       </div>
     </div>

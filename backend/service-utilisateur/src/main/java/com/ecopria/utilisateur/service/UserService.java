@@ -125,7 +125,17 @@ public class UserService {
 
     @Transactional
     public Citizen updateProfile(Long authId, CitizenDTO dto) {
-        Citizen citizen = getCitizen(authId);
+        Citizen citizen = citizenRepository.findByAuthId(authId).orElseGet(() -> {
+            CitizenDTO bootstrap = new CitizenDTO();
+            bootstrap.setAuthId(authId);
+            bootstrap.setFirstName(dto.getFirstName() != null ? dto.getFirstName() : "Citoyen");
+            bootstrap.setLastName(dto.getLastName() != null ? dto.getLastName() : "");
+            bootstrap.setEmail(dto.getEmail());
+            bootstrap.setPhone(dto.getPhone());
+            bootstrap.setAddress(dto.getAddress());
+            bootstrap.setCity(dto.getCity());
+            return syncCitizenFromKafka(bootstrap);
+        });
         if (dto.getFirstName() != null && !dto.getFirstName().isBlank())
             citizen.setFirstName(dto.getFirstName());
         if (dto.getLastName() != null && !dto.getLastName().isBlank())

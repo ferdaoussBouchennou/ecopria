@@ -79,11 +79,8 @@ export class AssociationService {
     );
   }
 
-  annulerAction(actionId: number, raison?: string): Observable<void> {
-    let params = new HttpParams();
-    if (raison) {
-      params = params.set('reason', raison);
-    }
+  annulerAction(actionId: number, raison: string): Observable<void> {
+    const params = new HttpParams().set('reason', raison.trim());
 
     return this.http.delete<void>(
       `${this.apiUrl}/actions/${actionId}`,

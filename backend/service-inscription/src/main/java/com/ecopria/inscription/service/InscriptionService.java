@@ -44,6 +44,9 @@ public class InscriptionService {
         }
 
         ActionDTO action = actionClient.getAction(request.getActionId());
+        Map<String, Object> profile = utilisateurClient.getParticipantProfile(request.getUserId());
+        String participantEmail = stringValue(profile.get("email"));
+        String participantFirstName = stringValue(profile.get("firstName"));
 
         Inscription inscription = new Inscription();
         inscription.setUserId(request.getUserId());
@@ -56,6 +59,11 @@ public class InscriptionService {
         }
         inscription.setMotivation(request.getMotivation());
         inscription.setConditions(request.getConditions());
+        inscription.setParticipantFirstName(trimToNull(request.getFirstName()));
+        inscription.setParticipantLastName(trimToNull(request.getLastName()));
+        inscription.setParticipantEmail(trimToNull(request.getEmail()));
+        inscription.setParticipantPhone(trimToNull(request.getPhone()));
+        inscription.setParticipantCity(trimToNull(request.getCity()));
         if (request.getImageRights() != null) {
             inscription.setImageRights(request.getImageRights());
         }
@@ -66,6 +74,7 @@ public class InscriptionService {
         if (action.getPlacesDisponibles() <= 0) {
             inscription.setStatut("EN_ATTENTE");
             Inscription saved = inscriptionRepository.save(inscription);
+            inscriptionProducer.envoyerNotification(saved, action, participantEmail, participantFirstName);
             return toResponseDTO(saved);
         }
 
@@ -74,12 +83,13 @@ public class InscriptionService {
         if (trustScore < 70) {
             inscription.setStatut("EN_ATTENTE");
             Inscription saved = inscriptionRepository.save(inscription);
+            inscriptionProducer.envoyerNotification(saved, action, participantEmail, participantFirstName);
             return toResponseDTO(saved);
         }
 
         inscription.setStatut("CONFIRMEE");
         Inscription saved = inscriptionRepository.save(inscription);
-        inscriptionProducer.envoyerConfirmation(saved);
+        inscriptionProducer.envoyerNotification(saved, action, participantEmail, participantFirstName);
         return toResponseDTO(saved);
     }
 
@@ -97,6 +107,21 @@ public class InscriptionService {
         Inscription inscription = inscriptionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Inscription introuvable : id=" + id));
         return toResponseDTO(inscription);
+    }
+
+    /** Annule silencieusement toutes les inscriptions actives d'une action (événement action.annulee). */
+    @Transactional
+    public int annulerInscriptionsPourAction(Long actionId) {
+        int count = 0;
+        for (Inscription inscription : inscriptionRepository.findByActionId(actionId)) {
+            if ("ANNULEE".equals(inscription.getStatut())) {
+                continue;
+            }
+            inscription.setStatut("ANNULEE");
+            inscriptionRepository.save(inscription);
+            count++;
+        }
+        return count;
     }
 
     @Transactional
@@ -122,16 +147,39 @@ public class InscriptionService {
         dto.setStatut(inscription.getStatut());
         dto.setPointsAction(inscription.getPointsAction());
         Map<String, Object> profile = utilisateurClient.getParticipantProfile(inscription.getUserId());
-        dto.setFirstName(stringValue(profile.get("firstName")));
-        dto.setLastName(stringValue(profile.get("lastName")));
-        dto.setEmail(stringValue(profile.get("email")));
-        dto.setPhone(stringValue(profile.get("phone")));
-        dto.setCity(stringValue(profile.get("city")));
+        dto.setFirstName(firstNonBlank(inscription.getParticipantFirstName(), stringValue(profile.get("firstName"))));
+        dto.setLastName(firstNonBlank(inscription.getParticipantLastName(), stringValue(profile.get("lastName"))));
+        dto.setEmail(firstNonBlank(inscription.getParticipantEmail(), stringValue(profile.get("email"))));
+        dto.setPhone(firstNonBlank(inscription.getParticipantPhone(), stringValue(profile.get("phone"))));
+        dto.setCity(firstNonBlank(inscription.getParticipantCity(), stringValue(profile.get("city"))));
         dto.setPhotoUrl(stringValue(profile.get("photo")));
+        dto.setMotivation(inscription.getMotivation());
+        dto.setConditions(inscription.getConditions());
+        dto.setImageRights(inscription.getImageRights());
+        dto.setNewsletter(inscription.getNewsletter());
+        dto.setAccompagnants(inscription.getAccompagnants());
         return dto;
     }
 
     private String stringValue(Object value) {
         return value == null ? null : String.valueOf(value);
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String firstNonBlank(String primary, String fallback) {
+        if (primary != null && !primary.isBlank()) {
+            return primary.trim();
+        }
+        if (fallback != null && !fallback.isBlank()) {
+            return fallback.trim();
+        }
+        return null;
     }
 }

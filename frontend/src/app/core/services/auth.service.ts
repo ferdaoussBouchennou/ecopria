@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, map, retry, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { defaultHomeForRole } from '../utils/auth-navigation.util';
 import {
   AuthResponse,
   CitizenProfileUpdate,
@@ -136,23 +137,29 @@ export class AuthService {
   }
 
   registerOrganization(
-    form: {
+    data: {
       profileType: 'association' | 'partenaire';
       nom: string;
       email: string;
       password: string;
+      phone?: string;
+      address?: string;
+      city?: string;
       documentFile: File;
     },
     captchaToken: string
   ): Observable<RegistrationResponse> {
-    const role: RegisterRole = form.profileType === 'association' ? 'ASSOCIATION' : 'PARTNER';
-    return this.uploadVerificationDocument(form.documentFile).pipe(
+    return this.uploadVerificationDocument(data.documentFile).pipe(
       switchMap(({ document }) => {
+        const role: RegisterRole = data.profileType === 'association' ? 'ASSOCIATION' : 'PARTNER';
         const payload: RegisterPayload = {
-          email: form.email.trim(),
-          password: form.password,
+          email: data.email.trim(),
+          password: data.password,
           role,
-          nom: form.nom.trim(),
+          nom: data.nom.trim(),
+          phone: data.phone?.trim() || '',
+          address: data.address?.trim() || '',
+          city: data.city?.trim() || '',
           document,
           captcha_token: captchaToken,
         };
@@ -173,6 +180,38 @@ export class AuthService {
     localStorage.removeItem(REFRESH_KEY);
     localStorage.removeItem(USER_ID_KEY);
     localStorage.removeItem(ROLE_KEY);
+  }
+
+  logout(): void {
+    const refresh = localStorage.getItem(REFRESH_KEY);
+    this.clearSession();
+    if (refresh) {
+      this.http
+        .post(`${environment.authApi}/logout?token=${encodeURIComponent(refresh)}`, null)
+        .subscribe({ error: () => {} });
+    }
+  }
+
+  refreshSession(): Observable<AuthResponse> {
+    const refresh = localStorage.getItem(REFRESH_KEY);
+    if (!refresh) {
+      throw new Error('No refresh token');
+    }
+    return this.http
+      .post<AuthResponse>(`${environment.authApi}/refresh?token=${encodeURIComponent(refresh)}`, null)
+      .pipe(tap((auth) => this.persistSession(auth)));
+  }
+
+  homePath(): string {
+    return defaultHomeForRole(this.getRole());
+  }
+
+  requireUserId(): number {
+    const id = this.getUserId();
+    if (id == null) {
+      throw new Error('Utilisateur non connecté');
+    }
+    return id;
   }
 
   getAccessToken(): string | null {
@@ -198,7 +237,26 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!this.getAccessToken();
+    const token = this.getAccessToken();
+    if (!token) {
+      return false;
+    }
+    if (!this.isAccessTokenExpired(token)) {
+      return true;
+    }
+    return !!localStorage.getItem(REFRESH_KEY);
+  }
+
+  private isAccessTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1])) as { exp?: number };
+      if (!payload.exp) {
+        return false;
+      }
+      return Date.now() >= payload.exp * 1000;
+    } catch {
+      return true;
+    }
   }
 
   profileTypeToRole(type: ProfileType): RegisterRole {

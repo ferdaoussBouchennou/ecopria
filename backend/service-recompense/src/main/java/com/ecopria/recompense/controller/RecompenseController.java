@@ -80,4 +80,11 @@ public class RecompenseController {
     public ResponseEntity<List<PartenaireProfilDTO>> getPartenairesPublics() {
         return ResponseEntity.ok(recompenseService.getPartenairesPublics());
     }
+
+    // ── OFFRES D'UN PARTENAIRE ─────────────────────────────
+    // GET /api/recompenses/public/partenaire/{userId}/offres
+    @GetMapping("/public/partenaire/{userId}/offres")
+    public ResponseEntity<List<RecompenseDTO>> getOffresPartenaire(@PathVariable Long userId) {
+        return ResponseEntity.ok(recompenseService.getOffresPartenaire(userId));
+    }
 }

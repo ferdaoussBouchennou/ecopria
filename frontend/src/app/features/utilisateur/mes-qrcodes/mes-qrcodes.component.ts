@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { InscriptionService } from '../../inscription/inscription.service';
 import { PresenceService } from '../../presence/presence.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { InscriptionResponse } from '../../../core/models/inscription.model';
 import { ActionDTO } from '../../inscription/models/inscription.model';
 
@@ -39,6 +40,10 @@ export class MesQrcodesComponent implements OnInit {
     private auth: AuthService,
     private router: Router
   ) {}
+
+  private get userId(): number {
+    return this.auth.requireUserId();
+  }
 
   ngOnInit(): void {
     try {

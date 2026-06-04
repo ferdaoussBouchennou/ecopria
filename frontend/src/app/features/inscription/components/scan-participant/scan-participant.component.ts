@@ -12,7 +12,7 @@ import { DevContextService } from '../../../../core/services/dev-context.service
   template: `
     <div class="scan-page">
       <header class="page-header">
-        <a routerLink="/mes-inscriptions" class="back-link">← Retour à mes inscriptions</a>
+        <a routerLink="/espace/actions" class="back-link">← Retour à mes actions</a>
         <h1 class="page-title">Valider ma présence</h1>
         <p class="page-sub">Entrez le code PIN fourni par l'organisateur pour confirmer votre participation.</p>
       </header>

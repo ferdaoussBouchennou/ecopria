@@ -1,13 +1,25 @@
-# Profil pour développement local (mvn spring-boot:run -Dspring-boot.run.profiles=local)
-# Prérequis : docker compose up mysql-action kafka -d
+# Profil pour développement local
+# Prérequis : docker compose -f docker-compose.infra.yml up -d mysql-action kafka
 server:
   port: 9090
 
 spring:
+  application:
+    name: service-action
+
   datasource:
     url: jdbc:mysql://localhost:3308/db_action?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
     username: ecopria
     password: ecopria_pass_2026
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
 
   kafka:
     bootstrap-servers: localhost:29092
@@ -15,3 +27,25 @@ spring:
       auto-startup: true
     admin:
       fail-fast: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: service-action
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        # Admin events include Java class headers (ActionFixeEvent) unknown in this service
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: java.util.Map
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
