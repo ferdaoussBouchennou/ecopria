@@ -142,9 +142,6 @@ export class PartenaireService {
       message = error.error;
     } else if (error.error?.message) {
       message = error.error.message;
-    } else if (error.error?.error && typeof error.error.error === 'string') {
-      // Format Spring Boot : { status, error: "Internal Server Error", path }
-      message = error.error.error;
     } else if (error.status === 404) {
       message = 'Partenaire introuvable. Le compte doit être validé par l\'admin.';
     } else if (error.status === 403) {
@@ -152,7 +149,7 @@ export class PartenaireService {
     } else if (error.status === 400) {
       message = 'Requête invalide.';
     } else if (error.status >= 500) {
-      message = `Erreur serveur (${error.status}). Vérifiez les logs du service-recompense.`;
+      message = 'Le service récompenses a rencontré une erreur. Réessayez dans quelques instants.';
     }
     return throwError(() => new Error(message));
   }

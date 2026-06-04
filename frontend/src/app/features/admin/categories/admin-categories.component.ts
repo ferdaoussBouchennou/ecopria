@@ -1,6 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AdminService } from '../../../core/services/admin.service';
+import { AdminCategorie, AdminCategorieRequest } from '../../../core/models/admin.model';
+import { getCategoryImageUrl } from '../../action/utils/category-image.util';
 
 @Component({
   selector: 'app-admin-categories',
@@ -9,5 +13,235 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './admin-categories.component.html',
   styleUrl: './admin-categories.component.scss',
 })
-export class AdminCategoriesComponent {}
+export class AdminCategoriesComponent implements OnInit {
+  loading = true;
+  saving = false;
+  error = '';
+  message = '';
+  items: AdminCategorie[] = [];
+  editingId: number | null = null;
 
+  form: AdminCategorieRequest = this.emptyForm();
+  imagePreview: string | null = null;
+  imageFileName = '';
+  uploadingImage = false;
+  imageUploadError = '';
+
+  constructor(private admin: AdminService) {}
+
+  ngOnInit(): void {
+    this.reload();
+  }
+
+  reload(): void {
+    this.loading = true;
+    this.error = '';
+    this.admin.getCategories().subscribe({
+      next: (list) => {
+        this.items = list ?? [];
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.error =
+          'Impossible de charger les catégories. Vérifiez que admin-service (8087) et la gateway (8080) sont démarrés.';
+      },
+    });
+  }
+
+  startCreate(): void {
+    this.editingId = null;
+    this.resetForm();
+    this.message = '';
+  }
+
+  startEdit(item: AdminCategorie): void {
+    this.editingId = item.id;
+    this.message = '';
+    this.imageUploadError = '';
+    this.form = {
+      nom: item.nom,
+      description: item.description ?? '',
+      imageUrl: item.imageUrl ?? '',
+      published: item.published !== false,
+    };
+    this.imageFileName = '';
+    this.imagePreview = item.imageUrl?.trim() ? this.resolveImageUrl(item.imageUrl) : null;
+  }
+
+  submit(): void {
+    if (!this.form.nom?.trim()) {
+      this.error = 'Le nom de la catégorie est obligatoire.';
+      return;
+    }
+    this.saving = true;
+    this.error = '';
+    this.message = '';
+    const body: AdminCategorieRequest = {
+      nom: this.form.nom.trim(),
+      description: this.form.description?.trim() || undefined,
+      imageUrl: this.form.imageUrl?.trim() || undefined,
+      published: this.form.published !== false,
+    };
+
+    const call =
+      this.editingId != null
+        ? this.admin.updateCategory(this.editingId, body)
+        : this.admin.createCategory(body);
+
+    call.subscribe({
+      next: () => {
+        this.saving = false;
+        this.message =
+          this.editingId != null
+            ? `Catégorie « ${body.nom} » mise à jour.`
+            : `Catégorie « ${body.nom} » créée.`;
+        this.startCreate();
+        this.reload();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.saving = false;
+        this.error = this.extractError(err, 'Enregistrement impossible.');
+      },
+    });
+  }
+
+  togglePublish(item: AdminCategorie, event: Event): void {
+    event.stopPropagation();
+    const publish = !item.published;
+    const req = publish
+      ? this.admin.publishCategory(item.id)
+      : this.admin.unpublishCategory(item.id);
+    req.subscribe({
+      next: () => {
+        this.message = publish
+          ? `« ${item.nom} » est publiée.`
+          : `« ${item.nom} » est dépubliée.`;
+        this.reload();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.error = this.extractError(err, 'Modification du statut impossible.');
+      },
+    });
+  }
+
+  deleteItem(item: AdminCategorie, event: Event): void {
+    event.stopPropagation();
+    if (!confirm(`Supprimer la catégorie « ${item.nom} » ?`)) {
+      return;
+    }
+    this.admin.deleteCategory(item.id).subscribe({
+      next: () => {
+        this.message = `Catégorie « ${item.nom} » supprimée.`;
+        if (this.editingId === item.id) {
+          this.startCreate();
+        }
+        this.reload();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.error = this.extractError(
+          err,
+          'Suppression impossible (catégorie peut-être utilisée par des actions).'
+        );
+      },
+    });
+  }
+
+  imageSrc(item: AdminCategorie): string {
+    if (item.imageUrl?.trim()) {
+      return this.resolveImageUrl(item.imageUrl);
+    }
+    return getCategoryImageUrl(item.nom);
+  }
+
+  statusLabel(item: AdminCategorie): string {
+    return item.published !== false ? 'PUBLIÉE' : 'BROUILLON';
+  }
+
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    input.value = '';
+
+    this.imageUploadError = '';
+    if (!file.type.match(/image\/(jpeg|jpg|png|webp)/)) {
+      this.imageUploadError = 'Formats acceptés : JPG, PNG ou WEBP.';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.imageUploadError = 'Image trop volumineuse (maximum 5 Mo).';
+      return;
+    }
+
+    this.uploadingImage = true;
+    this.imageFileName = file.name;
+    const localPreview = URL.createObjectURL(file);
+    this.imagePreview = localPreview;
+
+    this.admin.uploadCategoryImage(file).subscribe({
+      next: (res) => {
+        this.uploadingImage = false;
+        this.form.imageUrl = res.imageUrl;
+        if (this.imagePreview?.startsWith('blob:')) {
+          URL.revokeObjectURL(this.imagePreview);
+        }
+        this.imagePreview = this.resolveImageUrl(res.imageUrl);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.uploadingImage = false;
+        if (this.imagePreview?.startsWith('blob:')) {
+          URL.revokeObjectURL(this.imagePreview);
+        }
+        this.imagePreview = null;
+        this.imageFileName = '';
+        this.form.imageUrl = '';
+        this.imageUploadError = this.extractError(err, "Impossible d'envoyer l'image.");
+      },
+    });
+  }
+
+  removeSelectedImage(): void {
+    if (this.imagePreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(this.imagePreview);
+    }
+    this.imagePreview = null;
+    this.imageFileName = '';
+    this.form.imageUrl = '';
+    this.imageUploadError = '';
+  }
+
+  previewSrc(): string | null {
+    return this.imagePreview;
+  }
+
+  private resolveImageUrl(url: string): string {
+    const trimmed = url.trim();
+    if (trimmed.startsWith('http') || trimmed.startsWith('/')) {
+      return trimmed;
+    }
+    return '/' + trimmed;
+  }
+
+  private resetForm(): void {
+    this.removeSelectedImage();
+    this.form = this.emptyForm();
+  }
+
+  private emptyForm(): AdminCategorieRequest {
+    return { nom: '', description: '', imageUrl: '', published: true };
+  }
+
+  private extractError(err: HttpErrorResponse, fallback: string): string {
+    const body = err.error;
+    if (typeof body === 'string' && body.trim()) {
+      return body;
+    }
+    if (body?.message) {
+      return body.message;
+    }
+    return fallback;
+  }
+}

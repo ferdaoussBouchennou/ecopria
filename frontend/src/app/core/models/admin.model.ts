@@ -104,6 +104,42 @@ export interface ActionAssociationRequest {
   points: number;
   placesTotal?: number;
   lieu?: string;
+  address?: string;
+  city?: string;
+  dateStart?: string;
+  dateEnd?: string;
+  program?: string[];
+  practicalInfos?: string[];
+}
+
+export interface ActionNonFixeDetail {
+  id: number;
+  title: string;
+  description?: string;
+  categoryName?: string;
+  address?: string;
+  city?: string;
+  latitude?: number;
+  longitude?: number;
+  dateStart?: string;
+  dateEnd?: string;
+  points?: number;
+  maxParticipants?: number;
+  availablePlaces?: number;
+  program?: string[];
+  practicalInfos?: string[];
+  photoUrls?: string[];
+  associationId?: number;
+  associationName?: string;
+  status?: string;
+}
+
+export interface ActionAssociationOption {
+  id: number;
+  userId: number;
+  name: string;
+  city?: string;
+  validated?: boolean;
 }
 
 export interface ActionNonFixe {
@@ -114,6 +150,99 @@ export interface ActionNonFixe {
   status?: 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
   isFixed?: boolean;
   city?: string;
+  associationName?: string;
+}
+
+export interface AdminCategorie {
+  id: number;
+  nom: string;
+  description?: string;
+  imageUrl?: string;
+  published?: boolean;
+  updatedAt?: string;
+}
+
+export type ModerationActionStatus = 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
+
+export type ModerationFilter = 'all' | 'draft' | 'published' | 'suspended' | 'completed';
+
+export interface ModerationAction {
+  id: number;
+  title: string;
+  categoryName?: string;
+  categoryImageUrl?: string;
+  city?: string;
+  dateStart?: string;
+  dateEnd?: string;
+  points?: number;
+  availablePlaces?: number;
+  maxParticipants?: number;
+  registeredCount?: number;
+  isFixed?: boolean;
+  status?: ModerationActionStatus;
+  associationName?: string;
+  photoUrls?: string[];
+}
+
+export interface AdminAssociationProfile {
+  id: number;
+  userId: number;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  description?: string;
+  logoUrl?: string;
+  validated?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  temporaryPassword?: string;
+}
+
+export interface AdminAssociationProfileRequest {
+  name: string;
+  email: string;
+  password?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  description?: string;
+  logoUrl?: string;
+  validated?: boolean;
+}
+
+export interface AdminCategorieRequest {
+  nom: string;
+  description?: string;
+  imageUrl?: string;
+  published?: boolean;
+}
+
+export type AdminUserRole = 'USER' | 'ASSOCIATION' | 'PARTNER' | 'ADMIN';
+
+export type AdminUserStatusFilter = 'all' | 'active' | 'banned' | 'unverified';
+
+export interface AdminUser {
+  userId: number;
+  email: string;
+  role: AdminUserRole | string;
+  isActive?: boolean;
+  isVerified?: boolean;
+  displayName?: string;
+  createdAt?: string;
+}
+
+export interface AdminUsersQuery {
+  email?: string;
+  role?: string;
+  isActive?: boolean;
+  isVerified?: boolean;
+}
+
+export interface AdminUserActionResult {
+  emailSent: boolean;
+  message: string;
 }
 
 export type AdminNavId =

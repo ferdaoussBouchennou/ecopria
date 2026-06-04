@@ -14,11 +14,20 @@
         <a routerLink="/comment-ca-marche" class="btn btn--ghost-sm">Comment ça marche</a>
       </div>
       <div class="accueil-stats">
-        @for (stat of stats; track stat.label) {
-          <div class="accueil-stat">
-            <span class="accueil-stat__value">{{ stat.value }}</span>
-            <span class="accueil-stat__label">{{ stat.label }}</span>
-          </div>
+        @if (loadingStats) {
+          @for (i of [1, 2, 3]; track i) {
+            <div class="accueil-stat accueil-stat--loading">
+              <span class="accueil-stat__value">…</span>
+              <span class="accueil-stat__label">Chargement</span>
+            </div>
+          }
+        } @else if (stats.length > 0) {
+          @for (stat of stats; track stat.label) {
+            <div class="accueil-stat">
+              <span class="accueil-stat__value">{{ stat.value }}</span>
+              <span class="accueil-stat__label">{{ stat.label }}</span>
+            </div>
+          }
         }
       </div>
     </div>
@@ -47,26 +56,40 @@
   <section class="accueil-section" id="familles-actions">
     <div class="accueil-section__head">
       <div>
-        <p class="accueil-eyebrow"><span class="eyebrow-line"></span> Cinq familles d'actions</p>
+        <p class="accueil-eyebrow"><span class="eyebrow-line"></span> Familles d'actions</p>
         <h2 class="accueil-section__title">Choisir sa façon d'agir.</h2>
       </div>
       <a routerLink="/actions" class="accueil-link-arrow">Toutes les actions →</a>
     </div>
-    <div class="accueil-categories">
-      @for (card of categoryCards; track card.name) {
-        <a
-          class="accueil-category"
-          routerLink="/actions"
-          [queryParams]="categoryQuery(card.meta.slug)"
-        >
-          <img [src]="card.imageUrl" [alt]="card.name" loading="lazy" />
-          <div class="accueil-category__overlay">
-            <h3>{{ card.name }}</h3>
-            <p>{{ card.meta.subtitle | uppercase }}</p>
-          </div>
-        </a>
-      }
-    </div>
+
+    @if (loadingCategories) {
+      <p class="accueil-muted">Chargement des catégories…</p>
+    } @else if (categoriesError) {
+      <p class="accueil-muted">Impossible de charger les catégories pour le moment.</p>
+    } @else if (categories.length === 0) {
+      <p class="accueil-muted">Aucune catégorie publiée pour le moment.</p>
+    } @else {
+      <div class="accueil-categories">
+        @for (category of categories; track category.id) {
+          <a
+            class="accueil-category"
+            routerLink="/actions"
+            [queryParams]="categoryQuery(category)"
+          >
+            <img
+              [src]="getCategoryCardImage(category)"
+              [alt]="category.name"
+              loading="lazy"
+              (error)="onCategoryImageError(category, $event)"
+            />
+            <div class="accueil-category__overlay">
+              <h3>{{ category.name }}</h3>
+              <p>{{ getCategorySubtitle(category) | uppercase }}</p>
+            </div>
+          </a>
+        }
+      </div>
+    }
   </section>
 
   <!-- À l'affiche -->
@@ -83,9 +106,10 @@
             <a [routerLink]="featuredActionLink(action)" class="accueil-event-card__link">
               <div class="accueil-event-card__image">
                 <img
-                  [src]="getFeaturedCardImage(action, $index)"
+                  [src]="getFeaturedCardImage(action)"
                   [alt]="action.title"
                   loading="lazy"
+                  (error)="onFeaturedImageError(action, $event)"
                 />
                 <span class="badge badge--cat">{{ action.categoryName | uppercase }}</span>
                 <span class="badge badge--places" [class.badge--full]="isFull(action)">

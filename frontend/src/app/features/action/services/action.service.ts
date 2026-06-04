@@ -9,6 +9,7 @@ import {
   ActionListFilters,
   ActionSummary,
   Category,
+  PublicStats,
   SortBy,
 } from '../models/action.model';
 
@@ -57,6 +58,12 @@ export class ActionService {
     return this.http
       .get<Category[]>(`${this.apiUrl}/categories`)
       .pipe(catchError(this.handleError('Impossible de charger les catégories')));
+  }
+
+  getPublicStats(): Observable<PublicStats> {
+    return this.http
+      .get<PublicStats>(`${this.apiUrl}/public/stats`)
+      .pipe(catchError(this.handleError('Impossible de charger les statistiques')));
   }
 
   getFeaturedActions(limit = 3): Observable<ActionSummary[]> {

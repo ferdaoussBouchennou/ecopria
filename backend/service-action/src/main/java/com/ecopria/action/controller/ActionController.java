@@ -2,6 +2,7 @@ package com.ecopria.action.controller;
 
 import com.ecopria.action.dto.*;
 import com.ecopria.action.service.ActionService;
+import com.ecopria.action.service.AssociationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class ActionController {
 
     private final ActionService actionService;
+    private final AssociationService associationService;
 
     // ── LISTE PUBLIQUE ──────────────────────────────────────
     // GET /api/actions
@@ -125,6 +127,24 @@ public class ActionController {
     @GetMapping("/admin/manage")
     public ResponseEntity<List<ActionSummaryDTO>> getAllNonFixedForAdmin() {
         return ResponseEntity.ok(actionService.getNonFixedForAdmin());
+    }
+
+    @GetMapping("/admin/associations")
+    public ResponseEntity<List<AssociationOptionDTO>> getAssociationsForAdmin() {
+        return ResponseEntity.ok(associationService.listForAdmin());
+    }
+
+    @GetMapping("/admin/manage/{id}")
+    public ResponseEntity<ActionDetailDTO> getNonFixedDetailForAdmin(@PathVariable Long id) {
+        return ResponseEntity.ok(actionService.getAdminNonFixedDetail(id));
+    }
+
+    @PostMapping(value = "/admin/manage/{id}/photo", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> adminUploadPhoto(
+            @PathVariable Long id,
+            @RequestParam("photo") MultipartFile photo) {
+        String photoUrl = actionService.adminUploadPhoto(id, photo);
+        return ResponseEntity.ok(Map.of("photoUrl", photoUrl));
     }
 
     @PostMapping("/admin/manage")

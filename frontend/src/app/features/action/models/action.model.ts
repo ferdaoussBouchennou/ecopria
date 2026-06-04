@@ -69,6 +69,13 @@ export interface Category {
   imageUrl?: string;
 }
 
+/** GET /api/public/stats — indicateurs agrégés pour l'accueil */
+export interface PublicStats {
+  actionsRealisees: number;
+  participantsInscrits: number;
+  actionsEnCours: number;
+}
+
 export type ActionSourceFilter = 'all' | 'association' | 'fixed';
 export type SortBy = 'date' | 'points' | 'places';
 

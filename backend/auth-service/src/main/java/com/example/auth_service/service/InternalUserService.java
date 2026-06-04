@@ -1,6 +1,8 @@
 package com.example.auth_service.service;
 
 import com.example.auth_service.dto.OrganizationAccountResponse;
+import com.example.auth_service.dto.CreateAssociationUserRequest;
+import com.example.auth_service.dto.CreateAssociationUserResponse;
 import com.example.auth_service.dto.OrganizationAccountsPageResponse;
 import com.example.auth_service.dto.PendingAccountResponse;
 import com.example.auth_service.dto.UserInternalResponse;
@@ -11,11 +13,15 @@ import com.example.auth_service.repository.RegistrationProfileRepository;
 import com.example.auth_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +29,7 @@ public class InternalUserService {
 
     private final UserRepository userRepository;
     private final RegistrationProfileRepository profileRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public List<UserInternalResponse> getAll() {
         return userRepository.findAll()
@@ -49,6 +56,68 @@ public class InternalUserService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + id));
         user.setIsActive(true);
         userRepository.save(user);
+    }
+
+    public CreateAssociationUserResponse createAssociationUser(CreateAssociationUserRequest request) {
+        String email = request.getEmail() == null ? "" : request.getEmail().trim().toLowerCase();
+        if (email.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email obligatoire");
+        }
+        String name = request.getName() == null ? "" : request.getName().trim();
+        if (name.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nom obligatoire");
+        }
+
+        Optional<User> existing = userRepository.findByEmail(email);
+        if (existing.isPresent()) {
+            User user = existing.get();
+            if (user.getRole() != User.Role.ASSOCIATION) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Email déjà utilisé par un autre type de compte");
+            }
+            user.setIsActive(true);
+            user.setIsVerified(true);
+            userRepository.save(user);
+
+            RegistrationProfile profile = profileRepository.findById(user.getUserId()).orElseGet(() ->
+                    RegistrationProfile.builder().userId(user.getUserId()).build());
+            profile.setNom(name);
+            profileRepository.save(profile);
+
+            return CreateAssociationUserResponse.builder()
+                    .userId(user.getUserId())
+                    .email(user.getEmail())
+                    .temporaryPassword(null)
+                    .build();
+        }
+
+        String rawPassword = request.getPassword();
+        boolean generated = !StringUtils.hasText(rawPassword);
+        String password = generated ? generateTemporaryPassword() : rawPassword.trim();
+
+        User user = User.builder()
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .role(User.Role.ASSOCIATION)
+                .isActive(true)
+                .isVerified(true)
+                .createdAt(LocalDateTime.now())
+                .build();
+        user = userRepository.save(user);
+
+        profileRepository.save(RegistrationProfile.builder()
+                .userId(user.getUserId())
+                .nom(name)
+                .build());
+
+        return CreateAssociationUserResponse.builder()
+                .userId(user.getUserId())
+                .email(user.getEmail())
+                .temporaryPassword(generated ? password : null)
+                .build();
+    }
+
+    private static String generateTemporaryPassword() {
+        return "Asso-" + UUID.randomUUID().toString().replace("-", "").substring(0, 10);
     }
 
     public UserStatsResponse getStats() {
@@ -173,12 +242,26 @@ public class InternalUserService {
     }
 
     private UserInternalResponse toResponse(User user) {
+        String displayName = profileRepository.findById(user.getUserId())
+                .map(profile -> {
+                    if (profile.getNom() != null && !profile.getNom().isBlank()) {
+                        return profile.getNom();
+                    }
+                    String first = profile.getFirstName() != null ? profile.getFirstName() : "";
+                    String last = profile.getLastName() != null ? profile.getLastName() : "";
+                    String full = (first + " " + last).trim();
+                    return full.isEmpty() ? null : full;
+                })
+                .orElse(null);
+
         return UserInternalResponse.builder()
                 .userId(user.getUserId())
                 .email(user.getEmail())
                 .role(user.getRole().name())
                 .isActive(user.getIsActive())
                 .isVerified(user.getIsVerified())
+                .displayName(displayName)
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 }

@@ -9,11 +9,21 @@ import {
   AdminDashboard,
   AccountValidationsPage,
   AccountValidationFilter,
+  ActionAssociationOption,
   ActionAssociationRequest,
   ActionFixe,
   ActionFixeRequest,
   ActionNonFixe,
+  ActionNonFixeDetail,
   AdminPendingAccount,
+  AdminCategorie,
+  AdminCategorieRequest,
+  AdminAssociationProfile,
+  AdminAssociationProfileRequest,
+  ModerationAction,
+  AdminUser,
+  AdminUserActionResult,
+  AdminUsersQuery,
 } from '../models/admin.model';
 
 @Injectable({ providedIn: 'root' })
@@ -128,8 +138,20 @@ export class AdminService {
     });
   }
 
-  createActionNonFixe(body: ActionAssociationRequest): Observable<void> {
-    return this.http.post<void>(`${this.base}/actions`, body, {
+  getActionAssociations(): Observable<ActionAssociationOption[]> {
+    return this.http.get<ActionAssociationOption[]>(`${this.base}/actions/associations`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  getActionNonFixe(id: number): Observable<ActionNonFixeDetail> {
+    return this.http.get<ActionNonFixeDetail>(`${this.base}/actions/${id}`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  createActionNonFixe(body: ActionAssociationRequest): Observable<ActionNonFixeDetail> {
+    return this.http.post<ActionNonFixeDetail>(`${this.base}/actions`, body, {
       headers: this.writeHeaders(),
     });
   }
@@ -140,8 +162,148 @@ export class AdminService {
     });
   }
 
+  uploadActionPhoto(actionId: number, file: File): Observable<{ photoUrl: string }> {
+    const formData = new FormData();
+    formData.append('photo', file);
+    return this.http.post<{ photoUrl: string }>(`${this.base}/actions/${actionId}/photo`, formData, {
+      headers: this.writeHeaders(),
+    });
+  }
+
   deactivateActionNonFixe(id: number, raison?: string): Observable<void> {
     return this.http.put<void>(`${this.base}/actions/${id}/deactivate`, { raison }, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  getCategories(): Observable<AdminCategorie[]> {
+    return this.http.get<AdminCategorie[]>(`${this.base}/categories`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  createCategory(body: AdminCategorieRequest): Observable<void> {
+    return this.http.post<void>(`${this.base}/categories`, body, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  updateCategory(id: number, body: AdminCategorieRequest): Observable<void> {
+    return this.http.put<void>(`${this.base}/categories/${id}`, body, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  publishCategory(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/categories/${id}/publish`, null, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  unpublishCategory(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/categories/${id}/unpublish`, null, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  deleteCategory(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/categories/${id}`, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  getUsers(query: AdminUsersQuery = {}): Observable<AdminUser[]> {
+    const params: Record<string, string> = {};
+    if (query.email?.trim()) {
+      params['email'] = query.email.trim();
+    }
+    if (query.role?.trim()) {
+      params['role'] = query.role.trim();
+    }
+    if (query.isActive != null) {
+      params['isActive'] = String(query.isActive);
+    }
+    if (query.isVerified != null) {
+      params['isVerified'] = String(query.isVerified);
+    }
+    return this.http.get<AdminUser[]>(`${this.base}/users`, {
+      headers: this.authHeaders(),
+      params,
+    });
+  }
+
+  banUser(userId: number, raison: string): Observable<AdminUserActionResult> {
+    return this.http.put<AdminUserActionResult>(
+      `${this.base}/users/${userId}/ban`,
+      { raison },
+      { headers: this.writeHeaders() }
+    );
+  }
+
+  reactivateUser(userId: number): Observable<AdminUserActionResult> {
+    return this.http.put<AdminUserActionResult>(
+      `${this.base}/users/${userId}/reactivate`,
+      null,
+      { headers: this.writeHeaders() }
+    );
+  }
+
+  getModerationActions(): Observable<ModerationAction[]> {
+    return this.http.get<ModerationAction[]>(`${this.base}/moderation/actions`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  publishModerationAction(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/moderation/actions/${id}/publish`, null, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  suspendModerationAction(id: number, raison?: string): Observable<void> {
+    return this.http.put<void>(
+      `${this.base}/moderation/actions/${id}/suspend`,
+      raison ? { raison } : null,
+      { headers: this.writeHeaders() }
+    );
+  }
+
+  uploadCategoryImage(file: File): Observable<{ imageUrl: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{ imageUrl: string }>(`${this.base}/categories/upload-image`, formData, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  getAssociationProfiles(): Observable<AdminAssociationProfile[]> {
+    return this.http.get<AdminAssociationProfile[]>(`${this.base}/association-profiles`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  getAssociationProfile(id: number): Observable<AdminAssociationProfile> {
+    return this.http.get<AdminAssociationProfile>(`${this.base}/association-profiles/${id}`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  createAssociationProfile(body: AdminAssociationProfileRequest): Observable<AdminAssociationProfile> {
+    return this.http.post<AdminAssociationProfile>(`${this.base}/association-profiles`, body, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  updateAssociationProfile(id: number, body: AdminAssociationProfileRequest): Observable<AdminAssociationProfile> {
+    return this.http.put<AdminAssociationProfile>(`${this.base}/association-profiles/${id}`, body, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  uploadAssociationLogo(id: number, file: File): Observable<{ logoUrl: string }> {
+    const formData = new FormData();
+    formData.append('logo', file);
+    return this.http.post<{ logoUrl: string }>(`${this.base}/association-profiles/${id}/logo`, formData, {
       headers: this.writeHeaders(),
     });
   }

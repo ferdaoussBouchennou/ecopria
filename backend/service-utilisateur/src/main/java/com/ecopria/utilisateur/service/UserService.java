@@ -20,6 +20,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ecopria.utilisateur.dto.AssociationAdminUpsertRequest;
 import com.ecopria.utilisateur.dto.*;
 import com.ecopria.utilisateur.model.*;
 import com.ecopria.utilisateur.repository.*;
@@ -87,6 +88,48 @@ public class UserService {
         getOrCreatePreferences(savedCitizen.getAuthId());
 
         return savedCitizen;
+    }
+
+    @Transactional
+    public Association adminUpsertAssociation(AssociationAdminUpsertRequest request) {
+        if (request.getAuthId() == null) {
+            throw new IllegalArgumentException("authId obligatoire");
+        }
+        String name = request.getName() == null ? "" : request.getName().trim();
+        if (name.isEmpty()) {
+            throw new IllegalArgumentException("Le nom de l'association est obligatoire");
+        }
+
+        Association association = associationRepository.findByAuthId(request.getAuthId())
+                .orElseGet(() -> {
+                    Association created = new Association();
+                    created.setAuthId(request.getAuthId());
+                    return created;
+                });
+
+        association.setName(name);
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            association.setEmail(request.getEmail().trim());
+        }
+        if (request.getPhone() != null) {
+            association.setPhone(request.getPhone().trim());
+        }
+        if (request.getAddress() != null) {
+            association.setAddress(request.getAddress().trim());
+        }
+        if (request.getCity() != null) {
+            association.setCity(request.getCity().trim());
+        }
+        if (request.getDescription() != null) {
+            association.setDescription(request.getDescription().trim());
+        }
+        if (request.getLogo() != null && !request.getLogo().isBlank()) {
+            association.setLogo(request.getLogo().trim());
+        }
+
+        Association saved = associationRepository.save(association);
+        getOrCreatePreferences(saved.getAuthId());
+        return saved;
     }
 
     @Transactional

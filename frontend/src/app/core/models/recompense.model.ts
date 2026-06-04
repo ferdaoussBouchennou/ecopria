@@ -78,6 +78,7 @@ export interface DashboardPartenaire {
   couponsUtilises: number;
   tauxUtilisation: number;
   commissionsARegler: number;
+  commissionRate?: number;  // Taux de commission du partenaire (ex: 15 pour 15%)
   offresActives: RecompenseItemDto[];
   echangesRecents: CouponDto[];
 }

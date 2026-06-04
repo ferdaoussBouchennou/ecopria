@@ -173,17 +173,19 @@ public class RecompenseService {
 
     // ─── DASHBOARD PARTENAIRE ────────────────────────────────
 
-    @Transactional(readOnly = true)
+    @Transactional
     public DashboardPartenaireDTO getDashboard(Long userId) {
-        Partenaire partenaire = getPartenaireByUserId(userId);
+        Partenaire partenaire = resolvePartenaireAccount(userId);
+        long vuesProfil = nullableLong(partenaire.getVuesProfil());
+        long clicsOffres = nullableLong(partenaire.getClicsOffres());
 
-        Long distribues = couponRepository
-                .countByRecompensePartenaireId(partenaire.getId());
-        Long utilises = couponRepository
+        long distribuesCount = nullableLong(
+                couponRepository.countByRecompensePartenaireId(partenaire.getId()));
+        long utilisesCount = nullableLong(couponRepository
                 .countByRecompensePartenaireIdAndStatus(
-                        partenaire.getId(), Coupon.CouponStatus.UTILISE);
+                        partenaire.getId(), Coupon.CouponStatus.UTILISE));
 
-        double taux = distribues > 0 ? (double) utilises / distribues * 100 : 0;
+        double taux = distribuesCount > 0 ? (double) utilisesCount / distribuesCount * 100 : 0;
 
         // commissions du mois en cours
         String moisActuel = getCurrentMois();
@@ -204,18 +206,18 @@ public class RecompenseService {
 
         return DashboardPartenaireDTO.builder()
                 .partenaireName(partenaire.getName())
-                .vuesProfil(partenaire.getVuesProfil())
-                .clicsOffres(partenaire.getClicsOffres())
-                .tauxClic(partenaire.getVuesProfil() > 0
-                        ? Math.round((double) partenaire.getClicsOffres() / partenaire.getVuesProfil() * 10000.0) / 100.0
-                        : 0.0)
-                .couponsDistribues(distribues)
-                .couponsUtilises(utilises)
+                .vuesProfil(vuesProfil)
+                .clicsOffres(clicsOffres)
+                .tauxClic(tauxClicPercent(vuesProfil, clicsOffres))
+                .couponsDistribues(distribuesCount)
+                .couponsUtilises(utilisesCount)
                 .tauxUtilisation(Math.round(taux * 100.0) / 100.0)
                 .noteMoyenne(noteMoyenne != null ? Math.round(noteMoyenne * 10.0) / 10.0 : null)
-                .nombreAvis(nombreAvis)
+                .nombreAvis(nombreAvis != null ? nombreAvis : 0L)
                 .commissionsARegler(commissions != null ? commissions : 0.0)
-                .badgeActuel(computeBadgeActuel(utilises))
+                .commissionRate(partenaire.getCommissionRate() != null
+                        ? partenaire.getCommissionRate() : 10.0)
+                .badgeActuel(computeBadgeActuel(utilisesCount))
                 .offresActives(offres)
                 .echangesRecents(recents)
                 .build();
@@ -223,14 +225,14 @@ public class RecompenseService {
 
     // ─── PROFIL PUBLIC PARTENAIRE ────────────────────────────
 
-    @Transactional(readOnly = true)
+    @Transactional
     public PartenaireProfilDTO getProfil(Long userId) {
-        return toProfilDTO(getPartenaireByUserId(userId));
+        return toProfilDTO(resolvePartenaireAccount(userId));
     }
 
     @Transactional
     public PartenaireProfilDTO updateProfil(Long userId, UpdatePartenaireProfilDTO dto) {
-        Partenaire p = getPartenaireByUserId(userId);
+        Partenaire p = resolvePartenaireAccount(userId);
         if (dto.getName() != null) p.setName(dto.getName());
         if (dto.getCategory() != null) p.setCategory(dto.getCategory());
         if (dto.getAddress() != null) p.setAddress(dto.getAddress());
@@ -248,8 +250,8 @@ public class RecompenseService {
 
     @Transactional
     public PartenaireProfilDTO getProfilPublic(Long partenaireUserId) {
-        Partenaire p = getPartenaireByUserId(partenaireUserId);
-        p.setVuesProfil(p.getVuesProfil() + 1);
+        Partenaire p = requirePartenaire(partenaireUserId);
+        p.setVuesProfil(nullableLong(p.getVuesProfil()) + 1);
         partenaireRepository.save(p);
         return toProfilDTO(p);
     }
@@ -264,9 +266,9 @@ public class RecompenseService {
 
     // ─── OFFRES D'UN PARTENAIRE ─────────────────────────────
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<RecompenseDTO> getOffresPartenaire(Long userId) {
-        Partenaire partenaire = getPartenaireByUserId(userId);
+        Partenaire partenaire = resolvePartenaireAccount(userId);
         
         // Récupérer uniquement les offres actives de ce partenaire
         List<Recompense> recompenses = recompenseRepository
@@ -279,42 +281,42 @@ public class RecompenseService {
 
     // ─── VISIBILITÉ & AVIS ───────────────────────────────────
 
-    @Transactional(readOnly = true)
+    @Transactional
     public VisibiliteDTO getVisibilite(Long userId) {
-        Partenaire p = getPartenaireByUserId(userId);
-        Long distribues = couponRepository.countByRecompensePartenaireId(p.getId());
-        Long utilises = couponRepository.countByRecompensePartenaireIdAndStatus(
-                p.getId(), Coupon.CouponStatus.UTILISE);
-        double tauxConv = distribues > 0 ? (double) utilises / distribues * 100 : 0;
-        double tauxClic = p.getVuesProfil() > 0
-                ? (double) p.getClicsOffres() / p.getVuesProfil() * 100 : 0;
+        Partenaire p = resolvePartenaireAccount(userId);
+        long vuesProfil = nullableLong(p.getVuesProfil());
+        long clicsOffres = nullableLong(p.getClicsOffres());
+        long distribuesCount = nullableLong(couponRepository.countByRecompensePartenaireId(p.getId()));
+        long utilisesCount = nullableLong(couponRepository.countByRecompensePartenaireIdAndStatus(
+                p.getId(), Coupon.CouponStatus.UTILISE));
+        double tauxConv = distribuesCount > 0 ? (double) utilisesCount / distribuesCount * 100 : 0;
         Double note = avisPartenaireRepository.averageRatingByPartenaire(p.getId());
         Long nbAvis = avisPartenaireRepository.countByPartenaireId(p.getId());
 
         return VisibiliteDTO.builder()
-                .vuesProfil(p.getVuesProfil())
-                .clicsOffres(p.getClicsOffres())
-                .tauxClic(Math.round(tauxClic * 10.0) / 10.0)
+                .vuesProfil(vuesProfil)
+                .clicsOffres(clicsOffres)
+                .tauxClic(tauxClicPercent(vuesProfil, clicsOffres))
                 .noteMoyenne(note != null ? Math.round(note * 10.0) / 10.0 : null)
                 .nombreAvis(nbAvis)
-                .couponsDistribues(distribues)
-                .couponsUtilises(utilises)
+                .couponsDistribues(distribuesCount)
+                .couponsUtilises(utilisesCount)
                 .tauxConversion(Math.round(tauxConv * 100.0) / 100.0)
-                .badgeActuel(computeBadgeActuel(utilises))
-                .progressionBadges(buildBadgeProgression(utilises))
+                .badgeActuel(computeBadgeActuel(utilisesCount))
+                .progressionBadges(buildBadgeProgression(utilisesCount))
                 .build();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<AvisDTO> getAvis(Long userId) {
-        Partenaire p = getPartenaireByUserId(userId);
+        Partenaire p = resolvePartenaireAccount(userId);
         return avisPartenaireRepository.findByPartenaireIdOrderByCreatedAtDesc(p.getId())
                 .stream().map(this::toAvisDTO).collect(Collectors.toList());
     }
 
     @Transactional
     public AvisDTO repondreAvis(Long userId, Long avisId, RepondreAvisDTO dto) {
-        Partenaire p = getPartenaireByUserId(userId);
+        Partenaire p = resolvePartenaireAccount(userId);
         AvisPartenaire avis = avisPartenaireRepository.findById(avisId)
                 .orElseThrow(() -> new RuntimeException("Avis non trouvé"));
         if (!avis.getPartenaire().getId().equals(p.getId())) {
@@ -329,13 +331,13 @@ public class RecompenseService {
         Recompense r = recompenseRepository.findById(recompenseId)
                 .orElseThrow(() -> new RuntimeException("Récompense non trouvée"));
         Partenaire p = r.getPartenaire();
-        p.setClicsOffres(p.getClicsOffres() + 1);
+        p.setClicsOffres(nullableLong(p.getClicsOffres()) + 1);
         partenaireRepository.save(p);
     }
 
     @Transactional
     public RecompenseDTO toggleOffreActive(Long recompenseId, Long userId) {
-        Partenaire partenaire = getPartenaireByUserId(userId);
+        Partenaire partenaire = resolvePartenaireAccount(userId);
         Recompense recompense = recompenseRepository.findById(recompenseId)
                 .orElseThrow(() -> new RuntimeException("Récompense non trouvée"));
         if (!recompense.getPartenaire().getId().equals(partenaire.getId())) {
@@ -347,16 +349,16 @@ public class RecompenseService {
 
     // ─── MES OFFRES PARTENAIRE ────────────────────────────────
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<RecompenseDTO> getMesOffres(Long userId) {
-        Partenaire partenaire = getPartenaireByUserId(userId);
+        Partenaire partenaire = resolvePartenaireAccount(userId);
         return recompenseRepository.findByPartenaireId(partenaire.getId())
                 .stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Transactional
     public RecompenseDTO creerOffre(CreateRecompenseDTO dto, Long userId) {
-        Partenaire partenaire = getPartenaireByUserId(userId);
+        Partenaire partenaire = resolvePartenaireAccount(userId);
 
         // Validation commune : si on met une réduction %, il faut obligatoirement la valeur en DH pour la commission
         if (dto.getDiscountPercentage() != null && dto.getValeurDh() == null) {
@@ -426,7 +428,7 @@ public class RecompenseService {
     public RecompenseDTO modifierOffre(Long recompenseId,
             CreateRecompenseDTO dto,
             Long userId) {
-        Partenaire partenaire = getPartenaireByUserId(userId);
+        Partenaire partenaire = resolvePartenaireAccount(userId);
         Recompense recompense = recompenseRepository.findById(recompenseId)
                 .orElseThrow(() -> new RuntimeException("Récompense non trouvée"));
 
@@ -460,7 +462,7 @@ public class RecompenseService {
 
     @Transactional
     public void desactiverOffre(Long recompenseId, Long userId) {
-        Partenaire partenaire = getPartenaireByUserId(userId);
+        Partenaire partenaire = resolvePartenaireAccount(userId);
         Recompense recompense = recompenseRepository.findById(recompenseId)
                 .orElseThrow(() -> new RuntimeException("Récompense non trouvée"));
 
@@ -476,7 +478,7 @@ public class RecompenseService {
 
     @Transactional
     public CouponDTO validerCoupon(String code, Long userId) {
-        Partenaire partenaire = getPartenaireByUserId(userId);
+        Partenaire partenaire = resolvePartenaireAccount(userId);
 
         Coupon coupon = couponRepository.findByCode(code)
                 .orElseThrow(() -> new RuntimeException("Coupon introuvable : " + code));
@@ -515,26 +517,30 @@ public class RecompenseService {
                         .build());
 
         // calculer et enregistrer la commission
-        // Calcul de la commission selon la logique métier unifiée :
-        // - Si l'offre a un pourcentage de réduction (% > 0) ET une valeurDh -> on commissionne la remise.
-        // - Si c'est 100% gratuit (pas de %) -> pas de commission.
+        // Calcul de la commission selon la logique métier :
+        // - Pour type REDUCTION : base = valeurDh
+        // - Pour autres types avec % et valeurDh : base = valeurDh × % / 100
+        // - Pour autres types avec seulement valeurDh : base = valeurDh
+        // Commission = base × taux_partenaire / 100
 
         Double baseCommission = null;
         Recompense r = coupon.getRecompense();
 
-        if (r.getDiscountPercentage() != null && r.getValeurDh() != null) {
-            // ex: T-shirt 150 DH à -50% -> base = 150 * 50% = 75 DH
-            // ex: Type REDUCTION 15% (valeurDh=50) -> base = 50 * 15% / 15% (déjà inclus) -> 
-            // Attention: pour le type REDUCTION pur, valeurDh est déjà la valeur de la remise.
-            
-            if (r.getType() == com.ecopria.recompense.model.Recompense.RecompenseType.REDUCTION) {
+        // Déterminer la base de commission selon le type d'offre
+        if (r.getType() == com.ecopria.recompense.model.Recompense.RecompenseType.REDUCTION) {
+            // Type REDUCTION : valeurDh représente déjà la valeur de la réduction
+            if (r.getValeurDh() != null && r.getValeurDh() > 0) {
                 baseCommission = r.getValeurDh();
-            } else {
-                baseCommission = r.getValeurDh() * r.getDiscountPercentage() / 100.0;
             }
+        } else if (r.getDiscountPercentage() != null && r.getValeurDh() != null) {
+            // Offre avec pourcentage de réduction (ex: T-shirt 150 DH à -50%)
+            baseCommission = r.getValeurDh() * r.getDiscountPercentage() / 100.0;
+        } else if (r.getValeurDh() != null && r.getValeurDh() > 0) {
+            // Offre avec seulement valeurDh (considérée comme 100% gratuite)
+            baseCommission = r.getValeurDh();
         }
 
-        if (baseCommission != null) {
+        if (baseCommission != null && baseCommission > 0) {
             double montant = baseCommission * partenaire.getCommissionRate() / 100;
 
             Commission commission = Commission.builder()
@@ -546,9 +552,10 @@ public class RecompenseService {
                     .build();
 
             commissionRepository.save(commission);
-            log.info("Commission {} DH calculée pour coupon {} (base={} DH)", montant, code, baseCommission);
+            log.info("Commission {} DH calculée pour coupon {} (base={} DH, taux={}%)", 
+                     montant, code, baseCommission, partenaire.getCommissionRate());
         } else {
-            log.info("Aucune commission calculée pour coupon {} (offre gratuite sans remise monétaire)", code);
+            log.info("Aucune commission calculée pour coupon {} (offre sans valeur monétaire)", code);
         }
 
         log.info("Coupon {} validé par partenaire {}", code, partenaire.getName());
@@ -557,9 +564,9 @@ public class RecompenseService {
 
     // ─── COMMISSIONS PARTENAIRE ───────────────────────────────
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<CommissionMensuelleDTO> getCommissions(Long userId) {
-        Partenaire partenaire = getPartenaireByUserId(userId);
+        Partenaire partenaire = resolvePartenaireAccount(userId);
 
         return commissionRepository
                 .findMonthlyHistoryByPartenaire(partenaire.getId())
@@ -642,10 +649,34 @@ public class RecompenseService {
 
     // ─── MÉTHODES PRIVÉES ────────────────────────────────────────
 
-    private Partenaire getPartenaireByUserId(Long userId) {
+    private Partenaire requirePartenaire(Long userId) {
         return partenaireRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException(
                         "Partenaire non trouvé pour userId: " + userId));
+    }
+
+    private Partenaire resolvePartenaireAccount(Long userId) {
+        return partenaireRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    log.info("Création fiche partenaire pour userId={}", userId);
+                    return partenaireRepository.save(Partenaire.builder()
+                            .userId(userId)
+                            .name("Mon établissement")
+                            .category("Commerce local")
+                            .vuesProfil(0L)
+                            .clicsOffres(0L)
+                            .build());
+                });
+    }
+
+    private static long nullableLong(Long value) {
+        return value == null ? 0L : value;
+    }
+
+    private static double tauxClicPercent(long vuesProfil, long clicsOffres) {
+        return vuesProfil > 0
+                ? Math.round((double) clicsOffres / vuesProfil * 10000.0) / 100.0
+                : 0.0;
     }
 
     private String getCurrentMois() {
@@ -665,7 +696,8 @@ public class RecompenseService {
     }
 
     private RecompenseDTO toDTO(Recompense r) {
-        List<MystereBoxItemDTO> boxItems = r.getMystereBoxItems().stream()
+        List<MystereBoxItem> rawItems = r.getMystereBoxItems();
+        List<MystereBoxItemDTO> boxItems = rawItems == null ? List.of() : rawItems.stream()
                 .map(i -> MystereBoxItemDTO.builder()
                         .id(i.getId())
                         .titre(i.getTitre())
@@ -773,12 +805,19 @@ public class RecompenseService {
     }
 
     private CouponDTO toCouponDTO(Coupon c) {
+        Recompense recompense = c.getRecompense();
+        String title = recompense != null ? recompense.getTitle() : "Offre";
+        String imageUrl = recompense != null ? recompense.getImageUrl() : null;
+        String partenaireName = null;
+        if (recompense != null && recompense.getPartenaire() != null) {
+            partenaireName = recompense.getPartenaire().getName();
+        }
         return CouponDTO.builder()
                 .id(c.getId())
                 .code(c.getCode())
-                .recompenseTitle(c.getRecompense().getTitle())
-                .recompenseImageUrl(c.getRecompense().getImageUrl())
-                .partenaireName(c.getRecompense().getPartenaire().getName())
+                .recompenseTitle(title)
+                .recompenseImageUrl(imageUrl)
+                .partenaireName(partenaireName)
                 .pointsUtilises(c.getPointsUtilises())
                 .status(c.getStatus())
                 .expireLe(c.getExpireLe())

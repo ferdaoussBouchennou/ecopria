@@ -1,8 +1,150 @@
-<section class="admin-page">
-  <p class="admin-eyebrow"><span class="eyebrow-line"></span> Catégories</p>
-  <h1 class="admin-page__title">Catégories d’actions.</h1>
-  <p class="admin-placeholder">
-    Chargement de l’interface Catégories (liste, création, modification)…
+<section class="admin-page categories-page">
+  <p class="admin-eyebrow"><span class="eyebrow-line"></span> Catégories d'actions</p>
+  <h1 class="admin-page__title">Gérez les familles d'actions.</h1>
+  <p class="admin-desc">
+    Créez, modifiez et publiez les catégories visibles par les associations et les citoyens.
   </p>
-</section>
 
+  @if (message) {
+    <p class="admin-muted cat-msg">{{ message }}</p>
+  }
+
+  @if (loading) {
+    <p class="admin-muted">Chargement…</p>
+  } @else if (error && items.length === 0) {
+    <div class="admin-alert admin-alert--error">{{ error }}</div>
+  } @else {
+    @if (error) {
+      <div class="admin-alert admin-alert--error">{{ error }}</div>
+    }
+
+    <h2 class="section-title">Catégories existantes</h2>
+    <div class="cat-grid">
+      @if (items.length === 0) {
+        <p class="admin-muted grid-empty">Aucune catégorie pour le moment.</p>
+      } @else {
+        @for (item of items; track item.id) {
+          <article
+            class="cat-card"
+            [class.cat-card--selected]="editingId === item.id"
+            (click)="startEdit(item)"
+            role="button"
+            tabindex="0"
+            (keydown.enter)="startEdit(item)"
+          >
+            <div class="cat-card__media">
+              <img [src]="imageSrc(item)" [alt]="item.nom" loading="lazy" />
+            </div>
+            <div class="cat-card__body">
+              <div class="cat-card__head">
+                <h3 class="cat-card__title">{{ item.nom }}</h3>
+                <span
+                  class="status-badge"
+                  [class.status-badge--draft]="item.published === false"
+                >
+                  {{ statusLabel(item) }}
+                </span>
+              </div>
+              @if (item.description) {
+                <p class="cat-card__subtitle">{{ item.description }}</p>
+              }
+              <div class="cat-card__actions" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  class="btn-outline"
+                  (click)="togglePublish(item, $event)"
+                >
+                  {{ item.published !== false ? 'Dépublier' : 'Publier' }}
+                </button>
+                <button type="button" class="btn-text" (click)="deleteItem(item, $event)">
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+      }
+    </div>
+
+    <section class="create-panel">
+      <h2 class="section-title section-title--form">
+        {{ editingId != null ? 'Modifier la catégorie' : 'Nouvelle catégorie' }}
+      </h2>
+      <form class="create-form" (ngSubmit)="submit()">
+        <label class="field">
+          <span class="field-label">Nom</span>
+          <input
+            type="text"
+            class="field-input"
+            [(ngModel)]="form.nom"
+            name="nom"
+            placeholder="Ex. Mobilité douce"
+            required
+          />
+        </label>
+        <label class="field">
+          <span class="field-label">Sous-titre / description</span>
+          <input
+            type="text"
+            class="field-input"
+            [(ngModel)]="form.description"
+            name="description"
+            placeholder="Vélo, marche &amp; covoiturage"
+          />
+        </label>
+        <label class="field field--inline">
+          <input type="checkbox" [(ngModel)]="form.published" name="published" />
+          <span class="field-label">Publiée (visible sur la plateforme)</span>
+        </label>
+        <div class="field">
+          <span class="field-label">Image</span>
+          <div class="image-upload">
+            @if (previewSrc()) {
+              <div class="image-upload__preview">
+                <img [src]="previewSrc()" alt="Aperçu" />
+                <button type="button" class="image-upload__remove" (click)="removeSelectedImage()">
+                  Retirer
+                </button>
+              </div>
+            } @else {
+              <label class="image-upload__picker">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/jpg,image/webp"
+                  (change)="onImageSelected($event)"
+                  [disabled]="uploadingImage"
+                />
+                <span class="image-upload__icon" aria-hidden="true">+</span>
+                <span class="image-upload__text">Choisir une image sur votre ordinateur</span>
+                <span class="image-upload__hint">JPG, PNG ou WEBP — 5 Mo max.</span>
+              </label>
+            }
+            @if (uploadingImage) {
+              <p class="image-upload__status">Envoi en cours…</p>
+            }
+            @if (imageFileName && !uploadingImage && form.imageUrl) {
+              <p class="image-upload__status image-upload__status--ok">{{ imageFileName }} — prête</p>
+            }
+            @if (imageUploadError) {
+              <p class="image-upload__error">{{ imageUploadError }}</p>
+            }
+          </div>
+        </div>
+        <div class="form-actions">
+          @if (editingId != null) {
+            <button type="button" class="btn-secondary" [disabled]="saving" (click)="startCreate()">
+              Annuler
+            </button>
+          }
+          <button type="submit" class="btn-primary" [disabled]="saving || uploadingImage">
+            {{
+              saving
+                ? 'Enregistrement…'
+                : (editingId != null ? 'Enregistrer' : 'Créer la catégorie')
+            }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+</section>

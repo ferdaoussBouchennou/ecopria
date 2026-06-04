@@ -52,15 +52,31 @@ public class LocalDevDataInitializer implements ApplicationRunner {
     }
 
     private Categorie seedCategorie() {
-        return categorieRepository.findAll().stream().findFirst().orElseGet(() -> {
-            Categorie c = Categorie.builder()
-                    .name("Nettoyage")
-                    .description("Actions de nettoyage et collecte de déchets")
-                    .build();
-            Categorie saved = categorieRepository.save(c);
+        if (categorieRepository.count() > 0) {
+            return categorieRepository.findAll().get(0);
+        }
+        record Seed(String name, String description, String imageUrl) {}
+        Seed[] seeds = {
+                new Seed("Nettoyage", "Plages, forêts & oueds", "/assets/images/cat-nettoyage.jpg"),
+                new Seed("Reboisement", "Plantation & vergers", "/assets/images/cat-reboisement.jpg"),
+                new Seed("Sensibilisation", "Ateliers & écoles", "/assets/images/cat-sensibilisation.jpg"),
+                new Seed("Recyclage", "Collecte & repair café", "/assets/images/cat-recyclage.jpg"),
+                new Seed("Compostage", "Lombri & biodéchets", "/assets/images/cat-compostage.jpg")
+        };
+        Categorie first = null;
+        for (Seed seed : seeds) {
+            Categorie saved = categorieRepository.save(Categorie.builder()
+                    .name(seed.name())
+                    .description(seed.description())
+                    .imageUrl(seed.imageUrl())
+                    .published(true)
+                    .build());
+            if (first == null) {
+                first = saved;
+            }
             log.info("[dev] Catégorie '{}' créée", saved.getName());
-            return saved;
-        });
+        }
+        return first;
     }
 
     private void seedPublishedAction(Association association, Categorie categorie) {

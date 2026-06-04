@@ -1,48 +1,9 @@
-import { CategoryMeta, CATEGORY_META } from '../action/constants/category-meta';
-import { SITE_IMAGES } from '../../core/constants/site-images';
 import { ActionSummary } from '../action/models/action.model';
 
-export interface AccueilCategoryCard {
-  name: string;
-  meta: CategoryMeta;
-  imageUrl: string;
+export interface AccueilStatItem {
+  value: string;
+  label: string;
 }
-
-export const ACCUEIL_CATEGORY_CARDS: AccueilCategoryCard[] = [
-  {
-    name: 'Nettoyage',
-    meta: CATEGORY_META['Nettoyage'],
-    imageUrl: SITE_IMAGES.categories.nettoyage,
-  },
-  {
-    name: 'Reboisement',
-    meta: CATEGORY_META['Reboisement'],
-    imageUrl: SITE_IMAGES.categories.reboisement,
-  },
-  {
-    name: 'Sensibilisation',
-    meta: CATEGORY_META['Sensibilisation'],
-    imageUrl: SITE_IMAGES.categories.sensibilisation,
-  },
-  {
-    name: 'Recyclage',
-    meta: CATEGORY_META['Recyclage'],
-    imageUrl: SITE_IMAGES.categories.recyclage,
-  },
-  {
-    name: 'Compostage',
-    meta: CATEGORY_META['Compostage'],
-    imageUrl: SITE_IMAGES.categories.compostage,
-  },
-];
-
-export const ACCUEIL_STATS = [
-  { value: '1 240', label: 'Actions menées' },
-  { value: '38 ha', label: 'Reboisés' },
-  { value: '86 t', label: 'Déchets collectés' },
-] as const;
-
-export const ACCUEIL_FEATURED_IMAGES = SITE_IMAGES.featuredFallback;
 
 /** Données de démonstration si l’API ne renvoie pas encore d’actions publiées */
 export const ACCUEIL_FEATURED_DEMO: ActionSummary[] = [

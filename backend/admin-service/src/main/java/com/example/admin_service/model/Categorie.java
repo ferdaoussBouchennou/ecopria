@@ -26,6 +26,10 @@ public class Categorie {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean published = true;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

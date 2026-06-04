@@ -19,6 +19,8 @@ public interface ActionRepository extends JpaRepository<Action, Long> {
     // filtrer par catégorie et statut
     List<Action> findByCategoryIdAndStatus(Long categoryId, ActionStatus status);
 
+    long countByCategoryId(Long categoryId);
+
     // actions d'une association
     List<Action> findByAssociationId(Long associationId);
 
@@ -65,4 +67,12 @@ public interface ActionRepository extends JpaRepository<Action, Long> {
 
     @Query("SELECT COUNT(a) FROM Action a WHERE a.createdAt >= :from")
     long countCreatedSince(@Param("from") LocalDateTime from);
+
+    /** Inscriptions = places réservées (max − disponibles) sur actions publiées ou terminées. */
+    @Query("""
+            SELECT COALESCE(SUM(a.maxParticipants - a.availablePlaces), 0)
+            FROM Action a
+            WHERE a.status IN ('PUBLISHED', 'COMPLETED')
+            """)
+    long sumRegisteredParticipants();
 }

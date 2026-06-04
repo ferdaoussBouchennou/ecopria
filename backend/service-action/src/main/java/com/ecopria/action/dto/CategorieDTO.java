@@ -12,4 +12,5 @@ public class CategorieDTO {
     private String name;
     private String description;
     private String imageUrl;
+    private Boolean published;
 }
