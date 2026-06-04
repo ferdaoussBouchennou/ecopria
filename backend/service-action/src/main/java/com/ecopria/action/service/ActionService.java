@@ -616,6 +616,9 @@ public class ActionService {
                 .registeredCount(action.getRegisteredCount())
                 .isFixed(action.getIsFixed())
                 .status(action.getStatus())
+                .associationName(action.getAssociation() != null
+                        ? action.getAssociation().getName()
+                        : null)
                 .photoUrls(action.getPhotos().stream()
                         .map(photo -> photo.getUrl())
                         .collect(Collectors.toList()))

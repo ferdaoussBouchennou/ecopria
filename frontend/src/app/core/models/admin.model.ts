@@ -125,6 +125,28 @@ export interface AdminCategorie {
   updatedAt?: string;
 }
 
+export type ModerationActionStatus = 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
+
+export type ModerationFilter = 'all' | 'draft' | 'published' | 'suspended' | 'completed';
+
+export interface ModerationAction {
+  id: number;
+  title: string;
+  categoryName?: string;
+  categoryImageUrl?: string;
+  city?: string;
+  dateStart?: string;
+  dateEnd?: string;
+  points?: number;
+  availablePlaces?: number;
+  maxParticipants?: number;
+  registeredCount?: number;
+  isFixed?: boolean;
+  status?: ModerationActionStatus;
+  associationName?: string;
+  photoUrls?: string[];
+}
+
 export interface AdminCategorieRequest {
   nom: string;
   description?: string;

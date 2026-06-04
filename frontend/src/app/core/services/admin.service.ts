@@ -16,6 +16,7 @@ import {
   AdminPendingAccount,
   AdminCategorie,
   AdminCategorieRequest,
+  ModerationAction,
 } from '../models/admin.model';
 
 @Injectable({ providedIn: 'root' })
@@ -182,6 +183,26 @@ export class AdminService {
     return this.http.delete<void>(`${this.base}/categories/${id}`, {
       headers: this.writeHeaders(),
     });
+  }
+
+  getModerationActions(): Observable<ModerationAction[]> {
+    return this.http.get<ModerationAction[]>(`${this.base}/moderation/actions`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  publishModerationAction(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/moderation/actions/${id}/publish`, null, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  suspendModerationAction(id: number, raison?: string): Observable<void> {
+    return this.http.put<void>(
+      `${this.base}/moderation/actions/${id}/suspend`,
+      raison ? { raison } : null,
+      { headers: this.writeHeaders() }
+    );
   }
 
   uploadCategoryImage(file: File): Observable<{ imageUrl: string }> {
