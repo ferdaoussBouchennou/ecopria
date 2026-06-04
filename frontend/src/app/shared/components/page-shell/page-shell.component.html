@@ -11,13 +11,12 @@
       <a routerLink="/actions" routerLinkActive="active">Actions</a>
       <a routerLink="/partenaires" routerLinkActive="active">Partenaires</a>
       <a [routerLink]="recompensesLink" routerLinkActive="active">Récompenses</a>
+      <a routerLink="/comment-ca-marche" routerLinkActive="active">Comment ça marche</a>
 
       @if (isCitizen) {
         <span class="site-nav__sep" aria-hidden="true"></span>
         <a routerLink="/espace/actions" routerLinkActive="active">Mes inscriptions</a>
         <a routerLink="/espace/classement" routerLinkActive="active">Classement</a>
-      } @else {
-        <a routerLink="/" fragment="comment-ca-marche">Comment ça marche</a>
       }
     </nav>
 
@@ -146,10 +145,9 @@
           <li><a routerLink="/carte">Carte interactive</a></li>
           <li><a routerLink="/actions">Actions</a></li>
           <li><a [routerLink]="recompensesLink">Récompenses</a></li>
+          <li><a routerLink="/comment-ca-marche">Comment ça marche</a></li>
           @if (isCitizen) {
             <li><a routerLink="/espace/actions">Mes inscriptions</a></li>
-          } @else {
-            <li><a routerLink="/" fragment="comment-ca-marche">Comment ça marche</a></li>
           }
         </ul>
       </div>
