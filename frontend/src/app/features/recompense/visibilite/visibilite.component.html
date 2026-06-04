@@ -1,92 +1,81 @@
-<!-- ─── LOADING ─────────────────────────────────────────────── -->
 <div *ngIf="loading" class="loading-page">
   <div class="spinner"></div>
   <p>Chargement des statistiques…</p>
 </div>
 
-<!-- ─── ERREUR ─────────────────────────────────────────────── -->
-<div *ngIf="!loading && erreur" class="alert alert--error">
-  <div class="alert-inner">
-    <span class="alert-icon">⚠️</span>
-    <div><strong>Erreur</strong><p>{{ erreur }}</p></div>
-  </div>
-  <button class="btn btn--outline btn--sm" (click)="charger()">Réessayer</button>
+<div *ngIf="!loading && erreur" class="state-card state-card--error" role="alert">
+  <h2>Impossible de charger la visibilité</h2>
+  <p>{{ erreur }}</p>
+  <button type="button" class="btn btn--primary btn--sm" (click)="charger()">Réessayer</button>
 </div>
 
-<!-- ─── CONTENU ───────────────────────────────────────────── -->
-<div *ngIf="!loading && data && !erreur" class="visibilite-page">
-
-  <!-- Header -->
-  <div class="page-header">
+<div *ngIf="!loading && data && !erreur" class="p-page">
+  <div class="p-page-head">
     <div>
-      <span class="page-eyebrow">— VISIBILITÉ</span>
-      <h1 class="page-title">Visibilité.</h1>
+      <span class="page-eyebrow">Visibilité</span>
+      <h1 class="page-title">Impact et notoriété</h1>
       <p class="page-sub">Suivez l'impact de votre présence sur Ecopria et votre niveau de partenariat.</p>
     </div>
-    <span class="badge badge--sage badge--pill" style="font-size:0.8rem; padding:0.4rem 1rem;">
-      🏆 {{ data.badgeActuel }}
-    </span>
+    <span class="badge badge--sage badge--pill">{{ data.badgeActuel }}</span>
   </div>
 
-  <!-- KPIs -->
-  <div class="vis-grid">
-    <div class="vis-card">
-      <span class="vis-icon">👁️</span>
-      <span class="vis-value">{{ data.vuesProfil | number }}</span>
-      <span class="vis-label">Vues du profil</span>
-    </div>
-    <div class="vis-card">
-      <span class="vis-icon">🖱️</span>
-      <span class="vis-value">{{ data.clicsOffres | number }}</span>
-      <span class="vis-label">Clics vers les offres</span>
-    </div>
-    <div class="vis-card">
-      <span class="vis-icon">📊</span>
-      <span class="vis-value">{{ data.tauxClic }}%</span>
-      <span class="vis-label">Taux de clic</span>
-    </div>
-    <div class="vis-card">
-      <span class="vis-icon">🎟️</span>
-      <span class="vis-value">{{ data.couponsDistribues | number }}</span>
-      <span class="vis-label">Coupons distribués</span>
-    </div>
-    <div class="vis-card">
-      <span class="vis-icon">✅</span>
-      <span class="vis-value">{{ data.couponsUtilises | number }}</span>
-      <span class="vis-label">Coupons utilisés</span>
-    </div>
-    <div class="vis-card">
-      <span class="vis-icon">🔄</span>
-      <span class="vis-value">{{ data.tauxConversion }}%</span>
-      <span class="vis-label">Taux de conversion</span>
-    </div>
-    <div class="vis-card vis-card--accent">
-      <span class="vis-icon">⭐</span>
-      <span class="vis-value">{{ data.noteMoyenne ?? '—' }}</span>
-      <span class="vis-label">Note moyenne ({{ data.nombreAvis }} avis)</span>
-    </div>
-  </div>
-
-  <!-- Progression Badges -->
-  <section class="badges-section card">
-    <h2 class="card-section-title">Progression des badges</h2>
-    <p class="card-section-sub">Continuez à générer des échanges pour débloquer les niveaux supérieurs.</p>
-
-    <div class="badges-list">
-      <div class="badge-row" *ngFor="let b of data.progressionBadges">
-        <div class="badge-info">
-          <span class="badge-name">{{ b.nom }}</span>
-          <span class="badge-seuil">{{ b.actuel | number }} / {{ b.seuil | number }} coupons</span>
-        </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar">
-            <div class="progress-fill" [style.width.%]="b.pourcentage"></div>
-          </div>
-          <span class="progress-pct">{{ b.pourcentage }}%</span>
-        </div>
-        <span class="badge-check" *ngIf="b.atteint">✅</span>
-        <span class="badge-check badge-check--empty" *ngIf="!b.atteint">◻</span>
+  <div class="p-section">
+    <div class="p-stats-grid">
+      <div class="p-stat-card">
+        <span class="p-stat-tag">Profil</span>
+        <span class="p-stat-value">{{ data.vuesProfil | number }}</span>
+        <span class="p-stat-label">Vues du profil</span>
+      </div>
+      <div class="p-stat-card">
+        <span class="p-stat-tag">Offres</span>
+        <span class="p-stat-value">{{ data.clicsOffres | number }}</span>
+        <span class="p-stat-label">Clics vers les offres</span>
+      </div>
+      <div class="p-stat-card p-stat-card--sage">
+        <span class="p-stat-tag">Clic</span>
+        <span class="p-stat-value">{{ data.tauxClic }}%</span>
+        <span class="p-stat-label">Taux de clic</span>
+      </div>
+      <div class="p-stat-card">
+        <span class="p-stat-tag">Coupons</span>
+        <span class="p-stat-value">{{ data.couponsDistribues | number }}</span>
+        <span class="p-stat-label">Distribués</span>
+      </div>
+      <div class="p-stat-card">
+        <span class="p-stat-tag">Validés</span>
+        <span class="p-stat-value">{{ data.couponsUtilises | number }}</span>
+        <span class="p-stat-label">Utilisés</span>
+      </div>
+      <div class="p-stat-card">
+        <span class="p-stat-tag">Conversion</span>
+        <span class="p-stat-value">{{ data.tauxConversion }}%</span>
+        <span class="p-stat-label">Taux de conversion</span>
+      </div>
+      <div class="p-stat-card p-stat-card--dark">
+        <span class="p-stat-tag">Avis</span>
+        <span class="p-stat-value">{{ data.noteMoyenne ?? '—' }}</span>
+        <span class="p-stat-label">{{ data.nombreAvis }} avis</span>
       </div>
     </div>
-  </section>
+
+    <div class="p-panel" style="margin-top: 1rem">
+      <h2 class="p-panel-title">Progression des badges</h2>
+      <p class="p-panel-sub">Continuez à générer des échanges pour débloquer les niveaux supérieurs.</p>
+
+      <div class="p-badge-list">
+        <div class="p-badge-row" *ngFor="let b of data.progressionBadges">
+          <div class="p-list-body" style="max-width: 200px">
+            <strong>{{ b.nom }}</strong>
+            <span>{{ b.actuel | number }} / {{ b.seuil | number }} coupons</span>
+          </div>
+          <div class="p-progress-bar">
+            <div class="p-progress-fill" [style.width.%]="b.pourcentage"></div>
+          </div>
+          <span class="badge" [ngClass]="b.atteint ? 'badge--green' : 'badge--muted'">
+            {{ b.atteint ? 'Atteint' : b.pourcentage + '%' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

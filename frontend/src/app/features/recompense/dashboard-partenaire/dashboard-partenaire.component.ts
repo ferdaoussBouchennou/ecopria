@@ -15,6 +15,7 @@ export class DashboardPartenaireComponent implements OnInit {
   data: DashboardPartenaire | null = null;
   loading = true;
   erreur = '';
+  erreurConnexion = false;
 
   constructor(private partenaireService: PartenaireService) {}
 
@@ -25,6 +26,7 @@ export class DashboardPartenaireComponent implements OnInit {
   charger(): void {
     this.loading = true;
     this.erreur = '';
+    this.erreurConnexion = false;
     this.partenaireService.getDashboard().subscribe({
       next: (d) => {
         this.data = d;
@@ -32,6 +34,8 @@ export class DashboardPartenaireComponent implements OnInit {
       },
       error: (e: Error) => {
         this.erreur = e.message;
+        this.erreurConnexion =
+          /joindre|démarrés|serveur|connexion/i.test(e.message);
         this.loading = false;
       }
     });
@@ -60,6 +64,16 @@ export class DashboardPartenaireComponent implements OnInit {
       EXPIRE: 'badge--muted'
     };
     return map[status] ?? 'badge--muted';
+  }
+
+  get heroKpis() {
+    if (!this.data) return [];
+    return [
+      { label: 'Coupons utilisés', value: this.data.couponsUtilises, format: 'number' },
+      { label: 'Taux conversion', value: this.data.tauxUtilisation, format: 'percent' },
+      { label: 'Commissions du mois', value: this.data.commissionsARegler, format: 'currency' },
+      { label: 'Vues profil', value: this.data.vuesProfil ?? 0, format: 'number' },
+    ];
   }
 
   get kpis() {

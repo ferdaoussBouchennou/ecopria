@@ -4,60 +4,57 @@
   <p>Chargement des commissions…</p>
 </div>
 
-<!-- ─── ERREUR ─────────────────────────────────────────────── -->
-<div *ngIf="!loading && erreur" class="alert alert--error">
-  <div class="alert-inner">
-    <span class="alert-icon">⚠️</span>
-    <div><strong>Erreur</strong><p>{{ erreur }}</p></div>
-  </div>
-  <button class="btn btn--outline btn--sm" (click)="charger()">Réessayer</button>
+<div *ngIf="!loading && erreur" class="state-card state-card--error" role="alert">
+  <h2>Impossible de charger les commissions</h2>
+  <p>{{ erreur }}</p>
+  <button type="button" class="btn btn--primary btn--sm" (click)="charger()">Réessayer</button>
 </div>
 
-<!-- ─── CONTENU ───────────────────────────────────────────── -->
-<div *ngIf="!loading && !erreur" class="commissions-page">
-
-  <!-- Header -->
-  <div class="page-header">
+<div *ngIf="!loading && !erreur" class="p-page">
+  <div class="p-page-head">
     <div>
-      <span class="page-eyebrow">— COMMISSIONS</span>
-      <h1 class="page-title">Commissions.</h1>
-      <p class="page-sub">Historique mensuel des commissions générées par les échanges de coupons.</p>
+      <span class="page-eyebrow">Commissions</span>
+      <h1 class="page-title">Suivi des commissions</h1>
+      <p class="page-sub">Historique mensuel des commissions générées par les coupons validés.</p>
     </div>
   </div>
 
-  <!-- Banner à régler -->
-  <div class="banner-aregler" *ngIf="commissionMoisEnCours > 0">
-    <span class="banner-icon">💰</span>
+  <div class="p-section">
+
+  <div class="p-banner" *ngIf="commissionMoisEnCours > 0">
+    <span class="p-banner-tag">À régler</span>
     <div>
       <strong>{{ commissionMoisEnCours | number:'1.0-2' }} DH à payer pour {{ moisActuel }}</strong>
-      <p>Les commissions sont calculées à <strong>{{ tauxCommission }}%</strong> sur la base de vos offres échangées et validées ce mois.</p>
+      <p>Commissions calculées à <strong>{{ tauxCommission }}%</strong> sur les coupons validés ce mois.</p>
     </div>
   </div>
 
-  <!-- Totaux -->
-  <div class="totaux-grid" *ngIf="commissions.length > 0">
-    <div class="total-card total-card--highlight">
-      <span class="total-value">{{ commissionMoisEnCours | number:'1.0-2' }} DH</span>
-      <span class="total-label">Commission {{ moisActuel }}</span>
+  <div class="p-stats-grid" *ngIf="commissions.length > 0">
+    <div class="p-stat-card p-stat-card--dark">
+      <span class="p-stat-tag">Ce mois</span>
+      <span class="p-stat-value">{{ commissionMoisEnCours | number:'1.0-2' }} DH</span>
+      <span class="p-stat-label">Commission {{ moisActuel }}</span>
     </div>
-    <div class="total-card">
-      <span class="total-value">{{ totalCoupons | number }}</span>
-      <span class="total-label">Total coupons utilisés</span>
+    <div class="p-stat-card">
+      <span class="p-stat-tag">Coupons</span>
+      <span class="p-stat-value">{{ totalCoupons | number }}</span>
+      <span class="p-stat-label">Total utilisés</span>
     </div>
-    <div class="total-card">
-      <span class="total-value">{{ totalCa | number:'1.0-0' }} DH</span>
-      <span class="total-label">CA total généré</span>
+    <div class="p-stat-card p-stat-card--sage">
+      <span class="p-stat-tag">CA</span>
+      <span class="p-stat-value">{{ totalCa | number:'1.0-0' }}</span>
+      <span class="p-stat-label">DH générés</span>
     </div>
-    <div class="total-card total-card--accent">
-      <span class="total-value">{{ totalCommissions | number:'1.0-2' }} DH</span>
-      <span class="total-label">Total commissions (historique)</span>
+    <div class="p-stat-card">
+      <span class="p-stat-tag">Cumul</span>
+      <span class="p-stat-value">{{ totalCommissions | number:'1.0-2' }}</span>
+      <span class="p-stat-label">DH commissions (historique)</span>
     </div>
   </div>
 
-  <!-- Tableau mensuel -->
-  <div class="card table-container" *ngIf="commissions.length > 0">
-    <div class="table-head-bar">
-      <h2 class="table-title">Historique mensuel</h2>
+  <div class="p-panel p-table-panel" *ngIf="commissions.length > 0">
+    <div class="p-panel-head">
+      <h2 class="p-panel-title">Historique mensuel</h2>
     </div>
     <div class="table-wrap">
       <table class="data-table">
@@ -93,7 +90,6 @@
 
   <!-- Empty state -->
   <div *ngIf="commissions.length === 0" class="empty-state">
-    <span class="empty-icon">📊</span>
     <p class="empty-title">Aucune commission enregistrée</p>
     <p class="empty-text">
       Les commissions sont générées lorsque vos clients font valider leurs coupons.
@@ -105,7 +101,10 @@
   <!-- Explication calcul -->
   <div class="alert alert--info" style="margin-top:1.5rem">
     <div class="alert-inner">
-      <span class="alert-icon">ℹ️</span>
+      <svg class="p-page-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10 9V14M10 6H10.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
       <div>
         <strong>Comment sont calculées les commissions ?</strong>
         <p style="margin-top:0.25rem">
@@ -116,5 +115,6 @@
         </p>
       </div>
     </div>
+  </div>
   </div>
 </div>

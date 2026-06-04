@@ -5,37 +5,39 @@
 </div>
 
 <!-- ─── FORM ──────────────────────────────────────────────────── -->
-<div *ngIf="!loadingOffre" class="creer-page">
-
-  <!-- Header -->
-  <div class="page-header">
+<div *ngIf="!loadingOffre" class="p-page">
+  <div class="p-page-head">
     <div>
-      <span class="page-eyebrow">— {{ editId ? 'MODIFIER OFFRE' : 'NOUVELLE OFFRE' }}</span>
-      <h1 class="page-title">{{ pageTitle }}.</h1>
+      <span class="page-eyebrow">{{ editId ? 'Modifier offre' : 'Nouvelle offre' }}</span>
+      <h1 class="page-title">{{ pageTitle }}</h1>
       <p class="page-sub">
-        {{ editId ? 'Modifiez les informations de votre offre.' : 'Créez une nouvelle offre pour vos clients Ecopria.' }}
+        {{ editId ? 'Modifiez les informations de votre offre.' : 'Créez une offre pour vos clients Ecopria.' }}
       </p>
     </div>
-    <a routerLink="/partenaire/offres" class="btn btn--ghost">
-      ← Retour aux offres
-    </a>
+    <a routerLink="/partenaire/offres" class="btn btn--ghost">Retour aux offres</a>
   </div>
 
-  <!-- Alerts -->
+  <div class="p-section">
   <div *ngIf="succes" class="alert alert--success">
     <div class="alert-inner">
-      <span class="alert-icon">✅</span>
+      <svg class="p-page-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M6.5 10.2L9 12.7L13.8 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
       <div><strong>{{ succes }}</strong></div>
     </div>
   </div>
   <div *ngIf="erreur" class="alert alert--error">
     <div class="alert-inner">
-      <span class="alert-icon">⚠️</span>
+      <svg class="p-page-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M10 6V11M10 14H10.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
       <div><strong>Erreur</strong><p>{{ erreur }}</p></div>
     </div>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="submit()" class="form-layout">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="p-form-layout form-layout">
 
     <!-- ─── Colonne principale ─────────────────────────────────── -->
     <div class="form-main">
@@ -211,4 +213,5 @@
     </aside>
 
   </form>
+  </div>
 </div>

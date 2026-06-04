@@ -4,43 +4,37 @@
   <p>Chargement du profil…</p>
 </div>
 
-<!-- ─── ERREUR ─────────────────────────────────────────────── -->
-<div *ngIf="!loading && erreur" class="alert alert--error">
-  <div class="alert-inner">
-    <span class="alert-icon">⚠️</span>
-    <div>
-      <strong>Erreur</strong>
-      <p>{{ erreur }}</p>
-    </div>
-  </div>
+<div *ngIf="!loading && erreur" class="state-card state-card--error" role="alert">
+  <h2>Impossible de charger le profil</h2>
+  <p>{{ erreur }}</p>
 </div>
 
-<!-- ─── CONTENU ───────────────────────────────────────────── -->
-<div *ngIf="!loading && (profil || erreur === '')" class="profil-page">
-
-  <div class="page-header">
+<div *ngIf="!loading && (profil || erreur === '')" class="p-page">
+  <div class="p-page-head">
     <div>
-      <span class="page-eyebrow">— PROFIL PUBLIC</span>
-      <h1 class="page-title">Profil public.</h1>
+      <span class="page-eyebrow">Profil public</span>
+      <h1 class="page-title">Votre vitrine Ecopria</h1>
       <p class="page-sub">
-        Ces informations sont visibles par les utilisateurs d'Ecopria.
-        Complétez votre profil pour améliorer votre visibilité.
+        Ces informations sont visibles par les utilisateurs. Un profil complet améliore votre visibilité.
       </p>
     </div>
     <button class="btn btn--outline" (click)="voirPagePublique()" type="button">
-      <span>👁️</span> Voir ma page publique →
+      Voir ma page publique
     </button>
   </div>
 
-  <!-- Alerts -->
+  <div class="p-section">
   <div *ngIf="succes" class="alert alert--success">
     <div class="alert-inner">
-      <span class="alert-icon">✅</span>
+      <svg class="p-page-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M6.5 10.2L9 12.7L13.8 7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
       <div><strong>{{ succes }}</strong></div>
     </div>
   </div>
 
-  <div class="profil-layout">
+  <div class="p-profil-layout profil-layout">
 
     <!-- ─── Formulaire ─────────────────────────────────────── -->
     <div class="card form-card">
@@ -172,7 +166,11 @@
         <img [src]="form.imageUrl" [alt]="form.name || 'Aperçu'" (error)="onImgError($event)" />
       </div>
       <div class="image-preview image-preview--empty" *ngIf="!form.imageUrl">
-        <span class="empty-img-icon">🖼️</span>
+        <svg class="p-page-icon--lg empty-img-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="9" cy="10" r="1.5" fill="currentColor"/>
+          <path d="M4 16L9 11L13 15L20 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         <p>Aucune image sélectionnée</p>
       </div>
 
@@ -182,5 +180,6 @@
       </div>
       <p class="gallery-empty" *ngIf="!form.galleryImages?.length">Aucune photo de galerie.</p>
     </div>
+  </div>
   </div>
 </div>

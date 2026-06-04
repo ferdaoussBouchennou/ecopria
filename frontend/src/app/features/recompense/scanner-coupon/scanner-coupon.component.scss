@@ -40,6 +40,12 @@
 }
 
 // ─── Toggle 3 onglets ─────────────────────────────────────────
+.btn--toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .scanner-mode-toggle {
   display: flex;
   gap: 0.5rem;
@@ -291,6 +297,9 @@
 
 // Erreur upload
 .upload-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
   margin-top: 0.75rem;
   padding: 0.75rem 1rem;
   background: #FEF2F2;
