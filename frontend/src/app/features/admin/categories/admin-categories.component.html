@@ -9,56 +9,87 @@
     <p class="admin-muted cat-msg">{{ message }}</p>
   }
 
-  @if (loading) {
+  @if (loading || actionDbLoading) {
     <p class="admin-muted">Chargement…</p>
-  } @else if (error && items.length === 0) {
+  } @else if (error && displayCategories.length === 0) {
     <div class="admin-alert admin-alert--error">{{ error }}</div>
   } @else {
     @if (error) {
       <div class="admin-alert admin-alert--error">{{ error }}</div>
     }
+    @if (actionDbError) {
+      <div class="admin-alert admin-alert--error">{{ actionDbError }}</div>
+    }
 
     <h2 class="section-title">Catégories existantes</h2>
     <div class="cat-grid">
-      @if (items.length === 0) {
+      @if (displayCategories.length === 0) {
         <p class="admin-muted grid-empty">Aucune catégorie pour le moment.</p>
       } @else {
-        @for (item of items; track item.id) {
+        @for (card of displayCategories; track card.key) {
           <article
             class="cat-card"
-            [class.cat-card--selected]="editingId === item.id"
-            (click)="startEdit(item)"
+            [class.cat-card--selected]="isCardSelected(card)"
+            (click)="openCategory(card)"
             role="button"
             tabindex="0"
-            (keydown.enter)="startEdit(item)"
+            (keydown.enter)="openCategory(card)"
           >
-            <div class="cat-card__media">
-              <img [src]="imageSrc(item)" [alt]="item.nom" loading="lazy" />
+            <div
+              class="cat-card__media"
+              [class.cat-card__media--empty]="!hasCategoryImage(card.imageUrl)"
+            >
+              @if (hasCategoryImage(card.imageUrl)) {
+                <img
+                  [src]="categoryImageUrl(card.imageUrl)"
+                  [alt]="card.name"
+                  loading="lazy"
+                />
+              } @else {
+                <span class="cat-card__media-placeholder">Aucune image</span>
+              }
             </div>
             <div class="cat-card__body">
               <div class="cat-card__head">
-                <h3 class="cat-card__title">{{ item.nom }}</h3>
+                <h3 class="cat-card__title">{{ card.name }}</h3>
                 <span
                   class="status-badge"
-                  [class.status-badge--draft]="item.published === false"
+                  [class.status-badge--draft]="card.published === false"
                 >
-                  {{ statusLabel(item) }}
+                  {{ cardStatusLabel(card) }}
                 </span>
               </div>
-              @if (item.description) {
-                <p class="cat-card__subtitle">{{ item.description }}</p>
+              @if (card.description) {
+                <p class="cat-card__subtitle">{{ card.description }}</p>
+              }
+              @if (card.actionCount > 0) {
+                <p class="cat-card__meta">{{ card.actionCount }} action(s) liée(s)</p>
               }
               <div class="cat-card__actions" (click)="$event.stopPropagation()">
-                <button
-                  type="button"
-                  class="btn-outline"
-                  (click)="togglePublish(item, $event)"
-                >
-                  {{ item.published !== false ? 'Dépublier' : 'Publier' }}
-                </button>
-                <button type="button" class="btn-text" (click)="deleteItem(item, $event)">
-                  Supprimer
-                </button>
+                @if (card.adminItem) {
+                  <button
+                    type="button"
+                    class="btn-outline"
+                    (click)="togglePublish(card.adminItem!, $event)"
+                  >
+                    {{ card.adminItem!.published !== false ? 'Dépublier' : 'Publier' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-text"
+                    (click)="deleteItem(card.adminItem!, $event)"
+                  >
+                    Supprimer
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn-outline"
+                    (click)="openCategory(card); $event.stopPropagation()"
+                  >
+                    Modifier
+                  </button>
+                }
               </div>
             </div>
           </article>
@@ -67,9 +98,12 @@
     </div>
 
     <section class="create-panel">
-      <h2 class="section-title section-title--form">
-        {{ editingId != null ? 'Modifier la catégorie' : 'Nouvelle catégorie' }}
-      </h2>
+      <h2 class="section-title section-title--form">{{ formPanelTitle() }}</h2>
+      @if (editingActionDbOnly) {
+        <p class="form-panel-hint">
+          Enregistrez pour synchroniser cette catégorie et ajouter une image.
+        </p>
+      }
       <form class="create-form" (ngSubmit)="submit()">
         <label class="field">
           <span class="field-label">Nom</span>
@@ -131,7 +165,7 @@
           </div>
         </div>
         <div class="form-actions">
-          @if (editingId != null) {
+          @if (editingId != null || editingActionDbOnly) {
             <button type="button" class="btn-secondary" [disabled]="saving" (click)="startCreate()">
               Annuler
             </button>
@@ -140,7 +174,7 @@
             {{
               saving
                 ? 'Enregistrement…'
-                : (editingId != null ? 'Enregistrer' : 'Créer la catégorie')
+                : (editingId != null || editingActionDbOnly ? 'Enregistrer' : 'Créer la catégorie')
             }}
           </button>
         </div>
@@ -148,3 +182,87 @@
     </section>
   }
 </section>
+
+@if (deleteModalOpen) {
+  <div class="delete-modal-backdrop" (click)="closeDeleteModal()">
+    <div
+      class="delete-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="delete-modal-title" class="delete-modal__title">Confirmer la suppression</h2>
+
+      @if (deletePreviewLoading) {
+        <p class="admin-muted">Chargement des actions liées…</p>
+      } @else if (deletePreview) {
+        @if (deletePreview.actionCount === 0) {
+          <p class="delete-modal__text">
+            Êtes-vous sûr de vouloir supprimer la catégorie
+            <strong>« {{ deletePreview.nom }} »</strong> ?
+          </p>
+          <p class="delete-modal__hint">Aucune action n'utilise cette catégorie.</p>
+        } @else {
+          <p class="delete-modal__text">
+            Êtes-vous sûr de vouloir supprimer la catégorie
+            <strong>« {{ deletePreview.nom }} »</strong> ?
+          </p>
+          <p class="delete-modal__warning">
+            Si vous confirmez, vous supprimerez aussi
+            {{ deletePreview.actionCount }} action(s) :
+          </p>
+          <ul class="delete-modal__list">
+            @for (action of deletePreview.linkedActions; track action.id) {
+              <li>
+                <span class="delete-modal__action-title">{{ action.title }}</span>
+                <span class="delete-modal__action-meta">
+                  #{{ action.id }}
+                  · {{ actionStatusLabel(action.status) }}
+                  @if (action.city) {
+                    · {{ action.city }}
+                  }
+                  @if (action.associationName) {
+                    · {{ action.associationName }}
+                  }
+                  @if (action.isFixed) {
+                    · Fixe
+                  }
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      }
+
+      @if (deleteModalError) {
+        <div class="admin-alert admin-alert--error delete-modal__error">{{ deleteModalError }}</div>
+      }
+
+      <div class="delete-modal__actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          [disabled]="deleteConfirmLoading"
+          (click)="closeDeleteModal()"
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          class="btn-danger"
+          [disabled]="deletePreviewLoading || !deletePreview || deleteConfirmLoading"
+          (click)="confirmDelete()"
+        >
+          {{
+            deleteConfirmLoading
+              ? 'Suppression…'
+              : (deletePreview && deletePreview.actionCount > 0
+                  ? 'Supprimer la catégorie et les actions'
+                  : 'Supprimer la catégorie')
+          }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

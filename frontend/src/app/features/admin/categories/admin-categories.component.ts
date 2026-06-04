@@ -3,9 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AdminService } from '../../../core/services/admin.service';
-import { AdminCategorie, AdminCategorieRequest } from '../../../core/models/admin.model';
-import { getCategoryImageUrl } from '../../action/utils/category-image.util';
-
+import {
+  AdminCategorie,
+  AdminCategorieRequest,
+  ActionDbCategory,
+  CategoryCardView,
+  CategoryDeletePreview,
+} from '../../../core/models/admin.model';
 @Component({
   selector: 'app-admin-categories',
   standalone: true,
@@ -19,7 +23,17 @@ export class AdminCategoriesComponent implements OnInit {
   error = '';
   message = '';
   items: AdminCategorie[] = [];
+  actionDbCategories: ActionDbCategory[] = [];
+  actionDbLoading = false;
+  actionDbError = '';
   editingId: number | null = null;
+  editingActionDbOnly: string | null = null;
+
+  deleteModalOpen = false;
+  deletePreview: CategoryDeletePreview | null = null;
+  deletePreviewLoading = false;
+  deleteConfirmLoading = false;
+  deleteModalError = '';
 
   form: AdminCategorieRequest = this.emptyForm();
   imagePreview: string | null = null;
@@ -30,12 +44,15 @@ export class AdminCategoriesComponent implements OnInit {
   constructor(private admin: AdminService) {}
 
   ngOnInit(): void {
-    this.reload();
+    this.loadAll();
   }
 
-  reload(): void {
+  loadAll(): void {
     this.loading = true;
+    this.actionDbLoading = true;
     this.error = '';
+    this.actionDbError = '';
+
     this.admin.getCategories().subscribe({
       next: (list) => {
         this.items = list ?? [];
@@ -47,16 +64,71 @@ export class AdminCategoriesComponent implements OnInit {
           'Impossible de charger les catégories. Vérifiez que admin-service (8087) et la gateway (8080) sont démarrés.';
       },
     });
+
+    this.admin.getActionDbCategories().subscribe({
+      next: (list) => {
+        this.actionDbCategories = list ?? [];
+        this.actionDbLoading = false;
+      },
+      error: () => {
+        this.actionDbLoading = false;
+        this.actionDbError =
+          'Impossible de charger certaines catégories depuis le service action (9090).';
+      },
+    });
+  }
+
+  reload(): void {
+    this.loadAll();
   }
 
   startCreate(): void {
     this.editingId = null;
+    this.editingActionDbOnly = null;
     this.resetForm();
     this.message = '';
   }
 
+  openCategory(card: CategoryCardView): void {
+    if (card.adminItem) {
+      this.startEdit(card.adminItem);
+      return;
+    }
+    this.startEditFromActionDb({
+      id: card.actionDbId ?? 0,
+      name: card.name,
+      description: card.description,
+      imageUrl: card.imageUrl,
+      published: card.published,
+      actionCount: card.actionCount,
+    });
+  }
+
+  startEditFromActionDb(cat: ActionDbCategory): void {
+    const adminItem = this.findAdminItem(cat.name);
+    if (adminItem) {
+      this.editingActionDbOnly = null;
+      this.startEdit(adminItem);
+      return;
+    }
+
+    this.editingId = null;
+    this.editingActionDbOnly = cat.name;
+    this.message = '';
+    this.imageUploadError = '';
+    this.form = {
+      nom: cat.name,
+      description: cat.description ?? '',
+      imageUrl: cat.imageUrl ?? '',
+      published: cat.published !== false,
+    };
+    this.imageFileName = '';
+    this.imagePreview = cat.imageUrl?.trim() ? this.resolveImageUrl(cat.imageUrl) : null;
+  }
+
   startEdit(item: AdminCategorie): void {
     this.editingId = item.id;
+    this.editingActionDbOnly = null;
     this.message = '';
     this.imageUploadError = '';
     this.form = {
@@ -95,7 +167,9 @@ export class AdminCategoriesComponent implements OnInit {
         this.message =
           this.editingId != null
             ? `Catégorie « ${body.nom} » mise à jour.`
-            : `Catégorie « ${body.nom} » créée.`;
+            : this.editingActionDbOnly
+              ? `Catégorie « ${body.nom} » enregistrée et synchronisée.`
+              : `Catégorie « ${body.nom} » créée.`;
         this.startCreate();
         this.reload();
       },
@@ -127,35 +201,153 @@ export class AdminCategoriesComponent implements OnInit {
 
   deleteItem(item: AdminCategorie, event: Event): void {
     event.stopPropagation();
-    if (!confirm(`Supprimer la catégorie « ${item.nom} » ?`)) {
-      return;
-    }
-    this.admin.deleteCategory(item.id).subscribe({
-      next: () => {
-        this.message = `Catégorie « ${item.nom} » supprimée.`;
-        if (this.editingId === item.id) {
-          this.startCreate();
-        }
-        this.reload();
+    this.deleteModalOpen = true;
+    this.deletePreview = null;
+    this.deleteModalError = '';
+    this.deletePreviewLoading = true;
+
+    this.admin.getCategoryDeletePreview(item.id).subscribe({
+      next: (preview) => {
+        this.deletePreview = preview;
+        this.deletePreviewLoading = false;
       },
       error: (err: HttpErrorResponse) => {
-        this.error = this.extractError(
+        this.deletePreviewLoading = false;
+        this.deleteModalError = this.extractError(
           err,
-          'Suppression impossible (catégorie peut-être utilisée par des actions).'
+          'Impossible de préparer la suppression.'
         );
       },
     });
   }
 
-  imageSrc(item: AdminCategorie): string {
-    if (item.imageUrl?.trim()) {
-      return this.resolveImageUrl(item.imageUrl);
+  closeDeleteModal(): void {
+    if (this.deleteConfirmLoading) {
+      return;
     }
-    return getCategoryImageUrl(item.nom);
+    this.deleteModalOpen = false;
+    this.deletePreview = null;
+    this.deleteModalError = '';
+  }
+  confirmDelete(): void {
+    if (!this.deletePreview) {
+      return;
+    }
+    const preview = this.deletePreview;
+    const cascade = preview.actionCount > 0;
+    this.deleteConfirmLoading = true;
+    this.deleteModalError = '';
+
+    this.admin.deleteCategory(preview.id, cascade).subscribe({
+      next: () => {
+        this.deleteConfirmLoading = false;
+        this.deleteModalOpen = false;
+        this.deletePreview = null;
+        this.message = cascade
+          ? `Catégorie « ${preview.nom} » et ${preview.actionCount} action(s) supprimée(s).`
+          : `Catégorie « ${preview.nom} » supprimée.`;
+        if (this.editingId === preview.id) {
+          this.startCreate();
+        }
+        this.reload();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.deleteConfirmLoading = false;
+        this.deleteModalError = this.extractError(err, 'Suppression impossible.');
+      },
+    });
   }
 
-  statusLabel(item: AdminCategorie): string {
-    return item.published !== false ? 'PUBLIÉE' : 'BROUILLON';
+  actionStatusLabel(status?: string): string {
+    switch (status) {
+      case 'PUBLISHED':
+        return 'Publiée';
+      case 'DRAFT':
+        return 'Brouillon';
+      case 'CANCELLED':
+        return 'Annulée';
+      case 'COMPLETED':
+        return 'Terminée';
+      default:
+        return status ?? '—';
+    }
+  }
+
+  get displayCategories(): CategoryCardView[] {
+    const map = new Map<string, CategoryCardView>();
+
+    for (const cat of this.actionDbCategories) {
+      const key = cat.name.trim().toLowerCase();
+      map.set(key, {
+        key: `action-${cat.id}`,
+        name: cat.name,
+        description: cat.description,
+        imageUrl: cat.imageUrl,
+        published: cat.published,
+        actionCount: cat.actionCount,
+        adminItem: null,
+        actionDbId: cat.id,
+      });
+    }
+
+    for (const item of this.items) {
+      const key = item.nom.trim().toLowerCase();
+      const existing = map.get(key);
+      map.set(key, {
+        key: `admin-${item.id}`,
+        name: item.nom,
+        description: item.description ?? existing?.description,
+        imageUrl: item.imageUrl ?? existing?.imageUrl,
+        published: item.published ?? existing?.published,
+        actionCount: existing?.actionCount ?? 0,
+        adminItem: item,
+        actionDbId: existing?.actionDbId,
+      });
+    }
+
+    return Array.from(map.values()).sort((a, b) =>
+      a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
+    );
+  }
+
+  isCardSelected(card: CategoryCardView): boolean {
+    if (card.adminItem && this.editingId === card.adminItem.id) {
+      return true;
+    }
+    return (
+      this.editingActionDbOnly != null &&
+      this.editingActionDbOnly.trim().toLowerCase() === card.name.trim().toLowerCase()
+    );
+  }
+
+  cardStatusLabel(card: CategoryCardView): string {
+    return card.published !== false ? 'PUBLIÉE' : 'BROUILLON';
+  }
+
+  findAdminItem(actionDbName: string): AdminCategorie | null {
+    const normalized = actionDbName.trim().toLowerCase();
+    return this.items.find((item) => item.nom.trim().toLowerCase() === normalized) ?? null;
+  }
+
+  hasCategoryImage(imageUrl?: string | null): boolean {
+    return !!imageUrl?.trim();
+  }
+
+  categoryImageUrl(imageUrl?: string | null): string | null {
+    if (!imageUrl?.trim()) {
+      return null;
+    }
+    return this.resolveImageUrl(imageUrl);
+  }
+
+  formPanelTitle(): string {
+    if (this.editingId != null) {
+      return 'Modifier la catégorie';
+    }
+    if (this.editingActionDbOnly) {
+      return `Modifier « ${this.editingActionDbOnly} »`;
+    }
+    return 'Nouvelle catégorie';
   }
 
   onImageSelected(event: Event): void {

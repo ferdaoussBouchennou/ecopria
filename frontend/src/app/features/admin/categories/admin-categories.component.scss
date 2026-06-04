@@ -75,6 +75,20 @@
   }
 }
 
+.cat-card__media--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border-bottom: 1px dashed #d1d5db;
+}
+
+.cat-card__media-placeholder {
+  font-size: 0.82rem;
+  color: #9ca3af;
+  letter-spacing: 0.02em;
+}
+
 .cat-card__body {
   padding: 1rem 1.1rem 1.1rem;
   display: flex;
@@ -368,5 +382,117 @@
 
   .field-label {
     margin: 0;
+  }
+}
+
+.form-panel-hint {
+  margin: -0.35rem 0 1rem;
+  font-size: 0.88rem;
+  color: var(--ec-text-muted);
+  line-height: 1.45;
+}
+
+.cat-card__meta {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--ec-text-muted);
+  line-height: 1.4;
+}
+
+.delete-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.delete-modal {
+  width: min(100%, 520px);
+  max-height: min(90vh, 640px);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.35rem 1.4rem 1.25rem;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+}
+
+.delete-modal__title {
+  margin: 0 0 0.85rem;
+  font-family: var(--ec-font-serif);
+  font-size: 1.35rem;
+  color: var(--ec-text);
+}
+
+.delete-modal__text {
+  margin: 0 0 0.65rem;
+  line-height: 1.5;
+  color: var(--ec-text);
+}
+
+.delete-modal__hint {
+  margin: 0 0 1rem;
+  color: var(--ec-text-muted);
+  font-size: 0.9rem;
+}
+
+.delete-modal__warning {
+  margin: 0 0 0.65rem;
+  color: #991b1b;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.delete-modal__list {
+  margin: 0 0 1rem;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.delete-modal__action-title {
+  display: block;
+  font-weight: 600;
+  color: var(--ec-text);
+}
+
+.delete-modal__action-meta {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--ec-text-muted);
+}
+
+.delete-modal__error {
+  margin-bottom: 0.85rem;
+}
+
+.delete-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-danger {
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background: #991b1b;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.05);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: wait;
   }
 }

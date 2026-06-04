@@ -26,6 +26,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,7 @@ public class ActionService {
     private final ActionRepository actionRepository;
     private final AssociationRepository associationRepository;
     private final CategorieRepository categorieRepository;
+    private final ActionPhotoRepository actionPhotoRepository;
     private final ActionProducer actionProducer;
     private final PresenceClient presenceClient;
 
@@ -817,14 +819,115 @@ public class ActionService {
     }
 
     @Transactional
+    public Categorie syncCategoryFromAdmin(CategorySyncRequest request) {
+        String newName = trimCategoryName(request.getNom());
+        if (newName == null) {
+            throw new RuntimeException("Le nom de catégorie est obligatoire");
+        }
+        String previousName = trimCategoryName(request.getPreviousNom());
+        String lookupName = previousName != null ? previousName : newName;
+        boolean published = request.getPublished() == null || request.getPublished();
+
+        Optional<Categorie> existing = categorieRepository.findByNameIgnoreCase(lookupName);
+        if (existing.isEmpty() && previousName != null && !previousName.equalsIgnoreCase(newName)) {
+            existing = categorieRepository.findByNameIgnoreCase(newName);
+        }
+
+        if (existing.isPresent()) {
+            Categorie categorie = existing.get();
+            categorie.setName(newName);
+            applyCategoryFields(categorie, request.getDescription(), request.getImageUrl(), published);
+            Categorie saved = categorieRepository.save(categorie);
+            long linkedActions = actionRepository.countByCategoryId(saved.getId());
+            log.info("Catégorie synchronisée '{}' → '{}' ({} action(s) liée(s))",
+                    lookupName, newName, linkedActions);
+            return saved;
+        }
+
+        return ensureCategoryExists(newName, request.getDescription(), request.getImageUrl(), published);
+    }
+
+    @Transactional(readOnly = true)
+    public long countActionsUsingCategoryByName(String name) {
+        String trimmed = trimCategoryName(name);
+        if (trimmed == null) {
+            return 0;
+        }
+        return categorieRepository.findByNameIgnoreCase(trimmed)
+                .map(c -> actionRepository.countByCategoryId(c.getId()))
+                .orElse(0L);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategoryAdminDetailDTO> listAllCategoriesForAdmin() {
+        return categorieRepository.findAllByOrderByNameAsc().stream()
+                .map(c -> CategoryAdminDetailDTO.builder()
+                        .id(c.getId())
+                        .name(c.getName())
+                        .description(c.getDescription())
+                        .imageUrl(c.getImageUrl())
+                        .published(c.getPublished())
+                        .actionCount(actionRepository.countByCategoryId(c.getId()))
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategoryLinkedActionDTO> listActionsLinkedToCategoryByName(String name) {
+        String trimmed = trimCategoryName(name);
+        if (trimmed == null) {
+            return List.of();
+        }
+        Categorie categorie = categorieRepository.findByNameIgnoreCase(trimmed)
+                .orElse(null);
+        if (categorie == null) {
+            return List.of();
+        }
+        return actionRepository.findByCategoryId(categorie.getId()).stream()
+                .map(this::toCategoryLinkedActionDTO)
+                .collect(Collectors.toList());
+    }
+
+    private CategoryLinkedActionDTO toCategoryLinkedActionDTO(Action action) {
+        return CategoryLinkedActionDTO.builder()
+                .id(action.getId())
+                .title(action.getTitle())
+                .status(action.getStatus() != null ? action.getStatus().name() : null)
+                .city(action.getCity())
+                .associationName(
+                        action.getAssociation() != null ? action.getAssociation().getName() : null
+                )
+                .isFixed(action.getIsFixed())
+                .build();
+    }
+
+    private static String trimCategoryName(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    @Transactional
     public void deleteCategory(Long id) {
+        deleteCategory(id, false);
+    }
+
+    @Transactional
+    public void deleteCategory(Long id, boolean cascade) {
         Categorie categorie = categorieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Catégorie introuvable: " + id));
-        deleteCategoryEntity(categorie);
+        deleteCategoryEntity(categorie, cascade);
     }
 
     @Transactional
     public void deleteCategoryByName(String name) {
+        deleteCategoryByName(name, false);
+    }
+
+    @Transactional
+    public void deleteCategoryByName(String name, boolean cascade) {
         String trimmed = name == null ? "" : name.trim();
         Categorie categorie = categorieRepository.findByNameIgnoreCase(trimmed)
                 .orElse(null);
@@ -832,32 +935,57 @@ public class ActionService {
             log.info("Catégorie '{}' absente de db_action — rien à supprimer", trimmed);
             return;
         }
-        deleteCategoryEntity(categorie);
+        deleteCategoryEntity(categorie, cascade);
     }
 
-    private void deleteCategoryEntity(Categorie categorie) {
-        if (actionRepository.countByCategoryId(categorie.getId()) > 0) {
+    private void deleteCategoryEntity(Categorie categorie, boolean cascade) {
+        long linked = actionRepository.countByCategoryId(categorie.getId());
+        if (linked > 0 && !cascade) {
             throw new RuntimeException(
-                    "Impossible de supprimer cette catégorie : des actions y sont rattachées."
+                    "Impossible de supprimer « " + categorie.getName() + " » : "
+                            + linked + " action(s) utilisent cette catégorie."
             );
         }
+        if (cascade && linked > 0) {
+            deleteActionsForCategory(categorie.getId());
+        }
         categorieRepository.delete(categorie);
-        log.info("Catégorie supprimée dans db_action: {}", categorie.getName());
+        log.info("Catégorie supprimée dans db_action: {} ({} action(s) supprimée(s))",
+                categorie.getName(), cascade ? linked : 0);
+    }
+
+    private void deleteActionsForCategory(Long categoryId) {
+        List<Action> actions = actionRepository.findByCategoryId(categoryId);
+        for (Action action : actions) {
+            actionPhotoRepository.deleteByActionId(action.getId());
+        }
+        actionRepository.deleteAll(actions);
+        log.info("{} action(s) supprimée(s) pour la catégorie id={}", actions.size(), categoryId);
     }
 
     @Transactional
     public void updateCategorie(String name, Map<String, Object> event) {
-        categorieRepository.findByNameIgnoreCase(name).ifPresent(cat -> {
-            if (event.containsKey("description"))
-                cat.setDescription(event.get("description").toString());
-            if (event.containsKey("imageUrl"))
-                cat.setImageUrl(event.get("imageUrl").toString());
-            if (event.containsKey("published") && event.get("published") != null) {
-                cat.setPublished(Boolean.parseBoolean(event.get("published").toString()));
-            }
-            categorieRepository.save(cat);
-            log.info("Catégorie mise à jour en local: {}", name);
-        });
+        String newName = name;
+        if (event.get("nom") != null) {
+            newName = event.get("nom").toString();
+        }
+        String previousName = event.get("previousNom") != null
+                ? event.get("previousNom").toString()
+                : newName;
+
+        CategorySyncRequest request = new CategorySyncRequest();
+        request.setPreviousNom(previousName);
+        request.setNom(newName);
+        if (event.containsKey("description")) {
+            request.setDescription(event.get("description").toString());
+        }
+        if (event.containsKey("imageUrl")) {
+            request.setImageUrl(event.get("imageUrl").toString());
+        }
+        if (event.containsKey("published") && event.get("published") != null) {
+            request.setPublished(Boolean.parseBoolean(event.get("published").toString()));
+        }
+        syncCategoryFromAdmin(request);
     }
 
     private void applyCategoryFields(

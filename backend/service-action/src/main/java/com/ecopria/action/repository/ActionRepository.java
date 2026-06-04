@@ -19,6 +19,8 @@ public interface ActionRepository extends JpaRepository<Action, Long> {
     // filtrer par catégorie et statut
     List<Action> findByCategoryIdAndStatus(Long categoryId, ActionStatus status);
 
+    List<Action> findByCategoryId(Long categoryId);
+
     long countByCategoryId(Long categoryId);
 
     // actions d'une association
