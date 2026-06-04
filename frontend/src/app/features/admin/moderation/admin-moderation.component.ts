@@ -8,8 +8,7 @@ import {
   ModerationActionStatus,
   ModerationFilter,
 } from '../../../core/models/admin.model';
-import { SITE_IMAGES } from '../../../core/constants/site-images';
-import { getCategoryMeta } from '../../action/constants/category-meta';
+import { getCategoryImageUrl } from '../../action/utils/category-image.util';
 
 @Component({
   selector: 'app-admin-moderation',
@@ -174,14 +173,9 @@ export class AdminModerationComponent implements OnInit {
       const url = photos[0];
       return url.startsWith('http') || url.startsWith('/') ? url : '/' + url;
     }
-    if (item.categoryImageUrl?.trim()) {
-      const url = item.categoryImageUrl.trim();
-      return url.startsWith('http') || url.startsWith('/') ? url : '/' + url;
-    }
     if (item.categoryName) {
-      const slug = getCategoryMeta(item.categoryName).slug;
-      const fallback = SITE_IMAGES.categories[slug as keyof typeof SITE_IMAGES.categories];
-      return fallback ?? SITE_IMAGES.categories.nettoyage;
+      const url = getCategoryImageUrl(item.categoryName, item.categoryImageUrl);
+      return url.startsWith('http') || url.startsWith('/') ? url : '/' + url;
     }
     return null;
   }

@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AdminService } from '../../../core/services/admin.service';
 import { AdminCategorie, AdminCategorieRequest } from '../../../core/models/admin.model';
-import { SITE_IMAGES } from '../../../core/constants/site-images';
-import { getCategoryMeta } from '../../action/constants/category-meta';
+import { getCategoryImageUrl } from '../../action/utils/category-image.util';
 
 @Component({
   selector: 'app-admin-categories',
@@ -152,9 +151,7 @@ export class AdminCategoriesComponent implements OnInit {
     if (item.imageUrl?.trim()) {
       return this.resolveImageUrl(item.imageUrl);
     }
-    const slug = getCategoryMeta(item.nom).slug;
-    const fallback = SITE_IMAGES.categories[slug as keyof typeof SITE_IMAGES.categories];
-    return fallback ?? SITE_IMAGES.categories.nettoyage;
+    return getCategoryImageUrl(item.nom);
   }
 
   statusLabel(item: AdminCategorie): string {
