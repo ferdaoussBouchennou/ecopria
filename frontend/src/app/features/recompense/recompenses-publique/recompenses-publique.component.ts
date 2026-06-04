@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -16,6 +16,7 @@ import {
 } from '../../../core/models/recompense.model';
 
 type FilterKey = 'ALL' | RecompenseType | 'MYSTERE';
+type MystereScenePhase = 'idle' | 'opening' | 'confirm' | 'result';
 
 @Component({
   selector: 'app-recompenses-publique',
@@ -24,7 +25,7 @@ type FilterKey = 'ALL' | RecompenseType | 'MYSTERE';
   templateUrl: './recompenses-publique.component.html',
   styleUrls: ['./recompenses-publique.component.scss']
 })
-export class RecompensesPubliqueComponent implements OnInit {
+export class RecompensesPubliqueComponent implements OnInit, OnDestroy {
   offres: RecompenseItemDto[] = [];
   partenaires: PartenaireProfil[] = [];
   loading = true;
@@ -37,8 +38,10 @@ export class RecompensesPubliqueComponent implements OnInit {
   loadingSolde = false;
   actionId: number | null = null;
 
+  selectedOffre: RecompenseItemDto | null = null;
+  detailLoading = false;
+
   showCouponModal = false;
-  showMystereModal = false;
   showLoginHint = false;
   mystereReveal = false;
   dernierCoupon: CouponDto | null = null;
@@ -46,13 +49,18 @@ export class RecompensesPubliqueComponent implements OnInit {
   pendingAction: 'echanger' | 'mystere' | null = null;
   pendingOffre: RecompenseItemDto | null = null;
 
-  readonly filters: { key: FilterKey; label: string; icon: string }[] = [
-    { key: 'ALL', label: 'Tout', icon: '✦' },
-    { key: 'MYSTERE', label: 'Boîte mystère', icon: '🎁' },
-    { key: 'REDUCTION', label: 'Réductions', icon: '%' },
-    { key: 'STOCK', label: 'Produits', icon: '◆' },
-    { key: 'SERVICE', label: 'Services', icon: '◎' },
-    { key: 'EXPERIENCE', label: 'Expériences', icon: '★' }
+  mystereSceneOffre: RecompenseItemDto | null = null;
+  mystereScenePhase: MystereScenePhase = 'idle';
+  mystereOffreEnAttente: RecompenseItemDto | null = null;
+  private openingTimer: ReturnType<typeof setTimeout> | null = null;
+
+  readonly filters: { key: FilterKey; label: string }[] = [
+    { key: 'ALL', label: 'Tout' },
+    { key: 'MYSTERE', label: 'Boîte mystère' },
+    { key: 'REDUCTION', label: 'Réductions' },
+    { key: 'STOCK', label: 'Produits' },
+    { key: 'SERVICE', label: 'Services' },
+    { key: 'EXPERIENCE', label: 'Expériences' }
   ];
 
   readonly typeLabels: Record<RecompenseType, string> = {
@@ -70,12 +78,27 @@ export class RecompensesPubliqueComponent implements OnInit {
     private router: Router
   ) {}
 
-  get isLoggedInCitizen(): boolean {
-    return this.auth.isLoggedIn() && this.auth.getRole() === 'USER';
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.mystereScenePhase !== 'idle') {
+      this.fermerSceneBoite();
+      return;
+    }
+    if (this.pendingOffre) {
+      this.annulerPending();
+      return;
+    }
+    if (this.showCouponModal || this.showLoginHint) {
+      this.fermerModals();
+      return;
+    }
+    if (this.selectedOffre) {
+      this.fermerDetail();
+    }
   }
 
-  get offresMystere(): RecompenseItemDto[] {
-    return this.offres.filter((o) => o.hasMystereBox && o.isAvailable);
+  get isLoggedInCitizen(): boolean {
+    return this.auth.isLoggedIn() && this.auth.getRole() === 'USER';
   }
 
   get filteredOffres(): RecompenseItemDto[] {
@@ -97,12 +120,15 @@ export class RecompensesPubliqueComponent implements OnInit {
     return list;
   }
 
-  get statsTotal(): number {
-    return this.offres.filter((o) => o.isAvailable).length;
+  get gridOffres(): RecompenseItemDto[] {
+    return this.filteredOffres;
   }
 
-  get statsMystere(): number {
-    return this.offresMystere.length;
+  get flyoutSlots(): number[] {
+    const n = this.mystereSceneOffre
+      ? Math.min(5, Math.max(3, this.mystereHiddenCount(this.mystereSceneOffre)))
+      : 3;
+    return Array.from({ length: n }, (_, i) => i);
   }
 
   ngOnInit(): void {
@@ -111,9 +137,10 @@ export class RecompensesPubliqueComponent implements OnInit {
       partenaires: this.partenaireService.getPartenairesPublics()
     }).subscribe({
       next: ({ offres, partenaires }) => {
-        this.offres = offres;
+        this.offres = offres.map((o) => this.sanitizePublicOffre(o));
         this.partenaires = partenaires;
         this.loading = false;
+        this.reprendreBoiteApresConnexion();
       },
       error: (e: Error) => {
         this.erreur = e.message;
@@ -121,36 +148,140 @@ export class RecompensesPubliqueComponent implements OnInit {
       }
     });
 
-    const userId = this.auth.getUserId();
-    if (userId != null && this.isLoggedInCitizen) {
-      this.loadingSolde = true;
-      this.userService.getPoints(userId).subscribe({
-        next: (res) => {
-          this.soldePoints = res.totalPoints ?? 0;
-          this.loadingSolde = false;
-        },
-        error: () => {
-          this.soldePoints = 0;
-          this.loadingSolde = false;
-        }
-      });
+    this.refreshSolde();
+  }
+
+  ngOnDestroy(): void {
+    if (this.openingTimer) {
+      clearTimeout(this.openingTimer);
     }
   }
 
   setFilter(key: FilterKey): void {
     this.activeFilter = key;
+    this.scrollToSection('catalogue');
+  }
+
+  scrollToSection(id: string): void {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   typeLabel(type: RecompenseType): string {
     return this.typeLabels[type] ?? type;
   }
 
+  metaLine(o: RecompenseItemDto): string {
+    const cat = (o.partenaireCategory || this.typeLabel(o.type)).toUpperCase();
+    return `${cat} · ${o.partenaireName.toUpperCase()}`;
+  }
+
+  stockLabel(o: RecompenseItemDto): string | null {
+    if (o.stock == null) return null;
+    return `STOCK ${o.stock}`;
+  }
+
+  echangerLabel(o: RecompenseItemDto): string {
+    return o.hasMystereBox ? 'Réserver' : 'Échanger';
+  }
+
+  mystereHiddenCount(o: RecompenseItemDto): number {
+    return o.mystereBoxHiddenCount ?? 3;
+  }
+
   trackOffre(_: number, o: RecompenseItemDto): number {
     return o.id;
   }
 
-  onCardClick(o: RecompenseItemDto): void {
+  ouvrirDetail(o: RecompenseItemDto): void {
     this.recompenseService.enregistrerClic(o.id).subscribe({ error: () => {} });
+    this.selectedOffre = o;
+    this.detailLoading = true;
+    this.recompenseService.getDetail(o.id).subscribe({
+      next: (detail) => {
+        this.selectedOffre = this.sanitizePublicOffre(detail);
+        this.detailLoading = false;
+      },
+      error: () => {
+        this.detailLoading = false;
+      }
+    });
+  }
+
+  fermerDetail(): void {
+    this.selectedOffre = null;
+    this.detailLoading = false;
+  }
+
+  clicBoiteFermee(o: RecompenseItemDto, event?: Event): void {
+    event?.stopPropagation();
+    if (!o.hasMystereBox || !o.mystereBoxPoints || !o.isAvailable) return;
+
+    if (!this.auth.isLoggedIn()) {
+      this.mystereOffreEnAttente = o;
+      sessionStorage.setItem('rew-mystere-pending', String(o.id));
+      this.showLoginHint = true;
+      return;
+    }
+    if (!this.isLoggedInCitizen) {
+      this.erreurAction = 'Seuls les comptes citoyens peuvent ouvrir une boîte mystère.';
+      return;
+    }
+    this.fermerDetail();
+    this.demarrerSceneBoite(o);
+  }
+
+  demarrerSceneBoite(o: RecompenseItemDto): void {
+    if (this.openingTimer) {
+      clearTimeout(this.openingTimer);
+    }
+    this.mystereSceneOffre = o;
+    this.mystereScenePhase = 'opening';
+    this.mystereResult = null;
+    this.mystereReveal = false;
+    this.erreurAction = '';
+
+    this.openingTimer = setTimeout(() => {
+      this.mystereScenePhase = 'confirm';
+      this.openingTimer = null;
+    }, 1500);
+  }
+
+  fermerSceneBoite(): void {
+    if (this.openingTimer) {
+      clearTimeout(this.openingTimer);
+      this.openingTimer = null;
+    }
+    this.mystereSceneOffre = null;
+    this.mystereScenePhase = 'idle';
+    this.mystereResult = null;
+    this.mystereReveal = false;
+  }
+
+  confirmerOuvertureBoite(): void {
+    const o = this.mystereSceneOffre;
+    if (!o?.mystereBoxPoints) return;
+
+    if (this.soldePoints < o.mystereBoxPoints) {
+      this.erreurAction = `Il vous manque ${o.mystereBoxPoints - this.soldePoints} point(s).`;
+      return;
+    }
+
+    this.actionId = o.id;
+    this.erreurAction = '';
+    this.recompenseService.ouvrirMystereBox(o.id).subscribe({
+      next: (r) => {
+        this.mystereResult = r;
+        this.mystereScenePhase = 'result';
+        setTimeout(() => (this.mystereReveal = true), 80);
+        this.actionId = null;
+        this.refreshSolde();
+      },
+      error: (e: Error) => {
+        this.erreurAction = e.message;
+        this.actionId = null;
+        this.mystereScenePhase = 'confirm';
+      }
+    });
   }
 
   echanger(o: RecompenseItemDto): void {
@@ -158,13 +289,6 @@ export class RecompensesPubliqueComponent implements OnInit {
     if (!this.ensureCitizenLogin()) return;
     this.pendingOffre = o;
     this.pendingAction = 'echanger';
-  }
-
-  ouvrirMystere(o: RecompenseItemDto): void {
-    if (!o.hasMystereBox || !o.mystereBoxPoints || !o.isAvailable) return;
-    if (!this.ensureCitizenLogin()) return;
-    this.pendingOffre = o;
-    this.pendingAction = 'mystere';
   }
 
   annulerPending(): void {
@@ -175,11 +299,10 @@ export class RecompensesPubliqueComponent implements OnInit {
   confirmerPending(): void {
     const o = this.pendingOffre;
     const action = this.pendingAction;
-    if (!o || !action) return;
+    if (!o || action !== 'echanger') return;
 
-    const cost = action === 'mystere' ? (o.mystereBoxPoints ?? 0) : o.pointsNecessaires;
-    if (this.soldePoints < cost) {
-      this.erreurAction = `Il vous manque ${cost - this.soldePoints} point(s) pour cette opération.`;
+    if (this.soldePoints < o.pointsNecessaires) {
+      this.erreurAction = `Il vous manque ${o.pointsNecessaires - this.soldePoints} point(s).`;
       return;
     }
 
@@ -187,46 +310,38 @@ export class RecompensesPubliqueComponent implements OnInit {
     this.erreurAction = '';
     this.annulerPending();
 
-    if (action === 'echanger') {
-      this.recompenseService.echanger(o.id).subscribe({
-        next: (c) => {
-          this.dernierCoupon = c;
-          this.showCouponModal = true;
-          this.actionId = null;
-          this.refreshSolde();
-        },
-        error: (e: Error) => {
-          this.erreurAction = e.message;
-          this.actionId = null;
-        }
-      });
-    } else {
-      this.mystereReveal = false;
-      this.recompenseService.ouvrirMystereBox(o.id).subscribe({
-        next: (r) => {
-          this.mystereResult = r;
-          this.showMystereModal = true;
-          setTimeout(() => (this.mystereReveal = true), 120);
-          this.actionId = null;
-          this.refreshSolde();
-        },
-        error: (e: Error) => {
-          this.erreurAction = e.message;
-          this.actionId = null;
-        }
-      });
-    }
+    this.recompenseService.echanger(o.id).subscribe({
+      next: (c) => {
+        this.dernierCoupon = c;
+        this.showCouponModal = true;
+        this.fermerDetail();
+        this.actionId = null;
+        this.refreshSolde();
+      },
+      error: (e: Error) => {
+        this.erreurAction = e.message;
+        this.actionId = null;
+      }
+    });
   }
 
   erreurAction = '';
 
   fermerModals(): void {
     this.showCouponModal = false;
-    this.showMystereModal = false;
     this.showLoginHint = false;
-    this.mystereReveal = false;
     this.dernierCoupon = null;
-    this.mystereResult = null;
+  }
+
+  private reprendreBoiteApresConnexion(): void {
+    const raw = sessionStorage.getItem('rew-mystere-pending');
+    if (!raw || !this.isLoggedInCitizen) return;
+    sessionStorage.removeItem('rew-mystere-pending');
+    const id = Number(raw);
+    const o = this.offres.find((x) => x.id === id && x.hasMystereBox);
+    if (o) {
+      this.demarrerSceneBoite(o);
+    }
   }
 
   private ensureCitizenLogin(): boolean {
@@ -247,11 +362,32 @@ export class RecompensesPubliqueComponent implements OnInit {
 
   private refreshSolde(): void {
     const userId = this.auth.getUserId();
-    if (userId == null) return;
+    if (userId == null || !this.isLoggedInCitizen) {
+      this.soldePoints = 0;
+      this.loadingSolde = false;
+      return;
+    }
+    this.loadingSolde = true;
     this.userService.getPoints(userId).subscribe({
-      next: (res) => (this.soldePoints = res.totalPoints ?? 0),
-      error: () => {}
+      next: (res) => {
+        this.soldePoints = res.totalPoints ?? 0;
+        this.loadingSolde = false;
+      },
+      error: () => {
+        this.soldePoints = 0;
+        this.loadingSolde = false;
+      }
     });
+  }
+
+  private sanitizePublicOffre(o: RecompenseItemDto): RecompenseItemDto {
+    const copy = { ...o };
+    if (copy.hasMystereBox) {
+      const count = copy.mystereBoxHiddenCount ?? copy.mystereBoxItems?.length ?? 0;
+      copy.mystereBoxHiddenCount = count > 0 ? count : undefined;
+      copy.mystereBoxItems = undefined;
+    }
+    return copy;
   }
 
   discountLabel(o: RecompenseItemDto): string | null {
@@ -259,5 +395,14 @@ export class RecompensesPubliqueComponent implements OnInit {
       return `-${o.discountPercentage}%`;
     }
     return null;
+  }
+
+  partenaireLink(o: RecompenseItemDto): (string | number)[] {
+    return ['/partenaires', o.partenaireUserId ?? o.partenaireId];
+  }
+
+  isPrizeGood(): boolean {
+    if (!this.mystereResult) return true;
+    return (this.mystereResult.probabilite ?? 0) >= 25;
   }
 }

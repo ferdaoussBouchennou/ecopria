@@ -26,7 +26,9 @@ public class RecompenseDTO {
     // ── BOÎTE MYSTÈRE ───────────────────────────────────────
     private Boolean hasMystereBox;      // l'offre a-t-elle une boîte mystère ?
     private Integer mystereBoxPoints;   // coût de la boîte en points
-    private List<MystereBoxItemDTO> mystereBoxItems; // les options cachées
+    private List<MystereBoxItemDTO> mystereBoxItems; // partenaire uniquement
+    /** Nombre d'options cachées (catalogue public, sans détail). */
+    private Integer mystereBoxHiddenCount;
     private Long couponsUtilises;
     private Long couponsDistribues;
 }

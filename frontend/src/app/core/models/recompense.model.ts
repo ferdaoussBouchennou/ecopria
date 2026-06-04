@@ -28,6 +28,7 @@ export interface RecompenseItemDto {
   hasMystereBox?: boolean;
   mystereBoxPoints?: number;
   mystereBoxItems?: MystereBoxItem[];
+  mystereBoxHiddenCount?: number;
   couponsUtilises?: number;
   couponsDistribues?: number;
 }

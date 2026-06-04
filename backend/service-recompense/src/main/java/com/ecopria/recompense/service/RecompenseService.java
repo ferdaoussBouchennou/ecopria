@@ -47,13 +47,13 @@ public class RecompenseService {
             recompenses = recompenseRepository.findByIsActiveTrue();
         }
         return recompenses.stream()
-                .map(this::toDTO)
+                .map(this::toPublicDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public RecompenseDTO getDetail(Long id) {
-        return toDTO(recompenseRepository.findById(id)
+        return toPublicDTO(recompenseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Récompense non trouvée")));
     }
 
@@ -241,7 +241,7 @@ public class RecompenseService {
                 .findByPartenaireIdAndIsActiveTrue(partenaire.getId());
         
         return recompenses.stream()
-                .map(this::toDTO)
+                .map(this::toPublicDTO)
                 .collect(Collectors.toList());
     }
 
@@ -620,6 +620,16 @@ public class RecompenseService {
         java.time.YearMonth ym = java.time.YearMonth.now();
         return ym.getYear() + "-" +
                 String.format("%02d", ym.getMonthValue());
+    }
+
+    /** Catalogue / détail public : offres cachées de la boîte non exposées. */
+    private RecompenseDTO toPublicDTO(Recompense r) {
+        RecompenseDTO dto = toDTO(r);
+        if (Boolean.TRUE.equals(dto.getHasMystereBox()) && r.getMystereBoxItems() != null) {
+            dto.setMystereBoxHiddenCount(r.getMystereBoxItems().size());
+            dto.setMystereBoxItems(null);
+        }
+        return dto;
     }
 
     private RecompenseDTO toDTO(Recompense r) {
