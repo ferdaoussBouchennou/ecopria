@@ -14,6 +14,8 @@ import { CommissionMensuelle } from '../../../core/models/recompense.model';
 export class CommissionsComponent implements OnInit {
   commissions: CommissionMensuelle[] = [];
   aRegler  = 0;
+  commissionMoisEnCours = 0;
+  tauxCommission = 0;  // Taux de commission du partenaire
   loading  = true;
   erreur   = '';
 
@@ -27,15 +29,19 @@ export class CommissionsComponent implements OnInit {
     this.loading = true;
     this.erreur  = '';
 
-    // Dashboard pour le total à régler ce mois
+    // Dashboard pour le total à régler ce mois ET le taux de commission
     this.partenaireService.getDashboard().subscribe({
-      next: (d) => { this.aRegler = d.commissionsARegler; }
+      next: (d) => { 
+        this.aRegler = d.commissionsARegler;
+        this.tauxCommission = d.commissionRate || 0;
+      }
     });
 
     // Historique mensuel détaillé
     this.partenaireService.getCommissions().subscribe({
       next: (list) => {
         this.commissions = list;
+        this.calculerCommissionMoisEnCours();
         this.loading     = false;
       },
       error: (e: Error) => {
@@ -45,11 +51,26 @@ export class CommissionsComponent implements OnInit {
     });
   }
 
+  private calculerCommissionMoisEnCours(): void {
+    const now = new Date();
+    const moisActuel = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    
+    const commissionCeMois = this.commissions.find(c => c.mois === moisActuel);
+    this.commissionMoisEnCours = commissionCeMois ? commissionCeMois.commission : 0;
+  }
+
   formatMois(mois: string): string {
     const [y, m] = mois.split('-');
     const months = ['Janvier','Février','Mars','Avril','Mai','Juin',
                     'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
     return `${months[Number(m) - 1] ?? m} ${y}`;
+  }
+
+  get moisActuel(): string {
+    const now = new Date();
+    const months = ['Janvier','Février','Mars','Avril','Mai','Juin',
+                    'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    return `${months[now.getMonth()]} ${now.getFullYear()}`;
   }
 
   get totalCoupons(): number {
