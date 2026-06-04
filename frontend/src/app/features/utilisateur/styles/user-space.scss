@@ -389,9 +389,11 @@
   background: #fdfdfd;
 }
 
-.coupon-card__qr img {
-  width: 90px;
-  height: 90px;
+.coupon-card__qr img,
+.coupon-card__qr canvas {
+  width: 140px;
+  height: 140px;
+  display: block;
 }
 
 .coupon-card__qr-hint {
@@ -987,6 +989,12 @@
   margin: 0;
   font-size: 0.95rem;
   color: var(--primary);
+}
+
+.badge-points-hint {
+  font-size: 0.72rem;
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
 }
 
 .badge-item--dashboard p {

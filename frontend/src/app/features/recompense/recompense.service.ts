@@ -54,6 +54,12 @@ export class RecompenseService {
       .pipe(catchError(this.handleError));
   }
 
+  renvoyerCouponParEmail(couponId: number): Observable<void> {
+    return this.http
+      .post<void>(`${API}/coupons/${couponId}/renvoyer-email`, null, { headers: this.headers() })
+      .pipe(catchError(this.handleError));
+  }
+
   getProfilPublic(partenaireUserId: number): Observable<PartenaireProfil> {
     return this.http
       .get<PartenaireProfil>(`${API}/public/partenaire/${partenaireUserId}`)

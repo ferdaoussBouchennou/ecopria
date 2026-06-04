@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { UiService } from '../../../core/services/ui.user.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { LeaderboardEntry } from '../../../core/models/user.model';
 
 @Component({
@@ -20,12 +21,20 @@ export class LeaderboardComponent implements OnInit {
   constructor(
     private userSvc: UserService,
     private uiSvc: UiService,
-    private auth: AuthService
+    private auth: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit() {
     this.uiSvc.setPageHeader('Classement Ecopria', 'CHAMPIONNE DU MOIS');
-    this.userSvc.getLeaderboard(this.auth.requireUserId()).subscribe((data) => {
+    let authId: number;
+    try {
+      authId = this.auth.requireUserId();
+    } catch {
+      void this.router.navigate(['/connexion']);
+      return;
+    }
+    this.userSvc.getLeaderboard(authId).subscribe((data) => {
       this.leaderboard = data;
       this.currentPage = 1;
     });

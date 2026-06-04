@@ -63,7 +63,6 @@ export interface CouponDto {
 }
 
 export interface CouponViewModel extends CouponDto {
-  qrCodeUrl?: string;
   isExpired: boolean;
 }
 

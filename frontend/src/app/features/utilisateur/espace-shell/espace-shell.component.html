@@ -13,8 +13,7 @@
         </div>
 
         <nav class="nav-section">
-            <a routerLink="/espace" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}"
-                class="nav-item">Tableau de bord</a>
+            <a routerLink="/espace/dashboard" routerLinkActive="active" class="nav-item">Tableau de bord</a>
             <a routerLink="/espace/actions" routerLinkActive="active" class="nav-item">Mes actions</a>
             <a routerLink="/espace/scanner-presence" routerLinkActive="active" class="nav-item">Scanner QR</a>
             <a routerLink="/espace/recompenses" routerLinkActive="active" class="nav-item">Mes récompenses</a>
@@ -23,7 +22,7 @@
         </nav>
 
         <div class="sidebar-footer">
-            <a routerLink="/" class="nav-item sidebar-back">← Retour au site</a>
+            <a routerLink="/" class="nav-item nav-item--muted">← Retour au site</a>
             <button type="button" class="btn-logout" (click)="logout()">Déconnexion</button>
         </div>
     </aside>

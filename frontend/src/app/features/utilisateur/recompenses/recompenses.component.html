@@ -78,17 +78,33 @@
             <strong class="coupon-card__code-value">{{ coupon.code }}</strong>
           </div>
 
-          <div class="coupon-card__qr" *ngIf="coupon.qrCodeUrl">
-            <img [src]="coupon.qrCodeUrl" alt="QR Code" title="Scanner pour vérifier">
+          <div class="coupon-card__qr" *ngIf="showQr(coupon)">
+            <qrcode
+              [qrdata]="coupon.code"
+              [width]="140"
+              [errorCorrectionLevel]="'M'"
+              [margin]="1"
+              [elementType]="'canvas'"
+            ></qrcode>
             <p class="coupon-card__qr-hint">Scanner pour valider</p>
           </div>
 
           <div class="coupon-card__actions">
-            <button class="btn-coupon btn-coupon--primary" (click)="downloadPdf(coupon)">
-              Télécharger PDF
+            <button
+              type="button"
+              class="btn-coupon btn-coupon--primary"
+              [disabled]="!canUseCouponActions(coupon) || isDownloading(coupon)"
+              (click)="downloadPdf(coupon)"
+            >
+              {{ isDownloading(coupon) ? 'Génération…' : 'Télécharger PDF' }}
             </button>
-            <button class="btn-coupon btn-coupon--outline" (click)="sendEmail(coupon)">
-              Renvoyer par email
+            <button
+              type="button"
+              class="btn-coupon btn-coupon--outline"
+              [disabled]="!canUseCouponActions(coupon) || isEmailing(coupon)"
+              (click)="sendEmail(coupon)"
+            >
+              {{ isEmailing(coupon) ? 'Envoi…' : 'Renvoyer par email' }}
             </button>
           </div>
 

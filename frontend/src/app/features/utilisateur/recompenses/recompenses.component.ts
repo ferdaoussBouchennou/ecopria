@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { forkJoin, from, map, switchMap, tap } from 'rxjs';
+import { QRCodeModule } from 'angularx-qrcode';
+import { forkJoin, tap } from 'rxjs';
+import { Router } from '@angular/router';
 import { Profile } from '../../../core/models/user.model';
+import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { UiService } from '../../../core/services/ui.user.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { RecompenseService } from '../../recompense/recompense.service';
 import {
   RecompenseItemDto,
@@ -13,11 +15,12 @@ import {
   CouponViewModel,
   RecompenseType
 } from '../../../core/models/recompense.model';
+import { downloadCouponPdf } from './coupon-pdf.util';
 
 @Component({
   selector: 'app-recompenses',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, QRCodeModule],
   templateUrl: './recompenses.component.html',
   styleUrl: '../styles/user-space.scss'
 })
@@ -32,13 +35,15 @@ export class RecompensesComponent implements OnInit {
 
   catalogueSearch = '';
   catalogueType: 'ALL' | RecompenseType = 'ALL';
-  
+
   currentPageCatalogue = 1;
   currentPageCoupons = 1;
 
   profile?: Profile;
   loading = true;
   exchangingId?: number;
+  downloadingCouponId?: number;
+  emailingCouponId?: number;
   message = '';
   errorMessage = '';
 
@@ -46,7 +51,8 @@ export class RecompensesComponent implements OnInit {
     private readonly userService: UserService,
     private readonly recompenseService: RecompenseService,
     private readonly uiService: UiService,
-    private readonly auth: AuthService
+    private readonly auth: AuthService,
+    private readonly router: Router
   ) {}
 
   private get userId(): number {
@@ -55,6 +61,12 @@ export class RecompensesComponent implements OnInit {
 
   ngOnInit(): void {
     this.uiService.setPageHeader('Mes récompenses', 'ESPACE GAGNANT');
+    try {
+      this.auth.requireUserId();
+    } catch {
+      void this.router.navigate(['/connexion']);
+      return;
+    }
     this.reload();
   }
 
@@ -67,32 +79,11 @@ export class RecompensesComponent implements OnInit {
       profile: this.userService.getProfile(this.userId),
       catalogue: this.recompenseService.getCatalogue(),
       coupons: this.recompenseService.getMesCoupons()
-    }).pipe(
-      switchMap(({ profile, catalogue, coupons }) => {
-        const couponPromises = coupons.map(async (coupon) => {
-          const vm = this.withExpiryFlag(coupon);
-          try {
-            // Just simulate QR code for now - no real library
-            vm.qrCodeUrl = 'assets/logo.png';
-          } catch (err) {
-            console.error('Error generating QR code', err);
-          }
-          return vm;
-        });
-
-        return from(Promise.all(couponPromises)).pipe(
-          map((couponsWithQr) => ({
-            profile,
-            catalogue,
-            coupons: couponsWithQr
-          }))
-        );
-      })
-    ).subscribe({
+    }).subscribe({
       next: ({ profile, catalogue, coupons }) => {
         this.profile = profile;
         this.allCatalogue = catalogue;
-        this.allCoupons = coupons;
+        this.allCoupons = coupons.map((c) => this.withExpiryFlag(c));
         this.currentPageCatalogue = 1;
         this.currentPageCoupons = 1;
         this.loading = false;
@@ -184,9 +175,9 @@ export class RecompensesComponent implements OnInit {
     ).subscribe(() => {
       this.exchangingId = undefined;
       this.reload();
-    }, () => {
+    }, (err: Error) => {
       this.exchangingId = undefined;
-      this.message = 'L’échange n’a pas pu être effectué pour le moment.';
+      this.errorMessage = err.message || 'L’échange n’a pas pu être effectué pour le moment.';
     });
   }
 
@@ -224,22 +215,60 @@ export class RecompensesComponent implements OnInit {
     }).format(new Date(date));
   }
 
-  downloadPdf(coupon: CouponViewModel): void {
-    this.message = `Téléchargement du coupon "${coupon.recompenseTitle}" en cours...`;
-    setTimeout(() => {
-      this.message = `Votre coupon "${coupon.recompenseTitle}" est prêt à être téléchargé.`;
-    }, 1000);
+  showQr(coupon: CouponViewModel): boolean {
+    return coupon.status === 'DISTRIBUE' && !coupon.isExpired;
+  }
+
+  canUseCouponActions(coupon: CouponViewModel): boolean {
+    return this.showQr(coupon);
+  }
+
+  isDownloading(coupon: CouponViewModel): boolean {
+    return this.downloadingCouponId === coupon.id;
+  }
+
+  isEmailing(coupon: CouponViewModel): boolean {
+    return this.emailingCouponId === coupon.id;
+  }
+
+  async downloadPdf(coupon: CouponViewModel): Promise<void> {
+    if (!this.canUseCouponActions(coupon)) {
+      return;
+    }
+    this.downloadingCouponId = coupon.id;
+    this.errorMessage = '';
+    try {
+      await downloadCouponPdf(coupon);
+      this.message = `PDF du coupon « ${coupon.recompenseTitle} » téléchargé.`;
+    } catch {
+      this.errorMessage = 'Impossible de générer le PDF pour ce coupon.';
+    } finally {
+      this.downloadingCouponId = undefined;
+    }
   }
 
   sendEmail(coupon: CouponViewModel): void {
-    this.message = `Envoi du coupon "${coupon.recompenseTitle}" par email...`;
-    setTimeout(() => this.message = `Le coupon "${coupon.recompenseTitle}" a été envoyé à votre adresse email.`, 1500);
+    if (!this.canUseCouponActions(coupon)) {
+      return;
+    }
+    this.emailingCouponId = coupon.id;
+    this.errorMessage = '';
+    this.recompenseService.renvoyerCouponParEmail(coupon.id).subscribe({
+      next: () => {
+        this.message =
+          `Le coupon « ${coupon.recompenseTitle} » a été renvoyé à votre adresse e-mail.`;
+        this.emailingCouponId = undefined;
+      },
+      error: (err: Error) => {
+        this.errorMessage = err.message || 'Impossible d’envoyer l’e-mail pour le moment.';
+        this.emailingCouponId = undefined;
+      }
+    });
   }
 
   private withExpiryFlag(coupon: CouponDto): CouponViewModel {
     return {
       ...coupon,
-      qrCodeUrl: 'assets/logo.png',
       isExpired: new Date(coupon.expireLe!) < new Date()
     };
   }

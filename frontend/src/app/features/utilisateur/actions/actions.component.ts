@@ -38,8 +38,8 @@ export class ActionsComponent implements OnInit {
     private readonly inscriptionService: InscriptionService,
     private readonly uiService: UiService,
     private readonly auth: AuthService,
-    private readonly route: ActivatedRoute,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly route: ActivatedRoute
   ) {}
 
   private get userId(): number {
@@ -48,7 +48,12 @@ export class ActionsComponent implements OnInit {
 
   ngOnInit(): void {
     this.uiService.setPageHeader('Mes actions', 'ESPACE ENGAGÉ');
-    this.applyInscriptionFeedback();
+    try {
+      this.auth.requireUserId();
+    } catch {
+      void this.router.navigate(['/connexion']);
+      return;
+    }
     this.loadActions();
   }
 
