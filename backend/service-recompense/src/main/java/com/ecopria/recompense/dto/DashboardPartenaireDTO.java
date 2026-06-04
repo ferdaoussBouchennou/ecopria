@@ -19,6 +19,7 @@ public class DashboardPartenaireDTO {
     private Double noteMoyenne;
     private Long nombreAvis;
     private Double commissionsARegler;
+    private Double commissionRate;  // Taux de commission du partenaire (ex: 15.0 pour 15%)
     private String badgeActuel;
     private List<RecompenseDTO> offresActives;
     private List<CouponDTO> echangesRecents;

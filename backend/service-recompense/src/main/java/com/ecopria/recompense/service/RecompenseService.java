@@ -187,6 +187,7 @@ public class RecompenseService {
                 .noteMoyenne(noteMoyenne != null ? Math.round(noteMoyenne * 10.0) / 10.0 : null)
                 .nombreAvis(nombreAvis)
                 .commissionsARegler(commissions != null ? commissions : 0.0)
+                .commissionRate(partenaire.getCommissionRate())  // Taux de commission
                 .badgeActuel(computeBadgeActuel(utilises))
                 .offresActives(offres)
                 .echangesRecents(recents)

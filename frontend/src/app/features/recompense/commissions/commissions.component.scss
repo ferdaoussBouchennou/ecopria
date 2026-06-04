@@ -6,35 +6,59 @@
 .banner-aregler {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
-  background: var(--p-mint);
-  border: 1px solid var(--p-sage-light);
-  border-radius: 12px;
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1.75rem;
+  gap: 1.25rem;
+  background: linear-gradient(135deg, var(--p-mint) 0%, #f0f9f4 100%);
+  border: 2px solid var(--p-sage-light);
+  border-radius: 16px;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-md);
 
-  .banner-icon { font-size: 1.75rem; flex-shrink: 0; }
+  .banner-icon { 
+    font-size: 2rem; 
+    flex-shrink: 0;
+    color: var(--p-sage-dark);
+  }
 
-  strong { font-size: 1rem; color: var(--p-sage-dark); display: block; margin-bottom: 0.2rem; }
-  p { font-size: 0.8rem; color: var(--p-sage); margin: 0; }
+  strong { 
+    font-size: 1.1rem; 
+    color: var(--p-sage-dark); 
+    display: block; 
+    margin-bottom: 0.3rem;
+    font-family: var(--p-font-serif);
+  }
+  
+  p { 
+    font-size: 0.875rem; 
+    color: var(--p-sage); 
+    margin: 0;
+    line-height: 1.5;
+  }
 }
 
 // ─── Totaux ───────────────────────────────────────────────────
 .totaux-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
 }
 
 .total-card {
   background: #fff;
   border: 1px solid var(--p-border);
-  border-radius: 12px;
-  padding: 1.25rem;
+  border-radius: 14px;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.4rem;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
 
   &--accent {
     background: var(--p-mint);
@@ -42,25 +66,41 @@
   }
 
   &--highlight {
-    background: linear-gradient(135deg, var(--p-mint) 0%, #e8f5f0 100%);
+    background: linear-gradient(145deg, #e8f5f0 0%, var(--p-mint) 100%);
     border: 2px solid var(--p-sage-dark);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(145deg, var(--p-sage-light), var(--p-sage-dark));
+      border-radius: 14px;
+      z-index: -1;
+      opacity: 0.15;
+    }
     
     .total-value {
       color: var(--p-sage-dark);
-      font-size: 1.8rem;
+      font-size: 2rem;
     }
     
     .total-label {
       color: var(--p-sage-dark);
-      font-weight: 600;
+      font-weight: 700;
+    }
+    
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(47, 82, 51, 0.2);
     }
   }
 }
 
 .total-value {
   font-family: var(--p-font-serif);
-  font-size: 1.6rem;
+  font-size: 1.75rem;
   font-weight: 600;
   color: var(--p-text);
   line-height: 1;
@@ -68,28 +108,34 @@
 }
 
 .total-label {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--p-text-muted);
   display: block;
+  font-weight: 600;
 }
 
 // ─── Table ────────────────────────────────────────────────────
 .table-container {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   padding: 0;
   overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--p-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
 }
 
 .table-head-bar {
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem 1.75rem;
   border-bottom: 1px solid var(--p-border);
+  background: var(--p-cream-deep);
 }
 
 .table-title {
   font-family: var(--p-font-serif);
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--p-text);
   margin: 0;

@@ -30,7 +30,7 @@
     <span class="banner-icon">💰</span>
     <div>
       <strong>{{ commissionMoisEnCours | number:'1.0-2' }} DH à payer pour {{ moisActuel }}</strong>
-      <p>Les commissions sont calculées sur la base de vos offres échangées et validées ce mois.</p>
+      <p>Les commissions sont calculées à <strong>{{ tauxCommission }}%</strong> sur la base de vos offres échangées et validées ce mois.</p>
     </div>
   </div>
 
@@ -109,8 +109,9 @@
       <div>
         <strong>Comment sont calculées les commissions ?</strong>
         <p style="margin-top:0.25rem">
-          Pour les offres avec réduction (%) : <code>valeur remise × % commission</code>.
-          Pour les offres de type RÉDUCTION : <code>valeurDh × taux commission</code>.
+          Votre taux de commission est de <strong>{{ tauxCommission }}%</strong>.<br>
+          Pour les offres avec réduction (%) : <code>valeur remise × {{ tauxCommission }}%</code>.<br>
+          Pour les offres de type RÉDUCTION : <code>valeurDh × {{ tauxCommission }}%</code>.<br>
           Les offres entièrement gratuites (sans valeur monétaire) ne génèrent pas de commission.
         </p>
       </div>

@@ -15,6 +15,7 @@ export class CommissionsComponent implements OnInit {
   commissions: CommissionMensuelle[] = [];
   aRegler  = 0;
   commissionMoisEnCours = 0;
+  tauxCommission = 0;  // Taux de commission du partenaire
   loading  = true;
   erreur   = '';
 
@@ -28,9 +29,12 @@ export class CommissionsComponent implements OnInit {
     this.loading = true;
     this.erreur  = '';
 
-    // Dashboard pour le total à régler ce mois
+    // Dashboard pour le total à régler ce mois ET le taux de commission
     this.partenaireService.getDashboard().subscribe({
-      next: (d) => { this.aRegler = d.commissionsARegler; }
+      next: (d) => { 
+        this.aRegler = d.commissionsARegler;
+        this.tauxCommission = d.commissionRate || 0;
+      }
     });
 
     // Historique mensuel détaillé

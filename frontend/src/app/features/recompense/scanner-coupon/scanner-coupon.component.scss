@@ -4,64 +4,81 @@
 
 // ─── Scan Card ────────────────────────────────────────────────
 .scan-card {
-  max-width: 560px;
-  margin: 0 auto 2rem;
+  max-width: 600px;
+  margin: 0 auto 2.5rem;
   text-align: center;
+  background: #fff;
+  border: 1px solid var(--p-border);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
 }
 
 .scan-icon-area {
-  margin-bottom: 1rem;
-  .scan-icon { font-size: 2.5rem; opacity: 0.7; transition: all 0.3s ease; }
+  margin-bottom: 1.25rem;
+  .scan-icon { 
+    font-size: 3rem; 
+    color: var(--p-sage);
+    opacity: 0.8; 
+    transition: all 0.3s ease; 
+  }
 }
 
 .scan-title {
   font-family: var(--p-font-serif);
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: var(--p-text);
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.5rem;
 }
 
 .scan-hint {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--p-text-muted);
-  margin: 0 0 1.5rem;
+  margin: 0 0 2rem;
+  line-height: 1.5;
 }
 
 // ─── Toggle 3 onglets ─────────────────────────────────────────
 .scanner-mode-toggle {
   display: flex;
-  gap: 0.4rem;
-  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
   justify-content: center;
   flex-wrap: wrap;
+  padding: 0.35rem;
+  background: var(--p-cream-deep);
+  border-radius: 12px;
+  border: 1px solid var(--p-border);
 
   .btn--toggle {
     flex: 1;
-    min-width: 120px;
-    max-width: 180px;
-    padding: 0.65rem 0.75rem;
-    background: #f3f4f6;
-    color: #6b7280;
+    min-width: 140px;
+    max-width: 200px;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    color: var(--p-text-soft);
     border: 2px solid transparent;
     border-radius: 10px;
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
     white-space: nowrap;
 
     &:hover {
-      background: #e5e7eb;
-      color: #374151;
+      background: #FFFFFF;
+      color: var(--p-sage);
       transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
     }
 
     &.active {
-      background: #10b981;
+      background: var(--p-sage);
       color: white;
-      border-color: #059669;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+      border-color: var(--p-sage-dark);
+      box-shadow: var(--shadow-md);
+      transform: translateY(0);
     }
   }
 }
@@ -148,13 +165,13 @@
 }
 
 .dropzone {
-  border: 2.5px dashed #d1d5db;
-  border-radius: 14px;
-  padding: 2rem 1.5rem;
+  border: 3px dashed var(--p-border);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
   cursor: pointer;
-  transition: all 0.25s ease;
-  background: #fafafa;
-  min-height: 180px;
+  transition: all 0.3s ease;
+  background: var(--p-cream-deep);
+  min-height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -162,22 +179,24 @@
   overflow: hidden;
 
   &:hover {
-    border-color: #10b981;
-    background: #f0fdf4;
+    border-color: var(--p-sage-light);
+    background: var(--p-mint);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
   }
 
   &.drag-active {
-    border-color: #059669;
-    background: #ecfdf5;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
-    transform: scale(1.01);
+    border-color: var(--p-sage);
+    background: var(--p-mint);
+    box-shadow: 0 0 0 4px rgba(107, 142, 112, 0.15);
+    transform: scale(1.02);
   }
 
   &.has-preview {
-    border-color: #10b981;
-    background: #f0fdf4;
+    border-color: var(--p-sage-light);
+    background: var(--p-mint);
     padding: 0;
-    min-height: 220px;
+    min-height: 240px;
   }
 }
 
@@ -185,36 +204,37 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
   user-select: none;
 
   .upload-icon {
-    font-size: 2.8rem;
-    opacity: 0.6;
+    font-size: 3.5rem;
+    color: var(--p-sage-light);
+    opacity: 0.7;
   }
 
   .upload-title {
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--p-text);
     margin: 0;
   }
 
   .upload-sub {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     color: var(--p-text-muted);
     margin: 0;
   }
 
   .upload-badge {
-    margin-top: 0.5rem;
-    background: #e5e7eb;
-    color: #6b7280;
+    margin-top: 0.65rem;
+    background: var(--p-sage-light);
+    color: #FFFFFF;
     font-size: 0.7rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 0.25rem 0.65rem;
+    padding: 0.35rem 0.85rem;
     border-radius: 20px;
   }
 }
@@ -300,59 +320,66 @@
 
 // Code QR détecté
 .detected-code {
-  margin-top: 1rem;
-  padding: 1rem 1.25rem;
-  background: #ecfdf5;
-  border: 2px solid #10b981;
-  border-radius: 12px;
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--p-mint);
+  border: 2px solid var(--p-sage-light);
+  border-radius: 14px;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
   flex-wrap: wrap;
   animation: fadeIn 0.3s ease;
+  box-shadow: var(--shadow-md);
 
   .detected-label {
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #059669;
+    letter-spacing: 0.1em;
+    color: var(--p-sage-dark);
     flex-shrink: 0;
   }
 
   .detected-value {
     flex: 1;
     font-family: monospace;
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: var(--p-text);
     background: white;
-    padding: 0.3rem 0.75rem;
-    border-radius: 6px;
-    letter-spacing: 0.06em;
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    letter-spacing: 0.08em;
+    border: 1px solid var(--p-border);
   }
 
   .btn--sm {
     flex-shrink: 0;
-    padding: 0.5rem 1.25rem;
+    padding: 0.6rem 1.5rem;
     font-size: 0.875rem;
   }
 }
 
 // ─── Résultat ─────────────────────────────────────────────────
 .coupon-result {
-  max-width: 560px;
-  margin: 0 auto 2rem;
+  max-width: 600px;
+  margin: 0 auto 2.5rem;
+  background: #fff;
+  border: 1px solid var(--p-border);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
 }
 
 .result-title {
   font-family: var(--p-font-serif);
-  font-size: 1rem;
+  font-size: 1.15rem;
   font-weight: 600;
   color: var(--p-text);
-  margin: 0 0 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--p-border);
+  margin: 0 0 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--p-border);
 }
 
 .coupon-detail-grid {
@@ -395,13 +422,19 @@
 
 // ─── Historique ───────────────────────────────────────────────
 .historique {
+  background: #fff;
+  border: 1px solid var(--p-border);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: var(--shadow-sm);
+  
   .hist-title {
     font-family: var(--p-font-serif);
-    font-size: 1rem;
+    font-size: 1.15rem;
     font-weight: 600;
-    margin: 0 0 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--p-border);
+    margin: 0 0 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--p-border);
     color: var(--p-text);
   }
 }
@@ -440,13 +473,13 @@
 // Styles pour html5-qrcode
 :host ::ng-deep {
   #qr-reader {
-    border: 3px solid #10b981 !important;
-    border-radius: 8px !important;
+    border: 3px solid var(--p-sage-light) !important;
+    border-radius: 12px !important;
 
-    video { border-radius: 8px !important; }
+    video { border-radius: 12px !important; }
 
     #qr-shaded-region {
-      border: 2px solid #10b981 !important;
+      border: 2px solid var(--p-sage) !important;
     }
   }
 }
