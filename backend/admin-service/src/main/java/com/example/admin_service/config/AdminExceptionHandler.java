@@ -2,6 +2,8 @@ package com.example.admin_service.config;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -11,6 +13,21 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class AdminExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .findFirst()
+                .orElse("Données invalides");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<Map<String, String>> handleMissingHeader(MissingRequestHeaderException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", "Session admin invalide. Reconnectez-vous."));
+    }
 
     @ExceptionHandler(HttpStatusCodeException.class)
     public ResponseEntity<Map<String, String>> handleHttpStatus(HttpStatusCodeException ex) {
@@ -43,7 +60,13 @@ public class AdminExceptionHandler {
     public ResponseEntity<Map<String, String>> handleConnection(ResourceAccessException ex) {
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                 .body(Map.of("message",
-                        "service-action injoignable. Démarrez-le sur le port 9090 (profil local)."));
+                        "Microservice injoignable. Vérifiez qu'il est démarré (auth 8081, notification 8086, action 9090, etc.)."));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", ex.getMessage() != null ? ex.getMessage() : "Données invalides"));
     }
 
     @ExceptionHandler(RuntimeException.class)

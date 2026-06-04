@@ -9,4 +9,5 @@ public class CategoryEnsureRequest {
     private String nom;
     private String description;
     private String imageUrl;
+    private Boolean published;
 }

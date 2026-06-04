@@ -56,7 +56,7 @@ Ordre recommandé (chaque service dans un terminal ou via l’IDE) :
 | Inscription | `backend/service-inscription` | 8084 | `mvn spring-boot:run -Dspring-boot.run.profiles=local` |
 | Présence | `backend/service-presence` | 8085 | `mvn spring-boot:run -Dspring-boot.run.profiles=local` |
 | Récompense | `backend/service-recompense` | 9093 | `mvn spring-boot:run` |
-| Notification | `backend/service-notification` | 8086 | `mvn spring-boot:run -Dspring-boot.run.profiles=local` |
+| Notification | `backend/service-notification` | 8086 | `mvn spring-boot:run` (charge automatiquement `ecopria/.env` pour SMTP) |
 | Admin | `backend/admin-service` | 8087 | `mvn spring-boot:run -Dspring-boot.run.profiles=local` |
 | **API Gateway** | `backend/api-gateway` | **8080** | `mvn spring-boot:run` |
 
@@ -104,12 +104,29 @@ cd frontend
 ng serve
 ```
 
-## 7. Kafka en local
+## 7. E-mails en local (SMTP)
+
+Le fichier **`.env` à la racine du projet** (`ecopria/.env`) doit contenir :
+
+```env
+EMAIL_USERNAME=votre@gmail.com
+EMAIL_PASSWORD=mot_de_passe_application_16_caracteres
+```
+
+Au démarrage de **service-notification**, vous devez voir dans les logs :
+
+```text
+[mail] SMTP prêt — expéditeur : votre@gmail.com (.env : C:\...\ecopria\.env)
+```
+
+Si vous voyez `EMAIL_USERNAME vide`, le service ne trouve pas `.env` — lancez Maven depuis le dépôt ou définissez `ECOPRIA_ROOT=C:\Users\...\ecopria`.
+
+## 8. Kafka en local
 
 Par défaut, le profil `local` met `spring.kafka.listener.auto-startup: true` pour inscription, présence, action et utilisateur.  
 Si Kafka n’est pas démarré, repassez à `false` ou ne lancez pas le profil `local`.
 
-## 8. Données de test (association + participant)
+## 9. Données de test (association + participant)
 
 Sans données en base, le profil association affiche une erreur (`Association non trouvée`).
 
@@ -129,7 +146,7 @@ localStorage.setItem('ecopria.dev.associationAuthId', '1');
 localStorage.setItem('ecopria.dev.participantUserId', '2');
 ```
 
-## 9. Tout en Docker (CI / démo)
+## 10. Tout en Docker (CI / démo)
 
 ```powershell
 docker compose up -d

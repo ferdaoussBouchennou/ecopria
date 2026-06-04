@@ -21,6 +21,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -468,22 +471,37 @@ public class ActionService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public ActionDetailDTO getAdminNonFixedDetail(Long actionId) {
+        Action action = actionRepository.findById(actionId)
+                .orElseThrow(() -> new RuntimeException("Action non trouvée: " + actionId));
+        if (Boolean.TRUE.equals(action.getIsFixed())) {
+            throw new RuntimeException("Action fixe — utilisez admin-service actions-fixes");
+        }
+        return toDetailDTO(action);
+    }
+
     @Transactional
     public ActionDetailDTO adminCreateNonFixedAction(AdminActionManageRequest request) {
         Categorie category = resolveCategoryForAdmin(request.getCategorie());
         Association association = resolveAssociationForAdmin(request.getAssociationId(), request.getAssociationName());
 
-        LocalDateTime start = LocalDateTime.now().plusDays(1);
-        LocalDateTime end = start.plusHours(2);
+        LocalDateTime start = parseDateTime(request.getDateStart(), LocalDateTime.now().plusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0));
+        LocalDateTime end = parseDateTime(request.getDateEnd(), start.plusHours(2));
+        if (end.isBefore(start)) {
+            end = start.plusHours(2);
+        }
         int max = request.getPlacesTotal() != null && request.getPlacesTotal() > 0 ? request.getPlacesTotal() : 20;
+        String address = resolveAddress(request);
+        String city = resolveCity(request);
 
         Action action = Action.builder()
                 .title(request.getTitre())
                 .description(request.getDescription())
                 .category(category)
                 .association(association)
-                .address(request.getLieu() != null ? request.getLieu() : "Adresse non définie")
-                .city(request.getLieu() != null ? request.getLieu() : "Ville non définie")
+                .address(address)
+                .city(city)
                 .latitude(request.getLatitude())
                 .longitude(request.getLongitude())
                 .dateStart(start)
@@ -491,8 +509,8 @@ public class ActionService {
                 .points(request.getPoints())
                 .maxParticipants(max)
                 .availablePlaces(max)
-                .program(List.of())
-                .practicalInfos(List.of())
+                .program(request.getProgram() != null ? new ArrayList<>(request.getProgram()) : new ArrayList<>())
+                .practicalInfos(request.getPracticalInfos() != null ? new ArrayList<>(request.getPracticalInfos()) : new ArrayList<>())
                 .status(ActionStatus.PUBLISHED)
                 .isFixed(false)
                 .build();
@@ -513,17 +531,79 @@ public class ActionService {
         action.setDescription(request.getDescription());
         action.setCategory(category);
         action.setAssociation(association);
-        action.setAddress(request.getLieu() != null ? request.getLieu() : action.getAddress());
-        action.setCity(request.getLieu() != null ? request.getLieu() : action.getCity());
+        action.setAddress(resolveAddress(request));
+        action.setCity(resolveCity(request));
         action.setLatitude(request.getLatitude());
         action.setLongitude(request.getLongitude());
+        if (request.getDateStart() != null && !request.getDateStart().isBlank()) {
+            action.setDateStart(parseDateTime(request.getDateStart(), action.getDateStart()));
+        }
+        if (request.getDateEnd() != null && !request.getDateEnd().isBlank()) {
+            action.setDateEnd(parseDateTime(request.getDateEnd(), action.getDateEnd()));
+        }
         action.setPoints(request.getPoints());
         if (request.getPlacesTotal() != null && request.getPlacesTotal() > 0) {
             int diff = request.getPlacesTotal() - action.getMaxParticipants();
             action.setMaxParticipants(request.getPlacesTotal());
             action.setAvailablePlaces(Math.max(0, action.getAvailablePlaces() + diff));
         }
+        if (request.getProgram() != null) {
+            action.setProgram(new ArrayList<>(request.getProgram()));
+        }
+        if (request.getPracticalInfos() != null) {
+            action.setPracticalInfos(new ArrayList<>(request.getPracticalInfos()));
+        }
         return toDetailDTO(actionRepository.save(action));
+    }
+
+    @Transactional
+    public String adminUploadPhoto(Long actionId, MultipartFile photo) {
+        Action action = actionRepository.findById(actionId)
+                .orElseThrow(() -> new RuntimeException("Action non trouvée: " + actionId));
+        if (Boolean.TRUE.equals(action.getIsFixed())) {
+            throw new RuntimeException("Upload photo réservé aux actions non fixes");
+        }
+        return storeActionPhoto(action, photo);
+    }
+
+    private static String resolveAddress(AdminActionManageRequest request) {
+        if (request.getAddress() != null && !request.getAddress().isBlank()) {
+            return request.getAddress().trim();
+        }
+        if (request.getLieu() != null && !request.getLieu().isBlank()) {
+            return request.getLieu().trim();
+        }
+        return "Adresse non définie";
+    }
+
+    private static String resolveCity(AdminActionManageRequest request) {
+        if (request.getCity() != null && !request.getCity().isBlank()) {
+            return request.getCity().trim();
+        }
+        if (request.getLieu() != null && !request.getLieu().isBlank()) {
+            return request.getLieu().trim();
+        }
+        return "Ville non définie";
+    }
+
+    private static final DateTimeFormatter[] DATE_PARSERS = {
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME,
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
+    };
+
+    private static LocalDateTime parseDateTime(String value, LocalDateTime fallback) {
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+        String trimmed = value.trim();
+        for (DateTimeFormatter formatter : DATE_PARSERS) {
+            try {
+                return LocalDateTime.parse(trimmed, formatter);
+            } catch (DateTimeParseException ignored) {
+                // try next
+            }
+        }
+        throw new RuntimeException("Format de date invalide : " + value);
     }
 
     @Transactional
@@ -651,6 +731,9 @@ public class ActionService {
                 .registeredCount(action.getRegisteredCount())
                 .isFixed(action.getIsFixed())
                 .status(action.getStatus())
+                .associationName(action.getAssociation() != null
+                        ? action.getAssociation().getName()
+                        : null)
                 .photoUrls(action.getPhotos().stream()
                         .map(photo -> photo.getUrl())
                         .collect(Collectors.toList()))
@@ -699,11 +782,26 @@ public class ActionService {
 
     @Transactional
     public Categorie ensureCategoryExists(String categorieName, String description, String imageUrl) {
+        return ensureCategoryExists(categorieName, description, imageUrl, true);
+    }
+
+    @Transactional
+    public Categorie ensureCategoryExists(
+            String categorieName,
+            String description,
+            String imageUrl,
+            Boolean published
+    ) {
         String name = categorieName == null ? "" : categorieName.trim();
         if (name.isEmpty()) {
             throw new RuntimeException("La catégorie est obligatoire");
         }
+        boolean isPublished = published == null || published;
         return categorieRepository.findByNameIgnoreCase(name)
+                .map(existing -> {
+                    applyCategoryFields(existing, description, imageUrl, isPublished);
+                    return categorieRepository.save(existing);
+                })
                 .orElseGet(() -> {
                     Categorie created = categorieRepository.save(Categorie.builder()
                             .name(name)
@@ -711,6 +809,7 @@ public class ActionService {
                                     ? description
                                     : "Catégorie synchronisée depuis l'administration")
                             .imageUrl(imageUrl)
+                            .published(isPublished)
                             .build());
                     log.info("Catégorie créée dans db_action: {}", name);
                     return created;
@@ -718,25 +817,74 @@ public class ActionService {
     }
 
     @Transactional
+    public void deleteCategory(Long id) {
+        Categorie categorie = categorieRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Catégorie introuvable: " + id));
+        deleteCategoryEntity(categorie);
+    }
+
+    @Transactional
+    public void deleteCategoryByName(String name) {
+        String trimmed = name == null ? "" : name.trim();
+        Categorie categorie = categorieRepository.findByNameIgnoreCase(trimmed)
+                .orElse(null);
+        if (categorie == null) {
+            log.info("Catégorie '{}' absente de db_action — rien à supprimer", trimmed);
+            return;
+        }
+        deleteCategoryEntity(categorie);
+    }
+
+    private void deleteCategoryEntity(Categorie categorie) {
+        if (actionRepository.countByCategoryId(categorie.getId()) > 0) {
+            throw new RuntimeException(
+                    "Impossible de supprimer cette catégorie : des actions y sont rattachées."
+            );
+        }
+        categorieRepository.delete(categorie);
+        log.info("Catégorie supprimée dans db_action: {}", categorie.getName());
+    }
+
+    @Transactional
     public void updateCategorie(String name, Map<String, Object> event) {
-        categorieRepository.findByName(name).ifPresent(cat -> {
+        categorieRepository.findByNameIgnoreCase(name).ifPresent(cat -> {
             if (event.containsKey("description"))
                 cat.setDescription(event.get("description").toString());
             if (event.containsKey("imageUrl"))
                 cat.setImageUrl(event.get("imageUrl").toString());
+            if (event.containsKey("published") && event.get("published") != null) {
+                cat.setPublished(Boolean.parseBoolean(event.get("published").toString()));
+            }
             categorieRepository.save(cat);
             log.info("Catégorie mise à jour en local: {}", name);
         });
+    }
+
+    private void applyCategoryFields(
+            Categorie categorie,
+            String description,
+            String imageUrl,
+            boolean published
+    ) {
+        if (description != null && !description.isBlank()) {
+            categorie.setDescription(description);
+        }
+        if (imageUrl != null && !imageUrl.isBlank()) {
+            categorie.setImageUrl(imageUrl);
+        }
+        categorie.setPublished(published);
     }
 
     // ─── UPLOAD PHOTO ─────────────────────────────────────────
 
     @Transactional
     public String uploadPhoto(Long actionId, MultipartFile photo, Long userId) {
-        // Vérifier que l'action appartient à l'utilisateur
         Action action = getActionOwnedByUser(actionId, userId);
+        return storeActionPhoto(action, photo);
+    }
 
-        // Valider le fichier
+    private String storeActionPhoto(Action action, MultipartFile photo) {
+        Long actionId = action.getId();
         if (photo.isEmpty()) {
             throw new RuntimeException("Le fichier photo est vide");
         }

@@ -1,6 +1,9 @@
 package com.example.auth_service.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -12,4 +15,8 @@ public class UserInternalResponse {
     private String role;
     private Boolean isActive;
     private Boolean isVerified;
+    private String displayName;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime createdAt;
 }

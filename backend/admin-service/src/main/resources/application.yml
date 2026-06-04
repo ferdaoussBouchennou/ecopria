@@ -16,6 +16,11 @@ spring:
   application:
     name: service-admin
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3312/db_admin?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
     username: ${SPRING_DATASOURCE_USERNAME:ecopria}
@@ -42,9 +47,13 @@ jwt:
   expiration: 86400000
   refresh-expiration: 604800000
 
+app:
+  category-upload-dir: ${APP_CATEGORY_UPLOAD_DIR:uploads/categories}
+
 services:
+  notification-url: ${SERVICE_NOTIFICATION_URL:http://localhost:8086}
   auth-url: ${AUTH_SERVICE_URL:http://localhost:8081}
   action-url: ${ACTION_SERVICE_URL:http://localhost:9090}
   inscription-url: ${INSCRIPTION_SERVICE_URL:http://localhost:8080}
   recompense-url: ${RECOMPENSE_SERVICE_URL:http://localhost:8080}
-  utilisateur-url: ${UTILISATEUR_SERVICE_URL:http://localhost:8080}
+  utilisateur-url: ${UTILISATEUR_SERVICE_URL:http://localhost:8082}

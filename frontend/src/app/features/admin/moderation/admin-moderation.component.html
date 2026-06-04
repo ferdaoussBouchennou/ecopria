@@ -1,8 +1,207 @@
-<section class="admin-page">
+<section class="admin-page moderation-page">
   <p class="admin-eyebrow"><span class="eyebrow-line"></span> Modération</p>
   <h1 class="admin-page__title">Modération des actions.</h1>
-  <p class="admin-placeholder">
-    Chargement de l’interface de modération (activation/désactivation des actions)…
+  <p class="admin-desc">
+    Contrôlez les actions proposées par les associations : validez les brouillons, suspendez une
+    action non conforme ou réactivez une action suspendue. Les citoyens ne voient que les actions
+    <strong>publiées</strong>.
   </p>
-</section>
 
+  @if (message) {
+    <p class="admin-muted mod-msg">{{ message }}</p>
+  }
+
+  @if (loading) {
+    <p class="admin-muted">Chargement…</p>
+  } @else if (error && items.length === 0) {
+    <div class="admin-alert admin-alert--error">{{ error }}</div>
+  } @else {
+    @if (error) {
+      <div class="admin-alert admin-alert--error">{{ error }}</div>
+    }
+
+    <div class="toolbar">
+      <div class="chips">
+        <button type="button" class="chip" [class.chip--active]="filter === 'all'" (click)="setFilter('all')">
+          Toutes ({{ items.length }})
+        </button>
+        <button type="button" class="chip" [class.chip--active]="filter === 'draft'" (click)="setFilter('draft')">
+          Brouillons ({{ countDraft }})
+        </button>
+        <button
+          type="button"
+          class="chip"
+          [class.chip--active]="filter === 'published'"
+          (click)="setFilter('published')"
+        >
+          Publiées ({{ countPublished }})
+        </button>
+        <button
+          type="button"
+          class="chip"
+          [class.chip--active]="filter === 'suspended'"
+          (click)="setFilter('suspended')"
+        >
+          Suspendues ({{ countSuspended }})
+        </button>
+        <button
+          type="button"
+          class="chip"
+          [class.chip--active]="filter === 'completed'"
+          (click)="setFilter('completed')"
+        >
+          Terminées ({{ countCompleted }})
+        </button>
+      </div>
+      <input
+        type="search"
+        class="search-input"
+        [(ngModel)]="search"
+        placeholder="Rechercher titre, association, ville…"
+      />
+    </div>
+
+    @if (filteredItems.length === 0) {
+      <p class="admin-muted">Aucune action pour ce filtre.</p>
+    } @else {
+      <article class="table-card">
+        <header class="table-head table-head--mod">
+          <span>Action</span>
+          <span>Association</span>
+          <span>Ville</span>
+          <span>Date</span>
+          <span>Statut</span>
+        </header>
+        @for (item of filteredItems; track item.id) {
+          <button
+            type="button"
+            class="table-row table-row--mod"
+            [class.table-row--selected]="selected?.id === item.id"
+            (click)="select(item)"
+          >
+            <span class="row-title">{{ item.title }}</span>
+            <span>{{ item.associationName || '—' }}</span>
+            <span>{{ item.city || '—' }}</span>
+            <span>{{ item.dateStart ? (item.dateStart | date:'dd/MM/yy') : '—' }}</span>
+            <span>
+              <span class="status-pill" [ngClass]="statusClass(item.status)">
+                {{ statusLabel(item.status) }}
+              </span>
+            </span>
+          </button>
+        }
+      </article>
+    }
+
+    @if (selected) {
+      <article class="detail-card">
+        <div class="detail-top">
+          @if (imageSrc(selected)) {
+            <div class="detail-media">
+              <img [src]="imageSrc(selected)!" [alt]="selected.title" loading="lazy" />
+            </div>
+          }
+          <div class="detail-main">
+            <h2 class="detail-title">{{ selected.title }}</h2>
+            <p class="detail-meta">
+              {{ selected.associationName || 'Association inconnue' }}
+              · {{ selected.categoryName || 'Sans catégorie' }}
+              · {{ selected.city || 'Ville non renseignée' }}
+            </p>
+            <dl class="detail-grid">
+              <div>
+                <dt>Statut</dt>
+                <dd>
+                  <span class="status-pill" [ngClass]="statusClass(selected.status)">
+                    {{ statusLabel(selected.status) }}
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt>Points</dt>
+                <dd>{{ selected.points ?? '—' }}</dd>
+              </div>
+              <div>
+                <dt>Inscrits</dt>
+                <dd>
+                  {{ selected.registeredCount ?? 0 }} / {{ selected.maxParticipants ?? '—' }}
+                </dd>
+              </div>
+              <div>
+                <dt>Période</dt>
+                <dd>
+                  @if (selected.dateStart) {
+                    {{ selected.dateStart | date:'dd/MM/yyyy HH:mm' }}
+                    @if (selected.dateEnd) {
+                      → {{ selected.dateEnd | date:'dd/MM/yyyy HH:mm' }}
+                    }
+                  } @else {
+                    —
+                  }
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="detail-actions">
+          @if (canPublish(selected)) {
+            <button
+              type="button"
+              class="btn-primary"
+              [disabled]="acting"
+              (click)="publish(selected)"
+            >
+              {{ selected.status === 'CANCELLED' ? 'Réactiver' : 'Valider & publier' }}
+            </button>
+          }
+          @if (canSuspend(selected)) {
+            @if (!showSuspendForm) {
+              <button
+                type="button"
+                class="btn-outline"
+                [disabled]="acting"
+                (click)="suspend(selected)"
+              >
+                Suspendre
+              </button>
+            } @else {
+              <div class="suspend-box">
+                <label class="field">
+                  <span class="field-label">Raison de la suspension</span>
+                  <textarea
+                    class="field-input field-input--area"
+                    [(ngModel)]="suspendRaison"
+                    rows="2"
+                    placeholder="Ex. contenu inapproprié, informations incorrectes…"
+                  ></textarea>
+                </label>
+                <div class="suspend-box__btns">
+                  <button
+                    type="button"
+                    class="btn-outline"
+                    [disabled]="acting"
+                    (click)="showSuspendForm = false; suspendRaison = ''"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-warn"
+                    [disabled]="acting"
+                    (click)="suspend(selected)"
+                  >
+                    Confirmer la suspension
+                  </button>
+                </div>
+              </div>
+            }
+          }
+          @if (selected.status === 'COMPLETED') {
+            <p class="admin-muted detail-note">Action terminée — plus de modification possible.</p>
+          }
+        </div>
+      </article>
+    }
+  }
+</section>

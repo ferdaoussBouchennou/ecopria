@@ -10,4 +10,5 @@ public class CategorieEvent {
     private String nom;
     private String description;
     private String imageUrl;
+    private Boolean published;
 }

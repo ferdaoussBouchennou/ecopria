@@ -21,9 +21,10 @@ public class CategorieController {
     private final CategorieRepository categorieRepository;
     private final ActionService actionService;
 
+    /** Catégories publiées — visible associations & citoyens */
     @GetMapping
     public ResponseEntity<List<CategorieDTO>> getAll() {
-        List<CategorieDTO> categories = categorieRepository.findAll()
+        List<CategorieDTO> categories = categorieRepository.findByPublishedTrueOrderByNameAsc()
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -43,9 +44,22 @@ public class CategorieController {
         Categorie category = actionService.ensureCategoryExists(
                 request.getNom(),
                 request.getDescription(),
-                request.getImageUrl()
+                request.getImageUrl(),
+                request.getPublished()
         );
         return ResponseEntity.ok(mapToDTO(category));
+    }
+
+    @DeleteMapping("/admin/{id}")
+    public ResponseEntity<Void> deleteForAdmin(@PathVariable Long id) {
+        actionService.deleteCategory(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/admin/by-name/{name}")
+    public ResponseEntity<Void> deleteForAdminByName(@PathVariable String name) {
+        actionService.deleteCategoryByName(name);
+        return ResponseEntity.noContent().build();
     }
 
     private CategorieDTO mapToDTO(Categorie c) {
@@ -54,6 +68,7 @@ public class CategorieController {
                 .name(c.getName())
                 .description(c.getDescription())
                 .imageUrl(c.getImageUrl())
+                .published(c.getPublished())
                 .build();
     }
 }

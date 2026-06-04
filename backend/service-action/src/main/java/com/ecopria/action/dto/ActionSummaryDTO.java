@@ -28,5 +28,6 @@ public class ActionSummaryDTO {
     private Integer registeredCount; // calculé
     private Boolean isFixed;
     private ActionStatus status;
+    private String associationName;
     private List<String> photoUrls; // URLs des photos de l'action
 }

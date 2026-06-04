@@ -107,6 +107,27 @@ public class UserController {
         return ResponseEntity.ok(Map.of("logoUrl", logoUrl));
     }
 
+    /** Admin / admin-service : création profil association après compte auth. */
+    @PostMapping("/admin/associations")
+    public ResponseEntity<Association> adminCreateAssociation(
+            @RequestBody AssociationAdminUpsertRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(userService.adminUpsertAssociation(request));
+    }
+
+    @PutMapping("/admin/associations/{authId}")
+    public ResponseEntity<Association> adminUpdateAssociation(
+            @PathVariable Long authId,
+            @RequestBody AssociationAdminUpsertRequest request) {
+        request.setAuthId(authId);
+        return ResponseEntity.ok(userService.adminUpsertAssociation(request));
+    }
+
+    @GetMapping("/admin/associations/{authId}")
+    public ResponseEntity<Association> adminGetAssociation(@PathVariable Long authId) {
+        return ResponseEntity.ok(userService.getAssociation(authId));
+    }
+
     @PutMapping("/partner/{authId}/profile")
     public ResponseEntity<Partner> updatePartnerProfile(
             @PathVariable Long authId,

@@ -1,11 +1,14 @@
 package com.example.auth_service.controller;
 
+import com.example.auth_service.dto.CreateAssociationUserRequest;
+import com.example.auth_service.dto.CreateAssociationUserResponse;
 import com.example.auth_service.dto.OrganizationAccountsPageResponse;
 import com.example.auth_service.dto.PendingAccountResponse;
 import com.example.auth_service.dto.UserInternalResponse;
 import com.example.auth_service.dto.UserStatsResponse;
 import com.example.auth_service.service.InternalUserService;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -78,5 +81,12 @@ public class InternalUserController {
     public ResponseEntity<Void> activate(@PathVariable Long id) {
         service.activate(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/association")
+    public ResponseEntity<CreateAssociationUserResponse> createAssociationUser(
+            @Valid @RequestBody CreateAssociationUserRequest request) {
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(service.createAssociationUser(request));
     }
 }

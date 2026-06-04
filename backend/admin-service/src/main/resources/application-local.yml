@@ -8,6 +8,7 @@ spring:
       auto-startup: true
 
 services:
+  notification-url: http://localhost:8086
   auth-url: http://localhost:8081
   action-url: http://localhost:9090
   inscription-url: http://localhost:8084

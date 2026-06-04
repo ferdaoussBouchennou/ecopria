@@ -16,5 +16,6 @@ public class CategorieResponse {
     private String nom;
     private String description;
     private String imageUrl;
+    private Boolean published;
     private LocalDateTime updatedAt;
 }

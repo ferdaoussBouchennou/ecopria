@@ -24,12 +24,12 @@ export class AdminShellComponent implements OnInit {
   navItems: NavItem[] = [
     { path: '/admin', label: 'Vue globale' },
     { path: '/admin/comptes', label: 'Validation comptes' },
-    { path: '/admin/actions-fixes', label: 'Actions fixes' },
+    { path: '/admin/actions-fixes', label: 'Action' },
     { path: '/admin/categories', label: 'Catégories' },
+    { path: '/admin/associations', label: 'Associations' },
     { path: '/admin/moderation', label: 'Modération' },
     { path: '/admin/users', label: 'Utilisateurs' },
     { path: '/admin/configurations', label: 'Configurations' },
-    { path: '/admin/logs', label: 'Logs' },
   ];
 
   constructor(
