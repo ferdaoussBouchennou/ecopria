@@ -11,7 +11,7 @@
       <div class="accueil-hero__cta">
         <a routerLink="/carte" class="btn btn--primary">Explorer la carte</a>
         <a routerLink="/recompenses" class="btn btn--outline btn--recompenses">Voir les récompenses</a>
-        <a routerLink="/accueil" fragment="comment-ca-marche" class="btn btn--ghost-sm">Comment ça marche</a>
+        <a routerLink="/comment-ca-marche" class="btn btn--ghost-sm">Comment ça marche</a>
       </div>
       <div class="accueil-stats">
         @for (stat of stats; track stat.label) {
@@ -127,7 +127,7 @@
     </div>
     <div class="accueil-how__text">
       <p class="accueil-eyebrow"><span class="eyebrow-line"></span> Comment ça marche</p>
-      <h2 class="accueil-section__title">Trois pas. Et un geste réel.</h2>
+      <h2 class="accueil-section__title">Cinq étapes. De l'action à la récompense.</h2>
       <ol class="accueil-steps">
         <li>
           <span class="accueil-steps__num">01</span>
@@ -139,18 +139,33 @@
         <li>
           <span class="accueil-steps__num">02</span>
           <div>
-            <strong>Participer</strong>
-            <p>Inscrivez-vous en un clic. Un QR code unique vous est envoyé.</p>
+            <strong>S'inscrire</strong>
+            <p>Un clic pour réserver votre place. Le QR de présence est généré pour l'action, côté association.</p>
           </div>
         </li>
         <li>
           <span class="accueil-steps__num">03</span>
           <div>
-            <strong>Gagner</strong>
-            <p>Présentez-vous, scannez. Vos points sont crédités, à échanger chez nos partenaires.</p>
+            <strong>Valider</strong>
+            <p>Sur place, scannez le QR de l'organisateur. Vos points sont crédités sur votre compte.</p>
+          </div>
+        </li>
+        <li>
+          <span class="accueil-steps__num">04</span>
+          <div>
+            <strong>Échanger</strong>
+            <p>Dépensez vos points sur une offre visible : coupon unique, e-mail et espace récompenses.</p>
+          </div>
+        </li>
+        <li>
+          <span class="accueil-steps__num">05</span>
+          <div>
+            <strong>Mystère</strong>
+            <p>Ou ouvrez la boîte mystère : tirage aléatoire, coupon pour le lot gagné.</p>
           </div>
         </li>
       </ol>
+      <a routerLink="/comment-ca-marche" class="accueil-link-arrow">Le parcours complet →</a>
     </div>
   </section>
 

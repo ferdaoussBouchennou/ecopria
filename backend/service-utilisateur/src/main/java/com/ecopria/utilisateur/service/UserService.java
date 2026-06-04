@@ -294,6 +294,33 @@ public class UserService {
     }
 
     @Transactional
+    public void deductPoints(Long authId, Integer points, String raison) {
+        Citizen citizen = getCitizen(authId);
+        Integer currentPoints = citizen.getTotalPoints() != null ? citizen.getTotalPoints() : 0;
+        
+        if (currentPoints < points) {
+            throw new RuntimeException("Points insuffisants. Solde: " + currentPoints + " - Requis: " + points);
+        }
+        
+        // Déduire les points
+        Integer newTotal = currentPoints - points;
+        citizen.setTotalPoints(newTotal);
+        citizenRepository.save(citizen);
+        
+        // Créer une entrée dans l'historique
+        PointHistory history = new PointHistory();
+        history.setProfile(citizen);
+        history.setAmount(points);  // Positif, le type DEBIT indique la déduction
+        history.setType(PointHistory.TransactionType.DEBIT);
+        history.setSource("ECHANGE_RECOMPENSE");
+        history.setDescription(raison != null ? raison : "Échange de récompense");
+        // createdAt est initialisé automatiquement dans le modèle
+        pointHistoryRepository.save(history);
+        
+        log.info("Points déduits: {} points pour authId: {} - Nouveau solde: {}", points, authId, newTotal);
+    }
+
+    @Transactional
     public void updateTrustScore(Long authId, int delta) {
         Citizen citizen = getCitizen(authId);
         int current = citizen.getTrustScore() != null ? citizen.getTrustScore() : 100;

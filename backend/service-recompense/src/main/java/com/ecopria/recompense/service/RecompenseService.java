@@ -112,8 +112,12 @@ public class RecompenseService {
 
         Coupon saved = couponRepository.save(coupon);
 
-        // publier sur Kafka → service-utilisateur déduit les points
-        // → service-notification envoie le coupon par email
+        // ✅ DÉDUCTION IMMÉDIATE DES POINTS (sans Kafka)
+        String raisonDeduction = "Échange récompense: " + recompense.getTitle();
+        utilisateurClient.deduirePoints(userId, recompense.getPointsNecessaires(), raisonDeduction);
+
+        // publier sur Kafka → service-notification envoie le coupon par email
+        // (la déduction est déjà faite ci-dessus, ce event sert juste pour les notifications)
         recompenseProducer.publishRecompenseEchangee(
                 RecompenseEchangeeEvent.builder()
                         .userId(userId)
@@ -125,7 +129,7 @@ public class RecompenseService {
                         .partenaireName(recompense.getPartenaire().getName())
                         .build());
 
-        log.info("Coupon {} généré pour userId: {}", code, userId);
+        log.info("Coupon {} généré pour userId: {} - Points déduits: {}", code, userId, recompense.getPointsNecessaires());
         return toCouponDTO(saved);
     }
 

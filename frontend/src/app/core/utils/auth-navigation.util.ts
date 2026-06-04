@@ -20,7 +20,7 @@ export function defaultHomeForRole(role: RegisterRole | string | null | undefine
     case 'PARTNER':
       return '/partenaire';
     case 'USER':
-      return '/espace';
+      return '/espace/dashboard';
     default:
       return '/';
   }

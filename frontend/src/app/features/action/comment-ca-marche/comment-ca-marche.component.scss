@@ -1,0 +1,229 @@
+.how-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 3vw, 2rem) clamp(3rem, 6vw, 5rem);
+  background: var(--ec-cream, #faf8f5);
+}
+
+/* ── Hero centré (maquette) ── */
+.how-hero {
+  text-align: center;
+  max-width: 42rem;
+  margin: 0 auto clamp(3rem, 6vw, 4.5rem);
+}
+
+.how-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  margin: 0 0 1.35rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ec-text-muted);
+}
+
+.how-eyebrow__line {
+  width: clamp(28px, 6vw, 48px);
+  height: 1px;
+  background: var(--ec-brand-sand, #c7af94);
+}
+
+.how-hero__title {
+  margin: 0 0 1rem;
+  font-family: var(--ec-font-serif);
+  font-size: clamp(2.1rem, 4.5vw, 3.1rem);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--ec-text);
+}
+
+.how-hero__lead {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+  line-height: 1.65;
+  color: var(--ec-text-soft);
+}
+
+/* ── Étapes alternées ── */
+.how-steps {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3rem, 7vw, 5rem);
+}
+
+.how-step {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(1.75rem, 4vw, 3.5rem);
+  align-items: center;
+}
+
+.how-step--reverse {
+  .how-step__visual {
+    order: 2;
+  }
+
+  .how-step__content {
+    order: 1;
+  }
+}
+
+.how-step__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 5 / 4;
+  max-height: 420px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 22px;
+  background: var(--ec-cream-deep);
+
+}
+
+.how-step__num {
+  display: block;
+  margin-bottom: 0.65rem;
+  font-family: var(--ec-font-serif);
+  font-size: clamp(2.5rem, 5vw, 3.25rem);
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ec-brand-sage, #acb087);
+  letter-spacing: -0.02em;
+}
+
+.how-step__title {
+  margin: 0 0 0.85rem;
+  font-family: var(--ec-font-serif);
+  font-size: clamp(1.55rem, 2.8vw, 2rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--ec-text);
+  max-width: 18ch;
+}
+
+.how-step__body {
+  margin: 0 0 1.25rem;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--ec-text-soft);
+  max-width: 38ch;
+}
+
+.how-step__link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ec-sage);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+
+  &:hover {
+    color: var(--ec-brand-earth-dark, #7a5d42);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+/* ── Bandeau final ── */
+.how-cta {
+  margin-top: clamp(3.5rem, 7vw, 5rem);
+  padding: clamp(2rem, 4vw, 2.75rem);
+  text-align: center;
+  background: linear-gradient(
+    145deg,
+    var(--ec-brand-almond, #eaded0) 0%,
+    var(--ec-cream-deep, #f5f1eb) 100%
+  );
+  border: 1px solid var(--ec-brand-sand, #c7af94);
+  border-radius: 20px;
+}
+
+.how-cta__title {
+  margin: 0 0 0.65rem;
+  font-family: var(--ec-font-serif);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600;
+}
+
+.how-cta__lead {
+  margin: 0 auto 1.5rem;
+  max-width: 40ch;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ec-text-soft);
+}
+
+.how-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.how-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.72rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  font-family: inherit;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+
+  &--primary {
+    background: var(--ec-sage);
+    color: #fff;
+
+    &:hover {
+      background: #245a43;
+    }
+  }
+
+  &--outline {
+    background: var(--ec-card);
+    color: var(--ec-text);
+    border-color: var(--ec-border);
+
+    &:hover {
+      border-color: var(--ec-sage-light);
+      color: var(--ec-sage);
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: var(--ec-text-muted);
+    border-color: transparent;
+
+    &:hover {
+      color: var(--ec-sage);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .how-step,
+  .how-step--reverse {
+    grid-template-columns: 1fr;
+
+    .how-step__visual,
+    .how-step__content {
+      order: unset;
+    }
+  }
+
+  .how-step__title {
+    max-width: none;
+  }
+
+  .how-step__body {
+    max-width: none;
+  }
+}
