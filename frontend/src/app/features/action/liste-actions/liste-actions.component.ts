@@ -11,6 +11,7 @@ import {
   SortBy,
 } from '../models/action.model';
 import { getCategoryMeta, CategoryMeta } from '../constants/category-meta';
+import { getCategoryImageUrl } from '../utils/category-image.util';
 import {
   formatActionDate,
   formatTimeRange,
@@ -157,14 +158,10 @@ export class ListeActionsComponent implements OnInit {
   }
 
   getActionImage(action: ActionSummary): string {
-    // Priorité: photo de l'action > image de catégorie > icône de catégorie
-    if (action.photoUrls && action.photoUrls.length > 0) {
+    if (action.photoUrls?.length) {
       return action.photoUrls[0];
     }
-    return (
-      action.categoryImageUrl ||
-      `/assets/categories/${getCategoryMeta(action.categoryName).slug}.svg`
-    );
+    return getCategoryImageUrl(action.categoryName, action.categoryImageUrl);
   }
 
   isFull = isActionFull;

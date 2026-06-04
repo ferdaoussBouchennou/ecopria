@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { defaultHomeForRole } from '../../../core/utils/auth-navigation.util';
 import { SITE_IMAGES } from '../../../core/constants/site-images';
 import { HOW_HERO, HOW_STEPS, HowStep } from './comment-ca-marche.constants';
 
@@ -29,10 +28,6 @@ export class CommentCaMarcheComponent {
 
   get isLoggedIn(): boolean {
     return this.auth.isLoggedIn();
-  }
-
-  get monEspaceLink(): string[] {
-    return [defaultHomeForRole(this.auth.getRole())];
   }
 
   get isCitizen(): boolean {

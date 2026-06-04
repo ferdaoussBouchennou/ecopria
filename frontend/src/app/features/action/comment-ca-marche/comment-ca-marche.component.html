@@ -46,9 +46,7 @@
     <div class="how-cta__actions">
       <a routerLink="/carte" class="how-btn how-btn--primary">Explorer la carte</a>
       <a routerLink="/recompenses" class="how-btn how-btn--outline">Catalogue récompenses</a>
-      @if (isLoggedIn) {
-        <a [routerLink]="monEspaceLink" class="how-btn how-btn--outline">Mon espace</a>
-      } @else {
+      @if (!isLoggedIn) {
         <a routerLink="/creer-compte" class="how-btn how-btn--outline">Créer un compte</a>
         <a routerLink="/connexion" class="how-btn how-btn--ghost">Se connecter</a>
       }
