@@ -155,7 +155,7 @@
 
 <!-- Modal de succès -->
 <div class="modal-overlay" *ngIf="showSuccessModal" (click)="closeModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
+  <div class="modal-content modal--success" (click)="$event.stopPropagation()">
     <button class="modal-close" (click)="closeModal()">✕</button>
     
     <div class="modal-header">
@@ -170,13 +170,39 @@
         <h3>{{ couponGenere.recompenseTitle }}</h3>
         <p class="partenaire-name">Chez {{ profil?.name }}</p>
         
-        <div class="coupon-code">
+        <!-- QR Code -->
+        <div class="qr-code-container">
+          <div class="qr-code-loading" *ngIf="qrCodeLoading">
+            <div class="spinner"></div>
+            <p>Génération du QR code...</p>
+          </div>
+          
+          <div class="qr-code-image" *ngIf="!qrCodeLoading && qrCodeDataUrl">
+            <img [src]="qrCodeDataUrl" alt="QR Code du coupon" />
+            <p class="qr-code-hint">Scannez ce QR code chez le partenaire</p>
+          </div>
+
+          <div class="qr-code-error" *ngIf="!qrCodeLoading && !qrCodeDataUrl">
+            <p>QR code non disponible</p>
+          </div>
+        </div>
+
+        <!-- Code coupon -->
+        <div class="coupon-code-box">
           <span class="code-label">Code coupon:</span>
-          <span class="code-value">{{ couponGenere.code }}</span>
+          <div class="code-value-container">
+            <span class="code-value">{{ couponGenere.code }}</span>
+            <button 
+              class="btn-copy" 
+              (click)="copierCode(couponGenere.code)"
+              title="Copier le code">
+              📋
+            </button>
+          </div>
         </div>
 
         <p class="coupon-instructions">
-          Présentez ce code chez {{ profil?.name }} pour bénéficier de votre offre.
+          Présentez ce code ou le QR code chez {{ profil?.name }} pour bénéficier de votre offre.
         </p>
         
         <p class="coupon-expiry" *ngIf="couponGenere.expireLe">
@@ -186,6 +212,12 @@
     </div>
 
     <div class="modal-actions">
+      <button 
+        class="btn-secondary" 
+        (click)="telechargerQRCode()"
+        *ngIf="qrCodeDataUrl && couponGenere">
+        📥 Télécharger QR Code
+      </button>
       <button class="btn-primary" (click)="allerVersMesCoupons()">
         Voir mes coupons
       </button>

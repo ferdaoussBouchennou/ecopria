@@ -1,0 +1,609 @@
+{
+  "info": {
+    "name": "Ecopria - Test Échange de Points",
+    "description": "Collection Postman pour tester le système d'échange de points contre des offres",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url_user",
+      "value": "http://localhost:8082",
+      "type": "string"
+    },
+    {
+      "key": "base_url_reward",
+      "value": "http://localhost:8084",
+      "type": "string"
+    },
+    {
+      "key": "base_url_gateway",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "partner_user_id",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "coupon_code",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Utilisateur - Gestion des Points",
+      "item": [
+        {
+          "name": "1.1 Obtenir les Points de l'Utilisateur",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_user}}/api/utilisateurs/{{user_id}}/points",
+              "host": ["{{base_url_user}}"],
+              "path": ["api", "utilisateurs", "{{user_id}}", "points"]
+            },
+            "description": "Récupère le solde de points de l'utilisateur. Devrait retourner 400 points."
+          },
+          "response": []
+        },
+        {
+          "name": "1.2 Obtenir le Dashboard Utilisateur",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_user}}/api/utilisateurs/{{user_id}}/dashboard",
+              "host": ["{{base_url_user}}"],
+              "path": ["api", "utilisateurs", "{{user_id}}", "dashboard"]
+            },
+            "description": "Récupère le dashboard complet avec points, badges, niveau, etc."
+          },
+          "response": []
+        },
+        {
+          "name": "1.3 Obtenir le Profil Utilisateur",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_user}}/api/utilisateurs/{{user_id}}/profile",
+              "host": ["{{base_url_user}}"],
+              "path": ["api", "utilisateurs", "{{user_id}}", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1.4 Historique des Points",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_user}}/api/utilisateurs/{{user_id}}/history",
+              "host": ["{{base_url_user}}"],
+              "path": ["api", "utilisateurs", "{{user_id}}", "history"]
+            },
+            "description": "Récupère l'historique des gains/dépenses de points"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Catalogue des Offres",
+      "item": [
+        {
+          "name": "2.1 Obtenir Toutes les Offres",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_reward}}/api/recompenses",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "recompenses"]
+            },
+            "description": "Récupère le catalogue complet des offres disponibles"
+          },
+          "response": []
+        },
+        {
+          "name": "2.2 Obtenir Offres STOCK",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_reward}}/api/recompenses?type=STOCK",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "recompenses"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "STOCK"
+                }
+              ]
+            },
+            "description": "Filtre uniquement les offres de type STOCK (produits en stock limité)"
+          },
+          "response": []
+        },
+        {
+          "name": "2.3 Obtenir Offres REDUCTION",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_reward}}/api/recompenses?type=REDUCTION",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "recompenses"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "REDUCTION"
+                }
+              ]
+            },
+            "description": "Filtre uniquement les offres de type REDUCTION (codes de réduction)"
+          },
+          "response": []
+        },
+        {
+          "name": "2.4 Détail d'une Offre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_reward}}/api/recompenses/1",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "recompenses", "1"]
+            },
+            "description": "Récupère les détails complets d'une offre spécifique"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Échange de Points",
+      "item": [
+        {
+          "name": "3.1 Échanger des Points contre une Offre",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Sauvegarder le code coupon dans une variable",
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"coupon_code\", jsonData.code);",
+                  "    console.log(\"Code coupon généré: \" + jsonData.code);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recompenseId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url_reward}}/api/recompenses/echanger",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "recompenses", "echanger"]
+            },
+            "description": "Échange des points contre l'offre ID 1. Le code coupon sera automatiquement sauvegardé."
+          },
+          "response": []
+        },
+        {
+          "name": "3.2 Mes Coupons",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_reward}}/api/recompenses/mes-coupons",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "recompenses", "mes-coupons"]
+            },
+            "description": "Récupère tous les coupons de l'utilisateur (distribués, utilisés, expirés)"
+          },
+          "response": []
+        },
+        {
+          "name": "3.3 Ouvrir une Boîte Mystère",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"coupon_code\", jsonData.coupon.code);",
+                  "    console.log(\"Prix gagné: \" + jsonData.titrePrix);",
+                  "    console.log(\"Code coupon: \" + jsonData.coupon.code);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_reward}}/api/recompenses/1/mystere-box",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "recompenses", "1", "mystere-box"]
+            },
+            "description": "Ouvre une boîte mystère (si l'offre en propose une)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Espace Partenaire - Dashboard",
+      "item": [
+        {
+          "name": "4.1 Dashboard Partenaire",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{partner_user_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_reward}}/api/partenaire/dashboard",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "partenaire", "dashboard"]
+            },
+            "description": "Dashboard du partenaire avec statistiques et coupons récents"
+          },
+          "response": []
+        },
+        {
+          "name": "4.2 Mes Offres Partenaire",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{partner_user_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_reward}}/api/partenaire/offres",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "partenaire", "offres"]
+            },
+            "description": "Liste toutes les offres du partenaire"
+          },
+          "response": []
+        },
+        {
+          "name": "4.3 Visibilité et Statistiques",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{partner_user_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_reward}}/api/partenaire/visibilite",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "partenaire", "visibilite"]
+            },
+            "description": "Statistiques de visibilité: vues, clics, taux de conversion"
+          },
+          "response": []
+        },
+        {
+          "name": "4.4 Commissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{partner_user_id}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url_reward}}/api/partenaire/commissions",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "partenaire", "commissions"]
+            },
+            "description": "Historique des commissions mensuelles"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Validation de Coupons",
+      "item": [
+        {
+          "name": "5.1 Valider un Coupon (Scanner)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{partner_user_id}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{coupon_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_reward}}/api/partenaire/valider-coupon",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "partenaire", "valider-coupon"]
+            },
+            "description": "Valide un code coupon scanné par le partenaire. Utilise automatiquement le dernier code généré."
+          },
+          "response": []
+        },
+        {
+          "name": "5.2 Valider Coupon Spécifique",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{partner_user_id}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"ECO-2026-XXXXX\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_reward}}/api/partenaire/valider-coupon",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "partenaire", "valider-coupon"]
+            },
+            "description": "Valide un code coupon spécifique (remplacer XXXXX par le vrai code)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Profil Public Partenaire",
+      "item": [
+        {
+          "name": "6.1 Profil Public d'un Partenaire",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_reward}}/api/recompenses/public/partenaire/{{partner_user_id}}",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "recompenses", "public", "partenaire", "{{partner_user_id}}"]
+            },
+            "description": "Profil public visible par les citoyens (incrémente les vues)"
+          },
+          "response": []
+        },
+        {
+          "name": "6.2 Tous les Partenaires Publics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_reward}}/api/recompenses/public/partenaires",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "recompenses", "public", "partenaires"]
+            },
+            "description": "Liste tous les partenaires avec leurs profils publics"
+          },
+          "response": []
+        },
+        {
+          "name": "6.3 Offres d'un Partenaire",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_reward}}/api/recompenses/public/partenaire/{{partner_user_id}}/offres",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "recompenses", "public", "partenaire", "{{partner_user_id}}", "offres"]
+            },
+            "description": "Liste toutes les offres actives d'un partenaire spécifique"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Via API Gateway",
+      "item": [
+        {
+          "name": "7.1 Points via Gateway",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_gateway}}/api/utilisateurs/{{user_id}}/points",
+              "host": ["{{base_url_gateway}}"],
+              "path": ["api", "utilisateurs", "{{user_id}}", "points"]
+            },
+            "description": "Test du même endpoint mais via l'API Gateway"
+          },
+          "response": []
+        },
+        {
+          "name": "7.2 Offres via Gateway",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_gateway}}/api/recompenses",
+              "host": ["{{base_url_gateway}}"],
+              "path": ["api", "recompenses"]
+            },
+            "description": "Catalogue des offres via l'API Gateway"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Scénarios de Test",
+      "item": [
+        {
+          "name": "Scénario Complet - 1. Vérifier Points",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_user}}/api/utilisateurs/{{user_id}}/points",
+              "host": ["{{base_url_user}}"],
+              "path": ["api", "utilisateurs", "{{user_id}}", "points"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Scénario Complet - 2. Voir Offres",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url_reward}}/api/recompenses",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "recompenses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Scénario Complet - 3. Échanger",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"coupon_code\", jsonData.code);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{user_id}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recompenseId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url_reward}}/api/recompenses/echanger",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "recompenses", "echanger"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Scénario Complet - 4. Valider Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{partner_user_id}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{coupon_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_reward}}/api/partenaire/valider-coupon",
+              "host": ["{{base_url_reward}}"],
+              "path": ["api", "partenaire", "valider-coupon"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
