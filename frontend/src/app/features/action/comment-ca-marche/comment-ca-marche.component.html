@@ -1,0 +1,55 @@
+<div class="how-page">
+  <header class="how-hero">
+    <p class="how-eyebrow">
+      <span class="how-eyebrow__line" aria-hidden="true"></span>
+      {{ hero.eyebrow }}
+      <span class="how-eyebrow__line" aria-hidden="true"></span>
+    </p>
+    <h1 class="how-hero__title">{{ hero.title }}</h1>
+    <p class="how-hero__lead">{{ hero.lead }}</p>
+  </header>
+
+  <div class="how-steps" role="list">
+    @for (step of steps; track step.num; let i = $index) {
+      <article
+        class="how-step"
+        [class.how-step--reverse]="i % 2 === 1"
+        role="listitem"
+        [attr.aria-labelledby]="'how-step-title-' + step.num"
+      >
+        <div class="how-step__visual">
+          <img
+            [src]="step.image"
+            [alt]="step.imageAlt"
+            class="how-step__image"
+            loading="lazy"
+            width="640"
+            height="800"
+            (error)="onStepImageError(step, $event)"
+          />
+        </div>
+        <div class="how-step__content">
+          <span class="how-step__num" aria-hidden="true">{{ step.num }}</span>
+          <h2 class="how-step__title" [id]="'how-step-title-' + step.num">{{ step.title }}</h2>
+          <p class="how-step__body">{{ step.body }}</p>
+          <a [routerLink]="stepCtaLink(step)" class="how-step__link">{{ step.ctaLabel }} →</a>
+        </div>
+      </article>
+    }
+  </div>
+
+  <section class="how-cta" aria-labelledby="how-cta-heading">
+    <h2 id="how-cta-heading" class="how-cta__title">Prêt à faire le premier pas ?</h2>
+    <p class="how-cta__lead">
+      Parcourez la carte sans compte, inscrivez-vous aux actions, cumulez des points puis échangez-les — ou tentez une boîte mystère.
+    </p>
+    <div class="how-cta__actions">
+      <a routerLink="/carte" class="how-btn how-btn--primary">Explorer la carte</a>
+      <a routerLink="/recompenses" class="how-btn how-btn--outline">Catalogue récompenses</a>
+      @if (!isLoggedIn) {
+        <a routerLink="/creer-compte" class="how-btn how-btn--outline">Créer un compte</a>
+        <a routerLink="/connexion" class="how-btn how-btn--ghost">Se connecter</a>
+      }
+    </div>
+  </section>
+</div>

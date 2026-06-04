@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.mail.internet.MimeMessage;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,6 +51,14 @@ public class NotificationService {
 
     public Notification create(Long userId, String title, String message,
                                 Notification.NotificationType type) {
+        if (userId != null && title != null && message != null) {
+            LocalDateTime since = LocalDateTime.now().minusMinutes(5);
+            if (notificationRepository.existsByUserIdAndTitleAndMessageAndCreatedAtAfter(
+                    userId, title, message, since)) {
+                log.debug("[notif] doublon ignore pour userId={} : {}", userId, title);
+                return null;
+            }
+        }
         Notification n = new Notification();
         n.setUserId(userId);
         n.setTitle(title);

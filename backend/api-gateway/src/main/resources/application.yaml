@@ -61,7 +61,7 @@ spring:
         - id: service-action
           uri: ${GATEWAY_ACTION_URI:http://localhost:9090}
           predicates:
-            - Path=/api/actions/**,/api/categories/**,/api/associations/**
+            - Path=/api/actions/**,/api/categories/**,/api/associations/**,/api/public/**
 
         - id: service-recompense
           uri: ${GATEWAY_RECOMPENSE_URI:http://localhost:9093}

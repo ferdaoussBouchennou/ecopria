@@ -4,6 +4,8 @@ export interface Profile {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string;
+  address?: string;
   city?: string;
   totalPoints: number;
   trustScore: number;
@@ -26,14 +28,22 @@ export interface Badge {
   name: string;
   description: string;
   icon: string;
-  pointsThreshold: number;
+  requiredPoints: number;
 }
 
 export interface UserBadge {
   id: number;
-  citizenId: number;
   badge: Badge;
-  earnedAt: string;
+  obtainedAt: string;
+}
+
+export interface BadgeStatus {
+  id: number;
+  name: string;
+  description: string;
+  icon: string;
+  requiredPoints: number;
+  obtained: boolean;
 }
 
 export interface LeaderboardEntry {

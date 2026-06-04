@@ -26,17 +26,52 @@ public class ActionConsumer {
     // ── écoute inscription.annulee pour libérer une place ─────
     @KafkaListener(topics = "inscription.annulee", groupId = "service-action")
     public void onInscriptionCancelled(Map<String, Object> event) {
-        Long actionId = Long.valueOf(event.get("actionId").toString());
+        Long actionId = readLong(event, "actionId");
+        if (actionId == null) {
+            return;
+        }
+        String statut = readString(event, "statut");
+        if (!"CONFIRMEE".equalsIgnoreCase(statut)) {
+            log.info("Annulation sans libération de place (statut={}) actionId={}", statut, actionId);
+            return;
+        }
         log.info("Libération place pour actionId: {}", actionId);
         actionService.releasePlace(actionId);
     }
 
-    // ── écoute inscription.confirmee pour décrémenter une place
+    /** Notifications + décrément places uniquement si inscription CONFIRMEE. */
     @KafkaListener(topics = "inscription.confirmee", groupId = "service-action")
     public void onInscriptionConfirmed(Map<String, Object> event) {
-        Long actionId = Long.valueOf(event.get("actionId").toString());
+        Long actionId = readLong(event, "actionId");
+        if (actionId == null) {
+            return;
+        }
+        String statut = readString(event, "statut");
+        if (!"CONFIRMEE".equalsIgnoreCase(statut)) {
+            log.info("Inscription enregistrée sans décrément (statut={}) actionId={}", statut, actionId);
+            return;
+        }
         log.info("Décrémentation place pour actionId: {}", actionId);
         actionService.decrementPlace(actionId);
+    }
+
+    private static Long readLong(Map<String, Object> event, String key) {
+        Object v = event.get(key);
+        if (v == null) {
+            v = event.get("action_id");
+        }
+        if (v instanceof Number n) {
+            return n.longValue();
+        }
+        if (v != null) {
+            return Long.valueOf(v.toString());
+        }
+        return null;
+    }
+
+    private static String readString(Map<String, Object> event, String key) {
+        Object v = event.get(key);
+        return v == null ? "" : v.toString().trim();
     }
 
     // ── écoute action.fixe.creee depuis service-admin ─────────

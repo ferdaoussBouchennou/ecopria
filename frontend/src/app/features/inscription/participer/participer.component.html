@@ -17,7 +17,7 @@
     <h2>Inscription confirmee !</h2>
     <p class="result-sub">
       Vous etes inscrit a <strong>{{ action?.titre }}</strong>.<br>
-      Un email avec votre QR Code vous a ete envoye par Sanae (service-notification).
+      Un email avec votre QR Code vous a ete envoye.
     </p>
 
     <div class="qr-block" *ngIf="inscription">
@@ -180,20 +180,20 @@
               <span class="field-error" *ngIf="hasError('telephone', 'pattern')">Format invalide (ex: 0600000000).</span>
             </div>
 
+            <!-- Ville -->
+            <div class="form-field" [class.form-field--error]="isInvalid('ville')">
+              <label for="ville">VILLE *</label>
+              <input id="ville" type="text" formControlName="ville" autocomplete="address-level2" />
+              <span class="field-error" *ngIf="hasError('ville', 'required')">La ville est requise.</span>
+              <span class="field-error" *ngIf="hasError('ville', 'minlength')">Minimum 2 caracteres.</span>
+            </div>
+
             <!-- Age -->
             <div class="form-field" [class.form-field--error]="isInvalid('age')">
               <label for="age">AGE *</label>
               <input id="age" type="number" formControlName="age" min="16" max="99" />
               <span class="field-error" *ngIf="hasError('age', 'required')">L'age est requis.</span>
               <span class="field-error" *ngIf="hasError('age', 'min')">Vous devez avoir au moins 16 ans.</span>
-            </div>
-
-            <!-- Accompagnants -->
-            <div class="form-field">
-              <label for="accompagnants">ACCOMPAGNANTS</label>
-              <select id="accompagnants" formControlName="accompagnants">
-                <option *ngFor="let n of accompagnantsOptions" [value]="n">{{ n }}</option>
-              </select>
             </div>
 
           </div>

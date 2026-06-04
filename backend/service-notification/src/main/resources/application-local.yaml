@@ -1,10 +1,16 @@
 # mvn spring-boot:run -Dspring-boot.run.profiles=local
-# Charge automatiquement EMAIL_USERNAME / EMAIL_PASSWORD depuis .env à la racine du projet
+# Charger .env à la racine : EMAIL_USERNAME, EMAIL_PASSWORD (mot de passe d'application Gmail)
 spring:
   kafka:
     bootstrap-servers: localhost:29092
     listener:
       auto-startup: true
+
+ecopria:
+  internal:
+    auth-base-url: http://localhost:8081
+    utilisateur-base-url: http://localhost:8082
+    inscription-base-url: http://localhost:8084
   mail:
     host: smtp.gmail.com
     port: 587

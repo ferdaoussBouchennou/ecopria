@@ -5,43 +5,40 @@
 </div>
 
 <!-- ─── ERREUR ─────────────────────────────────────────────── -->
-<div *ngIf="!loading && erreur" class="alert alert--error">
-  <div class="alert-inner">
-    <span class="alert-icon">⚠️</span>
-    <div><strong>Erreur</strong><p>{{ erreur }}</p></div>
-  </div>
-  <button class="btn btn--outline btn--sm" (click)="charger()">Réessayer</button>
+<div *ngIf="!loading && erreur" class="state-card state-card--error" role="alert">
+  <h2>Impossible de charger les avis</h2>
+  <p>{{ erreur }}</p>
+  <button type="button" class="btn btn--primary btn--sm" (click)="charger()">Réessayer</button>
 </div>
 
-<!-- ─── CONTENU ───────────────────────────────────────────── -->
-<div *ngIf="!loading && !erreur" class="avis-page">
-
-  <!-- Header -->
-  <div class="page-header">
+<div *ngIf="!loading && !erreur" class="p-page">
+  <div class="p-page-head">
     <div>
-      <span class="page-eyebrow">— AVIS CLIENTS</span>
-      <h1 class="page-title">Avis clients.</h1>
+      <span class="page-eyebrow">Avis clients</span>
+      <h1 class="page-title">Réputation</h1>
       <p class="page-sub">
         Consultez et répondez aux avis laissés par vos clients Ecopria.
         <span *ngIf="noteMoyenne">Note moyenne : <strong>★ {{ noteMoyenne }}</strong> / 5</span>
       </p>
     </div>
-    <div class="header-badge" *ngIf="avis.length > 0">
-      <span class="kpi-large">{{ avis.length }}</span>
-      <span class="kpi-sub">avis au total</span>
+    <div class="p-head-kpi" *ngIf="avis.length > 0">
+      <span class="p-head-kpi-value">{{ avis.length }}</span>
+      <span class="p-head-kpi-label">avis au total</span>
     </div>
   </div>
+  <div class="p-section">
 
-  <!-- Liste vide -->
   <div *ngIf="avis.length === 0" class="empty-state">
-    <span class="empty-icon">⭐</span>
+    <svg class="p-page-icon--lg empty-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 3L14.5 8.2L20 9L15.5 13.2L16.8 19L12 16.2L7.2 19L8.5 13.2L4 9L9.5 8.2L12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    </svg>
     <p class="empty-title">Aucun avis pour l'instant</p>
     <p class="empty-text">Les avis de vos clients apparaîtront ici après leurs visites.</p>
   </div>
 
   <!-- Avis list -->
-  <div class="avis-list" *ngIf="avis.length > 0">
-    <div class="avis-card" *ngFor="let a of avis">
+  <div class="p-avis-list" *ngIf="avis.length > 0">
+    <div class="p-avis-card avis-card" *ngFor="let a of avis">
 
       <!-- En-tête avis -->
       <div class="avis-header">
@@ -90,11 +87,12 @@
 
       <!-- Bouton répondre si pas de réponse -->
       <div *ngIf="!a.reponse && editingId !== a.id && expandedId !== a.id">
-        <button class="btn btn--outline btn--sm" (click)="expandedId = a.id; reponseTexte = ''">
-          💬 Répondre
+        <button type="button" class="btn btn--outline btn--sm" (click)="expandedId = a.id; reponseTexte = ''">
+          Répondre
         </button>
       </div>
 
     </div>
+  </div>
   </div>
 </div>

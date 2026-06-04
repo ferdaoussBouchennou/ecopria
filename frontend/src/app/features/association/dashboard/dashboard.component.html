@@ -24,7 +24,7 @@
       <div class="hero-kpi-divider"></div>
       <div class="hero-kpi">
         <span class="hero-kpi-value">+{{ globalStats.totalPoints }}</span>
-        <span class="hero-kpi-label">Points distribués</span>
+        <span class="hero-kpi-label">Points crédités</span>
       </div>
       <div class="hero-kpi-divider"></div>
       <div class="hero-kpi">
@@ -34,6 +34,13 @@
     </div>
     }
   </header>
+
+  @if (statsError || actionsError) {
+  <div class="dashboard-errors" role="alert">
+    @if (statsError) { <p>{{ statsError }}</p> }
+    @if (actionsError) { <p>{{ actionsError }}</p> }
+  </div>
+  }
 
   @if (loading) {
   <div class="state-box">

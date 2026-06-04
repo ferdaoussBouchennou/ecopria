@@ -4,57 +4,50 @@
   <p>Chargement des offres…</p>
 </div>
 
-<!-- ─── ERREUR ─────────────────────────────────────────────── -->
-<div *ngIf="!loading && erreur" class="alert alert--error">
-  <div class="alert-inner">
-    <span class="alert-icon">⚠️</span>
-    <div><strong>Erreur</strong><p>{{ erreur }}</p></div>
-  </div>
-  <button class="btn btn--outline btn--sm" (click)="charger()">Réessayer</button>
+<div *ngIf="!loading && erreur" class="state-card state-card--error" role="alert">
+  <h2>Impossible de charger vos offres</h2>
+  <p>{{ erreur }}</p>
+  <button type="button" class="btn btn--primary btn--sm" (click)="charger()">Réessayer</button>
 </div>
 
-<!-- ─── CONTENU ───────────────────────────────────────────── -->
-<div *ngIf="!loading" class="offres-page">
-
-  <!-- Header -->
-  <div class="page-header">
+<div *ngIf="!loading && !erreur" class="p-page">
+  <div class="p-page-head">
     <div>
-      <span class="page-eyebrow">— MES OFFRES</span>
-      <h1 class="page-title">Mes offres.</h1>
-      <p class="page-sub">Gérez vos offres : activez, modifiez ou supprimez.</p>
+      <span class="page-eyebrow">Mes offres</span>
+      <h1 class="page-title">Catalogue partenaire</h1>
+      <p class="page-sub">Gérez vos offres : activez, modifiez ou désactivez.</p>
     </div>
-    <a routerLink="/partenaire/offres/nouvelle" class="btn btn--primary">
-      <span>+</span> Nouvelle offre
-    </a>
+    <a routerLink="/partenaire/offres/nouvelle" class="btn btn--primary">Nouvelle offre</a>
   </div>
 
-  <!-- Filtres rapides -->
-  <div class="filter-tabs" *ngIf="offres.length > 0">
+  <div class="p-section">
+  <div class="p-filter-tabs" *ngIf="offres.length > 0">
     <button
-      class="filter-tab"
-      [class.active]="filtre === 'TOUS'"
+      type="button"
+      class="p-filter-tab"
+      [class.p-filter-tab--active]="filtre === 'TOUS'"
       (click)="filtre = 'TOUS'"
     >Toutes ({{ offres.length }})</button>
     <button
-      class="filter-tab"
-      [class.active]="filtre === 'ACTIVE'"
+      class="p-filter-tab"
+      [class.p-filter-tab--active]="filtre === 'ACTIVE'"
       (click)="filtre = 'ACTIVE'"
     >Actives ({{ offresActives.length }})</button>
     <button
-      class="filter-tab"
-      [class.active]="filtre === 'INACTIVE'"
+      class="p-filter-tab"
+      [class.p-filter-tab--active]="filtre === 'INACTIVE'"
       (click)="filtre = 'INACTIVE'"
     >Inactives ({{ offresInactives.length }})</button>
   </div>
 
   <!-- Liste offres -->
-  <div class="offres-grid" *ngIf="offresFiltered.length > 0">
-    <div class="offre-card" *ngFor="let o of offresFiltered">
+  <div class="p-offres-grid" *ngIf="offresFiltered.length > 0">
+    <div class="p-offre-card offre-card" *ngFor="let o of offresFiltered">
 
       <!-- Image -->
       <div class="offre-card-image">
         <img *ngIf="o.imageUrl" [src]="o.imageUrl" [alt]="o.title" />
-        <div *ngIf="!o.imageUrl" class="offre-img-placeholder">🎁</div>
+        <div *ngIf="!o.imageUrl" class="offre-img-placeholder">Offre</div>
         <span class="offre-type-badge" [ngClass]="typeClass(o.type)">{{ typeLabel(o.type) }}</span>
         <span
           class="offre-status-dot"
@@ -75,33 +68,17 @@
         <p class="offre-desc" *ngIf="o.description">{{ o.description }}</p>
 
         <div class="offre-stats">
-          <span class="offre-stat">
-            <span class="stat-icon">🎯</span>
-            {{ o.pointsNecessaires }} pts
-          </span>
-          <span class="offre-stat" *ngIf="o.stock != null">
-            <span class="stat-icon">📦</span>
-            Stock : {{ o.stock }}
-          </span>
-          <span class="offre-stat" *ngIf="o.discountPercentage">
-            <span class="stat-icon">%</span>
-            -{{ o.discountPercentage }}%
-          </span>
-          <span class="offre-stat" *ngIf="o.couponsUtilises != null">
-            <span class="stat-icon">✅</span>
-            {{ o.couponsUtilises }} utilisés
-          </span>
-          <span class="offre-stat badge--mystere" *ngIf="o.hasMystereBox">
-            🎁 Boîte mystère
-          </span>
+          <span class="offre-stat">{{ o.pointsNecessaires }} pts</span>
+          <span class="offre-stat" *ngIf="o.stock != null">Stock {{ o.stock }}</span>
+          <span class="offre-stat" *ngIf="o.discountPercentage">-{{ o.discountPercentage }}%</span>
+          <span class="offre-stat" *ngIf="o.couponsUtilises != null">{{ o.couponsUtilises }} utilisés</span>
+          <span class="offre-stat badge--mystere" *ngIf="o.hasMystereBox">Boîte mystère</span>
         </div>
       </div>
 
       <!-- Actions -->
       <div class="offre-card-actions">
-        <a [routerLink]="['/partenaire/offres/modifier', o.id]" class="btn btn--ghost btn--sm">
-          ✏️ Modifier
-        </a>
+        <a [routerLink]="['/partenaire/offres/modifier', o.id]" class="btn btn--ghost btn--sm">Modifier</a>
         <button
           class="btn btn--sm"
           [ngClass]="o.isActive ? 'btn--outline' : 'btn--primary'"
@@ -117,7 +94,7 @@
           [disabled]="suppressionId === o.id"
           title="Supprimer définitivement"
         >
-          🗑️
+          Suppr.
         </button>
       </div>
     </div>
@@ -125,7 +102,10 @@
 
   <!-- Empty state -->
   <div *ngIf="!loading && offresFiltered.length === 0" class="empty-state">
-    <span class="empty-icon">📭</span>
+    <svg class="p-page-icon--lg empty-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 6H16V14C16 15.1 15.1 16 14 16H6C4.9 16 4 15.1 4 14V6Z" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M4 8H16" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
     <p class="empty-title">
       {{ filtre === 'TOUS' ? 'Aucune offre pour l\'instant' : 'Aucune offre ' + (filtre === 'ACTIVE' ? 'active' : 'inactive') }}
     </p>
@@ -136,7 +116,6 @@
   <!-- Modal confirmation suppression -->
   <div class="modal-overlay" *ngIf="suppressionId !== null" (click)="annulerSuppression()">
     <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal-icon">🗑️</div>
       <h3>Supprimer cette offre ?</h3>
       <p>L'offre sera désactivée et ne sera plus visible par les utilisateurs. Cette action est irréversible.</p>
       <div class="modal-actions">
@@ -144,5 +123,6 @@
         <button class="btn btn--danger" (click)="supprimerConfirme()">Supprimer</button>
       </div>
     </div>
+  </div>
   </div>
 </div>

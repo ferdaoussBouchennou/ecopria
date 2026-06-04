@@ -104,35 +104,35 @@
   color: var(--primary-foreground);
 }
 
+.nav-item--muted {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
 .sidebar-footer {
   margin-top: auto;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding-top: 1rem;
-}
-
-.sidebar-back {
-  font-size: 0.8rem;
-  color: var(--muted-foreground);
+  width: 100%;
 }
 
 .btn-logout {
   width: 100%;
-  padding: 0.65rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--muted-foreground);
-  font-family: var(--font-sans);
+  padding: 0.72rem 1rem;
+  background: #fef3f2;
+  color: #b42318;
+  border: 1px solid #fecdca;
+  border-radius: 12px;
   font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
+  transition: background 0.2s, border-color 0.2s;
 
-.btn-logout:hover {
-  background: var(--muted);
-  color: var(--foreground);
+  &:hover {
+    background: #fee4e2;
+    border-color: #fda29b;
+  }
 }
 
 .user-sidebar-info h3 {
@@ -336,9 +336,17 @@
   background: var(--sage-mist);
 }
 
+.notif-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+  color: var(--foreground);
+}
+
 .notif-text {
   font-size: 0.85rem;
   margin-bottom: 0.3rem;
+  color: var(--muted-foreground);
 }
 
 .notif-time {

@@ -4,6 +4,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ParticipantsService } from '../services/participants.service';
 import { AssociationService } from '../services/association.service';
+import { AssociationUiService } from '../services/association-ui.service';
+import { httpErrorMessage } from '../../../core/utils/http-error.util';
 import { ActionDetail } from '../../action/models/action.model';
 import { 
   Participant, 
@@ -41,6 +43,7 @@ export class ParticipantsComponent implements OnInit {
   error = '';
   pinCode: string | null = null;
   validerLoading: Record<number, boolean> = {};
+  moderateLoading: Record<number, boolean> = {};
   
   // Filtres et recherche
   searchTerm = '';
@@ -55,7 +58,8 @@ export class ParticipantsComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private participantsService: ParticipantsService,
-    private associationService: AssociationService
+    private associationService: AssociationService,
+    private ui: AssociationUiService
   ) {}
 
   ngOnInit(): void {
@@ -182,7 +186,20 @@ export class ParticipantsComponent implements OnInit {
     return classes[statut] || '';
   }
 
-  getStatutLabel(statut: string): string {
+  getStatutBadgeClass(participant: Participant): string {
+    if (participant.statut === 'EN_ATTENTE' && participant.enAttenteMotif === 'TRUST_SCORE') {
+      return 'statut-trust';
+    }
+    return this.getStatutClass(participant.statut);
+  }
+
+  getStatutLabel(statut: string, participant?: Participant): string {
+    if (statut === 'EN_ATTENTE' && participant?.enAttenteMotif === 'TRUST_SCORE') {
+      return 'Attente confiance';
+    }
+    if (statut === 'EN_ATTENTE' && participant?.enAttenteMotif === 'PLACES_COMPLETES') {
+      return 'Liste d\'attente';
+    }
     const labels: Record<string, string> = {
       'CONFIRMEE': 'Inscrit confirmé',
       'EN_ATTENTE': 'Liste d\'attente',
@@ -191,10 +208,17 @@ export class ParticipantsComponent implements OnInit {
     return labels[statut] || statut;
   }
 
-  getStatutHint(statut: string): string {
+  getStatutHint(statut: string, participant?: Participant): string {
+    if (statut === 'EN_ATTENTE' && participant?.enAttenteMotif === 'TRUST_SCORE') {
+      const score = participant.trustScore ?? '?';
+      return `Score de confiance ${score}/100 (seuil 70) — inscription en revue`;
+    }
+    if (statut === 'EN_ATTENTE' && participant?.enAttenteMotif === 'PLACES_COMPLETES') {
+      return 'Action complète — promu automatiquement si une place se libère';
+    }
     const hints: Record<string, string> = {
       'CONFIRMEE': 'Place réservée — peut participer le jour J',
-      'EN_ATTENTE': 'Action complète — promu si une place se libère',
+      'EN_ATTENTE': 'En attente',
       'ANNULEE': 'Désinscription enregistrée'
     };
     return hints[statut] || '';
@@ -220,6 +244,53 @@ export class ParticipantsComponent implements OnInit {
   canValiderPresence(participant: Participant): boolean {
     return participant.statut === 'CONFIRMEE'
       && !participant.presenceValidee;
+  }
+
+  canModererConfiance(participant: Participant): boolean {
+    return participant.statut === 'EN_ATTENTE' && participant.enAttenteMotif === 'TRUST_SCORE';
+  }
+
+  confirmerInscription(participant: Participant): void {
+    this.ui.confirm({
+      title: 'Confirmer l\'inscription',
+      message: `Confirmer ${participant.firstName} ${participant.lastName} malgré le score de confiance ?`,
+      confirmLabel: 'Confirmer'
+    }).subscribe((ok) => {
+      if (!ok) return;
+      this.moderateLoading[participant.inscriptionId] = true;
+      this.participantsService.confirmerAttenteConfiance(participant.inscriptionId).subscribe({
+        next: () => {
+          this.ui.toast('Inscription confirmée.', 'success');
+          this.loadData();
+        },
+        error: (err) => {
+          this.ui.toast(httpErrorMessage(err, 'Impossible de confirmer cette inscription.'), 'error');
+          this.moderateLoading[participant.inscriptionId] = false;
+        }
+      });
+    });
+  }
+
+  refuserInscription(participant: Participant): void {
+    this.ui.confirm({
+      title: 'Refuser l\'inscription',
+      message: `Refuser ${participant.firstName} ${participant.lastName} (score de confiance insuffisant) ?`,
+      confirmLabel: 'Refuser',
+      danger: true
+    }).subscribe((ok) => {
+      if (!ok) return;
+      this.moderateLoading[participant.inscriptionId] = true;
+      this.participantsService.refuserAttenteConfiance(participant.inscriptionId).subscribe({
+        next: () => {
+          this.ui.toast('Inscription refusée.', 'success');
+          this.loadData();
+        },
+        error: (err) => {
+          this.ui.toast(httpErrorMessage(err, 'Impossible de refuser cette inscription.'), 'error');
+          this.moderateLoading[participant.inscriptionId] = false;
+        }
+      });
+    });
   }
 
   formatDate(isoDate: string): string {
@@ -310,20 +381,22 @@ export class ParticipantsComponent implements OnInit {
 
   validerPresence(participant: Participant): void {
     if (!this.pinCode) {
-      alert("Le code PIN de l'action n'est pas disponible.");
+      this.ui.toast("Le code PIN de l'action n'est pas disponible.", 'error');
       return;
     }
-    
+
     this.validerLoading[participant.userId] = true;
     this.associationService.validerPresenceParPin(this.pinCode, participant.userId).subscribe({
-      next: (res) => {
-        alert(`Présence validée pour ${participant.firstName} ${participant.lastName} !`);
-        // We could change the local object to reflect the change, but it's best to reload data
+      next: () => {
+        this.ui.toast(
+          `Présence validée pour ${participant.firstName} ${participant.lastName}.`,
+          'success'
+        );
         this.loadData();
       },
       error: (err) => {
         const msg = err.error?.erreur || err.message || 'Erreur lors de la validation';
-        alert(`Erreur: ${msg}`);
+        this.ui.toast(msg, 'error');
         this.validerLoading[participant.userId] = false;
       }
     });

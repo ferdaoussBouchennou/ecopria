@@ -181,6 +181,42 @@
   box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
 }
 
+.btn-primary--waitlist {
+  background: var(--ec-brand-earth, #95714f);
+}
+
+.btn-primary--waitlist:hover:not(:disabled) {
+  background: var(--ec-brand-moss, #8c916c);
+  box-shadow: 0 4px 12px rgba(149, 113, 79, 0.35);
+}
+
+.waitlist-banner {
+  margin: 1rem 0 1.25rem;
+  padding: 1rem 1.1rem;
+  background: var(--ec-brand-almond, #eaded0);
+  border: 1px solid var(--ec-brand-sand, #c7af94);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  color: var(--ec-text-soft, #57534e);
+}
+
+.waitlist-banner > strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--ec-brand-moss, #8c916c);
+}
+
+.waitlist-banner p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.waitlist-banner p strong {
+  display: inline;
+  font-weight: 700;
+  color: var(--ec-brand-earth, #95714f);
+}
+
 .btn-primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;

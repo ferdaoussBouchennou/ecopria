@@ -10,14 +10,24 @@
       </p>
       <div class="accueil-hero__cta">
         <a routerLink="/carte" class="btn btn--primary">Explorer la carte</a>
-        <a routerLink="/accueil" fragment="comment-ca-marche" class="btn btn--outline">Comment ça marche</a>
+        <a routerLink="/recompenses" class="btn btn--outline btn--recompenses">Voir les récompenses</a>
+        <a routerLink="/comment-ca-marche" class="btn btn--ghost-sm">Comment ça marche</a>
       </div>
       <div class="accueil-stats">
-        @for (stat of stats; track stat.label) {
-          <div class="accueil-stat">
-            <span class="accueil-stat__value">{{ stat.value }}</span>
-            <span class="accueil-stat__label">{{ stat.label }}</span>
-          </div>
+        @if (loadingStats) {
+          @for (i of [1, 2, 3]; track i) {
+            <div class="accueil-stat accueil-stat--loading">
+              <span class="accueil-stat__value">…</span>
+              <span class="accueil-stat__label">Chargement</span>
+            </div>
+          }
+        } @else if (stats.length > 0) {
+          @for (stat of stats; track stat.label) {
+            <div class="accueil-stat">
+              <span class="accueil-stat__value">{{ stat.value }}</span>
+              <span class="accueil-stat__label">{{ stat.label }}</span>
+            </div>
+          }
         }
       </div>
     </div>
@@ -46,26 +56,40 @@
   <section class="accueil-section" id="familles-actions">
     <div class="accueil-section__head">
       <div>
-        <p class="accueil-eyebrow"><span class="eyebrow-line"></span> Cinq familles d'actions</p>
+        <p class="accueil-eyebrow"><span class="eyebrow-line"></span> Familles d'actions</p>
         <h2 class="accueil-section__title">Choisir sa façon d'agir.</h2>
       </div>
       <a routerLink="/actions" class="accueil-link-arrow">Toutes les actions →</a>
     </div>
-    <div class="accueil-categories">
-      @for (card of categoryCards; track card.name) {
-        <a
-          class="accueil-category"
-          routerLink="/actions"
-          [queryParams]="categoryQuery(card.meta.slug)"
-        >
-          <img [src]="card.imageUrl" [alt]="card.name" loading="lazy" />
-          <div class="accueil-category__overlay">
-            <h3>{{ card.name }}</h3>
-            <p>{{ card.meta.subtitle | uppercase }}</p>
-          </div>
-        </a>
-      }
-    </div>
+
+    @if (loadingCategories) {
+      <p class="accueil-muted">Chargement des catégories…</p>
+    } @else if (categoriesError) {
+      <p class="accueil-muted">Impossible de charger les catégories pour le moment.</p>
+    } @else if (categories.length === 0) {
+      <p class="accueil-muted">Aucune catégorie publiée pour le moment.</p>
+    } @else {
+      <div class="accueil-categories">
+        @for (category of categories; track category.id) {
+          <a
+            class="accueil-category"
+            routerLink="/actions"
+            [queryParams]="categoryQuery(category)"
+          >
+            <img
+              [src]="getCategoryCardImage(category)"
+              [alt]="category.name"
+              loading="lazy"
+              (error)="onCategoryImageError(category, $event)"
+            />
+            <div class="accueil-category__overlay">
+              <h3>{{ category.name }}</h3>
+              <p>{{ getCategorySubtitle(category) | uppercase }}</p>
+            </div>
+          </a>
+        }
+      </div>
+    }
   </section>
 
   <!-- À l'affiche -->
@@ -82,9 +106,10 @@
             <a [routerLink]="featuredActionLink(action)" class="accueil-event-card__link">
               <div class="accueil-event-card__image">
                 <img
-                  [src]="getFeaturedCardImage(action, $index)"
+                  [src]="getFeaturedCardImage(action)"
                   [alt]="action.title"
                   loading="lazy"
+                  (error)="onFeaturedImageError(action, $event)"
                 />
                 <span class="badge badge--cat">{{ action.categoryName | uppercase }}</span>
                 <span class="badge badge--places" [class.badge--full]="isFull(action)">
@@ -126,7 +151,7 @@
     </div>
     <div class="accueil-how__text">
       <p class="accueil-eyebrow"><span class="eyebrow-line"></span> Comment ça marche</p>
-      <h2 class="accueil-section__title">Trois pas. Et un geste réel.</h2>
+      <h2 class="accueil-section__title">Cinq étapes. De l'action à la récompense.</h2>
       <ol class="accueil-steps">
         <li>
           <span class="accueil-steps__num">01</span>
@@ -138,18 +163,33 @@
         <li>
           <span class="accueil-steps__num">02</span>
           <div>
-            <strong>Participer</strong>
-            <p>Inscrivez-vous en un clic. Un QR code unique vous est envoyé.</p>
+            <strong>S'inscrire</strong>
+            <p>Un clic pour réserver votre place. Le QR de présence est généré pour l'action, côté association.</p>
           </div>
         </li>
         <li>
           <span class="accueil-steps__num">03</span>
           <div>
-            <strong>Gagner</strong>
-            <p>Présentez-vous, scannez. Vos points sont crédités, à échanger chez nos partenaires.</p>
+            <strong>Valider</strong>
+            <p>Sur place, scannez le QR de l'organisateur. Vos points sont crédités sur votre compte.</p>
+          </div>
+        </li>
+        <li>
+          <span class="accueil-steps__num">04</span>
+          <div>
+            <strong>Échanger</strong>
+            <p>Dépensez vos points sur une offre visible : coupon unique, e-mail et espace récompenses.</p>
+          </div>
+        </li>
+        <li>
+          <span class="accueil-steps__num">05</span>
+          <div>
+            <strong>Mystère</strong>
+            <p>Ou ouvrez la boîte mystère : tirage aléatoire, coupon pour le lot gagné.</p>
           </div>
         </li>
       </ol>
+      <a routerLink="/comment-ca-marche" class="accueil-link-arrow">Le parcours complet →</a>
     </div>
   </section>
 
@@ -174,6 +214,47 @@
         loading="lazy"
       />
     </div>
+  </section>
+
+  <!-- Récompenses (aperçu) -->
+  <section class="accueil-section accueil-recompenses" id="recompenses">
+    <div class="accueil-section__head">
+      <div>
+        <p class="accueil-eyebrow"><span class="eyebrow-line"></span> Récompenses</p>
+        <h2 class="accueil-section__title">Échangez vos points, ouvrez une boîte mystère.</h2>
+        <p class="accueil-recompenses__lead">
+          Offres locales de nos partenaires — visibles sans compte. Connectez-vous pour échanger.
+        </p>
+      </div>
+      <a routerLink="/recompenses" class="accueil-link-arrow">Tout le catalogue →</a>
+    </div>
+
+    @if (loadingOffres) {
+      <p class="accueil-muted">Chargement des offres…</p>
+    } @else if (previewOffres.length === 0) {
+      <p class="accueil-muted">Le catalogue arrive bientôt. En attendant, découvrez nos partenaires.</p>
+      <a routerLink="/recompenses" class="btn btn--primary" style="margin-top: 1rem">Explorer les récompenses</a>
+    } @else {
+      <div class="accueil-recompenses__grid">
+        @for (o of previewOffres; track o.id) {
+          <a class="accueil-offre-card" [class.accueil-offre-card--mystere]="o.hasMystereBox" routerLink="/recompenses">
+            @if (o.imageUrl) {
+              <img [src]="o.imageUrl" [alt]="o.title" loading="lazy" />
+            } @else {
+              <div class="accueil-offre-card__ph"></div>
+            }
+            @if (o.hasMystereBox) {
+              <span class="accueil-offre-mystere">🎁 Mystère</span>
+            }
+            <div class="accueil-offre-card__body">
+              <span class="accueil-offre-pts">{{ o.pointsNecessaires }} pts</span>
+              <h3>{{ o.title }}</h3>
+              <p>{{ o.partenaireName }}</p>
+            </div>
+          </a>
+        }
+      </div>
+    }
   </section>
 
   <!-- Partenaires -->

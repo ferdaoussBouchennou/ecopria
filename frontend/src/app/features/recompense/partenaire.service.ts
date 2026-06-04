@@ -137,13 +137,19 @@ export class PartenaireService {
   private handleError(error: HttpErrorResponse): Observable<never> {
     let message = 'Une erreur inattendue est survenue.';
     if (error.status === 0) {
-      message = 'Impossible de joindre le service récompense (port 9093). Vérifiez Docker.';
-    } else if (typeof error.error === 'string') {
+      message = 'Impossible de joindre le service récompense. Vérifiez que les services sont démarrés.';
+    } else if (typeof error.error === 'string' && error.error.trim()) {
       message = error.error;
     } else if (error.error?.message) {
       message = error.error.message;
     } else if (error.status === 404) {
-      message = 'Partenaire introuvable. Le compte doit être validé par l\'admin (Kafka partenaire.validee).';
+      message = 'Partenaire introuvable. Le compte doit être validé par l\'admin.';
+    } else if (error.status === 403) {
+      message = 'Accès refusé.';
+    } else if (error.status === 400) {
+      message = 'Requête invalide.';
+    } else if (error.status >= 500) {
+      message = 'Le service récompenses a rencontré une erreur. Réessayez dans quelques instants.';
     }
     return throwError(() => new Error(message));
   }

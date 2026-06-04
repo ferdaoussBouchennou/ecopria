@@ -10,7 +10,6 @@ import {
   CategoryCardView,
   CategoryDeletePreview,
 } from '../../../core/models/admin.model';
-
 @Component({
   selector: 'app-admin-categories',
   standalone: true,
@@ -230,7 +229,6 @@ export class AdminCategoriesComponent implements OnInit {
     this.deletePreview = null;
     this.deleteModalError = '';
   }
-
   confirmDelete(): void {
     if (!this.deletePreview) {
       return;

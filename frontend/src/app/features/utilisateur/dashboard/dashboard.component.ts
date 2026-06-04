@@ -1,20 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { map } from 'rxjs';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { UserService } from '../../../core/services/user.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { UiService } from '../../../core/services/ui.user.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Profile, PointHistory, UserBadge, LeaderboardEntry, UpcomingAction } from '../../../core/models/user.model';
+import { Profile, PointHistory, BadgeStatus, UpcomingAction } from '../../../core/models/user.model';
 import { ActionService } from '../../action/services/action.service';
-
-interface DashboardBadgeCard {
-  name: string;
-  description: string;
-  icon: string;
-  locked: boolean;
-}
+import { InscriptionService } from '../../inscription/inscription.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,33 +22,31 @@ export class DashboardComponent implements OnInit {
   profile?: Profile;
   history: PointHistory[] = [];
   totalPointHistory = 0;
-  badges: UserBadge[] = [];
-  leaderboard: LeaderboardEntry[] = [];
+  badgeStatuses: BadgeStatus[] = [];
   upcomingActions: UpcomingAction[] = [];
   totalUpcomingActions = 0;
   unreadCount = 0;
-  readonly fallbackBadges: DashboardBadgeCard[] = [
-    { name: 'Premier Pas', description: 'Premiere action validee', icon: '●', locked: false },
-    { name: 'Nettoyeur', description: '3 actions de nettoyage', icon: '●', locked: false },
-    { name: 'Reboiseur', description: '2 plantations validees', icon: '●', locked: true },
-    { name: 'Fidele', description: '5 actions au total', icon: '●', locked: false },
-    { name: 'Champion du Mois', description: 'Top 1 mensuel', icon: '●', locked: true }
-  ];
 
   constructor(
     private userSvc: UserService,
     private notifSvc: NotificationService,
     private uiSvc: UiService,
     private actionSvc: ActionService,
-    private auth: AuthService
+    private inscriptionSvc: InscriptionService,
+    private auth: AuthService,
+    private router: Router
   ) {}
 
-  private get userId(): number {
-    return this.auth.requireUserId();
-  }
+  ngOnInit(): void {
+    let userId: number;
+    try {
+      userId = this.auth.requireUserId();
+    } catch {
+      void this.router.navigate(['/connexion']);
+      return;
+    }
 
-  ngOnInit() {
-    this.userSvc.getProfile(this.userId).subscribe({
+    this.userSvc.getProfile(userId).subscribe({
       next: (p) => {
         this.profile = p;
         this.uiSvc.setPageHeader('Votre printemps engagé', `BONJOUR ${p.firstName}`);
@@ -63,74 +56,81 @@ export class DashboardComponent implements OnInit {
       }
     });
 
-    this.userSvc.getHistory(this.userId).subscribe((h) => {
+    this.userSvc.getHistory(userId).subscribe((h) => {
       this.totalPointHistory = h.length;
       this.history = h.slice(0, 3);
     });
-    this.userSvc.getBadges(this.userId).subscribe((b) => this.badges = b);
-    this.userSvc.getLeaderboard(this.userId).subscribe((l) => this.leaderboard = l);
-    this.actionSvc.getActions().pipe(
-      map((actions) => {
-        this.totalUpcomingActions = actions.length;
-        return actions.slice(0, 3).map((action) => ({
-          id: action.id,
-          title: action.title,
-          location: action.city,
-          category: action.categoryName,
-          date: new Intl.DateTimeFormat('fr-FR', {
-            weekday: 'short',
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
-          }).format(new Date(action.dateStart)),
-          startTime: new Intl.DateTimeFormat('fr-FR', {
-            hour: '2-digit',
-            minute: '2-digit'
-          }).format(new Date(action.dateStart)),
-          endTime: new Intl.DateTimeFormat('fr-FR', {
-            hour: '2-digit',
-            minute: '2-digit'
-          }).format(new Date(action.dateEnd)),
-          points: action.points,
-          imageUrl: action.categoryImageUrl || 'assets/logo.png'
-        } as UpcomingAction));
+
+    this.userSvc.getBadgesStatus(userId).subscribe((b) => {
+      this.badgeStatuses = b ?? [];
+    });
+
+    this.loadUpcomingActions(userId);
+
+    this.notifSvc.unreadCount$.subscribe((count) => (this.unreadCount = count));
+  }
+
+  private loadUpcomingActions(userId: number): void {
+    this.inscriptionSvc.getMesActions(userId).pipe(
+      switchMap((inscriptions) => {
+        const upcoming = inscriptions.filter((i) => i.statut === 'INSCRIT');
+        this.totalUpcomingActions = upcoming.length;
+        if (!upcoming.length) {
+          return of([] as UpcomingAction[]);
+        }
+
+        return forkJoin(
+          upcoming.map((inscription) =>
+            this.actionSvc.getActionById(inscription.actionId).pipe(
+              map((action) => ({ action, sortKey: action.dateStart }))
+            )
+          )
+        ).pipe(
+          map((rows) =>
+            rows
+              .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+              .map(({ action }) => ({
+                id: action.id,
+                title: action.title,
+                location: action.city,
+                category: action.categoryName,
+                date: new Intl.DateTimeFormat('fr-FR', {
+                  weekday: 'short',
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric'
+                }).format(new Date(action.dateStart)),
+                startTime: new Intl.DateTimeFormat('fr-FR', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }).format(new Date(action.dateStart)),
+                endTime: new Intl.DateTimeFormat('fr-FR', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }).format(new Date(action.dateEnd)),
+                points: action.points,
+                imageUrl: action.categoryImageUrl || 'assets/logo.png'
+              } as UpcomingAction))
+          )
+        );
       })
     ).subscribe({
-      next: (a) => this.upcomingActions = a,
+      next: (actions) => {
+        this.upcomingActions = actions.slice(0, 3);
+      },
       error: () => {
         this.totalUpcomingActions = 0;
         this.upcomingActions = [];
       }
     });
-    
-    this.notifSvc.unreadCount$.subscribe((count) => this.unreadCount = count);
-  }
-
-  getMyRank(): number | undefined {
-    return this.leaderboard.find((e) => e.isMe)?.rank;
   }
 
   get validatedActionsCount(): number {
     return this.history.filter((entry) => entry.type === 'CREDIT').length;
   }
 
-  get displayBadges(): DashboardBadgeCard[] {
-    if (this.badges.length) {
-      const realBadges = this.badges.slice(0, 5).map((userBadge) => ({
-        name: userBadge.badge.name,
-        description: userBadge.badge.description,
-        icon: userBadge.badge.icon || '●',
-        locked: false
-      }));
-
-      if (realBadges.length >= 5) {
-        return realBadges;
-      }
-
-      return [...realBadges, ...this.fallbackBadges.slice(realBadges.length, 5)];
-    }
-
-    return this.fallbackBadges;
+  get unlockedBadgesCount(): number {
+    return this.badgeStatuses.filter((badge) => badge.obtained).length;
   }
 
   getLocationLabel(action: UpcomingAction): string {

@@ -25,9 +25,6 @@ public class Inscription {
 
     private Integer pointsAction;
 
-    @Column(nullable = false)
-    private Integer accompagnants = 0;
-
     @Column(length = 1000)
     private String motivation;
 
@@ -58,6 +55,13 @@ public class Inscription {
     @Column(nullable = false)
     private Boolean penalise = false;
 
+    /** Si EN_ATTENTE : PLACES_COMPLETES ou TRUST_SCORE */
+    @Column(length = 30)
+    private String enAttenteMotif;
+
+    public static final String MOTIF_PLACES = "PLACES_COMPLETES";
+    public static final String MOTIF_TRUST = "TRUST_SCORE";
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getUserId() { return userId; }
@@ -70,8 +74,6 @@ public class Inscription {
     public void setStatut(String statut) { this.statut = statut; }
     public Integer getPointsAction() { return pointsAction; }
     public void setPointsAction(Integer p) { this.pointsAction = p; }
-    public Integer getAccompagnants() { return accompagnants; }
-    public void setAccompagnants(Integer accompagnants) { this.accompagnants = accompagnants; }
     public String getMotivation() { return motivation; }
     public void setMotivation(String motivation) { this.motivation = motivation; }
     public String getConditions() { return conditions; }
@@ -92,4 +94,6 @@ public class Inscription {
     public void setParticipantCity(String participantCity) { this.participantCity = participantCity; }
     public Boolean getPenalise() { return penalise; }
     public void setPenalise(Boolean penalise) { this.penalise = penalise; }
+    public String getEnAttenteMotif() { return enAttenteMotif; }
+    public void setEnAttenteMotif(String enAttenteMotif) { this.enAttenteMotif = enAttenteMotif; }
 }

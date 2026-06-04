@@ -85,6 +85,7 @@ services:
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: phpmyadmin
+    restart: unless-stopped
     networks:
       - ecopria-network
     ports:
@@ -459,6 +460,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ecopria
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
       # Appel interne direct (évite cycle gateway ↔ inscription au démarrage)
       SERVICE_ACTION_URL: http://service-action-backend:9090
     restart: on-failure
@@ -516,6 +518,8 @@ services:
       SPRING_DATASOURCE_USERNAME: ecopria
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      # Spring Boot 4 : ddl-auto vaut "none" sur MySQL sans ceci → tables jamais créées
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
     restart: on-failure
     depends_on:
       mysql-action:

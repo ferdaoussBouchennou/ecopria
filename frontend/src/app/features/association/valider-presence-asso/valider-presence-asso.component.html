@@ -1,0 +1,49 @@
+<div class="valider-page">
+  <header class="page-header">
+    <button type="button" class="btn-back" (click)="goBack()">← Participants</button>
+    <h1>Valider les présences</h1>
+    <p class="subtitle">{{ actionTitle }}</p>
+  </header>
+
+  @if (loading) {
+    <p class="state">Chargement…</p>
+  } @else if (error) {
+    <p class="state state--error">{{ error }}</p>
+  } @else {
+    <section class="pin-card" *ngIf="pinCode">
+      <span class="label">Code PIN de l'action (à communiquer sur place)</span>
+      <strong class="pin">{{ pinCode }}</strong>
+    </section>
+
+    <section class="form-card">
+      <h2>Validation manuelle</h2>
+      <p class="hint">
+        Sélectionnez un participant confirmé sans présence validée, puis validez avec le PIN de l'action.
+      </p>
+
+      @if (candidates.length === 0) {
+        <p class="empty">Aucun participant en attente de validation.</p>
+      } @else {
+        <label for="participant">Participant</label>
+        <select id="participant" [(ngModel)]="selectedUserId" [disabled]="validating">
+          <option [ngValue]="null">— Choisir —</option>
+          @for (p of candidates; track p.userId) {
+            <option [ngValue]="p.userId">{{ labelParticipant(p) }}</option>
+          }
+        </select>
+
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="valider()"
+          [disabled]="!pinCode || selectedUserId == null || validating">
+          {{ validating ? 'Validation…' : 'Valider la présence' }}
+        </button>
+      }
+
+      @if (message) {
+        <p class="feedback" [class.feedback--error]="isError">{{ message }}</p>
+      }
+    </section>
+  }
+</div>

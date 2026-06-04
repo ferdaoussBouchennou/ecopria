@@ -1,5 +1,4 @@
 <div class="association-layout">
-  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-header">
       <img class="sidebar-logo" src="assets/logo.png" alt="Ecopria" />
@@ -7,12 +6,8 @@
     </div>
 
     <nav class="sidebar-nav">
-      <button 
-        type="button" 
-        class="nav-item"
-        [class.active]="isActive('/association/tableau-de-bord')"
-        (click)="navigateTo('/association/tableau-de-bord')">
-        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <button type="button" class="nav-item" [class.active]="isActive('/association/tableau-de-bord')" (click)="navigateTo('/association/tableau-de-bord')">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
           <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
           <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
@@ -20,61 +15,37 @@
         </svg>
         <span>Tableau de bord</span>
       </button>
-      <button 
-        type="button" 
-        class="nav-item"
-        [class.active]="isActive('/association/mes-actions')"
-        (click)="navigateTo('/association/mes-actions')">
-        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <button type="button" class="nav-item" [class.active]="isActive('/association/mes-actions')" (click)="navigateTo('/association/mes-actions')">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <path d="M3 6C3 4.89543 3.89543 4 5 4H15C16.1046 4 17 4.89543 17 6V14C17 15.1046 16.1046 16 15 16H5C3.89543 16 3 15.1046 3 14V6Z" stroke="currentColor" stroke-width="1.5"/>
           <path d="M3 8H17" stroke="currentColor" stroke-width="1.5"/>
-          <circle cx="6.5" cy="11.5" r="0.5" fill="currentColor"/>
-          <circle cx="9.5" cy="11.5" r="0.5" fill="currentColor"/>
         </svg>
         <span>Mes actions</span>
       </button>
-      <button 
-        type="button" 
-        class="nav-item"
-        [class.active]="isActive('/association/calendrier')"
-        (click)="navigateTo('/association/calendrier')">
-        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <button type="button" class="nav-item" [class.active]="isActive('/association/calendrier')" (click)="navigateTo('/association/calendrier')">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
           <path d="M3 8H17" stroke="currentColor" stroke-width="1.5"/>
           <path d="M7 3V5M13 3V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <span>Calendrier</span>
       </button>
-      <button 
-        type="button" 
-        class="nav-item"
-        [class.active]="isActive('/association/creer')"
-        (click)="navigateTo('/association/creer')">
-        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <button type="button" class="nav-item" [class.active]="isActive('/association/creer')" (click)="navigateTo('/association/creer')">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
           <path d="M10 7V13M7 10H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <span>Créer une action</span>
       </button>
-      <button 
-        type="button" 
-        class="nav-item"
-        [class.active]="isActive('/association/participants')"
-        (click)="navigateTo('/association/participants')">
-        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <button type="button" class="nav-item" [class.active]="isActive('/association/participants')" (click)="navigateTo('/association/participants')">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <circle cx="10" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/>
           <path d="M5 17C5 14.2386 7.23858 12 10 12C12.7614 12 15 14.2386 15 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <circle cx="15" cy="5" r="2" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M17 12C17 10.8954 16.1046 10 15 10C13.8954 10 13 10.8954 13 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <span>Participants</span>
       </button>
-      <button 
-        type="button" 
-        class="nav-item"
-        [class.active]="isActive('/association/profil')"
-        (click)="navigateTo('/association/profil')">
-        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <button type="button" class="nav-item" [class.active]="isActive('/association/profil')" (click)="navigateTo('/association/profil')">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <circle cx="10" cy="7" r="3.5" stroke="currentColor" stroke-width="1.5"/>
           <path d="M4 17C4 13.6863 6.68629 11 10 11C13.3137 11 16 13.6863 16 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
@@ -85,7 +56,7 @@
     <div class="sidebar-footer">
       <div class="sidebar-footnote">
         <span class="footnote-label">Suivi</span>
-        <strong>{{ unreadCount }} notification{{ unreadCount > 1 ? 's' : '' }} en attente</strong>
+        <strong>{{ unreadCount }} notification{{ unreadCount > 1 ? 's' : '' }}</strong>
       </div>
       <button type="button" class="btn-logout" (click)="logout()">
         Déconnexion
@@ -93,13 +64,10 @@
     </div>
   </aside>
 
-  <!-- Main Content -->
   <main class="main-content">
-    <!-- Top Navbar -->
     <header class="top-navbar">
       <div class="navbar-left">
         <div>
-
           <p class="navbar-caption">Tableau de pilotage association</p>
         </div>
       </div>
@@ -108,9 +76,9 @@
           Participants
         </button>
         <button type="button" class="navbar-btn" (click)="toggleNotifications()">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M10 2C7.23858 2 5 4.23858 5 7V10.5858L3.70711 11.8787C3.07714 12.5087 3.52331 13.6 4.41421 13.6H15.5858C16.4767 13.6 16.9229 12.5087 16.2929 11.8787L15 10.5858V7C15 4.23858 12.7614 2 10 2Z" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M8 14C8 15.1046 8.89543 16 10 16C11.1046 16 12 15.1046 12 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M10 2C7.24 2 5 4.24 5 7V10.59L3.71 11.88C3.08 12.51 3.52 13.6 4.41 13.6H15.59C16.48 13.6 16.92 12.51 16.29 11.88L15 10.59V7C15 4.24 12.76 2 10 2Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 14C8 15.1 8.9 16 10 16C11.1 16 12 15.1 12 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
           @if (unreadCount > 0) {
             <span class="notification-badge">{{ unreadCount }}</span>
@@ -130,7 +98,6 @@
       </div>
     </header>
 
-    <!-- Notifications Panel -->
     @if (showNotifications) {
       <div class="notifications-overlay" (click)="toggleNotifications()"></div>
       <div class="notifications-panel">
@@ -148,9 +115,6 @@
         <div class="notifications-list">
           @if (notifications.length === 0) {
             <div class="no-notifications">
-              <svg width="48" height="48" viewBox="0 0 20 20" fill="none">
-                <path d="M10 2C7.23858 2 5 4.23858 5 7V10.5858L3.70711 11.8787C3.07714 12.5087 3.52331 13.6 4.41421 13.6H15.5858C16.4767 13.6 16.9229 12.5087 16.2929 11.8787L15 10.5858V7C15 4.23858 12.7614 2 10 2Z" stroke="currentColor" stroke-width="1.5"/>
-              </svg>
               <p>Aucune notification</p>
             </div>
           } @else {
@@ -181,3 +145,50 @@
   </main>
 </div>
 
+@if (ui.toast$ | async; as toast) {
+  <div class="asso-toast" [class.asso-toast--error]="toast.type === 'error'" [class.asso-toast--success]="toast.type === 'success'" role="status">
+    <span>{{ toast.message }}</span>
+    <button type="button" class="asso-toast-close" (click)="ui.dismissToast()" aria-label="Fermer">×</button>
+  </div>
+}
+
+@if (ui.isConfirmOpen && ui.activeConfirm; as dlg) {
+  <div class="asso-overlay" role="dialog" aria-modal="true">
+    <div class="asso-dialog">
+      <h3>{{ dlg.title }}</h3>
+      <p>{{ dlg.message }}</p>
+      <div class="asso-dialog-actions">
+        <button type="button" class="asso-btn asso-btn--ghost" (click)="ui.resolveConfirm(false)">
+          {{ dlg.cancelLabel || 'Annuler' }}
+        </button>
+        <button type="button" class="asso-btn" [class.asso-btn--danger]="dlg.danger" (click)="ui.resolveConfirm(true)">
+          {{ dlg.confirmLabel || 'Confirmer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (ui.isPromptOpen && ui.activePrompt; as dlg) {
+  <div class="asso-overlay" role="dialog" aria-modal="true">
+    <div class="asso-dialog">
+      <h3>{{ dlg.title }}</h3>
+      <p>{{ dlg.message }}</p>
+      <textarea
+        class="asso-prompt-input"
+        rows="4"
+        [placeholder]="dlg.placeholder || ''"
+        [value]="ui.promptInputValue"
+        (input)="onPromptInput($any($event.target).value)"
+      ></textarea>
+      <div class="asso-dialog-actions">
+        <button type="button" class="asso-btn asso-btn--ghost" (click)="ui.resolvePrompt(null)">
+          {{ dlg.cancelLabel || 'Annuler' }}
+        </button>
+        <button type="button" class="asso-btn" (click)="ui.resolvePrompt(ui.promptInputValue)">
+          {{ dlg.confirmLabel || 'Continuer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

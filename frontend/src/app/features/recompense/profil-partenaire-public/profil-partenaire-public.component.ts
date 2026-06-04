@@ -5,6 +5,7 @@ import { PartenaireService } from '../partenaire.service';
 import { RecompenseService } from '../recompense.service';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { QrCodeService } from '../../../core/services/qrcode.service';
 import { PartenaireProfil, RecompenseItemDto, CouponDto } from '../../../core/models/recompense.model';
 
 @Component({
@@ -32,13 +33,18 @@ export class ProfilPartenairePublicComponent implements OnInit {
   isUserConnected: boolean = false;
   loadingSolde: boolean = false;
 
+  // Propriétés pour le QR code
+  qrCodeDataUrl: string = '';
+  qrCodeLoading: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private partenaireService: PartenaireService,
     private recompenseService: RecompenseService,
     private userService: UserService,
-    private auth: AuthService
+    private auth: AuthService,
+    private qrCodeService: QrCodeService
   ) {}
 
   get loginReturnUrl(): string {
@@ -74,21 +80,56 @@ export class ProfilPartenairePublicComponent implements OnInit {
 
   checkUserAuthentication(): void {
     const userId = this.auth.getUserId();
+    
+    // 🔍 DEBUG: Afficher les informations de connexion
+    console.log('🔍 Vérification authentification:');
+    console.log('   - User ID:', userId);
+    console.log('   - Is Logged In:', this.auth.isLoggedIn());
+    console.log('   - localStorage userId:', localStorage.getItem('ecopria_user_id'));
+    console.log('   - localStorage role:', localStorage.getItem('ecopria_role'));
+    
     if (userId != null && this.auth.isLoggedIn()) {
       this.isUserConnected = true;
       this.loadUserPoints(userId);
+    } else {
+      console.warn('⚠️ Utilisateur non connecté ou ID manquant');
     }
   }
 
   loadUserPoints(userId: number): void {
+    // Validation de l'ID
+    if (!userId || userId <= 0) {
+      console.error('❌ ID utilisateur invalide:', userId);
+      this.soldePoints = 0;
+      this.loadingSolde = false;
+      return;
+    }
+
     this.loadingSolde = true;
+    
+    // 🔍 DEBUG: Afficher l'appel API
+    console.log(`🔍 Appel API: GET /api/users/${userId}/points`);
+    
     this.userService.getPoints(userId).subscribe({
       next: (response) => {
-        this.soldePoints = response.totalPoints || 0;
+        // 🔍 DEBUG: Afficher la réponse
+        console.log('✅ Réponse API reçue:', response);
+        
+        // Vérifier que la réponse est valide
+        if (response && typeof response.totalPoints === 'number') {
+          this.soldePoints = response.totalPoints;
+          console.log(` Solde de points assigné: ${this.soldePoints} points`);
+        } else {
+          console.warn('⚠️ Réponse API invalide ou totalPoints manquant:', response);
+          this.soldePoints = 0;
+        }
+        
         this.loadingSolde = false;
       },
       error: (e: Error) => {
-        console.error('Erreur lors du chargement du solde de points:', e);
+        console.error('❌ Erreur lors du chargement du solde de points:', e);
+        console.error('❌ Message d\'erreur:', e.message);
+        console.error('❌ Stack trace:', e.stack);
         this.soldePoints = 0;
         this.loadingSolde = false;
       }
@@ -167,8 +208,20 @@ export class ProfilPartenairePublicComponent implements OnInit {
     this.echangeEnCours = offre.id;
 
     this.recompenseService.echanger(offre.id).subscribe({
-      next: (coupon) => {
+      next: async (coupon) => {
         this.couponGenere = coupon;
+        
+        // Générer le QR code
+        this.qrCodeLoading = true;
+        try {
+          this.qrCodeDataUrl = await this.qrCodeService.generateQRCode(coupon.code);
+        } catch (error) {
+          console.error('Erreur génération QR code:', error);
+          this.qrCodeDataUrl = ''; // On affiche quand même le coupon sans QR
+        } finally {
+          this.qrCodeLoading = false;
+        }
+        
         this.showSuccessModal = true;
         this.echangeEnCours = null;
         
@@ -212,6 +265,49 @@ export class ProfilPartenairePublicComponent implements OnInit {
   closeModal(): void {
     this.showSuccessModal = false;
     this.couponGenere = null;
+    this.qrCodeDataUrl = '';
+  }
+
+  async telechargerQRCode(): Promise<void> {
+    if (!this.couponGenere) return;
+    
+    try {
+      await this.qrCodeService.downloadQRCode(
+        this.couponGenere.code,
+        `coupon-${this.couponGenere.code}.png`
+      );
+    } catch (error) {
+      alert('Erreur lors du téléchargement du QR code');
+    }
+  }
+
+  copierCode(code: string): void {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => {
+        alert('Code copié dans le presse-papiers!');
+      }).catch(err => {
+        console.error('Erreur lors de la copie:', err);
+        this.fallbackCopyCode(code);
+      });
+    } else {
+      this.fallbackCopyCode(code);
+    }
+  }
+
+  private fallbackCopyCode(code: string): void {
+    const textArea = document.createElement('textarea');
+    textArea.value = code;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      alert('Code copié!');
+    } catch (err) {
+      console.error('Erreur fallback copy:', err);
+    }
+    document.body.removeChild(textArea);
   }
 
   allerVersMesCoupons(): void {

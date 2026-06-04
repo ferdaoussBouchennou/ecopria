@@ -88,12 +88,8 @@ public class NotificationConsumer {
     }
 
     private String emailFromEvent(Map<String, Object> event) {
-        Object e = event.get("email");
-        if (e == null) {
-            return null;
-        }
-        String s = e.toString().trim();
-        return s.isEmpty() ? null : s;
+        String s = readStringAny(event, "", "email", "participantEmail", "participant_email");
+        return s.isBlank() ? null : s;
     }
 
     @KafkaListener(topics = "email.verification", groupId = "notification-email-verification-group")
@@ -174,11 +170,12 @@ public class NotificationConsumer {
         if (userId == null) {
             return;
         }
-        String dateAction = formatEventDate(readStringAny(event, "", "dateAction", "date_action"));
+        String dateAction = formatEventDateFromEvent(event);
         String actionTitle = readStringAny(event, "", "actionTitle", "title", "action_title", "titre");
+        boolean promotionFromWaitlist = Boolean.TRUE.equals(event.get("promotionFromWaitlist"));
         String city = readStringAny(event, "", "city", "ville");
         String address = readStringAny(event, "", "address", "adresse");
-        String firstName = readStringAny(event, "", "firstName", "first_name");
+        String firstName = readStringAny(event, "", "firstName", "first_name", "participantFirstName", "participant_first_name");
         Integer points = readIntAny(event, "pointsAction", "points_action");
         String statut = readStringAny(event, "CONFIRMEE", "statut");
         Long associationUserId = firstLongId(event, "inscription.confirmee",
@@ -199,13 +196,47 @@ public class NotificationConsumer {
         String inAppTitle;
         String inAppMessage;
 
+        String enAttenteMotif = readStringAny(event, "", "enAttenteMotif", "en_attente_motif");
+        boolean attenteTrust = "TRUST_SCORE".equalsIgnoreCase(enAttenteMotif);
+
+        if (promotionFromWaitlist && "CONFIRMEE".equalsIgnoreCase(statut)) {
+            mailSubject = "Place confirmee — " + actionTitle;
+            inAppTitle = "Place confirmee";
+            inAppMessage = "Une place s'est liberee pour \"" + actionTitle + "\". Votre inscription est confirmee.";
+            mailBody = greeting + "\n\n" +
+                    "Bonne nouvelle : une place vient de se liberer.\n\n" +
+                    "Action : " + actionTitle + "\n" +
+                    (dateAction.isBlank() ? "" : "Date : " + dateAction + "\n") +
+                    locationLine +
+                    pointsLine + "\n" +
+                    "Votre QR code personnel sera envoye avant l'evenement.\n\n" +
+                    "Retrouvez vos inscriptions : https://ecopria.ma/espace/actions\n\n" +
+                    "- L'equipe EcoPria\n" +
+                    "https://ecopria.ma";
+            dispatcher.notifyUser(userId,
+                    inAppTitle,
+                    inAppMessage,
+                    Notification.NotificationType.SUCCESS,
+                    mailSubject,
+                    mailBody,
+                    emailFromEvent(event));
+            notifyAssociationNewSignup(associationUserId, actionTitle, firstName);
+            return;
+        }
+
         if (enAttente) {
             mailSubject = "Liste d'attente — " + actionTitle;
-            inAppTitle = "Inscription en liste d'attente";
-            inAppMessage = "Vous etes en liste d'attente pour : " + actionTitle + ".";
+            inAppTitle = "Liste d'attente";
+            inAppMessage = attenteTrust
+                    ? "Inscription en revue pour \"" + actionTitle + "\" (score de confiance)."
+                    : "Action complete : vous etes en liste d'attente pour \"" + actionTitle + "\".";
+            String attenteDetail = attenteTrust
+                    ? "Votre score de confiance ne permet pas encore de confirmer automatiquement votre place.\n"
+                    + "Vous serez notifie par e-mail des que votre participation pourra etre confirmee.\n\n"
+                    : "L'action \"" + actionTitle + "\" est complete pour le moment : vous etes en liste d'attente.\n\n";
             mailBody = greeting + "\n\n" +
                     "Votre demande de participation a bien ete enregistree.\n" +
-                    "L'action \"" + actionTitle + "\" est complete pour le moment : vous etes en liste d'attente.\n\n" +
+                    attenteDetail +
                     "Recapitulatif :\n" +
                     "- Action : " + actionTitle + "\n" +
                     (dateAction.isBlank() ? "" : "- Date : " + dateAction + "\n") +
@@ -218,7 +249,7 @@ public class NotificationConsumer {
         } else {
             mailSubject = "Inscription confirmee — " + actionTitle;
             inAppTitle = "Inscription confirmee";
-            inAppMessage = "Votre inscription pour \"" + actionTitle + "\" est confirmee. Consultez vos e-mails pour le recapitulatif.";
+            inAppMessage = "Inscription confirmee pour \"" + actionTitle + "\". Recapitulatif par e-mail.";
             mailBody = greeting + "\n\n" +
                     "Votre inscription pour l'action suivante est confirmee :\n\n" +
                     "Action : " + actionTitle + "\n" +
@@ -239,18 +270,23 @@ public class NotificationConsumer {
                 mailBody,
                 emailFromEvent(event));
 
-        if (associationUserId != null) {
-            String participantLabel = firstName.isBlank()
-                    ? "Un nouveau participant"
-                    : firstName + " s'est inscrit";
-            dispatcher.notifyUser(associationUserId,
-                    "Nouvel inscrit",
-                    participantLabel + " à votre action : " + actionTitle,
-                    Notification.NotificationType.INFO,
-                    null,
-                    null,
-                    null);
+        notifyAssociationNewSignup(associationUserId, actionTitle, firstName);
+    }
+
+    private void notifyAssociationNewSignup(Long associationUserId, String actionTitle, String firstName) {
+        if (associationUserId == null) {
+            return;
         }
+        String participantLabel = firstName.isBlank()
+                ? "Un nouveau participant"
+                : firstName + " s'est inscrit";
+        dispatcher.notifyUser(associationUserId,
+                "Nouvel inscrit",
+                participantLabel + " a \"" + actionTitle + "\"",
+                Notification.NotificationType.INFO,
+                null,
+                null,
+                null);
     }
 
     private static String buildLocationLine(String address, String city) {
@@ -313,7 +349,7 @@ public class NotificationConsumer {
         if (userId == null) {
             return;
         }
-        String actionTitle = readStringAny(event, "l'action", "actionTitle", "title", "action_title");
+        String actionTitle = readStringAny(event, "Action EcoPria", "actionTitle", "title", "action_title", "titre");
         dispatcher.notifyUser(userId,
                 "Desinscription enregistree",
                 "Votre desinscription a ete prise en compte pour : " + actionTitle,

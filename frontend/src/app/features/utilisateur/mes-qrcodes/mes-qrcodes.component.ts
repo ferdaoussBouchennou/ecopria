@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 import { InscriptionService } from '../../inscription/inscription.service';
 import { PresenceService } from '../../presence/presence.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { InscriptionResponse } from '../../../core/models/inscription.model';
 import { ActionDTO } from '../../inscription/models/inscription.model';
 
@@ -33,7 +34,8 @@ export class MesQrcodesComponent implements OnInit {
   constructor(
     private inscriptionService: InscriptionService,
     private presenceService: PresenceService,
-    private auth: AuthService
+    private auth: AuthService,
+    private router: Router
   ) {}
 
   private get userId(): number {
@@ -41,6 +43,12 @@ export class MesQrcodesComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    try {
+      this.auth.requireUserId();
+    } catch {
+      void this.router.navigate(['/connexion']);
+      return;
+    }
     this.charger();
   }
 

@@ -157,7 +157,7 @@
 }
 
 .legend-dot.completed {
-  background: #8B5CF6;
+  background: var(--ec-brand-moss, #8c916c);
 }
 
 .legend-label {
@@ -315,12 +315,12 @@
 }
 
 .action-pill.completed {
-  background: #8B5CF6;
-  border-left-color: #6D28D9;
+  background: var(--ec-brand-moss, #8c916c);
+  border-left-color: var(--ec-brand-earth, #95714f);
 }
 
 .action-pill.completed:hover {
-  background: #7C3AED;
+  background: var(--ec-brand-earth, #95714f);
 }
 
 .action-more {
@@ -408,8 +408,8 @@
 }
 
 .mini-status.completed {
-  background: #EDE9FE;
-  color: #5B21B6;
+  background: var(--ec-brand-almond, #eaded0);
+  color: var(--ec-brand-earth, #95714f);
 }
 
 .mini-time {

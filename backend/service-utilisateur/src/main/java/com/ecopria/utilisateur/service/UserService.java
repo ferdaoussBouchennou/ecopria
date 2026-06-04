@@ -1,10 +1,13 @@
 package com.ecopria.utilisateur.service;
 
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -334,6 +337,33 @@ public class UserService {
     }
 
     @Transactional
+    public void deductPoints(Long authId, Integer points, String raison) {
+        Citizen citizen = getCitizen(authId);
+        Integer currentPoints = citizen.getTotalPoints() != null ? citizen.getTotalPoints() : 0;
+        
+        if (currentPoints < points) {
+            throw new RuntimeException("Points insuffisants. Solde: " + currentPoints + " - Requis: " + points);
+        }
+        
+        // Déduire les points
+        Integer newTotal = currentPoints - points;
+        citizen.setTotalPoints(newTotal);
+        citizenRepository.save(citizen);
+        
+        // Créer une entrée dans l'historique
+        PointHistory history = new PointHistory();
+        history.setProfile(citizen);
+        history.setAmount(points);  // Positif, le type DEBIT indique la déduction
+        history.setType(PointHistory.TransactionType.DEBIT);
+        history.setSource("ECHANGE_RECOMPENSE");
+        history.setDescription(raison != null ? raison : "Échange de récompense");
+        // createdAt est initialisé automatiquement dans le modèle
+        pointHistoryRepository.save(history);
+        
+        log.info("Points déduits: {} points pour authId: {} - Nouveau solde: {}", points, authId, newTotal);
+    }
+
+    @Transactional
     public void updateTrustScore(Long authId, int delta) {
         Citizen citizen = getCitizen(authId);
         int current = citizen.getTrustScore() != null ? citizen.getTrustScore() : 100;
@@ -391,6 +421,27 @@ public class UserService {
     public List<UserBadge> getBadges(Long authId) {
         Citizen citizen = getCitizen(authId);
         return userBadgeRepository.findByProfileId(citizen.getId());
+    }
+
+    public List<BadgeStatusDTO> getBadgesStatus(Long authId) {
+        Citizen citizen = getCitizen(authId);
+        Set<Long> earnedBadgeIds = userBadgeRepository.findByProfileId(citizen.getId()).stream()
+                .map(ub -> ub.getBadge().getId())
+                .collect(Collectors.toCollection(HashSet::new));
+
+        return badgeRepository.findAll().stream()
+                .sorted(Comparator.comparing(Badge::getRequiredPoints))
+                .map(badge -> {
+                    BadgeStatusDTO dto = new BadgeStatusDTO();
+                    dto.setId(badge.getId());
+                    dto.setName(badge.getName());
+                    dto.setDescription(badge.getDescription());
+                    dto.setIcon(badge.getIcon());
+                    dto.setRequiredPoints(badge.getRequiredPoints());
+                    dto.setObtained(earnedBadgeIds.contains(badge.getId()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     public NotificationPreference getPreferences(Long authId) {

@@ -402,8 +402,8 @@
       <div class="review-item">
         <h3 class="review-label">Date et heure</h3>
         <p class="review-value">
-          Du {{ actionForm.get('dateStart')?.value | date:'dd/MM/yyyy HH:mm' }}<br>
-          au {{ actionForm.get('dateEnd')?.value | date:'dd/MM/yyyy HH:mm' }}<br>
+          Du {{ formatPreviewDateTime(actionForm.get('dateStart')?.value) }}<br>
+          au {{ formatPreviewDateTime(actionForm.get('dateEnd')?.value) }}<br>
           <span class="review-muted">Durée estimée: {{ actionDurationLabel }}</span>
         </p>
       </div>

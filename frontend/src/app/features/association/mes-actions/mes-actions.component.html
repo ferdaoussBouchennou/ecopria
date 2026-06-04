@@ -78,8 +78,8 @@
         </div>
         <div class="insight-card">
           <span class="insight-label">Impact cumulé</span>
-          <div class="insight-metric">+{{ totalPointsDistributed }}</div>
-          <p>points distribués</p>
+          <div class="insight-metric">+{{ totalPointsCredited }}</div>
+          <p>points crédités</p>
           <small>Taux de remplissage moyen: {{ getAverageFillRate() }}%</small>
         </div>
       </section>
@@ -140,7 +140,7 @@
                     <span class="meta-separator">•</span>
                     <span>{{ action.city }}</span>
                     <span class="meta-separator">•</span>
-                    <span>{{ action.points }} points</span>
+                    <span>+{{ action.pointsCredited ?? 0 }} crédités · {{ action.points }} pts/action</span>
                     @if (action.isFixed) {
                       <span class="meta-separator">•</span>
                       <span>Action fixe</span>

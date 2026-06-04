@@ -1,7 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RecompenseService } from '../recompense.service';
-import { Coupon, Recompense, ResultatMystereBox } from '../../../core/models/recompense.model';
+import {
+  CouponDto,
+  RecompenseItemDto,
+  ResultatMystereBox
+} from '../../../core/models/recompense.model';
 
 @Component({
   selector: 'app-catalogue-recompenses',
@@ -11,13 +15,13 @@ import { Coupon, Recompense, ResultatMystereBox } from '../../../core/models/rec
   styleUrls: ['./catalogue.component.scss']
 })
 export class CatalogueRecompensesComponent implements OnInit {
-  offres: Recompense[] = [];
+  offres: RecompenseItemDto[] = [];
   loading = true;
   erreur = '';
   actionId: number | null = null;
   mystereResult: ResultatMystereBox | null = null;
   showMystereModal = false;
-  dernierCoupon: Coupon | null = null;
+  dernierCoupon: CouponDto | null = null;
   showCouponModal = false;
 
   constructor(private recompenseService: RecompenseService) {}
@@ -35,11 +39,11 @@ export class CatalogueRecompensesComponent implements OnInit {
     });
   }
 
-  ouvrirDetail(o: Recompense): void {
+  ouvrirDetail(o: RecompenseItemDto): void {
     this.recompenseService.enregistrerClic(o.id).subscribe({ error: () => {} });
   }
 
-  echanger(o: Recompense): void {
+  echanger(o: RecompenseItemDto): void {
     if (!o.isAvailable) return;
     if (!confirm(`Échanger ${o.pointsNecessaires} pts pour « ${o.title} » ?`)) return;
     this.actionId = o.id;
@@ -56,7 +60,7 @@ export class CatalogueRecompensesComponent implements OnInit {
     });
   }
 
-  ouvrirMystere(o: Recompense): void {
+  ouvrirMystere(o: RecompenseItemDto): void {
     if (!o.hasMystereBox || !o.mystereBoxPoints) return;
     if (!confirm(`Ouvrir la boîte mystère pour ${o.mystereBoxPoints} pts ?`)) return;
     this.actionId = o.id;

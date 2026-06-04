@@ -11,6 +11,7 @@ export interface MystereBoxItem {
 export interface RecompenseItemDto {
   id: number;
   partenaireId: number;
+  partenaireUserId?: number;
   partenaireName: string;
   partenaireCategory?: string;
   title: string;
@@ -27,6 +28,7 @@ export interface RecompenseItemDto {
   hasMystereBox?: boolean;
   mystereBoxPoints?: number;
   mystereBoxItems?: MystereBoxItem[];
+  mystereBoxHiddenCount?: number;
   couponsUtilises?: number;
   couponsDistribues?: number;
 }
@@ -61,7 +63,6 @@ export interface CouponDto {
 }
 
 export interface CouponViewModel extends CouponDto {
-  qrCodeUrl?: string;
   isExpired: boolean;
 }
 
@@ -77,6 +78,7 @@ export interface DashboardPartenaire {
   couponsUtilises: number;
   tauxUtilisation: number;
   commissionsARegler: number;
+  commissionRate?: number;  // Taux de commission du partenaire (ex: 15 pour 15%)
   offresActives: RecompenseItemDto[];
   echangesRecents: CouponDto[];
 }

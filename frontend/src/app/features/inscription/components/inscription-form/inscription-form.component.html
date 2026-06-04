@@ -14,10 +14,10 @@
 
   <div class="result-card result-card--success">
     <div class="result-icon">✓</div>
-    <h2>Inscription confirmee !</h2>
+    <h2>Inscription confirmée !</h2>
     <p class="result-sub">
-      Vous etes inscrit a <strong>{{ action?.titre }}</strong>.<br>
-      Un email de confirmation vous a ete envoye par Sanae (service-notification).
+      Vous êtes inscrit à <strong>{{ action?.titre }}</strong>.<br>
+      Un e-mail récapitulatif avec les détails de l'action vient de vous être envoyé.
     </p>
 
     <div class="qr-block" *ngIf="inscription">
@@ -43,11 +43,15 @@
 
   <div class="result-card result-card--warning">
     <div class="result-icon result-icon--warning">⏳</div>
-    <h2>Vous etes en liste d'attente</h2>
-    <p class="result-sub">
-      Toutes les places pour <strong>{{ action?.titre }}</strong> sont prises.<br>
-      Si quelqu'un se desincrit, vous serez automatiquement confirme
-      et vous recevrez votre QR Code par email.
+    <h2>Vous êtes en liste d'attente</h2>
+    <p class="result-sub" *ngIf="inscription?.enAttenteMotif === 'TRUST_SCORE'">
+      Votre demande pour <strong>{{ action?.titre }}</strong> est enregistrée.<br>
+      Votre score de confiance est encore insuffisant pour confirmer automatiquement une place.
+      Vous serez notifié par e-mail dès qu'une place pourra vous être attribuée.
+    </p>
+    <p class="result-sub" *ngIf="inscription?.enAttenteMotif !== 'TRUST_SCORE'">
+      L'action <strong>{{ action?.titre }}</strong> est complète pour le moment.<br>
+      Si une place se libère, vous serez automatiquement confirmé et vous recevrez un e-mail.
     </p>
 
     <div class="info-box" *ngIf="inscription">
@@ -163,16 +167,14 @@
               <span class="field-error" *ngIf="hasError('telephone', 'pattern')">Format invalide (ex: 0600000000).</span>
             </div>
 
-            <!-- Age -->
-            <div class="form-field" [class.form-field--error]="isInvalid('age')">
-              <label for="age">AGE *</label>
-              <input id="age" type="number" formControlName="age" min="16" max="99" />
-              <span class="field-error" *ngIf="hasError('age', 'required')">L'age est requis.</span>
-              <span class="field-error" *ngIf="hasError('age', 'min')">Vous devez avoir au moins 16 ans.</span>
+            <!-- Ville -->
+            <div class="form-field" [class.form-field--error]="isInvalid('ville')">
+              <label for="ville">VILLE *</label>
+              <input id="ville" type="text" formControlName="ville" autocomplete="address-level2" />
+              <span class="field-error" *ngIf="hasError('ville', 'required')">La ville est requise.</span>
+              <span class="field-error" *ngIf="hasError('ville', 'minlength')">Minimum 2 caracteres.</span>
             </div>
 
-
-            
             <!-- Motivation -->
             <div class="form-field form-field--full">
               <label for="motivation">POURQUOI PARTICIPEZ-VOUS A CETTE ACTION ?</label>

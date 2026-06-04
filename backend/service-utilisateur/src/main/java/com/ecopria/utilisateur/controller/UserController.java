@@ -41,6 +41,24 @@ public class UserController {
         return ResponseEntity.ok(Map.of("totalPoints", totalPoints));
     }
 
+    @PostMapping("/{id}/points/deduct")
+    public ResponseEntity<Map<String, Object>> deductPoints(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> request) {
+        Integer points = (Integer) request.get("points");
+        String raison = (String) request.get("raison");
+        
+        userService.deductPoints(id, points, raison);
+        Integer newTotal = userService.getTotalPoints(id);
+        
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "pointsDeducted", points,
+            "newTotal", newTotal,
+            "message", "Points déduits avec succès"
+        ));
+    }
+
     @GetMapping("/association/{authId}")
     public ResponseEntity<?> getAssociation(@PathVariable Long authId) {
         try {
@@ -125,6 +143,11 @@ public class UserController {
     @GetMapping("/{id}/badges")
     public ResponseEntity<List<UserBadge>> getBadges(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getBadges(id));
+    }
+
+    @GetMapping("/{id}/badges/status")
+    public ResponseEntity<List<BadgeStatusDTO>> getBadgesStatus(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getBadgesStatus(id));
     }
 
     @GetMapping("/leaderboard")

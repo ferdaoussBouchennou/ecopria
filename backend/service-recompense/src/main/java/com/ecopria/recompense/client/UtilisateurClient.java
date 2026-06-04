@@ -19,19 +19,34 @@ public class UtilisateurClient {
 
     // vérifier le solde de points avant l'échange
     public Integer getPoints(Long userId) {
-        // --- MODE MOCK POUR TEST ---
-        log.info("[MOCK] Simulation de 1000 points pour l'utilisateur {}", userId);
-        return 1000;
-
-        /* Code original commenté pour le test
         try {
-            String url = utilisateurServiceUrl + "/api/utilisateurs/" + userId + "/points";
+            String url = utilisateurServiceUrl + "/api/users/" + userId + "/points";
+            log.info("Appel API: GET {}", url);
             Map response = restTemplate.getForObject(url, Map.class);
             return (Integer) response.get("totalPoints");
         } catch (Exception e) {
             log.error("Erreur appel service-utilisateur pour userId: {}", userId, e);
             throw new RuntimeException("Impossible de vérifier le solde de points");
         }
-        */
+    }
+
+    // déduire des points après l'échange
+    public void deduirePoints(Long userId, Integer points, String raison) {
+        try {
+            String url = utilisateurServiceUrl + "/api/users/" + userId + "/points/deduct";
+            log.info("Appel API: POST {} - Déduction de {} points pour userId: {}", url, points, userId);
+            
+            Map<String, Object> request = Map.of(
+                "points", points,
+                "raison", raison
+            );
+            
+            restTemplate.postForObject(url, request, Map.class);
+            log.info("Points déduits avec succès: {} points pour userId: {}", points, userId);
+        } catch (Exception e) {
+            log.error("Erreur lors de la déduction de points pour userId: {}", userId, e);
+            // On ne lance pas d'exception pour ne pas bloquer l'échange
+            // Le coupon est déjà créé, on log juste l'erreur
+        }
     }
 }

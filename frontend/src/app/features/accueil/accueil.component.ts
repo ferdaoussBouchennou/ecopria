@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ActionService } from '../action/services/action.service';
-import { ActionSummary } from '../action/models/action.model';
+import { ActionSummary, Category } from '../action/models/action.model';
 import { getCategoryMeta } from '../action/constants/category-meta';
 import {
   formatActionDate,
@@ -10,15 +10,15 @@ import {
   formatTimeRange,
   isActionFull,
 } from '../action/utils/action-format.utils';
+import {
+  CATEGORY_IMAGE_PLACEHOLDER,
+  getCategoryImageUrl,
+} from '../action/utils/category-image.util';
 import { AuthService } from '../../core/services/auth.service';
 import { PartenaireService } from '../recompense/partenaire.service';
-import { PartenaireProfil } from '../../core/models/recompense.model';
-import {
-  ACCUEIL_CATEGORY_CARDS,
-  ACCUEIL_FEATURED_DEMO,
-  ACCUEIL_FEATURED_IMAGES,
-  ACCUEIL_STATS,
-} from './accueil.constants';
+import { RecompenseService } from '../recompense/recompense.service';
+import { PartenaireProfil, RecompenseItemDto } from '../../core/models/recompense.model';
+import { AccueilStatItem, ACCUEIL_FEATURED_DEMO } from './accueil.constants';
 import { SITE_IMAGES } from '../../core/constants/site-images';
 
 @Component({
@@ -29,9 +29,12 @@ import { SITE_IMAGES } from '../../core/constants/site-images';
   styleUrl: './accueil.component.scss',
 })
 export class AccueilComponent implements OnInit {
-  readonly stats = ACCUEIL_STATS;
-  readonly categoryCards = ACCUEIL_CATEGORY_CARDS;
+  stats: AccueilStatItem[] = [];
+  loadingStats = true;
   readonly heroImage = SITE_IMAGES.heroPlanting;
+  categories: Category[] = [];
+  loadingCategories = true;
+  categoriesError = false;
   readonly communityImage = SITE_IMAGES.communityGroup;
   readonly howItWorksImage = SITE_IMAGES.howItWorks;
 
@@ -40,14 +43,20 @@ export class AccueilComponent implements OnInit {
   loadingFeatured = true;
   partenaires: PartenaireProfil[] = [];
   loadingPartenaires = true;
+  previewOffres: RecompenseItemDto[] = [];
+  loadingOffres = true;
 
   constructor(
     public auth: AuthService,
     private actionService: ActionService,
-    private partenaireService: PartenaireService
+    private partenaireService: PartenaireService,
+    private recompenseService: RecompenseService
   ) {}
 
   ngOnInit(): void {
+    this.loadCategories();
+    this.loadPublicStats();
+
     this.actionService.getFeaturedActions(3).subscribe({
       next: (actions) => {
         this.featuredActions =
@@ -59,6 +68,20 @@ export class AccueilComponent implements OnInit {
         this.featuredActions = [...ACCUEIL_FEATURED_DEMO];
         this.spotlightAction = this.featuredActions[0] ?? null;
         this.loadingFeatured = false;
+      },
+    });
+
+    this.recompenseService.getCatalogue().subscribe({
+      next: (offres) => {
+        const dispo = offres.filter((o) => o.isAvailable);
+        const mystere = dispo.filter((o) => o.hasMystereBox);
+        const autres = dispo.filter((o) => !o.hasMystereBox);
+        this.previewOffres = [...mystere, ...autres].slice(0, 4);
+        this.loadingOffres = false;
+      },
+      error: () => {
+        this.previewOffres = [];
+        this.loadingOffres = false;
       },
     });
 
@@ -78,29 +101,94 @@ export class AccueilComponent implements OnInit {
     return this.auth.isLoggedIn();
   }
 
-  /** Image par carte — index pour varier les 3 visuels, puis catégorie en secours */
-  getFeaturedCardImage(action: ActionSummary, index: number): string {
+  loadPublicStats(): void {
+    this.loadingStats = true;
+    this.actionService.getPublicStats().subscribe({
+      next: (data) => {
+        this.stats = [
+          {
+            value: this.formatStatNumber(data.actionsRealisees),
+            label: 'Actions réalisées',
+          },
+          {
+            value: this.formatStatNumber(data.participantsInscrits),
+            label: 'Participants inscrits',
+          },
+          {
+            value: this.formatStatNumber(data.actionsEnCours),
+            label: 'Actions à venir',
+          },
+        ];
+        this.loadingStats = false;
+      },
+      error: () => {
+        this.stats = [];
+        this.loadingStats = false;
+      },
+    });
+  }
+
+  private formatStatNumber(n: number): string {
+    return new Intl.NumberFormat('fr-FR').format(Math.max(0, n));
+  }
+
+  loadCategories(): void {
+    this.loadingCategories = true;
+    this.categoriesError = false;
+    this.actionService.getCategories().subscribe({
+      next: (data) => {
+        this.categories = data;
+        this.loadingCategories = false;
+      },
+      error: () => {
+        this.categories = [];
+        this.categoriesError = true;
+        this.loadingCategories = false;
+      },
+    });
+  }
+
+  getCategoryCardImage(category: Category): string {
+    return getCategoryImageUrl(category.name, category.imageUrl);
+  }
+
+  getCategorySubtitle(category: Category): string {
+    const desc = category.description?.trim();
+    if (desc) {
+      return desc;
+    }
+    return getCategoryMeta(category.name).subtitle;
+  }
+
+  /** Photo action, sinon image catégorie (API), sinon icône locale */
+  getFeaturedCardImage(action: ActionSummary): string {
     const photo = action.photoUrls?.[0]?.trim();
     if (photo) {
       return photo;
     }
-    if (ACCUEIL_FEATURED_IMAGES[index]) {
-      return ACCUEIL_FEATURED_IMAGES[index];
-    }
-    const categoryKey = action.categoryName as keyof typeof SITE_IMAGES.featured;
-    const byCategory = SITE_IMAGES.featured[categoryKey];
-    if (byCategory) {
-      return byCategory;
-    }
-    return `/assets/categories/${getCategoryMeta(action.categoryName).slug}.svg`;
+    return getCategoryImageUrl(action.categoryName, action.categoryImageUrl);
+  }
+
+  onCategoryImageError(_category: Category, event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.dataset['fallbackApplied'] === '1') return;
+    img.dataset['fallbackApplied'] = '1';
+    img.src = CATEGORY_IMAGE_PLACEHOLDER;
+  }
+
+  onFeaturedImageError(_action: ActionSummary, event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.dataset['fallbackApplied'] === '1') return;
+    img.dataset['fallbackApplied'] = '1';
+    img.src = CATEGORY_IMAGE_PLACEHOLDER;
   }
 
   featuredActionLink(action: ActionSummary): string[] {
     return action.id > 0 ? ['/action', String(action.id)] : ['/actions'];
   }
 
-  categoryQuery(slug: string): { cat: string } {
-    return { cat: slug };
+  categoryQuery(category: Category): { cat: string } {
+    return { cat: getCategoryMeta(category.name).slug };
   }
 
   isFull = isActionFull;

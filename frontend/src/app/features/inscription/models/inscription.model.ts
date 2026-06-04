@@ -23,7 +23,8 @@ export interface InscriptionResponse {
   conditions?: string;
   imageRights?: boolean;
   newsletter?: boolean;
-  accompagnants?: number;
+  trustScore?: number;
+  enAttenteMotif?: 'PLACES_COMPLETES' | 'TRUST_SCORE';
 }
 
 export interface MonInscriptionDto {

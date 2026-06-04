@@ -19,7 +19,10 @@ public class InscriptionResponseDTO {
     private String conditions;
     private Boolean imageRights;
     private Boolean newsletter;
-    private Integer accompagnants;
+    /** Score de confiance 0–100 (service-utilisateur) */
+    private Integer trustScore;
+    /** PLACES_COMPLETES | TRUST_SCORE si statut EN_ATTENTE */
+    private String enAttenteMotif;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -53,6 +56,8 @@ public class InscriptionResponseDTO {
     public void setImageRights(Boolean imageRights) { this.imageRights = imageRights; }
     public Boolean getNewsletter() { return newsletter; }
     public void setNewsletter(Boolean newsletter) { this.newsletter = newsletter; }
-    public Integer getAccompagnants() { return accompagnants; }
-    public void setAccompagnants(Integer accompagnants) { this.accompagnants = accompagnants; }
+    public Integer getTrustScore() { return trustScore; }
+    public void setTrustScore(Integer trustScore) { this.trustScore = trustScore; }
+    public String getEnAttenteMotif() { return enAttenteMotif; }
+    public void setEnAttenteMotif(String enAttenteMotif) { this.enAttenteMotif = enAttenteMotif; }
 }

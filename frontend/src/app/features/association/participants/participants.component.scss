@@ -425,6 +425,11 @@
     color: #92400E;
   }
 
+  &.statut-trust {
+    background: #FEE2E2;
+    color: #991B1B;
+  }
+
   &.statut-annule {
     background: #F3F4F6;
     color: #4B5563;
@@ -526,6 +531,7 @@
   font-size: 0.7rem;
   font-weight: 600;
   transition: all 0.2s;
+  margin-right: 0.35rem;
 
   &:hover:not(:disabled) {
     background: #6D9488;
@@ -534,6 +540,16 @@
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  &--confirm {
+    background: #166534;
+  }
+
+  &--reject {
+    background: transparent;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
   }
 }
 

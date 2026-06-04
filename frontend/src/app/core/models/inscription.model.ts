@@ -1,7 +1,6 @@
 export interface InscriptionRequest {
   userId: number;
   actionId: number;
-  accompagnants?: number;
   motivation?: string;
   conditions?: string;
   imageRights?: boolean;
@@ -30,7 +29,8 @@ export interface InscriptionResponse {
   conditions?: string;
   imageRights?: boolean;
   newsletter?: boolean;
-  accompagnants?: number;
+  trustScore?: number;
+  enAttenteMotif?: 'PLACES_COMPLETES' | 'TRUST_SCORE';
   /** Rempli côté front via service-presence si disponible */
   qrCode?: string;
 }

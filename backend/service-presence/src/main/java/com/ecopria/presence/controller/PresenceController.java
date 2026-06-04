@@ -2,6 +2,7 @@ package com.ecopria.presence.controller;
 
 
 
+import com.ecopria.presence.dto.PointsByActionsDTO;
 import com.ecopria.presence.dto.PresenceResponseDTO;
 import com.ecopria.presence.dto.ValidationByPinDTO;
 import com.ecopria.presence.dto.ValidationRequestDTO;
@@ -76,6 +77,12 @@ public class PresenceController {
     @GetMapping("/action/{actionId}")
     public ResponseEntity<?> getPresencesParAction(@PathVariable Long actionId) {
         return ResponseEntity.ok(presenceService.getPresencesParAction(actionId));
+    }
+
+    /** Points crédités après validation de présence (agrégation par action). */
+    @GetMapping("/stats/points")
+    public ResponseEntity<PointsByActionsDTO> getPointsStats(@RequestParam List<Long> actionIds) {
+        return ResponseEntity.ok(presenceService.getPointsByActions(actionIds));
     }
 
     /**

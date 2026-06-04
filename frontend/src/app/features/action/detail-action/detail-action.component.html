@@ -84,6 +84,16 @@
             </div>
           </dl>
 
+          @if (isWaitlistOnly) {
+            <div class="waitlist-banner" role="status">
+              <strong>Action complète</strong>
+              <p>
+                Toutes les places sont prises. Vous pouvez tout de même vous inscrire :
+                vous serez placé en <strong>liste d'attente</strong> et notifié si une place se libère.
+              </p>
+            </div>
+          }
+
           @if (action.maxParticipants > 0) {
             <div class="registration-bar">
               <div class="reg-labels">
@@ -101,9 +111,9 @@
           <button
             type="button"
             class="btn-primary"
-            [disabled]="!action.isFixed && isFull()"
+            [class.btn-primary--waitlist]="isWaitlistOnly"
             (click)="participate()">
-            {{ !action.isFixed && isFull() ? 'Complet' : 'Participer' }}
+            {{ participateLabel }}
           </button>
           <button type="button" class="btn-outline" (click)="share()">Partager</button>
         </div>
