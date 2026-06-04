@@ -40,6 +40,22 @@
     background: var(--p-mint);
     border-color: var(--p-sage-light);
   }
+
+  &--highlight {
+    background: linear-gradient(135deg, var(--p-mint) 0%, #e8f5f0 100%);
+    border: 2px solid var(--p-sage-dark);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    
+    .total-value {
+      color: var(--p-sage-dark);
+      font-size: 1.8rem;
+    }
+    
+    .total-label {
+      color: var(--p-sage-dark);
+      font-weight: 600;
+    }
+  }
 }
 
 .total-value {

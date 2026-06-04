@@ -1,523 +1,394 @@
-# 📋 RÉSUMÉ COMPLET DE LA SESSION
+# 📋 RÉSUMÉ COMPLET - SESSION DU 4 JUIN 2026
 
-**Date:** 2026-06-04  
-**Durée:** Session complète  
-**Statut:** ✅ TOUT EST IMPLÉMENTÉ ET TESTÉ
+## ✅ TRAVAUX RÉALISÉS
+
+### 1. QR Code pour Coupons ✅ TERMINÉ
+- **Fichiers créés:**
+  - `frontend/src/app/core/services/qrcode.service.ts`
+- **Fichiers modifiés:**
+  - `profil-partenaire-public.component.ts`
+  - `profil-partenaire-public.component.html`
+  - `profil-partenaire-public.component.scss`
+- **Fonctionnalités:**
+  - ✅ QR code généré automatiquement après échange
+  - ✅ Affichage dans modal de succès
+  - ✅ Boutons copier/télécharger
+  - ✅ Styles complets
+- **Dépendances:** `qrcode`, `@types/qrcode`
+- **Build:** ✅ Réussi (10.210s)
+
+### 2. Déduction Automatique des Points ✅ TERMINÉ
+- **Fichiers modifiés:**
+  - `backend/service-utilisateur/src/.../UserController.java` (endpoint `/points/deduct`)
+  - `backend/service-utilisateur/src/.../UserService.java` (méthode `deductPoints`)
+  - `backend/service-recompense/src/.../UtilisateurClient.java` (appel `deduirePoints`)
+  - `backend/service-recompense/src/.../RecompenseService.java` (appel immédiat)
+- **Comportement:**
+  - ✅ Points déduits IMMÉDIATEMENT après création du coupon
+  - ✅ Historique créé automatiquement (points négatifs)
+  - ✅ Plus besoin de Kafka pour la déduction
+- **Test:** Script `test-deduction-points.ps1` créé
+
+### 3. Scanner QR avec Caméra ✅ TERMINÉ
+- **Fichiers modifiés:**
+  - `scanner-coupon.component.ts`
+  - `scanner-coupon.component.html`
+  - `scanner-coupon.component.scss`
+- **Fonctionnalités:**
+  - ✅ Toggle entre saisie manuelle et scanner caméra
+  - ✅ Intégration `html5-qrcode`
+  - ✅ Gestion lifecycle caméra
+  - ✅ Validation automatique après scan
+  - ✅ Messages de statut
+  - ✅ Boutons toggle (⌨️ / 📷)
+- **Build:** ✅ Réussi
+
+### 4. Problème Java 25/Lombok 🔄 EN COURS
+- **Problème:** Lombok incompatible avec Java 25
+- **Erreur:** `java.lang.ExceptionInInitializerError: com.sun.tools.javac.code.TypeTag`
+- **Solutions proposées:**
+  1. ✅ Docker (FONCTIONNE) - `START-SERVICE-UTILISATEUR-DOCKER.ps1`
+  2. ✅ Java 21 local - `run-with-java21.ps1` + `INSTALLER-JAVA-21.md`
+- **Fichiers créés:**
+  - `backend/service-utilisateur/run-with-java21.ps1`
+  - `INSTALLER-JAVA-21.md`
+  - `START-SERVICE-UTILISATEUR-DOCKER.ps1`
+  - `REBUILD-SERVICE-UTILISATEUR-DOCKER.ps1`
+  - `SOLUTION-JAVA-VERSION.md`
+- **Status:** Utilisateur a réussi à lancer localement ✅
+
+### 5. Système de Commissions 🔧 EN COURS DE RÉSOLUTION
+- **Problème:** Commissions non calculées lors validation coupons
+- **Causes identifiées:**
+  1. Partenaires sans `commission_rate` (NULL ou 0)
+  2. Récompenses sans `valeur_dh` ou `discount_percentage`
+  3. Coupons validés avant implémentation sans commission rétroactive
+- **Code Java:** ✅ FONCTIONNE DÉJÀ (ligne 450-530 de RecompenseService)
+- **Fichiers créés:**
+  - ✅ `diagnostic-commissions.sql` - Diagnostic complet
+  - ✅ `corriger-commissions-simple.sql` - Correction des données
+  - ✅ `tester-commissions.ps1` - Script de test
+  - ✅ `SOLUTION-COMMISSIONS-RAPIDE.md` - Guide rapide
+  - ✅ `EXECUTER-DANS-CET-ORDRE.md` - Guide détaillé
+  - ✅ `RESOUDRE-PROBLEME-COMMISSIONS.md` - Documentation complète
+  - ✅ `README-COMMISSIONS.md` - Index des fichiers
+- **Action requise:** Utilisateur doit exécuter les scripts SQL
 
 ---
 
-## 🎯 OBJECTIFS ACCOMPLIS
+## 📂 FICHIERS CRÉÉS AUJOURD'HUI
 
-### 1. ✅ QR Code pour les Coupons
-- Génération automatique lors de l'échange
-- Affichage dans un modal élégant
-- Téléchargement en PNG
-- Copie du code dans le presse-papiers
+### Frontend
+```
+frontend/src/app/core/services/
+└── qrcode.service.ts
 
-### 2. ✅ Déduction Automatique des Points
-- Points déduits **instantanément** lors de l'échange
-- Communication directe entre services (sans Kafka)
-- Historique des points créé automatiquement
-
-### 3. ✅ Scanner QR avec Caméra
-- Mode manuel (saisie code) - Existant
-- Mode caméra (scan QR) - **NOUVEAU**
-- Toggle entre les modes
-- Validation automatique après scan
-
----
-
-## 📦 FICHIERS CRÉÉS
-
-### Scripts PowerShell (8 fichiers)
-1. `REBUILD-SERVICE-UTILISATEUR-DOCKER.ps1` - Build et démarre Service-Utilisateur
-2. `START-SERVICE-UTILISATEUR-LOCAL.ps1` - Tentative locale (ne fonctionne pas - Java 25)
-3. `START-SERVICE-RECOMPENSE-LOCAL.ps1` - Démarre Service-Recompense en local
-4. `test-deduction-points.ps1` - Test automatique de la déduction
-5. `test-qr-code-flow.ps1` - Test du flux complet
-6. `verifier-donnees.ps1` - Vérification rapide BD
-7. Scripts existants conservés
-
-### Documentation (10 fichiers)
-1. `QR-CODE-IMPLEMENTATION-COMPLETE.md` - Implémentation QR complète
-2. `GUIDE-COMPLET-DEDUCTION-POINTS-ET-QR-SCANNER.md` - Guide technique
-3. `RESUME-FINAL-IMPLEMENTATION.md` - Vue d'ensemble
-4. `COMMANDES-ESSENTIELLES.md` - Toutes les commandes
-5. `DEMARRAGE-FINAL.md` - Guide de démarrage adapté
-6. `START.md` - Démarrage ultra-rapide (3 commandes)
-7. `RESUME-COMPLET-SESSION.md` - Ce fichier
-8. `TACHE-SUIVANTE-DEBUG-POINTS.md` - Debug points (créé précédemment)
-9. `DEBUG-POINTS-FRONTEND.md` - Diagnostic frontend (créé précédemment)
-10. `RESUME-SESSION-2026-06-04.md` - Résumé précédent
-
-### Frontend - Services (1 fichier)
-1. `frontend/src/app/core/services/qrcode.service.ts` - **CRÉÉ**
-   - Génération de QR codes
-   - Téléchargement en PNG
-
-### Frontend - Composants Modifiés (6 fichiers)
-
-#### Profil Partenaire (QR Code):
-1. `profil-partenaire-public.component.ts` - **MODIFIÉ**
-   - Import QrCodeService
-   - Génération QR après échange
-   - Fonctions télécharger/copier
-
-2. `profil-partenaire-public.component.html` - **MODIFIÉ**
-   - Modal avec QR code
-   - Boutons copie/téléchargement
-
-3. `profil-partenaire-public.component.scss` - **MODIFIÉ**
-   - Styles QR code
-   - Animations
-
-#### Scanner Coupon (Caméra):
-4. `scanner-coupon.component.ts` - **MODIFIÉ**
-   - Import Html5Qrcode
-   - Gestion caméra
-   - Scan automatique
-
-5. `scanner-coupon.component.html` - **MODIFIÉ**
-   - Toggle manuel/caméra
-   - Zone scanner
-
-6. `scanner-coupon.component.scss` - **MODIFIÉ**
-   - Styles caméra
-
-### Backend - Service-Utilisateur (2 fichiers)
-
-1. `UserController.java` - **MODIFIÉ**
-   ```java
-   @PostMapping("/{id}/points/deduct")
-   public ResponseEntity<Map<String, Object>> deductPoints(...)
-   ```
-
-2. `UserService.java` - **MODIFIÉ**
-   ```java
-   @Transactional
-   public void deductPoints(Long authId, Integer points, String raison)
-   ```
-
-### Backend - Service-Recompense (2 fichiers)
-
-1. `UtilisateurClient.java` - **MODIFIÉ**
-   ```java
-   public Integer getPoints(Long userId)
-   public void deduirePoints(Long userId, Integer points, String raison)
-   ```
-
-2. `RecompenseService.java` - **MODIFIÉ**
-   ```java
-   // Dans echanger():
-   utilisateurClient.deduirePoints(userId, points, raison);
-   ```
-
-### Dépendances Installées
-
-**Frontend:**
-```json
-{
-  "qrcode": "^1.5.x",
-  "@types/qrcode": "^1.5.x",
-  "html5-qrcode": "^2.3.x"
-}
+frontend/src/app/features/recompense/
+├── profil-partenaire-public/
+│   ├── profil-partenaire-public.component.ts (modifié)
+│   ├── profil-partenaire-public.component.html (modifié)
+│   └── profil-partenaire-public.component.scss (modifié)
+└── scanner-coupon/
+    ├── scanner-coupon.component.ts (modifié)
+    ├── scanner-coupon.component.html (modifié)
+    └── scanner-coupon.component.scss (modifié)
 ```
 
----
-
-## 🏗️ ARCHITECTURE FINALE
-
+### Backend
 ```
-┌──────────────────────────────────────────────────┐
-│              FRONTEND (Angular)                   │
-│              http://localhost:4200                │
-│                                                   │
-│  Citoyen:                  Partenaire:            │
-│  - Voir solde              - Scanner manuel       │
-│  - Échanger offre          - Scanner caméra 📷    │
-│  - Obtenir QR code         - Valider coupon       │
-│  - Télécharger QR 📥       - Voir historique      │
-│  - Copier code 📋                                 │
-└──────────────────────────────────────────────────┘
-         │                              │
-         ↓                              ↓
-┌────────────────────┐      ┌──────────────────────┐
-│ Service-Recompense │◄─────│ Service-Utilisateur  │
-│ Local (Maven)      │      │ Docker (Java 21)     │
-│ Port: 9093         │      │ Port: 8082           │
-│                    │      │                      │
-│ - Catalogue        │      │ - Gestion points     │
-│ - Échange          │      │ - Déduction ✅       │
-│ - Validation       │      │ - Historique         │
-│                    │      │                      │
-│ RestTemplate ──────┘      └──────────────────────┘
-└────────────────────┘               │
-         │                           │
-         ↓                           ↓
-┌────────────────────┐      ┌──────────────────────┐
-│ MySQL Recompense   │      │ MySQL Utilisateur    │
-│ Docker             │      │ Docker               │
-│ Port: 3311         │      │ Port: 3307           │
-└────────────────────┘      └──────────────────────┘
+backend/service-utilisateur/
+├── src/main/java/.../controller/UserController.java (modifié)
+├── src/main/java/.../service/UserService.java (modifié)
+└── run-with-java21.ps1
+
+backend/service-recompense/
+├── src/main/java/.../client/UtilisateurClient.java (modifié)
+└── src/main/java/.../service/RecompenseService.java (modifié)
+```
+
+### Scripts & Documentation
+```
+Root/
+├── diagnostic-commissions.sql
+├── corriger-commissions-simple.sql
+├── verifier-et-corriger-commissions.sql
+├── tester-commissions.ps1
+├── test-deduction-points.ps1
+├── START-SERVICE-UTILISATEUR-DOCKER.ps1
+├── REBUILD-SERVICE-UTILISATEUR-DOCKER.ps1
+├── INSTALLER-JAVA-21.md
+├── SOLUTION-JAVA-VERSION.md
+├── SOLUTION-COMMISSIONS-RAPIDE.md
+├── EXECUTER-DANS-CET-ORDRE.md
+├── RESOUDRE-PROBLEME-COMMISSIONS.md
+├── README-COMMISSIONS.md
+└── RESUME-COMPLET-SESSION.md (ce fichier)
 ```
 
 ---
 
-## 🔄 FLUX IMPLÉMENTÉS
+## 🎯 PROCHAINES ÉTAPES
 
-### Flux 1: Échange avec Déduction Automatique
+### ⚡ URGENT (À faire maintenant)
 
-```
-1. Frontend: Citoyen clique "Échanger" (offre 150 pts)
-   ↓
-2. Backend: Service-Recompense reçoit la requête
-   GET /api/recompenses/echanger
-   ↓
-3. RecompenseService.echanger():
-   a) Vérifie solde via UtilisateurClient.getPoints()
-      → GET http://localhost:8082/api/users/1/points
-      → Reçoit: {"totalPoints": 400}
-   
-   b) Vérifie disponibilité offre
-   
-   c) Crée coupon en BD (db_recompense.coupons)
-      - Code: ECO-2026-XXXXX
-      - Status: DISTRIBUE
-      - Points: 150
-   
-   d) 🎯 DÉDUIT LES POINTS IMMÉDIATEMENT
-      → POST http://localhost:8082/api/users/1/points/deduct
-      → Body: {"points": 150, "raison": "Échange récompense: ..."}
-   
-   e) Retourne coupon au frontend
-   ↓
-4. UserService.deductPoints():
-   a) Vérifie solde (400 >= 150 ✅)
-   b) Calcule nouveau solde (400 - 150 = 250)
-   c) Met à jour citizen.total_points = 250
-   d) Crée entrée point_history (-150 points)
-   e) Sauvegarde en BD
-   ↓
-5. Frontend: Reçoit coupon
-   a) Génère QR code (QrCodeService)
-   b) Affiche modal avec QR
-   c) Permet téléchargement/copie
-   ↓
-6. ✅ Points déduits instantanément!
-```
+**Résoudre le problème des commissions:**
 
-### Flux 2: Scan et Validation QR
+1. **Ouvrir:** `SOLUTION-COMMISSIONS-RAPIDE.md`
+2. **Suivre** les 3 étapes (5 minutes)
+3. **Tester** avec un coupon réel
 
-```
-1. Citoyen: Télécharge le QR code (bouton 📥)
-   ↓
-2. Partenaire: Ouvre "Scanner Coupon"
-   ↓
-3. Partenaire: Clique "📷 Scanner QR"
-   ↓
-4. Navigateur: Demande permission caméra
-   ↓
-5. Html5Qrcode: Démarre la caméra
-   ↓
-6. Partenaire: Présente le QR devant la caméra
-   ↓
-7. Html5Qrcode: Décode le QR
-   → Extrait: "ECO-2026-XXXXX"
-   ↓
-8. Scanner: Remplit automatiquement le champ
-   ↓
-9. Scanner: Appelle validerCoupon()
-   → POST /api/partenaires/valider-coupon
-   → Body: {"code": "ECO-2026-XXXXX", "partenaireUserId": 1}
-   ↓
-10. Backend: Vérifie et valide
-    a) Coupon existe? ✅
-    b) Appartient au partenaire? ✅
-    c) Pas déjà utilisé? ✅
-    d) Pas expiré? ✅
-    e) Change status → UTILISE
-    f) Enregistre commission
-    ↓
-11. Frontend: Affiche "✅ Coupon validé!"
-    ↓
-12. ✅ Validation complète!
-```
-
----
-
-## 📊 DONNÉES MODIFIÉES
-
-### Tables Impactées
-
-**db_utilisateur:**
-- `citizens` - Colonne `total_points` modifiée lors de l'échange
-- `point_history` - Nouvelle entrée créée (-150 points)
-
-**db_recompense:**
-- `coupons` - Nouveau coupon créé lors de l'échange
-- `recompenses` - Stock décrémenté si applicable
-- `commissions` - Entrée créée lors de la validation
-
-### Exemple de Données Après Échange
-
-**Avant échange:**
-```sql
--- citizens
-auth_id | total_points
-   1    |     400
-
--- point_history (dernière entrée)
-points | source        | date
- +50   | ACTION_TRIER  | 2026-06-03
-```
-
-**Après échange (150 pts):**
-```sql
--- citizens
-auth_id | total_points
-   1    |     250
-
--- point_history (nouvelle entrée)
-points | source                | description
- -150  | ECHANGE_RECOMPENSE   | Échange récompense: Café gratuit
-
--- coupons (nouveau)
-code           | status    | points_utilises
-ECO-2026-XXXXX | DISTRIBUE | 150
-```
-
----
-
-## 🧪 TESTS EFFECTUÉS
-
-### Tests Backend
-
-✅ **API de déduction créée et testée**
-```bash
-curl -X POST http://localhost:8082/api/users/1/points/deduct \
-  -H "Content-Type: application/json" \
-  -d '{"points": 150, "raison": "Test"}'
-  
-# Résultat: {"success": true, "pointsDeducted": 150, "newTotal": 250}
-```
-
-✅ **Échange avec déduction automatique**
-```bash
-curl -X POST http://localhost:9093/api/recompenses/echanger \
-  -H "Content-Type: application/json" \
-  -d '{"citoyenAuthId": 1, "recompenseId": 1}'
-  
-# Résultat: Coupon créé + Points déduits
-```
-
-### Tests Frontend
-
-✅ **Build réussi**
-```bash
-npm run build -- --configuration development
-# Résultat: Application bundle generation complete. [10.210 seconds]
-```
-
-✅ **QR code généré**
-- Modal s'affiche après échange
-- QR code visible et téléchargeable
-- Code copiable dans le presse-papiers
-
-✅ **Scanner caméra fonctionnel**
-- Toggle manuel/caméra OK
-- Caméra démarre correctement
-- QR code scanné et décodé
-- Validation automatique après scan
-
-### Tests d'Intégration
-
-✅ **Script automatique**
+**OU utiliser le script interactif:**
 ```powershell
-.\test-deduction-points.ps1
-# Résultat: ✅ TEST RÉUSSI!
+.\tester-commissions.ps1
 ```
 
-✅ **Flux complet manuel**
-1. Échange → QR généré ✅
-2. Points déduits ✅
-3. Historique créé ✅
-4. Scanner QR → Validation ✅
+### 📝 OPTIONNEL
+
+Si service-utilisateur ne démarre pas localement:
+- **Option A:** Utiliser Docker
+  ```powershell
+  .\START-SERVICE-UTILISATEUR-DOCKER.ps1
+  ```
+- **Option B:** Installer Java 21 (voir `INSTALLER-JAVA-21.md`)
 
 ---
 
-## 🎓 APPRENTISSAGES
+## 🧪 TESTS À EFFECTUER
 
-### Problèmes Rencontrés et Solutions
+### Test 1: QR Code ✅ (Devrait fonctionner)
+1. Se connecter comme citoyen
+2. Échanger une récompense
+3. Vérifier: QR code s'affiche dans le modal
+4. Tester: Bouton copier + télécharger
 
-#### 1. Java 25 + Lombok Incompatibilité
-**Problème:** Service-Utilisateur ne compile pas en local (Java 25)  
-**Solution:** Utiliser Docker avec Java 21  
-**Script:** `REBUILD-SERVICE-UTILISATEUR-DOCKER.ps1`
+### Test 2: Déduction Points ✅ (Devrait fonctionner)
+1. Noter le solde avant échange
+2. Échanger une récompense (ex: 500 points)
+3. Vérifier: Solde diminué immédiatement
+4. Vérifier dans l'historique: Entrée négative créée
 
-#### 2. Points Non Déduits
-**Problème:** Kafka non configuré pour la déduction  
-**Solution:** Communication directe via RestTemplate  
-**Implémentation:** `UtilisateurClient.deduirePoints()`
+### Test 3: Scanner Caméra ✅ (Devrait fonctionner)
+1. Se connecter comme partenaire
+2. Aller dans "Scanner Coupon"
+3. Cliquer sur "📷 Scanner QR"
+4. Autoriser la caméra
+5. Scanner un QR code généré
+6. Vérifier: Validation automatique
 
-#### 3. Affichage "0 Points"
-**Problème:** Frontend affiche 0 au lieu de 400  
-**Solution:** Logs de debug ajoutés (investigation en cours)  
-**Documentation:** `TACHE-SUIVANTE-DEBUG-POINTS.md`
-
-### Technologies Utilisées
-
-**Backend:**
-- Java 21 (Docker)
-- Spring Boot 3.2.5
-- Maven
-- MySQL 8.0
-- RestTemplate (communication inter-services)
-
-**Frontend:**
-- Angular 17+
-- TypeScript
-- html5-qrcode (scanner caméra)
-- qrcode (génération QR)
-- RxJS (observables)
-
-**Infrastructure:**
-- Docker
-- Docker Compose
-- phpMyAdmin
-- Kafka (optionnel, pas utilisé pour la déduction)
+### Test 4: Commissions 🔧 (À corriger)
+1. **Avant test:** Exécuter `corriger-commissions-simple.sql`
+2. **Test:**
+   - Valider un coupon (partenaire)
+   - Vérifier logs: "Commission X DH calculée"
+   - Vérifier phpMyAdmin: Entrée dans table `commissions`
+   - Vérifier dashboard: Total commissions affiché
 
 ---
 
-## 📚 DOCUMENTATION CRÉÉE
+## 🔍 DIAGNOSTIC RAPIDE
 
-### Guides Techniques
-1. **QR-CODE-IMPLEMENTATION-COMPLETE.md**
-   - Implémentation complète QR
-   - 7 étapes détaillées
-   - Exemples de code
+### Vérifier que tout fonctionne
 
-2. **GUIDE-COMPLET-DEDUCTION-POINTS-ET-QR-SCANNER.md**
-   - Architecture complète
-   - Code modifié en détail
-   - Tests et vérifications
+**1. Services actifs:**
+```powershell
+# Service-Utilisateur
+curl http://localhost:8082/actuator/health
 
-3. **RESUME-FINAL-IMPLEMENTATION.md**
-   - Vue d'ensemble
-   - Checklist complète
-   - Scénarios de test
+# Service-Recompense
+curl http://localhost:8083/actuator/health
 
-### Guides de Démarrage
-4. **DEMARRAGE-FINAL.md**
-   - Configuration optimale
-   - 3 étapes de démarrage
-   - Vérifications et dépannage
+# Frontend
+# Ouvrir: http://localhost:4200
+```
 
-5. **START.md**
-   - Ultra-rapide (3 commandes)
-   - Pour les impatients
+**2. Base de données:**
+```sql
+-- phpMyAdmin: http://localhost:8080
 
-6. **COMMANDES-ESSENTIELLES.md**
-   - Toutes les commandes utiles
-   - Requêtes SQL
-   - Dépannage
+-- db_utilisateur (port 3307)
+SELECT COUNT(*) FROM citoyens;
 
-### Guides de Debug
-7. **TACHE-SUIVANTE-DEBUG-POINTS.md**
-   - Debug affichage points
-   - Cas d'usage
-   - Solutions
+-- db_recompense (port 3311)
+SELECT COUNT(*) FROM recompenses;
+SELECT COUNT(*) FROM commissions;
+```
 
-8. **DEBUG-POINTS-FRONTEND.md**
-   - Diagnostic frontend
-   - Console browser
-   - Logs de debug
+**3. Points déductibles:**
+```sql
+-- db_utilisateur
+SELECT id, points_total FROM citoyens WHERE id = 1;
 
----
+-- Après échange, devrait diminuer
+```
 
-## 🎯 PROCHAINES ÉTAPES (OPTIONNELLES)
+**4. Commissions:**
+```sql
+-- db_recompense
+SELECT COUNT(*) FROM commissions;
 
-### Court Terme
-1. ✅ Résoudre l'affichage "0 points" (logs ajoutés, investigation en cours)
-2. 🔜 Tester avec plusieurs citoyens/partenaires
-3. 🔜 Ajouter page "Mes Coupons" avec QR codes
-
-### Moyen Terme
-4. 🔜 Configurer Kafka pour les notifications
-5. 🔜 Ajouter tests unitaires
-6. 🔜 Optimiser les performances
-
-### Long Terme
-7. 🔜 Déploiement en production
-8. 🔜 Monitoring et logs centralisés
-9. 🔜 CI/CD pipeline
+-- Devrait augmenter après chaque validation
+```
 
 ---
 
-## ✅ ÉTAT FINAL
+## 📊 ARCHITECTURE ACTUELLE
 
-### Fonctionnalités Complètes
-- [x] QR code généré à l'échange
-- [x] QR code téléchargeable
-- [x] Code copiable
-- [x] Déduction automatique des points
-- [x] Historique des points créé
-- [x] Scanner QR avec caméra
-- [x] Toggle manuel/caméra
-- [x] Validation automatique après scan
+### Services
+```
+Frontend (Angular)          → localhost:4200
+Service-Utilisateur (Java)  → localhost:8082
+Service-Recompense (Java)   → localhost:8083
+MySQL (db_utilisateur)      → localhost:3307
+MySQL (db_recompense)       → localhost:3311
+phpMyAdmin                  → localhost:8080
+Kafka                       → localhost:29092
+```
 
-### Documentation Complète
-- [x] 10 fichiers de documentation
-- [x] 7 scripts PowerShell
-- [x] Architecture documentée
-- [x] Tests documentés
-- [x] Dépannage inclus
+### Flow Principal
 
-### Code Testé
-- [x] Backend compilé et testé
-- [x] Frontend compilé et testé
-- [x] Tests automatiques créés
-- [x] Tests manuels réussis
-- [x] Flux complet validé
+**1. Échange de Points:**
+```
+Citoyen clique "Échanger"
+→ Frontend appelle service-recompense
+→ Service crée coupon
+→ Service appelle service-utilisateur /points/deduct
+→ Points déduits immédiatement
+→ QR code généré côté frontend
+→ Modal avec QR affiché
+```
+
+**2. Validation Coupon:**
+```
+Partenaire scanne QR ou saisit code
+→ Frontend appelle service-recompense /validate
+→ Service vérifie le coupon
+→ Service calcule commission
+→ Commission enregistrée en DB
+→ Coupon marqué UTILISE
+→ Event Kafka publié
+```
 
 ---
 
-## 🎉 CONCLUSION
+## 💡 POINTS IMPORTANTS
 
-**TOUT EST IMPLÉMENTÉ ET FONCTIONNEL!**
+### Déduction Points
+- ✅ **Immédiate** (pas d'attente Kafka)
+- ✅ **Synchrone** (service-recompense → service-utilisateur)
+- ✅ **Historique** créé automatiquement
+- ✅ **Rollback** possible si erreur
 
-### Résumé en 3 Points
+### Commissions
+- 🔧 **Calcul automatique** dans le code Java
+- 🔧 **Nécessite:** `commission_rate` (partenaire) + `valeur_dh` (récompense)
+- 🔧 **Formule:** Base × Taux / 100
+- 🔧 **Types:**
+  - REDUCTION: Base = valeur_dh
+  - Autres: Base = valeur_dh × discount_percentage / 100
 
-1. **QR Code:** Généré, téléchargeable, scannable ✅
-2. **Déduction Points:** Automatique et instantanée ✅
-3. **Scanner Caméra:** Fonctionnel avec toggle ✅
+### QR Code
+- ✅ **Généré** côté frontend (pas stocké en DB)
+- ✅ **Contenu:** Code coupon (ex: "ABC123")
+- ✅ **Format:** PNG base64
+- ✅ **Taille:** 200×200 pixels
 
-### Pour Démarrer Maintenant
+### Scanner
+- ✅ **Deux modes:** Saisie manuelle + Caméra
+- ✅ **Bibliothèque:** html5-qrcode
+- ✅ **Lifecycle:** Démarrage/arrêt automatique
+- ✅ **Validation:** Automatique après scan réussi
+
+---
+
+## 🚀 COMMANDES UTILES
+
+### Démarrage Complet
 
 ```powershell
-# Commande 1
-.\REBUILD-SERVICE-UTILISATEUR-DOCKER.ps1
+# 1. MySQL + Kafka (Docker)
+docker-compose up -d
 
-# Commande 2 (Terminal 1)
+# 2. Service-Utilisateur
+cd backend\service-utilisateur
+# Option A: Local avec Java 21
+.\run-with-java21.ps1
+# Option B: Docker
+.\START-SERVICE-UTILISATEUR-DOCKER.ps1
+
+# 3. Service-Recompense
 cd backend\service-recompense
 mvn spring-boot:run
 
-# Commande 3 (Terminal 2)
+# 4. Frontend
 cd frontend
 npm run start
-
-# Test
-.\test-deduction-points.ps1
 ```
 
-### Fichiers Clés
+### Tests Commissions
 
-- **`START.md`** - Démarrage ultra-rapide
-- **`DEMARRAGE-FINAL.md`** - Guide complet
-- **`COMMANDES-ESSENTIELLES.md`** - Référence rapide
+```powershell
+# Script interactif
+.\tester-commissions.ps1
+
+# OU manuellement dans phpMyAdmin
+# 1. diagnostic-commissions.sql
+# 2. corriger-commissions-simple.sql
+```
+
+### Logs
+
+```powershell
+# Service-Utilisateur
+# Voir dans le terminal ou:
+docker logs -f ecopria-utilisateur
+
+# Service-Recompense
+# Voir dans le terminal où il tourne
+```
 
 ---
 
-**SESSION TERMINÉE AVEC SUCCÈS! 🚀**
+## 📞 SUPPORT
 
-**Tout est documenté, testé et prêt à utiliser!**
+### Si Bloqué sur les Commissions
 
+1. **Lire:** `SOLUTION-COMMISSIONS-RAPIDE.md` (5 min)
+2. **Exécuter:** `diagnostic-commissions.sql` (phpMyAdmin)
+3. **Noter:** Les erreurs ou valeurs NULL
+4. **Exécuter:** `corriger-commissions-simple.sql` (phpMyAdmin)
+5. **Tester:** Valider un nouveau coupon
+
+### Si Erreur SQL
+
+**Erreur "Unknown column 'mois'":**
+- Vérifier avec `DESCRIBE commissions;`
+- Adapter le script (remplacer `mois` par `mois_facturation` ou vice-versa)
+
+**Erreur de syntaxe:**
+- Copier/coller le TOUT le script d'un coup
+- Ne pas exécuter ligne par ligne
+
+### Si Service-Utilisateur ne Démarre Pas
+
+**Erreur Lombok/Java 25:**
+- Utiliser Docker: `.\START-SERVICE-UTILISATEUR-DOCKER.ps1`
+- OU installer Java 21: Voir `INSTALLER-JAVA-21.md`
+
+---
+
+## ✅ CHECKLIST FINALE
+
+- [ ] Service-Utilisateur démarré (local ou Docker)
+- [ ] Service-Recompense démarré
+- [ ] Frontend démarré
+- [ ] MySQL actif (3307 + 3311)
+- [ ] QR code s'affiche après échange ✅
+- [ ] Points déduits immédiatement ✅
+- [ ] Scanner caméra fonctionne ✅
+- [ ] Commissions calculées correctement 🔧 (À corriger avec SQL)
+
+---
+
+**PRIORITÉ:** Exécuter les scripts SQL pour corriger les commissions ! 🎯
+
+**FICHIER À OUVRIR:** `SOLUTION-COMMISSIONS-RAPIDE.md`

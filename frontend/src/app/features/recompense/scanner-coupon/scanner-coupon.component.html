@@ -1,26 +1,18 @@
 <!-- ─── LOADING ─────────────────────────────────────────────── -->
-<div *ngIf="loading" class="loading-page">
+<div *ngIf="loading && !coupon" class="loading-page">
   <div class="spinner"></div>
-  <p>Chargement…</p>
-</div>
-
-<!-- ─── ERREUR ─────────────────────────────────────────────── -->
-<div *ngIf="!loading && erreur" class="alert alert--error">
-  <div class="alert-inner">
-    <span class="alert-icon">⚠️</span>
-    <div><strong>Erreur</strong><p>{{ erreur }}</p></div>
-  </div>
+  <p>Validation en cours…</p>
 </div>
 
 <!-- ─── CONTENU ───────────────────────────────────────────── -->
-<div *ngIf="!loading" class="scanner-page">
+<div class="scanner-page">
 
   <!-- Header -->
   <div class="page-header">
     <div>
       <span class="page-eyebrow">— SCANNER COUPON</span>
       <h1 class="page-title">Scanner.</h1>
-      <p class="page-sub">Saisissez le code coupon présenté par votre client pour le valider.</p>
+      <p class="page-sub">Validez le coupon de votre client par saisie, caméra ou import d'image.</p>
     </div>
   </div>
 
@@ -38,44 +30,90 @@
   <!-- Zone de scan -->
   <div class="scan-card card">
     <div class="scan-icon-area">
-      <span class="scan-icon">📱</span>
+      <span class="scan-icon">
+        {{ scannerMode === 'upload' ? '📄' : '🔍' }}
+      </span>
     </div>
     <h2 class="scan-title">Scanner un coupon</h2>
-    <p class="scan-hint">Scannez le QR code ou saisissez le code manuellement</p>
+    <p class="scan-hint">Choisissez votre méthode de validation</p>
 
-    <!-- Toggle Mode Scanner -->
+    <!-- Toggle Mode Scanner — 2 onglets (Scanner QR retiré) -->
     <div class="scanner-mode-toggle">
-      <button 
+      <button
+        class="btn btn--toggle"
+        [class.active]="scannerMode === 'upload'"
+        (click)="switchToUpload()">
+        📄 Importer image
+      </button>
+      <button
         class="btn btn--toggle"
         [class.active]="scannerMode === 'manual'"
-        (click)="scannerMode = 'manual'; stopScanner()">
+        (click)="scannerMode = 'manual'">
         ⌨️ Saisie manuelle
       </button>
-      <button 
-        class="btn btn--toggle"
-        [class.active]="scannerMode === 'camera'"
-        (click)="toggleScannerMode()">
-        📷 Scanner QR
-      </button>
     </div>
 
-    <!-- Zone Scanner Caméra -->
-    <div class="camera-scanner" *ngIf="scannerMode === 'camera'">
-      <div id="qr-reader" class="qr-reader-container"></div>
-      <p class="scanner-status" *ngIf="isScannerActive">
-        🎥 Caméra active - Présentez le QR code devant la caméra
-      </p>
-      <p class="scanner-error" *ngIf="scannerError">
-        ⚠️ {{ scannerError }}
-      </p>
-      <button 
-        class="btn btn--secondary btn--sm"
-        (click)="scannerMode = 'manual'; stopScanner()">
-        Annuler le scan
-      </button>
+    <!-- ── MODE UPLOAD IMAGE ───────────────────────────────── -->
+    <div class="upload-zone-wrapper" *ngIf="scannerMode === 'upload'">
+
+      <!-- Dropzone -->
+      <div
+        class="dropzone"
+        [class.drag-active]="dragOver"
+        [class.has-preview]="uploadPreview"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave()"
+        (drop)="onDrop($event)"
+        (click)="fileInput.click()">
+
+        <!-- Prévisualisation -->
+        <div *ngIf="uploadPreview" class="preview-wrap">
+          <img [src]="uploadPreview" alt="Image uploadée" class="preview-img" />
+          <div *ngIf="uploadProcessing" class="preview-overlay">
+            <div class="spinner-qr"></div>
+            <p>Lecture QR en cours…</p>
+          </div>
+        </div>
+
+        <!-- État vide -->
+        <div *ngIf="!uploadPreview" class="dropzone-empty">
+          <span class="upload-icon">🖼️</span>
+          <p class="upload-title">Glissez-déposez une image ici</p>
+          <p class="upload-sub">ou cliquez pour sélectionner</p>
+          <span class="upload-badge">PNG · JPG · WebP</span>
+        </div>
+      </div>
+
+      <!-- Input fichier caché -->
+      <input
+        #fileInput
+        type="file"
+        accept="image/*"
+        style="display:none"
+        (change)="onFileSelected($event)"
+      />
+
+      <!-- Erreur upload -->
+      <div *ngIf="uploadError" class="upload-error">
+        <span>⚠️</span> {{ uploadError }}
+        <button class="btn-link" (click)="fileInput.click()">Essayer une autre image</button>
+      </div>
+
+      <!-- Code détecté en attente de validation -->
+      <div *ngIf="code && !loading && scannerMode === 'upload'" class="detected-code">
+        <span class="detected-label">Code détecté :</span>
+        <code class="detected-value">{{ code }}</code>
+        <button class="btn btn--primary btn--sm" (click)="valider()" [disabled]="loading">
+          <span *ngIf="loading" class="spinner-sm"></span>
+          {{ loading ? 'Validation…' : '✔ Valider' }}
+        </button>
+      </div>
+
+      <!-- Div caché requis par html5-qrcode pour scanFile -->
+      <div id="qr-upload-hidden" style="display:none"></div>
     </div>
 
-    <!-- Zone Saisie Manuelle -->
+    <!-- ── MODE SAISIE MANUELLE ────────────────────────────── -->
     <div class="scan-form" *ngIf="scannerMode === 'manual'">
       <input
         type="text"
@@ -92,8 +130,7 @@
       <button
         class="btn btn--primary btn--lg scan-btn"
         (click)="valider()"
-        [disabled]="loading || !code.trim()"
-      >
+        [disabled]="loading || !code.trim()">
         <span *ngIf="loading" class="spinner-sm"></span>
         <span *ngIf="!loading">✔</span>
         {{ loading ? 'Validation…' : 'Valider' }}
@@ -121,7 +158,7 @@
       </div>
       <div class="coupon-field">
         <span class="field-label">Statut</span>
-        <span class="badge badge--green">Utilisé</span>
+        <span class="badge badge--green">✅ Utilisé</span>
       </div>
       <div class="coupon-field" *ngIf="coupon.valideLe">
         <span class="field-label">Validé le</span>
@@ -154,4 +191,5 @@
       </table>
     </div>
   </div>
+
 </div>

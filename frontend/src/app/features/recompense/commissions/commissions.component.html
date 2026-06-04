@@ -26,16 +26,20 @@
   </div>
 
   <!-- Banner à régler -->
-  <div class="banner-aregler" *ngIf="aRegler > 0">
+  <div class="banner-aregler" *ngIf="commissionMoisEnCours > 0">
     <span class="banner-icon">💰</span>
     <div>
-      <strong>{{ aRegler | number:'1.0-0' }} DH à régler ce mois</strong>
-      <p>Les commissions sont calculées sur la base de vos offres échangées et validées.</p>
+      <strong>{{ commissionMoisEnCours | number:'1.0-2' }} DH à payer pour {{ moisActuel }}</strong>
+      <p>Les commissions sont calculées sur la base de vos offres échangées et validées ce mois.</p>
     </div>
   </div>
 
   <!-- Totaux -->
   <div class="totaux-grid" *ngIf="commissions.length > 0">
+    <div class="total-card total-card--highlight">
+      <span class="total-value">{{ commissionMoisEnCours | number:'1.0-2' }} DH</span>
+      <span class="total-label">Commission {{ moisActuel }}</span>
+    </div>
     <div class="total-card">
       <span class="total-value">{{ totalCoupons | number }}</span>
       <span class="total-label">Total coupons utilisés</span>
@@ -46,7 +50,7 @@
     </div>
     <div class="total-card total-card--accent">
       <span class="total-value">{{ totalCommissions | number:'1.0-2' }} DH</span>
-      <span class="total-label">Total commissions</span>
+      <span class="total-label">Total commissions (historique)</span>
     </div>
   </div>
 

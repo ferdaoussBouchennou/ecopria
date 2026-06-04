@@ -14,6 +14,7 @@ import { CommissionMensuelle } from '../../../core/models/recompense.model';
 export class CommissionsComponent implements OnInit {
   commissions: CommissionMensuelle[] = [];
   aRegler  = 0;
+  commissionMoisEnCours = 0;
   loading  = true;
   erreur   = '';
 
@@ -36,6 +37,7 @@ export class CommissionsComponent implements OnInit {
     this.partenaireService.getCommissions().subscribe({
       next: (list) => {
         this.commissions = list;
+        this.calculerCommissionMoisEnCours();
         this.loading     = false;
       },
       error: (e: Error) => {
@@ -45,11 +47,26 @@ export class CommissionsComponent implements OnInit {
     });
   }
 
+  private calculerCommissionMoisEnCours(): void {
+    const now = new Date();
+    const moisActuel = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    
+    const commissionCeMois = this.commissions.find(c => c.mois === moisActuel);
+    this.commissionMoisEnCours = commissionCeMois ? commissionCeMois.commission : 0;
+  }
+
   formatMois(mois: string): string {
     const [y, m] = mois.split('-');
     const months = ['Janvier','Février','Mars','Avril','Mai','Juin',
                     'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
     return `${months[Number(m) - 1] ?? m} ${y}`;
+  }
+
+  get moisActuel(): string {
+    const now = new Date();
+    const months = ['Janvier','Février','Mars','Avril','Mai','Juin',
+                    'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    return `${months[now.getMonth()]} ${now.getFullYear()}`;
   }
 
   get totalCoupons(): number {
