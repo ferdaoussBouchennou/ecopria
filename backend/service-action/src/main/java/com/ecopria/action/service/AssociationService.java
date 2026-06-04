@@ -6,7 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+
+import com.ecopria.action.dto.AssociationOptionDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -14,6 +19,20 @@ import java.util.Map;
 public class AssociationService {
 
     private final AssociationRepository associationRepository;
+
+    @Transactional(readOnly = true)
+    public List<AssociationOptionDTO> listForAdmin() {
+        return associationRepository.findAll().stream()
+                .sorted(Comparator.comparing(Association::getName, String.CASE_INSENSITIVE_ORDER))
+                .map(a -> AssociationOptionDTO.builder()
+                        .id(a.getId())
+                        .userId(a.getUserId())
+                        .name(a.getName())
+                        .city(a.getCity())
+                        .validated(a.getIsValidated())
+                        .build())
+                .toList();
+    }
 
     // appelé par le consumer Kafka quand asso.validee
     @Transactional

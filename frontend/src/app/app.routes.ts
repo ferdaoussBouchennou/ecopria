@@ -52,7 +52,6 @@ import { AdminModerationComponent } from './features/admin/moderation/admin-mode
 import { AdminCategoriesComponent } from './features/admin/categories/admin-categories.component';
 import { AdminUsersComponent } from './features/admin/users/admin-users.component';
 import { AdminConfigurationsComponent } from './features/admin/configurations/admin-configurations.component';
-import { AdminLogsComponent } from './features/admin/logs/admin-logs.component';
 
 export const routes: Routes = [
   // Routes publiques avec navbar/footer
@@ -155,7 +154,6 @@ export const routes: Routes = [
       { path: 'categories', component: AdminCategoriesComponent },
       { path: 'users', component: AdminUsersComponent },
       { path: 'configurations', component: AdminConfigurationsComponent },
-      { path: 'logs', component: AdminLogsComponent },
     ],
   },
 

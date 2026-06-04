@@ -173,12 +173,26 @@ public class InternalUserService {
     }
 
     private UserInternalResponse toResponse(User user) {
+        String displayName = profileRepository.findById(user.getUserId())
+                .map(profile -> {
+                    if (profile.getNom() != null && !profile.getNom().isBlank()) {
+                        return profile.getNom();
+                    }
+                    String first = profile.getFirstName() != null ? profile.getFirstName() : "";
+                    String last = profile.getLastName() != null ? profile.getLastName() : "";
+                    String full = (first + " " + last).trim();
+                    return full.isEmpty() ? null : full;
+                })
+                .orElse(null);
+
         return UserInternalResponse.builder()
                 .userId(user.getUserId())
                 .email(user.getEmail())
                 .role(user.getRole().name())
                 .isActive(user.getIsActive())
                 .isVerified(user.getIsVerified())
+                .displayName(displayName)
+                .createdAt(user.getCreatedAt())
                 .build();
     }
 }

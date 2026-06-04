@@ -43,7 +43,13 @@ public class AdminExceptionHandler {
     public ResponseEntity<Map<String, String>> handleConnection(ResourceAccessException ex) {
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                 .body(Map.of("message",
-                        "service-action injoignable. Démarrez-le sur le port 9090 (profil local)."));
+                        "Microservice injoignable. Vérifiez qu'il est démarré (auth 8081, notification 8086, action 9090, etc.)."));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", ex.getMessage() != null ? ex.getMessage() : "Données invalides"));
     }
 
     @ExceptionHandler(RuntimeException.class)

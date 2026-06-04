@@ -45,9 +45,9 @@ $backendServices = @(
     @{ name = "service-action"; port = 9090; profile = "-Dspring-boot.run.profiles=local" },
     @{ name = "service-inscription"; port = 8084; profile = "-Dspring-boot.run.profiles=local" },
     @{ name = "service-presence"; port = 8085; profile = "-Dspring-boot.run.profiles=local" },
-    @{ name = "service-recompense"; port = 8086; profile = "" },
-    @{ name = "service-notification"; port = 8087; profile = "-Dspring-boot.run.profiles=local" },
-    @{ name = "admin-service"; port = 8089; profile = "-Dspring-boot.run.profiles=local" }
+    @{ name = "service-recompense"; port = 9093; profile = "" },
+    @{ name = "service-notification"; port = 8086; profile = "" },
+    @{ name = "admin-service"; port = 8087; profile = "-Dspring-boot.run.profiles=local" }
 )
 
 Write-Host "[2] Demarrage services backend en parallele..." -ForegroundColor $ColorInfo

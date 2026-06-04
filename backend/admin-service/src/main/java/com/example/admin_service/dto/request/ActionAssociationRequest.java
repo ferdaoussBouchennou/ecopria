@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class ActionAssociationRequest {
     @NotBlank
@@ -25,5 +27,10 @@ public class ActionAssociationRequest {
     private Integer points;
     private Integer placesTotal;
     private String lieu;
+    private String address;
+    private String city;
+    private String dateStart;
+    private String dateEnd;
+    private List<String> program;
+    private List<String> practicalInfos;
 }
-

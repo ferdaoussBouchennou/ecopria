@@ -109,6 +109,43 @@ public class NotificationConsumer {
         verificationEmailService.send(email, code, firstName);
     }
 
+    @KafkaListener(topics = "user.statut.change", groupId = "notification-user-statut-group")
+    public void onUserStatutChange(Map<String, Object> event) {
+        log.info("📥 [Kafka] user.statut.change : {}", event);
+        String type = readStringAny(event, "USER", "type");
+        if (!"USER".equalsIgnoreCase(type)) {
+            return;
+        }
+
+        Long userId = requireAuthUserId(event, "user.statut.change");
+        if (userId == null) {
+            return;
+        }
+
+        String action = readStringAny(event, "", "action");
+        String raison = readStringAny(event, "", "raison");
+
+        if ("BANNI".equalsIgnoreCase(action)) {
+            String reason = raison != null && !raison.isBlank() ? raison.trim() : "Non précisée";
+            notificationService.create(
+                    userId,
+                    "Compte banni",
+                    "Votre compte a été banni. Raison : " + reason,
+                    Notification.NotificationType.ALERT
+            );
+            return;
+        }
+
+        if ("REACTIVE".equalsIgnoreCase(action)) {
+            notificationService.create(
+                    userId,
+                    "Compte réactivé",
+                    "Votre compte a été réactivé. Vous pouvez vous reconnecter.",
+                    Notification.NotificationType.SUCCESS
+            );
+        }
+    }
+
     @KafkaListener(topics = { "user.inscrit", "citoyen.inscrit" }, groupId = "notification-citoyen-group")
     public void onCitoyenOuUserInscrit(Map<String, Object> event) {
         log.info("📥 [Kafka] user/citoyen.inscrit : {}", event);

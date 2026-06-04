@@ -1,6 +1,6 @@
 <section class="admin-page">
   <p class="admin-eyebrow"><span class="eyebrow-line"></span> Gouvernance</p>
-  <h1 class="admin-page__title">Actions (fixes et non fixes).</h1>
+  <h1 class="admin-page__title">Actions.</h1>
   <p class="admin-desc">
     Templates d'actions disponibles dans toute la plateforme. Chaque opération publie un événement Kafka
     (créée, modifiée, désactivée).
@@ -18,7 +18,7 @@
     <div class="toolbar">
       <div class="type-switch">
         <button type="button" class="chip" [class.chip--active]="actionType === 'fixed'" (click)="setActionType('fixed')">
-          Fixe (db_admin)
+          Fixe action
         </button>
         <button
           type="button"
@@ -26,7 +26,7 @@
           [class.chip--active]="actionType === 'non-fixed'"
           (click)="setActionType('non-fixed')"
         >
-          Non fixe (db_action)
+          Non fix
         </button>
       </div>
       <input
@@ -131,13 +131,24 @@
         </div>
       } @else {
         <div class="form-grid">
-          <label>
-            <span>Association ID</span>
-            <input type="number" min="1" [(ngModel)]="nonFixedForm.associationId" />
-          </label>
-          <label>
-            <span>Association (optionnel)</span>
-            <input type="text" [(ngModel)]="nonFixedForm.associationName" placeholder="Association locale" />
+          <label class="form-grid__full">
+            <span>Association</span>
+            <select
+              class="field-select"
+              [ngModel]="selectedAssociationId"
+              (ngModelChange)="onAssociationSelected($event)"
+            >
+              <option [ngValue]="null" disabled>Choisir une association…</option>
+              @for (asso of associationChoices; track asso.id) {
+                <option [ngValue]="asso.id">{{ asso.label }}</option>
+              }
+            </select>
+            @if (associationChoices.length === 0) {
+              <span class="field-hint">
+                Aucune association dans service-action (table <code>associations</code>).
+                Validez une association ou lancez service-action avec le profil <code>local</code>.
+              </span>
+            }
           </label>
           <label>
             <span>Titre</span>
@@ -145,24 +156,89 @@
           </label>
           <label>
             <span>Catégorie</span>
-            <input type="text" [(ngModel)]="nonFixedForm.categorie" placeholder="Nature" />
+            <select class="field-select" [(ngModel)]="nonFixedForm.categorie">
+              <option value="" disabled>Choisir une catégorie…</option>
+              @for (cat of categories; track cat.id) {
+                <option [value]="cat.nom">{{ cat.nom }}</option>
+              }
+            </select>
           </label>
           <label>
             <span>Points</span>
             <input type="number" min="0" [(ngModel)]="nonFixedForm.points" />
           </label>
+          <label>
+            <span>Places max.</span>
+            <input type="number" min="1" [(ngModel)]="nonFixedForm.placesTotal" />
+          </label>
+          <label>
+            <span>Date de début</span>
+            <input type="datetime-local" [(ngModel)]="nonFixedForm.dateStart" />
+          </label>
+          <label>
+            <span>Date de fin</span>
+            <input type="datetime-local" [(ngModel)]="nonFixedForm.dateEnd" />
+          </label>
           <label class="form-grid__full">
-            <span>Description (optionnel)</span>
-            <textarea rows="2" [(ngModel)]="nonFixedForm.description" placeholder="Description courte…"></textarea>
+            <span>Description</span>
+            <textarea rows="3" [(ngModel)]="nonFixedForm.description" placeholder="Description de l’action…"></textarea>
           </label>
           <label>
-            <span>Lieu (ville/adresse)</span>
-            <input type="text" [(ngModel)]="nonFixedForm.lieu" placeholder="Casablanca" />
+            <span>Adresse</span>
+            <input type="text" [(ngModel)]="nonFixedForm.address" placeholder="12 rue Example" />
           </label>
           <label>
-            <span>Places (optionnel)</span>
-            <input type="number" min="0" [(ngModel)]="nonFixedForm.placesTotal" />
+            <span>Ville</span>
+            <input type="text" [(ngModel)]="nonFixedForm.city" placeholder="Casablanca" />
           </label>
+          <label>
+            <span>Latitude</span>
+            <input type="number" step="0.000001" [(ngModel)]="nonFixedForm.latitude" />
+          </label>
+          <label>
+            <span>Longitude</span>
+            <input type="number" step="0.000001" [(ngModel)]="nonFixedForm.longitude" />
+          </label>
+          <label class="form-grid__full">
+            <span>Programme (une étape par ligne)</span>
+            <textarea
+              rows="4"
+              [(ngModel)]="programText"
+              placeholder="Accueil des participants&#10;Collecte des déchets&#10;Clôture"
+            ></textarea>
+          </label>
+          <label class="form-grid__full">
+            <span>Infos pratiques (une info par ligne)</span>
+            <textarea
+              rows="4"
+              [(ngModel)]="practicalInfosText"
+              placeholder="Apporter des gants&#10;Tenue confortable&#10;Point de rendez-vous : entrée principale"
+            ></textarea>
+          </label>
+          <div class="form-grid__full image-upload">
+            <span class="image-upload__label">Image de l’action</span>
+            @if (photoPreview || existingPhotoUrl) {
+              <div class="image-upload__preview">
+                <img [src]="photoPreview || existingPhotoUrl" alt="Aperçu de l’action" />
+                @if (photoPreview) {
+                  <button type="button" class="image-upload__remove" (click)="clearPhotoSelection()">
+                    Annuler la nouvelle image
+                  </button>
+                }
+              </div>
+            }
+            <label class="image-upload__picker">
+              <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onPhotoSelected($event)" />
+              <span class="image-upload__icon" aria-hidden="true">+</span>
+              <span class="image-upload__text">
+                {{ (photoPreview || existingPhotoUrl) ? 'Changer l’image' : 'Choisir une image sur votre ordinateur' }}
+              </span>
+              <span class="image-upload__hint">JPG, PNG ou WEBP — 5 Mo max. Envoyée à l’enregistrement.</span>
+            </label>
+            @if (photoError) {
+              <p class="image-upload__error">{{ photoError }}</p>
+            }
+          </div>
         </div>
       }
       <div class="form-actions">

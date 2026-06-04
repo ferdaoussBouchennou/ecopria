@@ -51,6 +51,7 @@ app:
   category-upload-dir: ${APP_CATEGORY_UPLOAD_DIR:uploads/categories}
 
 services:
+  notification-url: ${SERVICE_NOTIFICATION_URL:http://localhost:8086}
   auth-url: ${AUTH_SERVICE_URL:http://localhost:8081}
   action-url: ${ACTION_SERVICE_URL:http://localhost:9090}
   inscription-url: ${INSCRIPTION_SERVICE_URL:http://localhost:8080}

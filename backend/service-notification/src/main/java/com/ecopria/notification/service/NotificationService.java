@@ -5,7 +5,9 @@ import com.ecopria.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.util.StringUtils;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
@@ -22,16 +24,24 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final JavaMailSender mailSender;
+    private final Environment environment;
 
     @Value("${spring.mail.username:}")
     private String mailFromConfigured;
 
-    @Value("${ecopria.mail.enforce:true}")
+    @Value("${ecopria.mail.enforce:false}")
     private boolean enforceMailConfig;
 
     @PostConstruct
     void validateMailConfig() {
-        if (enforceMailConfig && (mailFromConfigured == null || mailFromConfigured.isBlank())) {
+        String from = resolveMailFrom();
+        if (!StringUtils.hasText(from)) {
+            log.error("EMAIL_USERNAME / spring.mail.username est VIDE — aucun e-mail ne sera envoyé. "
+                    + "Renseignez .env à la racine (ecopria/.env) puis redémarrez service-notification.");
+        } else {
+            log.info("SMTP configuré — expéditeur : {}", from);
+        }
+        if (enforceMailConfig && !StringUtils.hasText(resolveMailFrom())) {
             throw new IllegalStateException(
                     "Configuration e-mail manquante: spring.mail.username est vide. " +
                     "Renseignez EMAIL_USERNAME/EMAIL_PASSWORD (docker-compose) ou spring.mail.*");
@@ -61,8 +71,9 @@ public class NotificationService {
             MimeMessage mime = mailSender.createMimeMessage();
             // multipart=true requis pour setText(plain, html)
             MimeMessageHelper helper = new MimeMessageHelper(mime, true, "UTF-8");
-            if (mailFromConfigured != null && !mailFromConfigured.isBlank()) {
-                helper.setFrom(mailFromConfigured.trim());
+            String from = resolveMailFrom();
+            if (StringUtils.hasText(from)) {
+                helper.setFrom(from);
             }
             helper.setTo(to.trim());
             helper.setSubject(safeSubject);
@@ -72,8 +83,48 @@ public class NotificationService {
             mailSender.send(mime);
             log.info("Email envoye → {}", to);
         } catch (Exception e) {
-            log.error("E-mail echoue → {} : {}", to, e.getMessage(), e);
+            log.error("E-mail ECHOUE → {} — {}. Verifiez EMAIL_USERNAME/EMAIL_PASSWORD (.env) et redemarrez "
+                    + "service-notification (docker compose up -d --force-recreate service-notification-backend).",
+                    to, e.getMessage(), e);
         }
+    }
+
+    /** Appels internes (admin / auth) : remonte l'erreur si l'envoi échoue. */
+    public void sendEmailStrict(String to, String subject, String body) {
+        if (to == null || to.isBlank()) {
+            throw new IllegalArgumentException("Destinataire e-mail requis");
+        }
+        String from = resolveMailFrom();
+        if (!StringUtils.hasText(from)) {
+            throw new IllegalStateException(
+                    "SMTP non configuré (EMAIL_USERNAME vide). Vérifiez le fichier .env à la racine du projet.");
+        }
+        try {
+            String safeSubject = subject != null && !subject.isBlank() ? subject : "EcoPria";
+            String text = body != null ? body : "";
+            String html = buildHtmlEmail(safeSubject, text);
+
+            MimeMessage mime = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mime, true, "UTF-8");
+            helper.setFrom(from);
+            helper.setTo(to.trim());
+            helper.setSubject(safeSubject);
+            helper.setText(text, html);
+
+            mailSender.send(mime);
+            log.info("Email envoye → {}", to);
+        } catch (Exception e) {
+            log.error("E-mail echoue → {} : {}", to, e.getMessage(), e);
+            throw new IllegalStateException("Impossible d'envoyer l'e-mail : " + e.getMessage(), e);
+        }
+    }
+
+    private String resolveMailFrom() {
+        if (StringUtils.hasText(mailFromConfigured)) {
+            return mailFromConfigured.trim();
+        }
+        String fromEnv = environment.getProperty("EMAIL_USERNAME");
+        return StringUtils.hasText(fromEnv) ? fromEnv.trim() : null;
     }
 
     private static final Pattern URL_PATTERN = Pattern.compile("(https?://[^\\s<]+)");

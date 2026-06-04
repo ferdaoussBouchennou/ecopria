@@ -570,6 +570,7 @@ services:
       INSCRIPTION_SERVICE_URL: http://service-inscription-backend:8084
       RECOMPENSE_SERVICE_URL: http://service-recompense-backend:9093
       UTILISATEUR_SERVICE_URL: http://service-utilisateur-backend:8082
+      SERVICE_NOTIFICATION_URL: http://service-notification-backend:8086
     restart: on-failure
     depends_on:
       mysql-admin:
@@ -580,3 +581,5 @@ services:
         condition: service_healthy    # service_started → service_healthy
       service-utilisateur-backend:
         condition: service_healthy    # service_started → service_healthy
+      service-notification-backend:
+        condition: service_healthy
