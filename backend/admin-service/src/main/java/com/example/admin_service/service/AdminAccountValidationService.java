@@ -103,6 +103,7 @@ public class AdminAccountValidationService {
                 .rejectionReason(asString(row.get("rejectionReason")))
                 .createdAt(parseDateTime(row.get("createdAt")))
                 .status(normalizeStatus(asString(row.get("status"))))
+                .isActive(extractBoolean(row.get("isActive")))
                 .build();
     }
 

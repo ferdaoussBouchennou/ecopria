@@ -46,4 +46,12 @@ public class AdminActionFixeController {
         service.deactivate(id, adminId);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<Void> activate(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") Long adminId) {
+        service.activate(id, adminId);
+        return ResponseEntity.noContent().build();
+    }
 }

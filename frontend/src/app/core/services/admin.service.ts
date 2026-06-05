@@ -26,6 +26,9 @@ import {
   AdminUser,
   AdminUserActionResult,
   AdminUsersQuery,
+  UtilisateurAssociationProfile,
+  UtilisateurCitizenProfile,
+  UtilisateurPartnerProfile,
 } from '../models/admin.model';
 
 @Injectable({ providedIn: 'root' })
@@ -97,6 +100,36 @@ export class AdminService {
     );
   }
 
+  deactivateAssociation(id: number, raison: string): Observable<void> {
+    return this.http.put<void>(
+      `${this.base}/associations/${id}/deactivate`,
+      { raison },
+      { headers: this.writeHeaders() }
+    );
+  }
+
+  deactivatePartenaire(id: number, raison: string): Observable<void> {
+    return this.http.put<void>(
+      `${this.base}/partenaires/${id}/deactivate`,
+      { raison },
+      { headers: this.writeHeaders() }
+    );
+  }
+
+  getUtilisateurCitizenProfile(authId: number): Observable<UtilisateurCitizenProfile> {
+    return this.http.get<UtilisateurCitizenProfile>(`${environment.userApi}/${authId}/profile`);
+  }
+
+  getUtilisateurAssociationProfile(authId: number): Observable<UtilisateurAssociationProfile> {
+    return this.http.get<UtilisateurAssociationProfile>(
+      `${environment.userApi}/admin/associations/${authId}`
+    );
+  }
+
+  getUtilisateurPartnerProfile(authId: number): Observable<UtilisateurPartnerProfile> {
+    return this.http.get<UtilisateurPartnerProfile>(`${environment.userApi}/partner/${authId}`);
+  }
+
   getLogs(): Observable<AdminLog[]> {
     return this.http.get<AdminLog[]>(`${this.base}/logs`, {
       headers: this.authHeaders(),
@@ -141,6 +174,12 @@ export class AdminService {
     });
   }
 
+  activateActionFixe(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/actions-fixes/${id}/activate`, null, {
+      headers: this.writeHeaders(),
+    });
+  }
+
   getActionsNonFixes(): Observable<ActionNonFixe[]> {
     return this.http.get<ActionNonFixe[]>(`${this.base}/actions`, {
       headers: this.authHeaders(),
@@ -181,6 +220,12 @@ export class AdminService {
 
   deactivateActionNonFixe(id: number, raison?: string): Observable<void> {
     return this.http.put<void>(`${this.base}/actions/${id}/deactivate`, { raison }, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  activateActionNonFixe(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/actions/${id}/activate`, null, {
       headers: this.writeHeaders(),
     });
   }

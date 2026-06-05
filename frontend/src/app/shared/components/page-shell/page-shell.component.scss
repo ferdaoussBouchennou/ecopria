@@ -18,21 +18,15 @@
   flex-shrink: 0;
 }
 
-.brand-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--ec-sage-dark);
-  flex-shrink: 0;
-}
+.brand-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  display: block;
 
-.brand-mark {
-  font-family: var(--ec-font-serif);
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--ec-sage-dark);
-  text-transform: lowercase;
+  &--footer {
+    height: 56px;
+  }
 }
 
 .btn-header {

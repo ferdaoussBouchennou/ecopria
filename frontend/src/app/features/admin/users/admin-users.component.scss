@@ -99,7 +99,7 @@
 .table-head--users,
 .table-row--users {
   display: grid;
-  grid-template-columns: 1.1fr 1.2fr 0.85fr 0.65fr 0.8fr;
+  grid-template-columns: 1.1fr 1.2fr 0.85fr 0.65fr 0.8fr 1.2fr;
   gap: 0.55rem;
   align-items: center;
   padding: 0.78rem 1rem;
@@ -114,23 +114,9 @@
 }
 
 .table-row--users {
-  width: 100%;
-  border: none;
   border-top: 1px solid var(--ec-border);
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
   font-size: 0.86rem;
   color: var(--ec-text);
-  transition: background 0.15s;
-
-  &:hover {
-    background: #f7fbf9;
-  }
-}
-
-.table-row--selected {
-  background: #f0f7f4;
 }
 
 .row-name {

@@ -82,6 +82,20 @@ public class AdminActionFixeService {
         saveLog(adminId, "DESACTIVER_ACTION_FIXE", id, "ACTION_FIXE");
     }
 
+    public void activate(Long id, Long adminId) {
+        ActionFixe actionFixe = actionFixeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Action fixe not found: " + id));
+        actionFixe.setActive(true);
+        actionFixe.setUpdatedAt(LocalDateTime.now());
+        actionFixeRepository.save(actionFixe);
+
+        kafkaProducer.publishActionFixeActivee(ActionFixeEvent.builder()
+                .actionFixeId(id)
+                .build());
+
+        saveLog(adminId, "ACTIVER_ACTION_FIXE", id, "ACTION_FIXE");
+    }
+
     private ActionFixeEvent toEvent(ActionFixe actionFixe) {
         return ActionFixeEvent.builder()
                 .actionFixeId(actionFixe.getId())

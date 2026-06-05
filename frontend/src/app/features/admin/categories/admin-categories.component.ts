@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -17,7 +17,7 @@ import {
   templateUrl: './admin-categories.component.html',
   styleUrl: './admin-categories.component.scss',
 })
-export class AdminCategoriesComponent implements OnInit {
+export class AdminCategoriesComponent implements OnInit, OnDestroy {
   loading = true;
   saving = false;
   error = '';
@@ -28,6 +28,7 @@ export class AdminCategoriesComponent implements OnInit {
   actionDbError = '';
   editingId: number | null = null;
   editingActionDbOnly: string | null = null;
+  formVisible = false;
 
   deleteModalOpen = false;
   deletePreview: CategoryDeletePreview | null = null;
@@ -45,6 +46,29 @@ export class AdminCategoriesComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAll();
+  }
+
+  ngOnDestroy(): void {
+    document.body.style.overflow = '';
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.formVisible && !this.saving) {
+      this.closeForm();
+    }
+  }
+
+  openCreate(): void {
+    this.startCreate();
+    this.formVisible = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeForm(): void {
+    this.formVisible = false;
+    this.startCreate();
+    document.body.style.overflow = '';
   }
 
   loadAll(): void {
@@ -92,16 +116,18 @@ export class AdminCategoriesComponent implements OnInit {
   openCategory(card: CategoryCardView): void {
     if (card.adminItem) {
       this.startEdit(card.adminItem);
-      return;
+    } else {
+      this.startEditFromActionDb({
+        id: card.actionDbId ?? 0,
+        name: card.name,
+        description: card.description,
+        imageUrl: card.imageUrl,
+        published: card.published,
+        actionCount: card.actionCount,
+      });
     }
-    this.startEditFromActionDb({
-      id: card.actionDbId ?? 0,
-      name: card.name,
-      description: card.description,
-      imageUrl: card.imageUrl,
-      published: card.published,
-      actionCount: card.actionCount,
-    });
+    this.formVisible = true;
+    document.body.style.overflow = 'hidden';
   }
 
   startEditFromActionDb(cat: ActionDbCategory): void {
@@ -170,7 +196,7 @@ export class AdminCategoriesComponent implements OnInit {
             : this.editingActionDbOnly
               ? `Catégorie « ${body.nom} » enregistrée et synchronisée.`
               : `Catégorie « ${body.nom} » créée.`;
-        this.startCreate();
+        this.closeForm();
         this.reload();
       },
       error: (err: HttpErrorResponse) => {
@@ -247,7 +273,7 @@ export class AdminCategoriesComponent implements OnInit {
           ? `Catégorie « ${preview.nom} » et ${preview.actionCount} action(s) supprimée(s).`
           : `Catégorie « ${preview.nom} » supprimée.`;
         if (this.editingId === preview.id) {
-          this.startCreate();
+          this.closeForm();
         }
         this.reload();
       },

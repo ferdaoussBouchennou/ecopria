@@ -1,17 +1,5 @@
-{
-  "/uploads": {
-    "target": "http://localhost:8080",
-    "secure": false,
-    "changeOrigin": true
-  },
-  "/api": {
-    "target": "http://localhost:8080",
-    "secure": false,
-    "changeOrigin": true
-  },
-  "/admin": {
-    "target": "http://localhost:8080",
-    "secure": false,
-    "changeOrigin": true
-  }
-}
+/**
+ * @deprecated Utiliser proxy.conf.local.js (npm start) ou proxy.conf.docker.js (npm run start:docker).
+ * Conservé pour compatibilité ng serve sans script npm.
+ */
+module.exports = require('./proxy.conf.local.js');

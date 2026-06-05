@@ -14,6 +14,10 @@
   } @else if (error) {
     <div class="admin-alert admin-alert--error">{{ error }}</div>
   } @else {
+    <div class="page-actions">
+      <button type="button" class="btn-create" (click)="openCreate()">+ Association</button>
+    </div>
+
     <div class="toolbar">
       <input
         type="search"
@@ -29,19 +33,13 @@
         <span>Ville</span>
         <span>E-mail</span>
         <span>Statut</span>
+        <span>Actions</span>
       </header>
       @if (filteredItems.length === 0) {
         <p class="admin-muted table-empty">Aucune association pour le moment.</p>
       } @else {
         @for (item of filteredItems; track item.id) {
-          <div
-            class="table-row table-row--asso"
-            [class.table-row--selected]="editingId === item.id"
-            (click)="startEdit(item)"
-            role="button"
-            tabindex="0"
-            (keydown.enter)="startEdit(item)"
-          >
+          <div class="table-row table-row--asso">
             <span class="row-name">
               @if (logoSrc(item); as logo) {
                 <img [src]="logo" alt="" class="row-logo" />
@@ -55,88 +53,115 @@
                 {{ item.validated !== false ? 'Validée' : 'Non validée' }}
               </span>
             </span>
+            <span class="row-actions">
+              <button type="button" class="action-btn action-btn--view" (click)="viewItem(item)">Voir</button>
+              <button type="button" class="action-btn action-btn--edit" (click)="editItem(item)">Modifier</button>
+            </span>
           </div>
         }
       }
     </article>
 
-    <article class="form-card">
-      <h2>{{ editingId != null ? 'Modifier l’association' : 'Nouvelle association' }}</h2>
-      <div class="form-grid">
-        <label>
-          <span>Nom <strong class="req">*</strong></span>
-          <input type="text" [(ngModel)]="form.name" name="associationName" placeholder="Eco Maroc" />
-        </label>
-        <label>
-          <span>E-mail (compte connexion) <strong class="req">*</strong></span>
-          <input type="email" [(ngModel)]="form.email" name="associationEmail" placeholder="contact@association.ma" [readonly]="editingId != null" />
-        </label>
-        @if (editingId == null) {
-          <label>
-            <span>Mot de passe (optionnel)</span>
-            <input type="text" [(ngModel)]="form.password" placeholder="Généré automatiquement si vide" />
-          </label>
-        }
-        <label>
-          <span>Téléphone</span>
-          <input type="text" maxlength="10" [(ngModel)]="form.phone" placeholder="0612345678" />
-        </label>
-        <label>
-          <span>Ville</span>
-          <input type="text" [(ngModel)]="form.city" placeholder="Casablanca" />
-        </label>
-        <label class="form-grid__full">
-          <span>Adresse</span>
-          <input type="text" [(ngModel)]="form.address" placeholder="12 rue Example" />
-        </label>
-        <label class="form-grid__full">
-          <span>Description</span>
-          <textarea rows="3" [(ngModel)]="form.description" placeholder="Mission de l’association…"></textarea>
-        </label>
-        <label class="form-grid__inline">
-          <input type="checkbox" [(ngModel)]="form.validated" />
-          <span>Association validée (peut organiser des actions)</span>
-        </label>
-        <div class="form-grid__full image-upload">
-          <span class="image-upload__label">Logo</span>
-          @if (previewLogo(); as logo) {
-            <div class="image-upload__preview">
-              <img [src]="logo" alt="Logo" />
-              @if (logoFile) {
-                <button type="button" class="image-upload__remove" (click)="clearLogoSelection()">
-                  Annuler le nouveau logo
-                </button>
-              }
-            </div>
-          }
-          <label class="image-upload__picker">
-            <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onLogoSelected($event)" />
-            <span class="image-upload__icon" aria-hidden="true">+</span>
-            <span class="image-upload__text">
-              {{ previewLogo() ? 'Changer le logo' : 'Choisir un logo sur votre ordinateur' }}
-            </span>
-            <span class="image-upload__hint">JPG, PNG ou WEBP — 5 Mo max. Envoyé à l’enregistrement.</span>
-          </label>
-          @if (logoError) {
-            <p class="image-upload__error">{{ logoError }}</p>
-          }
+    @if (formVisible) {
+      <div
+        class="action-modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="association-form-title"
+        (click)="closeForm()"
+      >
+        <div class="action-modal action-modal--wide" (click)="$event.stopPropagation()">
+          <div class="action-modal__header">
+            <h2 id="association-form-title">{{ formTitle }}</h2>
+            <button type="button" class="btn-close-form" (click)="closeForm()" aria-label="Fermer">✕</button>
+          </div>
+          <div class="action-modal__body">
+            <fieldset class="form-fieldset" [disabled]="isFormReadonly">
+              <div class="form-grid">
+                <label>
+                  <span>Nom <strong class="req">*</strong></span>
+                  <input type="text" [(ngModel)]="form.name" name="associationName" placeholder="Eco Maroc" />
+                </label>
+                <label>
+                  <span>E-mail (compte connexion) <strong class="req">*</strong></span>
+                  <input
+                    type="email"
+                    [(ngModel)]="form.email"
+                    name="associationEmail"
+                    placeholder="contact@association.ma"
+                    [readonly]="formMode !== 'create'"
+                  />
+                </label>
+                @if (formMode === 'create') {
+                  <label>
+                    <span>Mot de passe (optionnel)</span>
+                    <input type="text" [(ngModel)]="form.password" placeholder="Généré automatiquement si vide" />
+                  </label>
+                }
+                <label>
+                  <span>Téléphone</span>
+                  <input type="text" maxlength="10" [(ngModel)]="form.phone" placeholder="0612345678" />
+                </label>
+                <label>
+                  <span>Ville</span>
+                  <input type="text" [(ngModel)]="form.city" placeholder="Casablanca" />
+                </label>
+                <label class="form-grid__full">
+                  <span>Adresse</span>
+                  <input type="text" [(ngModel)]="form.address" placeholder="12 rue Example" />
+                </label>
+                <label class="form-grid__full">
+                  <span>Description</span>
+                  <textarea rows="3" [(ngModel)]="form.description" placeholder="Mission de l’association…"></textarea>
+                </label>
+                <label class="form-grid__inline">
+                  <input type="checkbox" [(ngModel)]="form.validated" />
+                  <span>Association validée (peut organiser des actions)</span>
+                </label>
+                <div class="form-grid__full image-upload">
+                  <span class="image-upload__label">Logo</span>
+                  @if (previewLogo(); as logo) {
+                    <div class="image-upload__preview">
+                      <img [src]="logo" alt="Logo" />
+                      @if (logoFile && !isFormReadonly) {
+                        <button type="button" class="image-upload__remove" (click)="clearLogoSelection()">
+                          Annuler le nouveau logo
+                        </button>
+                      }
+                    </div>
+                  }
+                  @if (!isFormReadonly) {
+                    <label class="image-upload__picker">
+                      <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onLogoSelected($event)" />
+                      <span class="image-upload__icon" aria-hidden="true">+</span>
+                      <span class="image-upload__text">
+                        {{ previewLogo() ? 'Changer le logo' : 'Choisir un logo sur votre ordinateur' }}
+                      </span>
+                      <span class="image-upload__hint">JPG, PNG ou WEBP — 5 Mo max.</span>
+                    </label>
+                  }
+                  @if (logoError) {
+                    <p class="image-upload__error">{{ logoError }}</p>
+                  }
+                </div>
+              </div>
+            </fieldset>
+            @if (formError) {
+              <div class="admin-alert admin-alert--error form-modal-error">{{ formError }}</div>
+            }
+          </div>
+          <div class="action-modal__footer">
+            <button type="button" class="btn btn--ghost" [disabled]="saving" (click)="closeForm()">Fermer</button>
+            @if (isFormReadonly) {
+              <button type="button" class="btn btn--primary" (click)="switchToEdit()">Modifier</button>
+            } @else {
+              <button type="button" class="btn btn--primary" [disabled]="saving" (click)="submit()">
+                {{ saving ? 'Enregistrement…' : (formMode === 'edit' ? 'Enregistrer' : 'Créer') }}
+              </button>
+            }
+          </div>
         </div>
       </div>
-      <div class="form-actions">
-        <div id="association-form-feedback" class="form-feedback">
-          @if (formError) {
-            <div class="admin-alert admin-alert--error">{{ formError }}</div>
-          }
-        </div>
-        @if (editingId != null) {
-          <button type="button" class="btn btn--ghost" [disabled]="saving" (click)="startCreate()">
-            Annuler
-          </button>
-        }
-        <button type="button" class="btn btn--primary" [disabled]="saving" (click)="submit()">
-          {{ saving ? 'Enregistrement…' : (editingId != null ? 'Enregistrer' : 'Créer') }}
-        </button>
-      </div>
-    </article>
+    }
   }
 </section>

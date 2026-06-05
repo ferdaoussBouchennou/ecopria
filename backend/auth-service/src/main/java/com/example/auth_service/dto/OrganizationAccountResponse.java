@@ -21,4 +21,5 @@ public class OrganizationAccountResponse {
     private String rejectionReason;
     private LocalDateTime createdAt;
     private String status;
+    private Boolean isActive;
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -17,7 +17,7 @@ import { getCategoryImageUrl } from '../../action/utils/category-image.util';
   templateUrl: './admin-moderation.component.html',
   styleUrl: './admin-moderation.component.scss',
 })
-export class AdminModerationComponent implements OnInit {
+export class AdminModerationComponent implements OnInit, OnDestroy {
   loading = true;
   acting = false;
   error = '';
@@ -26,6 +26,7 @@ export class AdminModerationComponent implements OnInit {
   filter: ModerationFilter = 'all';
   items: ModerationAction[] = [];
   selected: ModerationAction | null = null;
+  detailVisible = false;
   suspendRaison = '';
   showSuspendForm = false;
 
@@ -33,6 +34,17 @@ export class AdminModerationComponent implements OnInit {
 
   ngOnInit(): void {
     this.reload();
+  }
+
+  ngOnDestroy(): void {
+    document.body.style.overflow = '';
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.detailVisible && !this.acting) {
+      this.closeDetail();
+    }
   }
 
   get filteredItems(): ModerationAction[] {
@@ -91,15 +103,24 @@ export class AdminModerationComponent implements OnInit {
 
   setFilter(filter: ModerationFilter): void {
     this.filter = filter;
-    this.selected = null;
-    this.showSuspendForm = false;
+    this.closeDetail();
   }
 
-  select(item: ModerationAction): void {
+  viewItem(item: ModerationAction, openSuspendForm = false): void {
     this.selected = item;
-    this.showSuspendForm = false;
+    this.showSuspendForm = openSuspendForm;
     this.suspendRaison = '';
     this.message = '';
+    this.detailVisible = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeDetail(): void {
+    this.detailVisible = false;
+    this.selected = null;
+    this.showSuspendForm = false;
+    this.suspendRaison = '';
+    document.body.style.overflow = '';
   }
 
   publish(item: ModerationAction): void {
@@ -207,6 +228,7 @@ export class AdminModerationComponent implements OnInit {
         this.acting = false;
         this.message = successMsg;
         onSuccess?.();
+        this.closeDetail();
         this.reload();
       },
       error: (err: HttpErrorResponse) => {

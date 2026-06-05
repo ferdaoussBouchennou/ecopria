@@ -106,14 +106,10 @@
           <span>Rôle</span>
           <span>Inscription</span>
           <span>Statut</span>
+          <span>Actions</span>
         </header>
         @for (user of items; track user.userId) {
-          <button
-            type="button"
-            class="table-row table-row--users"
-            [class.table-row--selected]="selected?.userId === user.userId"
-            (click)="select(user)"
-          >
+          <div class="table-row table-row--users">
             <span class="row-name">{{ displayName(user) }}</span>
             <span class="row-email">{{ user.email }}</span>
             <span>{{ roleLabel(user.role) }}</span>
@@ -121,60 +117,79 @@
             <span>
               <span class="status-pill" [ngClass]="statusClass(user)">{{ statusLabel(user) }}</span>
             </span>
-          </button>
+            <span class="row-actions">
+              <button type="button" class="action-btn action-btn--view" (click)="viewUser(user)">Voir</button>
+              @if (canBan(user)) {
+                <button type="button" class="action-btn action-btn--danger" [disabled]="acting" (click)="viewUser(user, true)">
+                  Bannir
+                </button>
+              }
+              @if (canReactivate(user)) {
+                <button type="button" class="action-btn action-btn--activate" [disabled]="acting" (click)="reactivate(user)">
+                  Réactiver
+                </button>
+              }
+            </span>
+          </div>
         }
       </article>
     }
 
-    @if (selected) {
-      <article class="detail-card">
-        <div class="detail-header">
-          <div class="avatar" aria-hidden="true">{{ displayName(selected).charAt(0) | uppercase }}</div>
-          <div>
-            <h2 class="detail-title">{{ displayName(selected) }}</h2>
-            <p class="detail-email">{{ selected.email }}</p>
+    @if (detailVisible && selected) {
+      <div
+        class="action-modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="user-detail-title"
+        (click)="closeDetail()"
+      >
+        <div class="action-modal" (click)="$event.stopPropagation()">
+          <div class="action-modal__header">
+            <h2 id="user-detail-title">Détail utilisateur</h2>
+            <button type="button" class="btn-close-form" (click)="closeDetail()" aria-label="Fermer">✕</button>
           </div>
-          <span class="status-pill status-pill--lg" [ngClass]="statusClass(selected)">
-            {{ statusLabel(selected) }}
-          </span>
-        </div>
+          <div class="action-modal__body">
+            <div class="detail-header">
+              <div class="avatar" aria-hidden="true">{{ displayName(selected).charAt(0) | uppercase }}</div>
+              <div>
+                <h3 class="detail-title">{{ displayName(selected) }}</h3>
+                <p class="detail-email">{{ selected.email }}</p>
+              </div>
+              <span class="status-pill status-pill--lg" [ngClass]="statusClass(selected)">
+                {{ statusLabel(selected) }}
+              </span>
+            </div>
 
-        <dl class="detail-grid">
-          <div>
-            <dt>ID</dt>
-            <dd>{{ selected.userId }}</dd>
-          </div>
-          <div>
-            <dt>Rôle</dt>
-            <dd>{{ roleLabel(selected.role) }}</dd>
-          </div>
-          <div>
-            <dt>E-mail vérifié</dt>
-            <dd>{{ selected.isVerified ? 'Oui' : 'Non' }}</dd>
-          </div>
-          <div>
-            <dt>Compte actif</dt>
-            <dd>{{ selected.isActive ? 'Oui' : 'Non' }}</dd>
-          </div>
-          <div>
-            <dt>Inscrit le</dt>
-            <dd>
-              @if (selected.createdAt) {
-                {{ selected.createdAt | date:'dd/MM/yyyy HH:mm' }}
-              } @else {
-                —
-              }
-            </dd>
-          </div>
-        </dl>
+            <dl class="detail-grid">
+              <div>
+                <dt>ID</dt>
+                <dd>{{ selected.userId }}</dd>
+              </div>
+              <div>
+                <dt>Rôle</dt>
+                <dd>{{ roleLabel(selected.role) }}</dd>
+              </div>
+              <div>
+                <dt>E-mail vérifié</dt>
+                <dd>{{ selected.isVerified ? 'Oui' : 'Non' }}</dd>
+              </div>
+              <div>
+                <dt>Compte actif</dt>
+                <dd>{{ selected.isActive ? 'Oui' : 'Non' }}</dd>
+              </div>
+              <div>
+                <dt>Inscrit le</dt>
+                <dd>
+                  @if (selected.createdAt) {
+                    {{ selected.createdAt | date:'dd/MM/yyyy HH:mm' }}
+                  } @else {
+                    —
+                  }
+                </dd>
+              </div>
+            </dl>
 
-        <div class="detail-actions">
-          @if (canBan(selected)) {
-            @if (!showBanForm) {
-              <button type="button" class="btn-warn" [disabled]="acting" (click)="ban(selected)">
-                Bannir le compte
-              </button>
-            } @else {
+            @if (canBan(selected) && showBanForm) {
               <div class="ban-box">
                 <label class="field">
                   <span class="field-label">Raison du bannissement</span>
@@ -185,35 +200,38 @@
                     placeholder="Ex. fraude, comportement abusif, fausses informations…"
                   ></textarea>
                 </label>
-                <div class="ban-box__btns">
-                  <button
-                    type="button"
-                    class="btn-outline"
-                    [disabled]="acting"
-                    (click)="showBanForm = false; banRaison = ''"
-                  >
-                    Annuler
-                  </button>
-                  <button type="button" class="btn-warn" [disabled]="acting" (click)="ban(selected)">
-                    Confirmer le bannissement
-                  </button>
-                </div>
               </div>
             }
-          }
-          @if (canReactivate(selected)) {
-            <button type="button" class="btn-primary" [disabled]="acting" (click)="reactivate(selected)">
-              Réactiver le compte
-            </button>
-          }
-          @if (selected.role === 'ADMIN') {
-            <p class="admin-muted detail-note">Les comptes administrateur ne peuvent pas être bannis.</p>
-          }
-          @if (selected.isActive && selected.role !== 'ADMIN' && !canBan(selected)) {
-            <p class="admin-muted detail-note">Aucune action disponible pour ce compte.</p>
-          }
+          </div>
+          <div class="action-modal__footer detail-actions">
+            <button type="button" class="btn-outline" [disabled]="acting" (click)="closeDetail()">Fermer</button>
+            @if (canBan(selected)) {
+              @if (!showBanForm) {
+                <button type="button" class="btn-warn" [disabled]="acting" (click)="ban(selected)">
+                  Bannir le compte
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="btn-outline"
+                  [disabled]="acting"
+                  (click)="showBanForm = false; banRaison = ''"
+                >
+                  Annuler
+                </button>
+                <button type="button" class="btn-warn" [disabled]="acting" (click)="ban(selected)">
+                  Confirmer le bannissement
+                </button>
+              }
+            }
+            @if (canReactivate(selected)) {
+              <button type="button" class="btn-primary" [disabled]="acting" (click)="reactivate(selected)">
+                Réactiver le compte
+              </button>
+            }
+          </div>
         </div>
-      </article>
+      </div>
     }
   }
 </section>

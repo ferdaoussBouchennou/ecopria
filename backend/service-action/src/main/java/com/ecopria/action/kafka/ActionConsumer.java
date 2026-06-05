@@ -95,6 +95,12 @@ public class ActionConsumer {
         actionService.deactivateFixedAction(event);
     }
 
+    @KafkaListener(topics = "action.fixe.activee", groupId = "service-action")
+    public void onFixedActionActivated(Map<String, Object> event) {
+        log.info("Réactivation action fixe: {}", event);
+        actionService.activateFixedAction(event);
+    }
+
     // ── SYNCHRONISATION CATÉGORIES ───────────────────────────
 
     @KafkaListener(topics = "categorie.creee", groupId = "service-action")
