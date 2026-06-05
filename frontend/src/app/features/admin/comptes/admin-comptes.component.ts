@@ -106,12 +106,36 @@ export class AdminComptesComponent implements OnInit {
     });
   }
 
+  hasDocument(item: AccountValidationItem | null): boolean {
+    return !!item?.hasStoredDocument || !!item?.documentPath;
+  }
+
+  openDocument(): void {
+    if (!this.selectedItem || !this.hasDocument(this.selectedItem)) {
+      return;
+    }
+    this.admin.getAccountVerificationDocument(this.selectedItem.userId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank', 'noopener');
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      },
+      error: () => {
+        this.actionMessage = 'Impossible d’ouvrir le document.';
+      },
+    });
+  }
+
   rejectSelected(): void {
     if (!this.selectedItem || !this.isPending(this.selectedItem)) {
       return;
     }
+    const reason = this.rejectReason.trim();
+    if (!reason) {
+      this.actionMessage = 'Indiquez un motif de rejet.';
+      return;
+    }
     this.actionLoading = true;
-    const reason = this.rejectReason.trim() || 'Rejet administratif';
     const call =
       this.selectedItem.role === 'ASSOCIATION'
         ? this.admin.rejectAssociation(this.selectedItem.userId, reason)

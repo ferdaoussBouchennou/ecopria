@@ -4,11 +4,16 @@ import com.example.auth_service.dto.CreateAssociationUserRequest;
 import com.example.auth_service.dto.CreateAssociationUserResponse;
 import com.example.auth_service.dto.OrganizationAccountsPageResponse;
 import com.example.auth_service.dto.PendingAccountResponse;
+import com.example.auth_service.dto.RejectOrganizationRequest;
 import com.example.auth_service.dto.UserInternalResponse;
 import com.example.auth_service.dto.UserStatsResponse;
+import com.example.auth_service.entity.VerificationDocument;
 import com.example.auth_service.service.InternalUserService;
+import com.example.auth_service.service.OrganizationVerificationService;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +25,7 @@ import java.util.List;
 public class InternalUserController {
 
     private final InternalUserService service;
+    private final OrganizationVerificationService organizationVerificationService;
 
     // Get all users
     @GetMapping
@@ -81,6 +87,25 @@ public class InternalUserController {
     public ResponseEntity<Void> activate(@PathVariable Long id) {
         service.activate(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/reject-organization")
+    public ResponseEntity<Void> rejectOrganization(
+            @PathVariable Long id,
+            @RequestBody(required = false) RejectOrganizationRequest request) {
+        String reason = request != null ? request.getRaison() : null;
+        service.rejectOrganization(id, reason);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/verification-document")
+    public ResponseEntity<byte[]> getVerificationDocument(@PathVariable Long id) {
+        VerificationDocument document = organizationVerificationService.getDocument(id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + document.getOriginalFilename() + "\"")
+                .contentType(MediaType.parseMediaType(document.getContentType()))
+                .body(document.getFileData());
     }
 
     @PostMapping("/association")

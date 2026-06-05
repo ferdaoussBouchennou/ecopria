@@ -86,10 +86,17 @@
           <span class="status-pill">{{ selectedItem.status }}</span>
         </div>
 
-        @if (selectedItem.documentPath) {
+        @if (hasDocument(selectedItem)) {
           <div class="doc-box">
             <span>Document de verification</span>
-            <a [href]="selectedItem.documentPath" target="_blank" rel="noopener">Ouvrir</a>
+            <button type="button" class="doc-link" (click)="openDocument()">Ouvrir</button>
+          </div>
+        }
+
+        @if (selectedItem.status === 'Rejeté' && selectedItem.rejectionReason) {
+          <div class="reject-box">
+            <span>Motif de rejet</span>
+            <p>{{ selectedItem.rejectionReason }}</p>
           </div>
         }
 
@@ -104,7 +111,12 @@
             <button type="button" class="btn btn--approve" [disabled]="actionLoading" (click)="approveSelected()">
               {{ actionLoading ? 'Traitement…' : 'Approuver' }}
             </button>
-            <button type="button" class="btn btn--reject" [disabled]="actionLoading" (click)="rejectSelected()">
+            <button
+              type="button"
+              class="btn btn--reject"
+              [disabled]="actionLoading || !rejectReason.trim()"
+              (click)="rejectSelected()"
+            >
               Rejeter
             </button>
           </div>

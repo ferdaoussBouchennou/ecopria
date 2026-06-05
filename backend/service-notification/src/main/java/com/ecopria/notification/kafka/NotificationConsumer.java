@@ -621,6 +621,45 @@ public class NotificationConsumer {
                 "- L'equipe EcoPria";
     }
 
+    @KafkaListener(
+            topics = { "association.statut.change", "partenaire.statut.change" },
+            groupId = "notification-org-statut-group")
+    public void onOrganizationStatutChange(Map<String, Object> event) {
+        log.info("📥 [Kafka] organisation statut change : {}", event);
+        String action = readStringAny(event, "", "action");
+        if (!"REJETEE".equalsIgnoreCase(action)) {
+            return;
+        }
+
+        Long userId = requireAuthUserId(event, "organisation.statut.change");
+        if (userId == null) {
+            return;
+        }
+
+        String type = readStringAny(event, "ORGANISATION", "type");
+        String raison = readStringAny(event, "Rejet administratif", "raison");
+        boolean isAssociation = "ASSOCIATION".equalsIgnoreCase(type);
+        String orgLabel = isAssociation ? "association" : "partenaire";
+        String subject = "EcoPria — demande " + orgLabel + " rejetee";
+        String inAppTitle = isAssociation ? "Association rejetee" : "Partenaire rejete";
+        String inAppMessage = "Votre demande de compte " + orgLabel + " a ete rejetee. Motif : " + raison;
+
+        dispatcher.notifyUser(userId,
+                inAppTitle,
+                inAppMessage,
+                Notification.NotificationType.ALERT,
+                subject,
+                "Bonjour,\n\n" +
+                        "Apres examen de votre dossier, votre demande de compte " + orgLabel +
+                        " n'a pas pu etre validee.\n\n" +
+                        "Motif du rejet :\n\"" + raison + "\"\n\n" +
+                        "Vous pouvez soumettre une nouvelle demande avec des documents conformes " +
+                        "ou contacter le support si vous pensez qu'il s'agit d'une erreur.\n\n" +
+                        "- L'equipe EcoPria\n" +
+                        "https://ecopria.ma",
+                emailFromEvent(event));
+    }
+
     @KafkaListener(topics = "partenaire.validee", groupId = "notification-partenaire-group")
     public void onPartenaireValidee(Map<String, Object> event) {
         log.info("📥 [Kafka] partenaire.validee : {}", event);

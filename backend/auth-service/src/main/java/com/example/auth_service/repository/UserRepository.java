@@ -1,9 +1,8 @@
 package com.example.auth_service.repository;
 
+import com.example.auth_service.entity.AdminVerificationStatus;
 import com.example.auth_service.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import com.example.auth_service.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,4 +22,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByRoleInAndIsVerifiedTrueAndIsActiveTrue(List<User.Role> roles);
 
     List<User> findByRoleInAndIsActiveFalseAndIsVerifiedTrue(List<User.Role> roles);
+
+    List<User> findByRoleInAndIsVerifiedTrueAndAdminVerificationStatus(
+            List<User.Role> roles,
+            AdminVerificationStatus status
+    );
 }

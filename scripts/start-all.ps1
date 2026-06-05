@@ -103,7 +103,7 @@ Write-Host "[3] Demarrage du frontend Angular..." -ForegroundColor $ColorInfo
 if (Test-Path "frontend") {
     Write-Host "    --> ng serve" -ForegroundColor $ColorInfo
     $frontendProcess = Start-Process -FilePath "cmd.exe" `
-        -ArgumentList "/c cd frontend && ng serve --open" `
+        -ArgumentList "/c cd frontend && npm start" `
         -WindowStyle Normal `
         -PassThru
     $processes += $frontendProcess

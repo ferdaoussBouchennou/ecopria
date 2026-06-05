@@ -25,7 +25,7 @@ export const environment = {
   recompenseApi: '/api/recompenses',
   presenceApi: '/api/presences',
   /** Clés de test Cloudflare Turnstile (toujours valides en local) */
-  turnstileSiteKey: '1x00000000000000000000AA',
+  turnstileSiteKey: '0x4AAAAAADe8ehqxyMsnM1-d',
   /** Si le widget Cloudflare ne charge pas (réseau, bloqueur), case de secours en dev */
   turnstileDevBypass: true,
 };

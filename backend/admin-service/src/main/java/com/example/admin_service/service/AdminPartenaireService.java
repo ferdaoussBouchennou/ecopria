@@ -8,6 +8,8 @@ import com.example.admin_service.repository.LogAdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -64,13 +66,21 @@ public class AdminPartenaireService {
         Map<String, Object> account = getPendingAccount(userId, "PARTNER");
         String email = asString(account.get("email"));
 
-        restTemplate.put(authServiceUrl + "/internal/users/" + userId + "/deactivate", null);
+        String raison = request != null ? request.getRaison() : null;
+        Map<String, String> body = new HashMap<>();
+        body.put("raison", raison != null && !raison.isBlank() ? raison.trim() : "Rejet administratif");
+        restTemplate.exchange(
+                authServiceUrl + "/internal/users/" + userId + "/reject-organization",
+                HttpMethod.PUT,
+                new HttpEntity<>(body),
+                Void.class
+        );
 
         kafkaProducer.publishStatutChange(StatutChangeEvent.builder()
                 .userId(userId)
                 .email(email)
                 .action("REJETEE")
-                .raison(request != null ? request.getRaison() : null)
+                .raison(body.get("raison"))
                 .type("PARTENAIRE")
                 .build());
 

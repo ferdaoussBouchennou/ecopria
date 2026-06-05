@@ -50,6 +50,13 @@ export class AdminService {
     });
   }
 
+  getAccountVerificationDocument(userId: number): Observable<Blob> {
+    return this.http.get(`${this.base}/accounts/${userId}/document`, {
+      headers: this.authHeaders(),
+      responseType: 'blob',
+    });
+  }
+
   getPendingAssociations(): Observable<AdminPendingAccount[]> {
     return this.http.get<AdminPendingAccount[]>(`${this.base}/associations/pending`, {
       headers: this.authHeaders(),

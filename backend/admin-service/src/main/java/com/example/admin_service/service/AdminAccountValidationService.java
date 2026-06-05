@@ -5,6 +5,9 @@ import com.example.admin_service.dto.response.OrganizationAccountsPageResponse;
 import com.example.admin_service.repository.LogAdminRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -25,6 +28,26 @@ public class AdminAccountValidationService {
 
     @Value("${services.auth-url}")
     private String authServiceUrl;
+
+    public ResponseEntity<byte[]> getVerificationDocument(Long userId) {
+        ResponseEntity<byte[]> response = restTemplate.getForEntity(
+                authServiceUrl + "/internal/users/" + userId + "/verification-document",
+                byte[].class
+        );
+        HttpHeaders headers = new HttpHeaders();
+        if (response.getHeaders().getContentType() != null) {
+            headers.setContentType(response.getHeaders().getContentType());
+        } else {
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        }
+        if (response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION) != null) {
+            headers.set(HttpHeaders.CONTENT_DISPOSITION,
+                    response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION));
+        }
+        return ResponseEntity.status(response.getStatusCode())
+                .headers(headers)
+                .body(response.getBody());
+    }
 
     @SuppressWarnings("unchecked")
     public OrganizationAccountsPageResponse getAccounts(String filter) {
@@ -76,6 +99,8 @@ public class AdminAccountValidationService {
                 .role(asString(row.get("role")))
                 .name(asString(row.get("name")))
                 .documentPath(asString(row.get("documentPath")))
+                .hasStoredDocument(extractBoolean(row.get("hasStoredDocument")))
+                .rejectionReason(asString(row.get("rejectionReason")))
                 .createdAt(parseDateTime(row.get("createdAt")))
                 .status(normalizeStatus(asString(row.get("status"))))
                 .build();
@@ -120,6 +145,13 @@ public class AdminAccountValidationService {
 
     private String asString(Object value) {
         return value == null ? "" : value.toString();
+    }
+
+    private boolean extractBoolean(Object value) {
+        if (value instanceof Boolean bool) {
+            return bool;
+        }
+        return value != null && Boolean.parseBoolean(value.toString());
     }
 
     private LocalDateTime parseDateTime(Object rawValue) {

@@ -30,6 +30,7 @@ public class AuthService {
     private final KafkaProducerService kafkaProducer;
     private final TurnstileService turnstileService;
     private final EmailVerificationService emailVerificationService;
+    private final OrganizationVerificationService organizationVerificationService;
 
     @Value("${jwt.refresh-expiration}")
     private long refreshExpiration;
@@ -194,6 +195,8 @@ public class AuthService {
                     .role(user.getRole().name())
                     .build());
         } else {
+            organizationVerificationService.finalizeOrganizationAfterEmailVerified(user, profile);
+            userRepository.save(user);
             kafkaProducer.publishAssociationPending(UserRegisteredEvent.builder()
                     .userId(user.getUserId())
                     .nom(profile.getNom())
