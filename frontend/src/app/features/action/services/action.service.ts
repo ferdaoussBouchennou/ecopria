@@ -66,6 +66,12 @@ export class ActionService {
       .pipe(catchError(this.handleError('Impossible de charger les statistiques')));
   }
 
+  getAssociationPublishedActions(associationId: number): Observable<ActionSummary[]> {
+    return this.http
+      .get<ActionSummary[]>(`${this.apiUrl}/associations/${associationId}/actions`)
+      .pipe(catchError(this.handleError('Impossible de charger les actions de l\'association')));
+  }
+
   getFeaturedActions(limit = 3): Observable<ActionSummary[]> {
     return this.getActions({ sort: 'date' }).pipe(
       map((actions) => actions.filter((a) => !a.isFixed).slice(0, limit))

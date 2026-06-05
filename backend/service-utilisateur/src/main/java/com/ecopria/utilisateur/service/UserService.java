@@ -384,6 +384,33 @@ public class UserService {
                 });
     }
 
+    @Transactional(readOnly = true)
+    public List<AssociationPublicProfilDTO> getAssociationsPublics() {
+        return associationRepository.findAll().stream()
+                .sorted(java.util.Comparator.comparing(Association::getName, String.CASE_INSENSITIVE_ORDER))
+                .map(this::toAssociationPublicProfilDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public AssociationPublicProfilDTO getAssociationPublic(Long authId) {
+        Association association = associationRepository.findByAuthId(authId)
+                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+        return toAssociationPublicProfilDTO(association);
+    }
+
+    private AssociationPublicProfilDTO toAssociationPublicProfilDTO(Association association) {
+        return AssociationPublicProfilDTO.builder()
+                .id(association.getId())
+                .authId(association.getAuthId())
+                .name(association.getName())
+                .city(association.getCity())
+                .address(association.getAddress())
+                .description(association.getDescription())
+                .logo(association.getLogo())
+                .build();
+    }
+
     public Partner getPartner(Long authId) {
         return partnerRepository.findByAuthId(authId)
                 .orElseGet(() -> {

@@ -1,0 +1,103 @@
+<div class="catalog-page">
+  <header class="page-hero">
+    <p class="eyebrow">— Associations Ecopria</p>
+    <h1>Découvrez les associations qui animent le territoire</h1>
+    <p class="lead">
+      Jardins partagés, protection de la nature, éducation au développement durable… Parcourez les associations
+      engagées et leurs actions à venir.
+    </p>
+  </header>
+
+  <nav class="filters-row" aria-label="Filtres associations">
+    <div class="category-pills" role="group" aria-label="Villes">
+      <button
+        type="button"
+        class="pill"
+        [class.active]="!selectedCity"
+        (click)="selectedCity = ''; applyFilters()"
+      >
+        Toutes
+      </button>
+      <button
+        type="button"
+        class="pill"
+        *ngFor="let city of cities"
+        [class.active]="selectedCity === city"
+        (click)="selectedCity = city; applyFilters()"
+      >
+        {{ city }}
+      </button>
+    </div>
+
+    <div class="search-wrap">
+      <label class="visually-hidden" for="search-associations">Rechercher</label>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M20 20L16 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <input
+        id="search-associations"
+        type="search"
+        placeholder="Rechercher une association…"
+        [(ngModel)]="searchText"
+        (input)="onSearchChange()"
+      />
+    </div>
+  </nav>
+
+  <div class="toolbar-row">
+    <p class="results-count">
+      {{ filteredAssociations.length }} association{{ filteredAssociations.length > 1 ? 's' : '' }}
+    </p>
+    <div class="toolbar-links">
+      <a routerLink="/actions" class="toolbar-link">Voir les actions →</a>
+      <button
+        type="button"
+        class="toolbar-link toolbar-link--btn"
+        *ngIf="searchText || selectedCity"
+        (click)="clearFilters()"
+      >
+        Réinitialiser
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="state-box">
+    <div class="spinner"></div>
+    <p>Chargement des associations…</p>
+  </div>
+
+  <div *ngIf="!loading && erreur" class="state-box state-error">
+    <p>{{ erreur }}</p>
+    <button type="button" class="btn-primary" (click)="loadAssociations()">Réessayer</button>
+  </div>
+
+  <div *ngIf="!loading && !erreur && filteredAssociations.length === 0" class="state-box state-empty">
+    <p>Aucune association ne correspond à votre recherche.</p>
+    <button type="button" class="btn-outline" (click)="clearFilters()">Voir toutes les associations</button>
+  </div>
+
+  <div class="partners-grid" *ngIf="!loading && !erreur && filteredAssociations.length > 0">
+    <article class="partner-card" *ngFor="let association of filteredAssociations">
+      <a [routerLink]="['/associations', association.authId]" class="card-link">
+        <div class="card-image">
+          <img
+            [src]="logoUrl(association)"
+            [alt]="association.name"
+            loading="lazy"
+            (error)="onImgError($event)"
+          />
+          <span class="badge badge-cat" *ngIf="association.city">{{ association.city }}</span>
+        </div>
+        <div class="card-body">
+          <p class="card-city" *ngIf="association.address">{{ association.address }}</p>
+          <h3 class="card-title">{{ association.name }}</h3>
+          <p class="card-desc" *ngIf="association.description">
+            {{ association.description | slice:0:110 }}<span *ngIf="association.description.length > 110">…</span>
+          </p>
+          <span class="card-cta">Voir le profil →</span>
+        </div>
+      </a>
+    </article>
+  </div>
+</div>
