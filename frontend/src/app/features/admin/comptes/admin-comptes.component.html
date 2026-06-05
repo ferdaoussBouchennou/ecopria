@@ -1,9 +1,9 @@
 <section class="admin-page comptes-page">
-  <p class="admin-eyebrow"><span class="eyebrow-line"></span> Gestion des comptes</p>
-  <h1 class="admin-page__title">Validation des comptes.</h1>
+  <p class="admin-eyebrow"><span class="eyebrow-line"></span> Administration</p>
+  <h1 class="admin-page__title">Gestion des comptes.</h1>
   <p class="admin-desc">
-    Validez les associations et partenaires à partir de leur document. Gérez l’activation des comptes
-    citoyens, associations et partenaires.
+    Validez les associations et partenaires après consultation de leur document. Activez ou désactivez
+    les comptes citoyens depuis la base utilisateurs.
   </p>
 
   @if (actionMessage) {
@@ -35,36 +35,36 @@
       <button
         type="button"
         class="list-tab"
-        [class.list-tab--active]="activeTab === 'participants'"
-        (click)="switchTab('participants')"
+        [class.list-tab--active]="activeTab === 'citoyens'"
+        (click)="switchTab('citoyens')"
       >
-        Participants <span class="list-tab__count">{{ countParticipants('all') }}</span>
+        Citoyens <span class="list-tab__count">{{ countCitizens('all') }}</span>
       </button>
     </div>
 
     <div class="section-toolbar">
       <div class="chips">
         <button type="button" class="chip" [class.chip--active]="currentState.filter === 'all'" (click)="setSectionFilter('all')">
-          @if (activeTab === 'participants') {
-            Tous ({{ countParticipants('all') }})
+          @if (activeTab === 'citoyens') {
+            Tous ({{ countCitizens('all') }})
           } @else if (activeTab === 'associations') {
             Tous ({{ countOrg('associations', 'all') }})
           } @else {
             Tous ({{ countOrg('partenaires', 'all') }})
           }
         </button>
-        <button type="button" class="chip" [class.chip--active]="currentState.filter === 'pending'" (click)="setSectionFilter('pending')">
-          @if (activeTab === 'participants') {
-            En attente ({{ countParticipants('pending') }})
-          } @else if (activeTab === 'associations') {
-            En attente ({{ countOrg('associations', 'pending') }})
-          } @else {
-            En attente ({{ countOrg('partenaires', 'pending') }})
-          }
-        </button>
+        @if (activeTab !== 'citoyens') {
+          <button type="button" class="chip" [class.chip--active]="currentState.filter === 'pending'" (click)="setSectionFilter('pending')">
+            @if (activeTab === 'associations') {
+              En attente ({{ countOrg('associations', 'pending') }})
+            } @else {
+              En attente ({{ countOrg('partenaires', 'pending') }})
+            }
+          </button>
+        }
         <button type="button" class="chip" [class.chip--active]="currentState.filter === 'active'" (click)="setSectionFilter('active')">
-          @if (activeTab === 'participants') {
-            Actifs ({{ countParticipants('active') }})
+          @if (activeTab === 'citoyens') {
+            Actifs ({{ countCitizens('active') }})
           } @else if (activeTab === 'associations') {
             Validées ({{ countOrg('associations', 'active') }})
           } @else {
@@ -72,8 +72,8 @@
           }
         </button>
         <button type="button" class="chip" [class.chip--active]="currentState.filter === 'inactive'" (click)="setSectionFilter('inactive')">
-          @if (activeTab === 'participants') {
-            Désactivés ({{ countParticipants('inactive') }})
+          @if (activeTab === 'citoyens') {
+            Désactivés ({{ countCitizens('inactive') }})
           } @else if (activeTab === 'associations') {
             Refusés / désactivés ({{ countOrg('associations', 'inactive') }})
           } @else {
@@ -90,7 +90,7 @@
       />
     </div>
 
-    @if (activeTab === 'participants') {
+    @if (activeTab === 'citoyens') {
       <article class="table-card">
         <header class="table-head table-head--user">
           <span>Nom</span>
@@ -99,36 +99,36 @@
           <span>Statut</span>
           <span>Actions</span>
         </header>
-        @if (participants.length === 0) {
-          <p class="admin-muted table-empty">Aucun participant pour ce filtre.</p>
+        @if (citoyens.length === 0) {
+          <p class="admin-muted table-empty">Aucun citoyen pour ce filtre.</p>
         } @else {
-          @for (user of paginatedParticipants(); track user.userId) {
+          @for (citizen of paginatedCitizens(); track citizen.userId) {
             <div class="table-row table-row--user">
-              <span class="cell-title">{{ displayName(user) }}</span>
-              <span class="cell-email">{{ user.email }}</span>
-              <span>{{ formatDate(user.createdAt) }}</span>
+              <span class="cell-title">{{ citizenDisplayName(citizen) }}</span>
+              <span class="cell-email">{{ citizen.email }}</span>
+              <span>{{ formatDate(citizen.createdAt) }}</span>
               <span>
-                <span class="status-pill" [ngClass]="participantStatusClass(user)">{{ participantStatusLabel(user) }}</span>
+                <span class="status-pill" [ngClass]="citizenStatusClass(citizen)">{{ citizenStatusLabel(citizen) }}</span>
               </span>
               <span class="row-actions">
-                <button type="button" class="action-btn action-btn--view" (click)="viewParticipant(user)">Voir</button>
-                @if (canActivateParticipant(user)) {
-                  <button type="button" class="action-btn action-btn--activate" [disabled]="actionLoading" (click)="activateParticipant(user)">Activer</button>
+                <button type="button" class="action-btn action-btn--view" (click)="viewCitizen(citizen)">Voir</button>
+                @if (canActivateCitizen(citizen)) {
+                  <button type="button" class="action-btn action-btn--activate" [disabled]="actionLoading" (click)="activateCitizen(citizen)">Activer</button>
                 }
-                @if (canDeactivateParticipant(user)) {
-                  <button type="button" class="action-btn action-btn--danger" [disabled]="actionLoading" (click)="viewParticipant(user, true)">Désactiver</button>
+                @if (canDeactivateCitizen(citizen)) {
+                  <button type="button" class="action-btn action-btn--danger" [disabled]="actionLoading" (click)="viewCitizen(citizen, true)">Désactiver</button>
                 }
               </span>
             </div>
           }
-          @if (totalPagesParticipants() > 1) {
+          @if (totalPagesCitizens() > 1) {
             <div class="pagination">
-              <button type="button" class="pagination__btn" [disabled]="participantsState.page === 1" (click)="changePage(participantsState.page - 1)">Précédent</button>
+              <button type="button" class="pagination__btn" [disabled]="citoyensState.page === 1" (click)="changePage(citoyensState.page - 1)">Précédent</button>
               <span class="pagination__info">
-                Page <strong>{{ participantsState.page }}</strong> / {{ totalPagesParticipants() }}
-                <span class="pagination__sub">({{ paginationLabel(participants.length, participantsState.page) }})</span>
+                Page <strong>{{ citoyensState.page }}</strong> / {{ totalPagesCitizens() }}
+                <span class="pagination__sub">({{ paginationLabel(citoyens.length, citoyensState.page) }})</span>
               </span>
-              <button type="button" class="pagination__btn" [disabled]="participantsState.page === totalPagesParticipants()" (click)="changePage(participantsState.page + 1)">Suivant</button>
+              <button type="button" class="pagination__btn" [disabled]="citoyensState.page === totalPagesCitizens()" (click)="changePage(citoyensState.page + 1)">Suivant</button>
             </div>
           }
         }
@@ -280,11 +280,11 @@
             @if (selectedItem && canActivateOrg(selectedItem)) {
               <button type="button" class="btn btn--approve" [disabled]="actionLoading" (click)="activateOrg(selectedItem)">Activer</button>
             }
-            @if (selectedParticipant && canActivateParticipant(selectedParticipant)) {
-              <button type="button" class="btn btn--approve" [disabled]="actionLoading" (click)="activateParticipant(selectedParticipant)">Activer</button>
+            @if (selectedCitizen && canActivateCitizen(selectedCitizen)) {
+              <button type="button" class="btn btn--approve" [disabled]="actionLoading" (click)="activateCitizen(selectedCitizen)">Activer</button>
             }
-            @if (selectedParticipant && canDeactivateParticipant(selectedParticipant) && showDeactivateForm) {
-              <button type="button" class="btn btn--reject" [disabled]="actionLoading || !deactivateReason.trim()" (click)="deactivateParticipant(selectedParticipant)">Confirmer la désactivation</button>
+            @if (selectedCitizen && canDeactivateCitizen(selectedCitizen) && showDeactivateForm) {
+              <button type="button" class="btn btn--reject" [disabled]="actionLoading || !deactivateReason.trim()" (click)="deactivateCitizen(selectedCitizen)">Confirmer la désactivation</button>
             }
           </div>
         </div>

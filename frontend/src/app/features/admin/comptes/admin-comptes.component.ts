@@ -7,13 +7,13 @@ import { catchError } from 'rxjs/operators';
 import { AdminService } from '../../../core/services/admin.service';
 import {
   AccountValidationItem,
-  AdminUser,
+  CitizenAccountItem,
   UtilisateurAssociationProfile,
   UtilisateurCitizenProfile,
   UtilisateurPartnerProfile,
 } from '../../../core/models/admin.model';
 
-type AccountTab = 'associations' | 'partenaires' | 'participants';
+type AccountTab = 'associations' | 'partenaires' | 'citoyens';
 type SectionFilter = 'all' | 'pending' | 'active' | 'inactive';
 
 interface SectionState {
@@ -27,7 +27,7 @@ interface DetailField {
   value: string;
 }
 
-type DetailKind = 'association' | 'partenaire' | 'participant';
+type DetailKind = 'association' | 'partenaire' | 'citoyen';
 
 @Component({
   selector: 'app-admin-comptes',
@@ -50,14 +50,14 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
   activeTab: AccountTab = 'associations';
 
   allOrgItems: AccountValidationItem[] = [];
-  allParticipants: AdminUser[] = [];
+  allCitizens: CitizenAccountItem[] = [];
 
   associationsState: SectionState = this.emptySectionState();
   partenairesState: SectionState = this.emptySectionState();
-  participantsState: SectionState = this.emptySectionState();
+  citoyensState: SectionState = this.emptySectionState();
 
   selectedItem: AccountValidationItem | null = null;
-  selectedParticipant: AdminUser | null = null;
+  selectedCitizen: CitizenAccountItem | null = null;
   detailVisible = false;
   detailKind: DetailKind | null = null;
   detailFields: DetailField[] = [];
@@ -116,8 +116,8 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
     return this.filterOrgItems('PARTNER', this.partenairesState);
   }
 
-  get participants(): AdminUser[] {
-    return this.filterParticipants(this.participantsState);
+  get citoyens(): CitizenAccountItem[] {
+    return this.filterCitizens(this.citoyensState);
   }
 
   currentOrgItems(): AccountValidationItem[] {
@@ -129,16 +129,16 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
     return this.paginate(this.currentOrgItems(), state.page);
   }
 
-  paginatedParticipants(): AdminUser[] {
-    return this.paginate(this.participants, this.participantsState.page);
+  paginatedCitizens(): CitizenAccountItem[] {
+    return this.paginate(this.citoyens, this.citoyensState.page);
   }
 
   totalPagesOrg(): number {
     return Math.max(1, Math.ceil(this.currentOrgItems().length / this.pageSize));
   }
 
-  totalPagesParticipants(): number {
-    return Math.max(1, Math.ceil(this.participants.length / this.pageSize));
+  totalPagesCitizens(): number {
+    return Math.max(1, Math.ceil(this.citoyens.length / this.pageSize));
   }
 
   paginationLabel(count: number, page: number): string {
@@ -165,7 +165,7 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
 
   changePage(page: number): void {
     const state = this.currentState;
-    const total = this.activeTab === 'participants' ? this.totalPagesParticipants() : this.totalPagesOrg();
+    const total = this.activeTab === 'citoyens' ? this.totalPagesCitizens() : this.totalPagesOrg();
     if (page >= 1 && page <= total) {
       state.page = page;
     }
@@ -177,9 +177,9 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
     return this.filterOrgItems(role, state).length;
   }
 
-  countParticipants(filter: SectionFilter): number {
-    const state = { ...this.participantsState, filter, page: 1 };
-    return this.filterParticipants(state).length;
+  countCitizens(filter: SectionFilter): number {
+    const state = { ...this.citoyensState, filter, page: 1 };
+    return this.filterCitizens(state).length;
   }
 
   reload(): void {
@@ -189,14 +189,14 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
 
     forkJoin({
       orgs: this.admin.getAccountValidations('all'),
-      users: this.admin.getUsers({ role: 'USER' }),
+      citizens: this.admin.getCitizenAccounts(),
     }).subscribe({
-      next: ({ orgs, users }) => {
+      next: ({ orgs, citizens }) => {
         this.allOrgItems = (orgs.items ?? []).map((item) => ({
           ...item,
           role: item.role === 'PARTNER' ? 'PARTNER' : 'ASSOCIATION',
         }));
-        this.allParticipants = users ?? [];
+        this.allCitizens = citizens ?? [];
         this.loading = false;
       },
       error: () => {
@@ -208,7 +208,7 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
 
   viewItem(item: AccountValidationItem, mode: 'view' | 'reject' | 'deactivate' = 'view'): void {
     this.selectedItem = item;
-    this.selectedParticipant = null;
+    this.selectedCitizen = null;
     this.detailKind = item.role === 'ASSOCIATION' ? 'association' : 'partenaire';
     this.rejectReason = '';
     this.deactivateReason = '';
@@ -224,24 +224,24 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
     document.body.style.overflow = 'hidden';
   }
 
-  viewParticipant(user: AdminUser, openDeactivate = false): void {
-    this.selectedParticipant = user;
+  viewCitizen(citizen: CitizenAccountItem, openDeactivate = false): void {
+    this.selectedCitizen = citizen;
     this.selectedItem = null;
-    this.detailKind = 'participant';
+    this.detailKind = 'citoyen';
     this.deactivateReason = '';
     this.showDeactivateForm = openDeactivate;
     this.clearDocumentPreview();
     this.detailProfileError = '';
     this.detailFields = [];
     this.detailVisible = true;
-    this.loadParticipantProfile(user);
+    this.loadCitizenProfile(citizen);
     document.body.style.overflow = 'hidden';
   }
 
   closeDetail(): void {
     this.detailVisible = false;
     this.selectedItem = null;
-    this.selectedParticipant = null;
+    this.selectedCitizen = null;
     this.detailKind = null;
     this.detailFields = [];
     this.rejectReason = '';
@@ -276,12 +276,12 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
     return item.status === 'Validé' && item.isActive === false;
   }
 
-  canDeactivateParticipant(user: AdminUser): boolean {
-    return !!user.isVerified && !!user.isActive;
+  canDeactivateCitizen(citizen: CitizenAccountItem): boolean {
+    return citizen.isActive !== false;
   }
 
-  canActivateParticipant(user: AdminUser): boolean {
-    return !!user.isVerified && user.isActive === false;
+  canActivateCitizen(citizen: CitizenAccountItem): boolean {
+    return citizen.isActive === false;
   }
 
   approveSelected(): void {
@@ -434,14 +434,14 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
     });
   }
 
-  deactivateParticipant(user: AdminUser): void {
+  deactivateCitizen(citizen: CitizenAccountItem): void {
     const reason = this.deactivateReason.trim();
     if (!reason) {
       this.actionMessage = 'Indiquez un motif de désactivation.';
       return;
     }
     this.actionLoading = true;
-    this.admin.banUser(user.userId, reason).subscribe({
+    this.admin.banUser(citizen.userId, reason).subscribe({
       next: () => {
         this.actionLoading = false;
         this.actionMessage = 'Compte désactivé.';
@@ -455,12 +455,12 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
     });
   }
 
-  activateParticipant(user: AdminUser): void {
-    if (!confirm(`Réactiver le compte « ${user.email} » ?`)) {
+  activateCitizen(citizen: CitizenAccountItem): void {
+    if (!confirm(`Réactiver le compte « ${this.citizenDisplayName(citizen)} » ?`)) {
       return;
     }
     this.actionLoading = true;
-    this.admin.reactivateUser(user.userId).subscribe({
+    this.admin.reactivateUser(citizen.userId).subscribe({
       next: () => {
         this.actionLoading = false;
         this.actionMessage = 'Compte réactivé.';
@@ -488,28 +488,17 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
     }
   }
 
-  participantStatusLabel(user: AdminUser): string {
-    if (!user.isVerified) {
-      return 'En attente e-mail';
-    }
-    if (!user.isActive) {
-      return 'Désactivé';
-    }
-    return 'Actif';
+  citizenStatusLabel(citizen: CitizenAccountItem): string {
+    return citizen.status === 'Actif' ? 'Actif' : 'Désactivé';
   }
 
-  participantStatusClass(user: AdminUser): string {
-    if (!user.isVerified) {
-      return 'status-pill--pending';
-    }
-    if (!user.isActive) {
-      return 'status-pill--inactive';
-    }
-    return 'status-pill--ok';
+  citizenStatusClass(citizen: CitizenAccountItem): string {
+    return citizen.isActive !== false ? 'status-pill--ok' : 'status-pill--inactive';
   }
 
-  displayName(user: AdminUser): string {
-    return user.displayName?.trim() || user.email;
+  citizenDisplayName(citizen: CitizenAccountItem): string {
+    const full = `${citizen.firstName ?? ''} ${citizen.lastName ?? ''}`.trim();
+    return full || citizen.email;
   }
 
   formatDate(value?: string): string {
@@ -537,8 +526,8 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
   }
 
   detailTitle(): string {
-    if (this.detailKind === 'participant' && this.selectedParticipant) {
-      return this.displayName(this.selectedParticipant);
+    if (this.detailKind === 'citoyen' && this.selectedCitizen) {
+      return this.citizenDisplayName(this.selectedCitizen);
     }
     if (this.selectedItem) {
       return this.selectedItem.name;
@@ -572,23 +561,23 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
       });
   }
 
-  private loadParticipantProfile(user: AdminUser): void {
+  private loadCitizenProfile(citizen: CitizenAccountItem): void {
     this.detailLoading = true;
     this.admin
-      .getUtilisateurCitizenProfile(user.userId)
+      .getUtilisateurCitizenProfile(citizen.userId)
       .pipe(catchError(() => of(null)))
       .subscribe({
         next: (profile) => {
           this.detailLoading = false;
           if (!profile) {
-            this.detailProfileError = 'Profil citoyen non trouvé dans service-utilisateur.';
+            this.detailProfileError = 'Profil citoyen introuvable dans service-utilisateur.';
           }
-          this.detailFields = this.buildParticipantDetailFields(user, profile);
+          this.detailFields = this.buildCitizenDetailFields(citizen, profile);
         },
         error: () => {
           this.detailLoading = false;
           this.detailProfileError = 'Impossible de charger le profil citoyen.';
-          this.detailFields = this.buildParticipantDetailFields(user, null);
+          this.detailFields = this.buildCitizenDetailFields(citizen, null);
         },
       });
   }
@@ -631,24 +620,22 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
     return fields;
   }
 
-  private buildParticipantDetailFields(
-    user: AdminUser,
+  private buildCitizenDetailFields(
+    citizen: CitizenAccountItem,
     profile: UtilisateurCitizenProfile | null
   ): DetailField[] {
     const fields: DetailField[] = [
       { label: 'Rôle', value: 'Citoyen' },
-      { label: 'E-mail', value: profile?.email || user.email },
+      { label: 'E-mail', value: profile?.email || citizen.email },
       {
         label: 'Nom complet',
         value:
           profile?.firstName || profile?.lastName
             ? `${profile?.firstName ?? ''} ${profile?.lastName ?? ''}`.trim()
-            : user.displayName?.trim() || '—',
+            : this.citizenDisplayName(citizen),
       },
-      { label: 'Statut', value: this.participantStatusLabel(user) },
-      { label: 'E-mail vérifié', value: user.isVerified ? 'Oui' : 'Non' },
-      { label: 'Compte actif', value: user.isActive ? 'Oui' : 'Non' },
-      { label: 'Inscription', value: this.formatDateTime(user.createdAt) },
+      { label: 'Statut', value: this.citizenStatusLabel(citizen) },
+      { label: 'Inscription', value: this.formatDateTime(citizen.createdAt) },
     ];
 
     if (profile) {
@@ -707,18 +694,15 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
     });
   }
 
-  private filterParticipants(state: SectionState): AdminUser[] {
-    let list = [...this.allParticipants];
+  private filterCitizens(state: SectionState): CitizenAccountItem[] {
+    let list = [...this.allCitizens];
 
     switch (state.filter) {
-      case 'pending':
-        list = list.filter((user) => !user.isVerified);
-        break;
       case 'active':
-        list = list.filter((user) => user.isVerified && user.isActive);
+        list = list.filter((c) => c.isActive !== false);
         break;
       case 'inactive':
-        list = list.filter((user) => user.isActive === false);
+        list = list.filter((c) => c.isActive === false);
         break;
       default:
         break;
@@ -727,9 +711,9 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
     const q = state.search.trim().toLowerCase();
     if (q) {
       list = list.filter(
-        (user) =>
-          user.email.toLowerCase().includes(q) ||
-          this.displayName(user).toLowerCase().includes(q)
+        (c) =>
+          c.email.toLowerCase().includes(q) ||
+          this.citizenDisplayName(c).toLowerCase().includes(q)
       );
     }
 
@@ -752,7 +736,7 @@ export class AdminComptesComponent implements OnInit, OnDestroy {
       case 'partenaires':
         return this.partenairesState;
       default:
-        return this.participantsState;
+        return this.citoyensState;
     }
   }
 

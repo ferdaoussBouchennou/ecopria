@@ -1,0 +1,186 @@
+@startuml EcoPria_UseCase_Diagram
+title EcoPria — Diagramme de cas d'utilisation (complet)
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F7FBF9
+  BorderColor #4A7C6F
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+skinparam rectangle {
+  BorderColor #4A7C6F
+}
+
+left to right direction
+
+actor "Visiteur" as VIS
+actor "Citoyen\n(USER)" as CIT
+actor "Association\n(ASSOCIATION)" as ASSO
+actor "Partenaire\n(PARTNER)" as PART
+actor "Administrateur\n(ADMIN)" as ADM
+actor "Système EcoPria\n(Kafka / Cron)" as SYS
+
+rectangle "Plateforme EcoPria" {
+
+  package "Authentification & Compte" {
+    usecase "S'inscrire" as UC_REG
+    usecase "Vérifier email" as UC_VERIF
+    usecase "Se connecter" as UC_LOGIN
+    usecase "Se déconnecter" as UC_LOGOUT
+    usecase "Réinitialiser mot de passe" as UC_RESET_PWD
+    usecase "Téléverser document" as UC_UPLOAD_DOC
+    usecase "Compte en attente" as UC_PENDING
+  }
+
+  package "Découverte publique" {
+    usecase "Consulter accueil" as UC_HOME
+    usecase "Consulter actions" as UC_ACT_LIST
+    usecase "Carte actions" as UC_MAP
+    usecase "Récompenses publiques" as UC_REW_PUB
+    usecase "Partenaires publics" as UC_PART_PUB
+    usecase "Comment ça marche" as UC_HOW
+  }
+
+  package "Espace Citoyen" {
+    usecase "S'inscrire à une action" as UC_INS
+    usecase "Se désinscrire" as UC_UNSUB
+    usecase "Scanner QR présence" as UC_SCAN
+    usecase "Consulter points / badges" as UC_PTS
+    usecase "Classement" as UC_RANK
+    usecase "Échanger points" as UC_EXCH
+    usecase "Boîte mystère" as UC_MYST
+    usecase "Notifications" as UC_NOTIF
+    usecase "Liste d'attente" as UC_WAIT
+  }
+
+  package "Espace Association" {
+    usecase "Créer / modifier action" as UC_CREATE_ACT
+    usecase "Publier action" as UC_PUBLISH
+    usecase "Annuler action" as UC_CANCEL_ACT
+    usecase "Participants" as UC_PARTICIPANTS
+    usecase "Confirmer / refuser confiance" as UC_TRUST
+    usecase "QR & PIN présence" as UC_QR
+    usecase "Profil association" as UC_PROF_A
+  }
+
+  package "Espace Partenaire" {
+    usecase "Créer / modifier offre" as UC_CREATE_OFF
+    usecase "Scanner coupon" as UC_SCAN_COUPON
+    usecase "Commissions" as UC_COMM
+    usecase "Profil public" as UC_PROF_P
+    usecase "Répondre aux avis" as UC_REPLY
+  }
+
+  package "Administration" {
+    usecase "Dashboard admin" as UC_DASH_AD
+    usecase "Valider comptes org." as UC_VAL_LIST
+    usecase "Voir document" as UC_VIEW_DOC
+    usecase "Approuver compte" as UC_APPR
+    usecase "Rejeter (motif)" as UC_REJ
+    usecase "Modérer actions" as UC_MOD
+    usecase "Catégories" as UC_CAT
+    usecase "Actions fixes" as UC_FIX
+    usecase "Utilisateurs" as UC_USERS
+    usecase "Configurations" as UC_CFG
+    usecase "Logs audit" as UC_LOGS
+  }
+
+  package "Automatisation système" {
+    usecase "Emails & notifications" as UC_SYS_NOTIF
+    usecase "Gérer places" as UC_SYS_PLACES
+    usecase "Créditer / déduire points" as UC_SYS_POINTS
+    usecase "Promouvoir liste d'attente" as UC_SYS_PROMOTE
+    usecase "Détecter fraude QR" as UC_SYS_FRAUD
+    usecase "Calculer commission" as UC_SYS_COMM
+    usecase "Email rejet org." as UC_SYS_REJECT_EMAIL
+    usecase "Email validation org." as UC_SYS_APPROVE_EMAIL
+    usecase "Sync catégories & actions fixes" as UC_SYS_SYNC
+  }
+}
+
+VIS --> UC_HOME
+VIS --> UC_ACT_LIST
+VIS --> UC_MAP
+VIS --> UC_REW_PUB
+VIS --> UC_PART_PUB
+VIS --> UC_HOW
+VIS --> UC_REG
+VIS --> UC_LOGIN
+VIS --> UC_RESET_PWD
+
+CIT --> UC_INS
+CIT --> UC_UNSUB
+CIT --> UC_SCAN
+CIT --> UC_PTS
+CIT --> UC_RANK
+CIT --> UC_EXCH
+CIT --> UC_MYST
+CIT --> UC_NOTIF
+CIT --> UC_LOGIN
+CIT --> UC_LOGOUT
+
+ASSO --> UC_CREATE_ACT
+ASSO --> UC_PUBLISH
+ASSO --> UC_CANCEL_ACT
+ASSO --> UC_PARTICIPANTS
+ASSO --> UC_TRUST
+ASSO --> UC_QR
+ASSO --> UC_PROF_A
+ASSO --> UC_LOGIN
+ASSO --> UC_PENDING
+
+PART --> UC_CREATE_OFF
+PART --> UC_SCAN_COUPON
+PART --> UC_COMM
+PART --> UC_PROF_P
+PART --> UC_REPLY
+PART --> UC_LOGIN
+PART --> UC_PENDING
+
+ADM --> UC_DASH_AD
+ADM --> UC_VAL_LIST
+ADM --> UC_VIEW_DOC
+ADM --> UC_APPR
+ADM --> UC_REJ
+ADM --> UC_MOD
+ADM --> UC_CAT
+ADM --> UC_FIX
+ADM --> UC_USERS
+ADM --> UC_CFG
+ADM --> UC_LOGS
+ADM --> UC_LOGIN
+
+SYS --> UC_SYS_NOTIF
+SYS --> UC_SYS_PLACES
+SYS --> UC_SYS_POINTS
+SYS --> UC_SYS_PROMOTE
+SYS --> UC_SYS_FRAUD
+SYS --> UC_SYS_COMM
+SYS --> UC_SYS_REJECT_EMAIL
+SYS --> UC_SYS_APPROVE_EMAIL
+SYS --> UC_SYS_SYNC
+
+UC_REG ..> UC_VERIF : <<include>>
+UC_REG ..> UC_UPLOAD_DOC : <<include>>
+UC_VAL_LIST ..> UC_VIEW_DOC : <<include>>
+UC_REJ ..> UC_SYS_REJECT_EMAIL : <<include>>
+UC_APPR ..> UC_SYS_APPROVE_EMAIL : <<include>>
+UC_INS ..> UC_LOGIN : <<include>>
+UC_SCAN ..> UC_LOGIN : <<include>>
+UC_EXCH ..> UC_LOGIN : <<include>>
+UC_CREATE_ACT ..> UC_LOGIN : <<include>>
+UC_CREATE_OFF ..> UC_LOGIN : <<include>>
+UC_SCAN ..> UC_SYS_POINTS : <<include>>
+UC_EXCH ..> UC_SYS_POINTS : <<include>>
+UC_SCAN_COUPON ..> UC_SYS_COMM : <<include>>
+UC_PUBLISH ..> UC_SYS_NOTIF : <<include>>
+
+UC_LOGIN ..> UC_PENDING : <<extend>>
+UC_INS ..> UC_WAIT : <<extend>>
+UC_WAIT ..> UC_SYS_PROMOTE : <<extend>>
+UC_SCAN ..> UC_SYS_FRAUD : <<extend>>
+UC_EXCH ..> UC_MYST : <<extend>>
+
+@enduml

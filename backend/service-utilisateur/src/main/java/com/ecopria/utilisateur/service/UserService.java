@@ -627,4 +627,25 @@ public class UserService {
             throw new RuntimeException("Erreur lors de l'upload du logo: " + e.getMessage());
         }
     }
+
+    @Transactional(readOnly = true)
+    public List<Citizen> listAllCitizens() {
+        return citizenRepository.findAll().stream()
+                .sorted(Comparator.comparing(Citizen::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Association> listAllAssociations() {
+        return associationRepository.findAll().stream()
+                .sorted(Comparator.comparing(Association::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Partner> listAllPartners() {
+        return partnerRepository.findAll().stream()
+                .sorted(Comparator.comparing(Partner::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .collect(Collectors.toList());
+    }
 }

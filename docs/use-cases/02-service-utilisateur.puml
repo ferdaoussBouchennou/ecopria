@@ -1,0 +1,39 @@
+@startuml service-utilisateur
+title Service Utilisateur — Cas d'utilisation
+left to right direction
+skinparam packageStyle rectangle
+
+actor Citoyen as CIT
+actor Association as ASSO
+actor Partenaire as PART
+
+rectangle "service-utilisateur" {
+
+  package "Profil" {
+    usecase "Consulter profil" as UC1
+    usecase "Modifier profil" as UC2
+    usecase "Consulter tableau de bord" as UC3
+  }
+
+  package "Points & badges" {
+    usecase "Voir mes points" as UC4
+    usecase "Voir mes badges" as UC5
+    usecase "Voir le classement" as UC6
+  }
+
+  package "Organisations" {
+    usecase "Gérer profil association" as UC7
+    usecase "Gérer profil partenaire" as UC8
+  }
+}
+
+CIT --> UC1
+CIT --> UC2
+CIT --> UC3
+CIT --> UC4
+CIT --> UC5
+CIT --> UC6
+ASSO --> UC7
+PART --> UC8
+
+@enduml

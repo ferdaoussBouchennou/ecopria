@@ -1,0 +1,40 @@
+@startuml service-recompense
+title Service Récompense — Cas d'utilisation
+left to right direction
+skinparam packageStyle rectangle
+
+actor Visiteur as VIS
+actor Citoyen as CIT
+actor Partenaire as PART
+
+rectangle "service-recompense" {
+
+  package "Catalogue" {
+    usecase "Voir les récompenses" as UC1
+    usecase "Voir les partenaires" as UC2
+  }
+
+  package "Citoyen" {
+    usecase "Échanger mes points" as UC3
+    usecase "Voir mes coupons" as UC4
+  }
+
+  package "Partenaire" {
+    usecase "Créer une offre" as UC5
+    usecase "Scanner un coupon" as UC6
+    usecase "Voir mes commissions" as UC7
+    usecase "Gérer mon profil" as UC8
+  }
+}
+
+VIS --> UC1
+VIS --> UC2
+CIT --> UC1
+CIT --> UC3
+CIT --> UC4
+PART --> UC5
+PART --> UC6
+PART --> UC7
+PART --> UC8
+
+@enduml

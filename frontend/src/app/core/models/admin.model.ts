@@ -48,6 +48,19 @@ export interface AdminPendingAccount {
 
 export type AccountValidationFilter = 'pending' | 'approved' | 'rejected' | 'all';
 
+export interface CitizenAccountItem {
+  userId: number;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  city?: string;
+  totalPoints?: number;
+  trustScore?: number;
+  createdAt?: string;
+  isActive?: boolean;
+  status: 'Actif' | 'Désactivé';
+}
+
 export interface AccountValidationItem {
   userId: number;
   name: string;

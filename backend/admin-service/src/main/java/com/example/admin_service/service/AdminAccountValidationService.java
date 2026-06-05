@@ -1,18 +1,25 @@
 package com.example.admin_service.service;
 
+import com.example.admin_service.dto.response.CitizenAccountResponse;
 import com.example.admin_service.dto.response.OrganizationAccountResponse;
 import com.example.admin_service.dto.response.OrganizationAccountsPageResponse;
 import com.example.admin_service.repository.LogAdminRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,24 +36,61 @@ public class AdminAccountValidationService {
     @Value("${services.auth-url}")
     private String authServiceUrl;
 
+    @Value("${services.utilisateur-url}")
+    private String utilisateurServiceUrl;
+
+    public List<CitizenAccountResponse> getCitizenAccounts() {
+        List<Map<String, Object>> citizens = fetchUtilisateurList("/internal/admin/accounts/citizens");
+        Map<Long, Map<String, Object>> authById = loadAuthUsersByRole("USER");
+
+        List<CitizenAccountResponse> result = new ArrayList<>();
+        for (Map<String, Object> row : citizens) {
+            Long authId = extractLongObject(row, "authId");
+            if (authId == null) {
+                continue;
+            }
+            Map<String, Object> auth = authById.get(authId);
+            boolean active = auth != null && extractBoolean(auth.get("isActive"));
+            result.add(CitizenAccountResponse.builder()
+                    .userId(authId)
+                    .firstName(asString(row.get("firstName")))
+                    .lastName(asString(row.get("lastName")))
+                    .email(firstNonBlank(asString(row.get("email")), auth != null ? asString(auth.get("email")) : ""))
+                    .city(asString(row.get("city")))
+                    .totalPoints(extractInt(row.get("totalPoints")))
+                    .trustScore(extractInt(row.get("trustScore")))
+                    .createdAt(parseDateTime(row.get("createdAt")))
+                    .isActive(active)
+                    .status(active ? "Actif" : "Désactivé")
+                    .build());
+        }
+        return result;
+    }
+
     public ResponseEntity<byte[]> getVerificationDocument(Long userId) {
-        ResponseEntity<byte[]> response = restTemplate.getForEntity(
-                authServiceUrl + "/internal/users/" + userId + "/verification-document",
-                byte[].class
-        );
-        HttpHeaders headers = new HttpHeaders();
-        if (response.getHeaders().getContentType() != null) {
-            headers.setContentType(response.getHeaders().getContentType());
-        } else {
-            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        try {
+            ResponseEntity<byte[]> response = restTemplate.getForEntity(
+                    authServiceUrl + "/internal/users/" + userId + "/verification-document",
+                    byte[].class
+            );
+            HttpHeaders headers = new HttpHeaders();
+            if (response.getHeaders().getContentType() != null) {
+                headers.setContentType(response.getHeaders().getContentType());
+            } else {
+                headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            }
+            if (response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION) != null) {
+                headers.set(HttpHeaders.CONTENT_DISPOSITION,
+                        response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION));
+            }
+            return ResponseEntity.status(response.getStatusCode())
+                    .headers(headers)
+                    .body(response.getBody());
+        } catch (HttpStatusCodeException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).build();
+        } catch (RestClientException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).build();
         }
-        if (response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION) != null) {
-            headers.set(HttpHeaders.CONTENT_DISPOSITION,
-                    response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION));
-        }
-        return ResponseEntity.status(response.getStatusCode())
-                .headers(headers)
-                .body(response.getBody());
     }
 
     @SuppressWarnings("unchecked")
@@ -64,12 +108,19 @@ public class AdminAccountValidationService {
             return emptyPage();
         }
 
+        Map<Long, Map<String, Object>> assoProfiles = indexByAuthId(
+                fetchUtilisateurList("/internal/admin/accounts/associations"), "authId");
+        Map<Long, Map<String, Object>> partnerProfiles = indexByAuthId(
+                fetchUtilisateurList("/internal/admin/accounts/partners"), "authId");
+
         List<OrganizationAccountResponse> items = new ArrayList<>();
         Object rawItems = page.get("items");
         if (rawItems instanceof List<?> list) {
             for (Object row : list) {
                 if (row instanceof Map<?, ?> map) {
-                    items.add(mapToItem((Map<String, Object>) map));
+                    OrganizationAccountResponse item = mapToItem((Map<String, Object>) map);
+                    enrichOrgFromUtilisateur(item, assoProfiles, partnerProfiles);
+                    items.add(item);
                 }
             }
         }
@@ -81,6 +132,77 @@ public class AdminAccountValidationService {
                 .totalCount(extractLong(page, "totalCount"))
                 .items(items)
                 .build();
+    }
+
+    private void enrichOrgFromUtilisateur(
+            OrganizationAccountResponse item,
+            Map<Long, Map<String, Object>> assoProfiles,
+            Map<Long, Map<String, Object>> partnerProfiles) {
+        if (item.getUserId() == null) {
+            return;
+        }
+        Map<String, Object> profile = "PARTNER".equalsIgnoreCase(item.getRole())
+                ? partnerProfiles.get(item.getUserId())
+                : assoProfiles.get(item.getUserId());
+        if (profile == null) {
+            return;
+        }
+        String profileName = asString(profile.get("name"));
+        if (profileName != null && !profileName.isBlank()) {
+            String prefix = "PARTNER".equalsIgnoreCase(item.getRole()) ? "Partenaire" : "Asso";
+            item.setName(prefix + " \"" + profileName.trim() + "\"");
+        }
+        String profileEmail = asString(profile.get("email"));
+        if (profileEmail != null && !profileEmail.isBlank()) {
+            item.setEmail(profileEmail);
+        }
+    }
+
+    private Map<Long, Map<String, Object>> indexByAuthId(List<Map<String, Object>> rows, String key) {
+        Map<Long, Map<String, Object>> map = new HashMap<>();
+        for (Map<String, Object> row : rows) {
+            Long authId = extractLongObject(row, key);
+            if (authId != null) {
+                map.put(authId, row);
+            }
+        }
+        return map;
+    }
+
+    private Map<Long, Map<String, Object>> loadAuthUsersByRole(String role) {
+        List<Map<String, Object>> users = restTemplate.exchange(
+                authServiceUrl + "/internal/users",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Map<String, Object>>>() {}
+        ).getBody();
+        Map<Long, Map<String, Object>> map = new HashMap<>();
+        if (users == null) {
+            return map;
+        }
+        for (Map<String, Object> user : users) {
+            if (role.equalsIgnoreCase(asString(user.get("role")))) {
+                Long id = extractLongObject(user, "userId");
+                if (id != null) {
+                    map.put(id, user);
+                }
+            }
+        }
+        return map;
+    }
+
+    private List<Map<String, Object>> fetchUtilisateurList(String path) {
+        try {
+            List<Map<String, Object>> rows = restTemplate.exchange(
+                    utilisateurServiceUrl + path,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<Map<String, Object>>>() {}
+            ).getBody();
+            return rows != null ? rows : List.of();
+        } catch (Exception ex) {
+            return List.of();
+        }
     }
 
     private Set<Long> loadRejectedUserIds() {
@@ -144,8 +266,22 @@ public class AdminAccountValidationService {
         return null;
     }
 
+    private Integer extractInt(Object value) {
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        return null;
+    }
+
     private String asString(Object value) {
         return value == null ? "" : value.toString();
+    }
+
+    private String firstNonBlank(String first, String second) {
+        if (first != null && !first.isBlank()) {
+            return first;
+        }
+        return second != null ? second : "";
     }
 
     private boolean extractBoolean(Object value) {

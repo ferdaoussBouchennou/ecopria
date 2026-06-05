@@ -1,0 +1,232 @@
+<mxfile host="app.diagrams.net" modified="2026-06-05T00:00:00.000Z" agent="EcoPria" version="22.1.0">
+  <diagram id="ecopria-usecases" name="EcoPria - Use Cases">
+    <mxGraphModel dx="2400" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="4800" pageHeight="3200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="EcoPria — Diagramme de cas d'utilisation (complet)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=22;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1600" y="20" width="600" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- System boundary -->
+        <mxCell id="sys" value="Plateforme EcoPria" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 8;strokeWidth=2;fillColor=#F7FBF9;strokeColor=#4A7C6F;fontSize=14;fontStyle=1;verticalAlign=top;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="320" y="80" width="4200" height="2960" as="geometry" />
+        </mxCell>
+
+        <!-- ACTORS -->
+        <mxCell id="a_vis" value="Visiteur" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="200" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="a_cit" value="Citoyen&#xa;(USER)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="900" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="a_asso" value="Association&#xa;(ASSOCIATION)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="4520" y="400" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="a_part" value="Partenaire&#xa;(PARTNER)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="4520" y="1200" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="a_adm" value="Administrateur&#xa;(ADMIN)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="4520" y="2100" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="a_sys" value="Système EcoPria&#xa;(Kafka / Cron)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="80" y="2400" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- PACKAGE: Auth -->
+        <mxCell id="pkg_auth" value="Authentification &amp; Compte" style="swimlane;startSize=28;fillColor=#E8F4EF;strokeColor=#4A7C6F;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="120" width="560" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_reg" value="S'inscrire" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_auth"><mxGeometry x="20" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_verif" value="Vérifier email" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_auth"><mxGeometry x="160" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_resend" value="Renvoyer code" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_auth"><mxGeometry x="300" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_login" value="Se connecter" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_auth"><mxGeometry x="20" y="110" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_refresh" value="Rafraîchir JWT" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_auth"><mxGeometry x="160" y="110" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_logout" value="Se déconnecter" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_auth"><mxGeometry x="300" y="110" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_forgot" value="Mot de passe oublié" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_auth"><mxGeometry x="20" y="180" width="130" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_reset" value="Réinitialiser MDP" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_auth"><mxGeometry x="170" y="180" width="130" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_doc" value="Téléverser document" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_auth"><mxGeometry x="320" y="180" width="130" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_pending" value="Compte en attente" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_auth"><mxGeometry x="170" y="250" width="130" height="50" as="geometry" /></mxCell>
+
+        <!-- PACKAGE: Public -->
+        <mxCell id="pkg_pub" value="Découverte publique" style="swimlane;startSize=28;fillColor=#E8F4EF;strokeColor=#4A7C6F;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="960" y="120" width="560" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_home" value="Consulter accueil" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_pub"><mxGeometry x="20" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_actlist" value="Liste actions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_pub"><mxGeometry x="160" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_map" value="Carte actions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_pub"><mxGeometry x="300" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_actdet" value="Détail action" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_pub"><mxGeometry x="20" y="110" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_rewpub" value="Récompenses publiques" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_pub"><mxGeometry x="160" y="110" width="140" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_partpub" value="Partenaires publics" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_pub"><mxGeometry x="320" y="110" width="130" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_how" value="Comment ça marche" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_pub"><mxGeometry x="20" y="180" width="130" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_stats" value="Stats publiques" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_pub"><mxGeometry x="170" y="180" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_click" value="Clic offre (analytics)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_pub"><mxGeometry x="310" y="180" width="130" height="50" as="geometry" /></mxCell>
+
+        <!-- PACKAGE: Citoyen -->
+        <mxCell id="pkg_cit" value="Espace Citoyen (USER)" style="swimlane;startSize=28;fillColor=#E8F4EF;strokeColor=#4A7C6F;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="500" width="1160" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_ins" value="S'inscrire à une action" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="20" y="40" width="140" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_unsub" value="Se désinscrire" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="180" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_myins" value="Mes inscriptions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="320" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_wait" value="Liste d'attente" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="460" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_trustw" value="Attente confiance" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="600" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_scan" value="Scanner QR présence" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="740" y="40" width="130" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_pts" value="Consulter points" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="20" y="110" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_hist" value="Historique points" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="160" y="110" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_badge" value="Badges" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="300" y="110" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_rank" value="Classement" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="420" y="110" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_exch" value="Échanger points" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="540" y="110" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_myst" value="Boîte mystère" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="680" y="110" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_coupons" value="Mes coupons" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="810" y="110" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_dashc" value="Dashboard citoyen" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="20" y="180" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_profc" value="Profil citoyen" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="160" y="180" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_prefc" value="Préférences notif." style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="290" y="180" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_notif" value="Notifications" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="430" y="180" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_notifread" value="Marquer lue" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_cit"><mxGeometry x="560" y="180" width="100" height="50" as="geometry" /></mxCell>
+
+        <!-- PACKAGE: Association -->
+        <mxCell id="pkg_asso" value="Espace Association (ASSOCIATION)" style="swimlane;startSize=28;fillColor=#E8F4EF;strokeColor=#4A7C6F;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1560" y="500" width="1160" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_dasha" value="Dashboard asso." style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="20" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_myacts" value="Mes actions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="160" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_create" value="Créer action" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="290" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_edit" value="Modifier action" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="420" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_publish" value="Publier action" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="550" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_cancel" value="Annuler action" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="680" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_participants" value="Participants" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="810" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_confirm" value="Confirmer confiance" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="20" y="110" width="130" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_refuse" value="Refuser confiance" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="170" y="110" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_qr" value="Afficher QR/PIN" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="310" y="110" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_pin" value="Valider PIN" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="440" y="110" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_preslist" value="Présences validées" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="560" y="110" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_profa" value="Profil association" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="700" y="110" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_cal" value="Calendrier" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="840" y="110" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_drafts" value="Brouillons" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_asso"><mxGeometry x="960" y="110" width="100" height="50" as="geometry" /></mxCell>
+
+        <!-- PACKAGE: Partenaire -->
+        <mxCell id="pkg_part" value="Espace Partenaire (PARTNER)" style="swimlane;startSize=28;fillColor=#E8F4EF;strokeColor=#4A7C6F;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="2760" y="500" width="900" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_dashp" value="Dashboard partenaire" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_part"><mxGeometry x="20" y="40" width="130" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_myoff" value="Mes offres" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_part"><mxGeometry x="170" y="40" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_coff" value="Créer offre" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_part"><mxGeometry x="290" y="40" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_eoff" value="Modifier offre" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_part"><mxGeometry x="410" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_toff" value="Activer/désactiver" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_part"><mxGeometry x="540" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_scoupon" value="Scanner coupon" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_part"><mxGeometry x="680" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_comm" value="Commissions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_part"><mxGeometry x="20" y="110" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_profp" value="Profil public" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_part"><mxGeometry x="150" y="110" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_vis" value="Visibilité" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_part"><mxGeometry x="270" y="110" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_reviews" value="Avis clients" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_part"><mxGeometry x="390" y="110" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_reply" value="Répondre avis" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_part"><mxGeometry x="510" y="110" width="110" height="50" as="geometry" /></mxCell>
+
+        <!-- PACKAGE: Admin -->
+        <mxCell id="pkg_adm" value="Administration (ADMIN)" style="swimlane;startSize=28;fillColor=#E8F4EF;strokeColor=#4A7C6F;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="960" width="1800" height="520" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_dashad" value="Dashboard admin" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="20" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_logs" value="Logs audit" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="160" y="40" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_vallist" value="Valider comptes" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="280" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_viewdoc" value="Voir document" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="410" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_appr" value="Approuver compte" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="540" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_rej" value="Rejeter (motif)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="680" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_mod" value="Modérer actions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="810" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_modpub" value="Publier (modération)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="940" y="40" width="130" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_modsus" value="Suspendre action" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="1090" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_fix" value="Actions fixes" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="1220" y="40" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_cat" value="Catégories" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="1340" y="40" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_assoad" value="Profils asso." style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="1460" y="40" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_users" value="Utilisateurs" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="1580" y="40" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_ban" value="Bannir / réactiver" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="20" y="110" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_cfg" value="Configurations" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="160" y="110" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_catdel" value="Supprimer catégorie" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="290" y="110" width="130" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_fixcr" value="Créer action fixe" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="440" y="110" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_fixed" value="Modifier action fixe" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_adm"><mxGeometry x="580" y="110" width="130" height="50" as="geometry" /></mxCell>
+
+        <!-- PACKAGE: System -->
+        <mxCell id="pkg_sys" value="Automatisation système (Kafka / Cron)" style="swimlane;startSize=28;fillColor=#E8F4EF;strokeColor=#4A7C6F;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="2200" y="960" width="1460" height="520" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_sprof" value="Créer profil user" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="20" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_semail" value="Email vérification" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="150" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_sins" value="Notifier inscription" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="290" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_splaces" value="Gérer places" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="430" y="40" width="100" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_sprom" value="Promouvoir attente" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="550" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_scredit" value="Créditer points" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="690" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_sdeduct" value="Déduire points" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="820" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_sbadge" value="Débloquer badge" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="950" y="40" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_scomm" value="Calculer commission" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="1080" y="40" width="130" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_sfraud" value="Détecter fraude QR" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="1230" y="40" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_sabs" value="Pénaliser absences" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="20" y="110" width="120" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_sexp" value="Terminer actions expirées" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="160" y="110" width="150" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_ssync" value="Sync catégories" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="330" y="110" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_sfix" value="Propager actions fixes" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="460" y="110" width="140" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_snewact" value="Notifier nouvelle action" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="620" y="110" width="140" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_sstatut" value="Notifier statut compte" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="780" y="110" width="130" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_srejmail" value="Email rejet org." style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="930" y="110" width="110" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_sappmail" value="Email validation org." style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="1060" y="110" width="130" height="50" as="geometry" /></mxCell>
+        <mxCell id="uc_scoupon" value="Notifier coupon utilisé" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;" vertex="1" parent="pkg_sys"><mxGeometry x="1210" y="110" width="140" height="50" as="geometry" /></mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend" value="Légende UML&#xa;—— Association (trait plein)&#xa;- - - Include / Extend (trait pointillé)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#C0A000;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="360" y="1520" width="280" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ACTOR ASSOCIATIONS (sample key links) -->
+        <mxCell id="e1" style="endArrow=none;html=1;" edge="1" parent="1" source="a_vis" target="uc_reg"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="endArrow=none;html=1;" edge="1" parent="1" source="a_vis" target="uc_login"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="endArrow=none;html=1;" edge="1" parent="1" source="a_vis" target="uc_home"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="endArrow=none;html=1;" edge="1" parent="1" source="a_vis" target="uc_actlist"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="endArrow=none;html=1;" edge="1" parent="1" source="a_vis" target="uc_rewpub"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e6" style="endArrow=none;html=1;" edge="1" parent="1" source="a_cit" target="uc_ins"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="endArrow=none;html=1;" edge="1" parent="1" source="a_cit" target="uc_scan"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" style="endArrow=none;html=1;" edge="1" parent="1" source="a_cit" target="uc_exch"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" style="endArrow=none;html=1;" edge="1" parent="1" source="a_cit" target="uc_login"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" style="endArrow=none;html=1;" edge="1" parent="1" source="a_cit" target="uc_pts"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e11" style="endArrow=none;html=1;" edge="1" parent="1" source="a_asso" target="uc_create"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e12" style="endArrow=none;html=1;" edge="1" parent="1" source="a_asso" target="uc_publish"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e13" style="endArrow=none;html=1;" edge="1" parent="1" source="a_asso" target="uc_qr"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e14" style="endArrow=none;html=1;" edge="1" parent="1" source="a_asso" target="uc_participants"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e15" style="endArrow=none;html=1;" edge="1" parent="1" source="a_asso" target="uc_login"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e16" style="endArrow=none;html=1;" edge="1" parent="1" source="a_part" target="uc_coff"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e17" style="endArrow=none;html=1;" edge="1" parent="1" source="a_part" target="uc_scoupon"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e18" style="endArrow=none;html=1;" edge="1" parent="1" source="a_part" target="uc_comm"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e19" style="endArrow=none;html=1;" edge="1" parent="1" source="a_part" target="uc_login"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e20" style="endArrow=none;html=1;" edge="1" parent="1" source="a_adm" target="uc_vallist"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e21" style="endArrow=none;html=1;" edge="1" parent="1" source="a_adm" target="uc_appr"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e22" style="endArrow=none;html=1;" edge="1" parent="1" source="a_adm" target="uc_rej"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e23" style="endArrow=none;html=1;" edge="1" parent="1" source="a_adm" target="uc_mod"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e24" style="endArrow=none;html=1;" edge="1" parent="1" source="a_adm" target="uc_cat"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e25" style="endArrow=none;html=1;" edge="1" parent="1" source="a_adm" target="uc_ban"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e26" style="endArrow=none;html=1;" edge="1" parent="1" source="a_sys" target="uc_scredit"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e27" style="endArrow=none;html=1;" edge="1" parent="1" source="a_sys" target="uc_sprom"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e28" style="endArrow=none;html=1;" edge="1" parent="1" source="a_sys" target="uc_sfraud"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e29" style="endArrow=none;html=1;" edge="1" parent="1" source="a_sys" target="uc_srejmail"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <!-- INCLUDE / EXTEND -->
+        <mxCell id="i1" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="uc_reg" target="uc_verif"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i2" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="uc_reg" target="uc_doc"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i3" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="uc_pending" target="uc_login"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i4" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="uc_ins" target="uc_login"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i5" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="uc_wait" target="uc_ins"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i6" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="uc_myst" target="uc_exch"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i7" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="uc_vallist" target="uc_viewdoc"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i8" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="uc_rej" target="uc_srejmail"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i9" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="uc_appr" target="uc_sappmail"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i10" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="uc_scan" target="uc_scredit"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i11" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="uc_sfraud" target="uc_scan"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i12" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="uc_scoupon" target="uc_scomm"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="i13" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=open;dashed=1;html=1;" edge="1" parent="1" source="uc_publish" target="uc_snewact"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

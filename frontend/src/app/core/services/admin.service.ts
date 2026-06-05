@@ -9,6 +9,7 @@ import {
   AdminDashboard,
   AccountValidationsPage,
   AccountValidationFilter,
+  CitizenAccountItem,
   ActionAssociationOption,
   ActionAssociationRequest,
   ActionFixe,
@@ -50,6 +51,12 @@ export class AdminService {
     return this.http.get<AccountValidationsPage>(`${this.base}/accounts/validations`, {
       headers: this.authHeaders(),
       params: { filter },
+    });
+  }
+
+  getCitizenAccounts(): Observable<CitizenAccountItem[]> {
+    return this.http.get<CitizenAccountItem[]>(`${this.base}/accounts/citizens`, {
+      headers: this.authHeaders(),
     });
   }
 

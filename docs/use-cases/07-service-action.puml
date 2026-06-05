@@ -1,0 +1,40 @@
+@startuml service-action
+title Service Action — Cas d'utilisation
+left to right direction
+skinparam packageStyle rectangle
+
+actor Visiteur as VIS
+actor Citoyen as CIT
+actor Association as ASSO
+actor Administrateur as ADM
+
+rectangle "service-action" {
+
+  package "Consultation" {
+    usecase "Voir la liste des actions" as UC1
+    usecase "Voir la carte" as UC2
+    usecase "Voir le détail" as UC3
+    usecase "Voir les catégories" as UC4
+  }
+
+  package "Gestion actions" {
+    usecase "Créer une action" as UC5
+    usecase "Modifier une action" as UC6
+    usecase "Publier une action" as UC7
+    usecase "Annuler une action" as UC8
+  }
+}
+
+VIS --> UC1
+VIS --> UC2
+VIS --> UC3
+VIS --> UC4
+CIT --> UC1
+CIT --> UC3
+ASSO --> UC5
+ASSO --> UC6
+ASSO --> UC7
+ASSO --> UC8
+ADM --> UC4
+
+@enduml

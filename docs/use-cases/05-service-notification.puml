@@ -1,0 +1,35 @@
+@startuml service-notification
+title Service Notification — Cas d'utilisation
+left to right direction
+skinparam packageStyle rectangle
+
+actor Utilisateur as USER
+actor "Système Kafka" as SYS
+
+rectangle "service-notification" {
+
+  package "Notifications" {
+    usecase "Voir mes notifications" as UC1
+    usecase "Marquer comme lue" as UC2
+  }
+
+  package "Emails automatiques" {
+    usecase "Email de vérification" as UC3
+    usecase "Email inscription action" as UC4
+    usecase "Email points crédités" as UC5
+    usecase "Email compte validé" as UC6
+    usecase "Email compte rejeté" as UC7
+    usecase "Email récompense" as UC8
+  }
+}
+
+USER --> UC1
+USER --> UC2
+SYS --> UC3
+SYS --> UC4
+SYS --> UC5
+SYS --> UC6
+SYS --> UC7
+SYS --> UC8
+
+@enduml

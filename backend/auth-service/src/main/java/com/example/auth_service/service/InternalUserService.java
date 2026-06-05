@@ -58,7 +58,11 @@ public class InternalUserService {
     public void activate(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + id));
-        organizationVerificationService.markApproved(user);
+        if (user.getRole() == User.Role.USER) {
+            user.setIsActive(true);
+        } else {
+            organizationVerificationService.markApproved(user);
+        }
         userRepository.save(user);
     }
 
