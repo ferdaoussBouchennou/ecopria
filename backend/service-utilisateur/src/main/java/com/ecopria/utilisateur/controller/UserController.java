@@ -195,4 +195,9 @@ public class UserController {
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/{id}/is-citizen")
+    public ResponseEntity<Map<String, Boolean>> isCitizen(@PathVariable Long id) {
+        return ResponseEntity.ok(Map.of("citizen", userService.isCitizen(id)));
+    }
 }

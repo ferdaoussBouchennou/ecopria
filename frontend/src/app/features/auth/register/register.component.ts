@@ -14,6 +14,13 @@ import {
   TurnstileService,
 } from '../../../core/services/turnstile.service';
 import { httpErrorMessage } from '../../../core/utils/http-error.util';
+import {
+  isPasswordStrong,
+  PASSWORD_POLICY_HINT,
+  PASSWORD_RULES,
+  passwordStrengthLabel,
+  passwordStrengthPercent,
+} from '../../../core/utils/password-policy.util';
 import { ProfileType } from '../../../core/models/auth.model';
 import { VerifyEmailComponent } from '../verify-email/verify-email.component';
 
@@ -25,6 +32,8 @@ const ALLOWED_TYPES = new Set([
   'image/png',
 ]);
 
+type CaptchaState = 'loading' | 'ready' | 'fallback' | 'error';
+
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -33,8 +42,8 @@ const ALLOWED_TYPES = new Set([
   styleUrl: './register.component.scss',
 })
 export class RegisterComponent implements AfterViewInit, OnDestroy {
-  @ViewChild('turnstileContainer', { static: true })
-  turnstileContainer!: ElementRef<HTMLElement>;
+  @ViewChild('turnstileContainer')
+  turnstileContainer?: ElementRef<HTMLElement>;
 
   profileType: ProfileType = 'citoyen';
 
@@ -46,9 +55,12 @@ export class RegisterComponent implements AfterViewInit, OnDestroy {
   address = '';
   city = '';
   password = '';
+  confirmPassword = '';
+  showPassword = false;
+  showConfirmPassword = false;
   captchaToken = '';
   captchaDevBypass = false;
-  captchaUseDevFallback = false;
+  captchaState: CaptchaState = 'loading';
 
   documentFile: File | null = null;
   documentFileName = 'Aucun fichier sélectionné.';
@@ -57,11 +69,37 @@ export class RegisterComponent implements AfterViewInit, OnDestroy {
   error = '';
   successMessage = '';
 
+  readonly passwordRules = PASSWORD_RULES;
+  readonly passwordPolicyHint = PASSWORD_POLICY_HINT;
+
   private turnstileWidgetId: string | null = null;
 
   get authQueryParams(): Record<string, string> {
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
     return returnUrl ? { returnUrl } : {};
+  }
+
+  get profileLabel(): string {
+    switch (this.profileType) {
+      case 'association':
+        return 'Association';
+      case 'partenaire':
+        return 'Partenaire';
+      default:
+        return 'Participant';
+    }
+  }
+
+  get passwordStrengthLabel(): string {
+    return passwordStrengthLabel(this.password);
+  }
+
+  get passwordStrengthPercent(): number {
+    return passwordStrengthPercent(this.password);
+  }
+
+  get passwordsMatch(): boolean {
+    return this.confirmPassword.length > 0 && this.password === this.confirmPassword;
   }
 
   constructor(
@@ -76,41 +114,94 @@ export class RegisterComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.removeTurnstileWidget();
+  }
+
+  ruleMet(ruleId: string): boolean {
+    const rule = PASSWORD_RULES.find((item) => item.id === ruleId);
+    return rule ? rule.test(this.password) : false;
+  }
+
+  togglePasswordVisibility(field: 'password' | 'confirm'): void {
+    if (field === 'password') {
+      this.showPassword = !this.showPassword;
+      return;
+    }
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  private removeTurnstileWidget(): void {
     if (this.turnstileWidgetId && window.turnstile) {
       window.turnstile.remove(this.turnstileWidgetId);
+      this.turnstileWidgetId = null;
     }
   }
 
   private async initTurnstile(): Promise<void> {
+    this.captchaState = 'loading';
+    this.captchaToken = '';
+    this.captchaDevBypass = false;
+    this.removeTurnstileWidget();
+
     try {
       await this.turnstile.loadScript();
+      await this.waitForTurnstileContainer();
+      const container = this.turnstileContainer?.nativeElement;
+      if (!container) {
+        this.enableDevCaptchaFallback();
+        return;
+      }
+
       this.turnstileWidgetId = this.turnstile.render(
-        this.turnstileContainer.nativeElement,
+        container,
         (token) => {
           this.captchaToken = token;
-          this.captchaUseDevFallback = false;
           this.captchaDevBypass = false;
         },
         () => {
           this.captchaToken = '';
         }
       );
-      if (!this.turnstileWidgetId) {
-        this.enableDevCaptchaFallback();
+
+      if (this.turnstileWidgetId) {
+        this.captchaState = 'ready';
+        return;
       }
+      this.enableDevCaptchaFallback();
     } catch {
       this.enableDevCaptchaFallback();
     }
   }
 
+  private waitForTurnstileContainer(maxAttempts = 20): Promise<void> {
+    return new Promise((resolve) => {
+      let attempts = 0;
+      const tick = () => {
+        if (this.turnstileContainer?.nativeElement || attempts >= maxAttempts) {
+          resolve();
+          return;
+        }
+        attempts += 1;
+        requestAnimationFrame(tick);
+      };
+      tick();
+    });
+  }
+
   private enableDevCaptchaFallback(): void {
     if (this.turnstile.devBypassAllowed) {
-      this.captchaUseDevFallback = true;
+      this.captchaState = 'fallback';
       this.error = '';
       return;
     }
+    this.captchaState = 'error';
     this.error =
-      'Impossible de charger le captcha (réseau ou bloqueur). Réessayez ou désactivez le bloqueur pour challenges.cloudflare.com.';
+      'Impossible de charger le captcha. Vérifiez votre connexion ou désactivez le bloqueur pour challenges.cloudflare.com.';
+  }
+
+  retryCaptcha(): void {
+    this.error = '';
+    void this.initTurnstile();
   }
 
   onDevCaptchaToggle(checked: boolean): void {
@@ -122,7 +213,7 @@ export class RegisterComponent implements AfterViewInit, OnDestroy {
     if (this.captchaToken.trim()) {
       return true;
     }
-    if (this.captchaUseDevFallback && this.captchaDevBypass) {
+    if (this.captchaState === 'fallback' && this.captchaDevBypass) {
       this.captchaToken = TURNSTILE_DEV_BYPASS_TOKEN;
       return true;
     }
@@ -175,16 +266,28 @@ export class RegisterComponent implements AfterViewInit, OnDestroy {
     this.documentFileName = 'Aucun fichier sélectionné.';
   }
 
+  private validatePasswords(): boolean {
+    if (!isPasswordStrong(this.password)) {
+      this.error = PASSWORD_POLICY_HINT;
+      return false;
+    }
+    if (this.password !== this.confirmPassword) {
+      this.error = 'Les mots de passe ne correspondent pas.';
+      return false;
+    }
+    return true;
+  }
+
   submit(): void {
     this.error = '';
     if (!this.hasValidCaptcha()) {
-      this.error = this.captchaUseDevFallback
-        ? 'Cochez la case de vérification ci-dessous.'
-        : 'Veuillez valider le captcha.';
+      this.error =
+        this.captchaState === 'fallback'
+          ? 'Cochez la case de vérification anti-robot.'
+          : 'Veuillez compléter la vérification de sécurité (captcha).';
       return;
     }
-    if (this.password.length < 8) {
-      this.error = 'Le mot de passe doit contenir au moins 8 caractères.';
+    if (!this.validatePasswords()) {
       return;
     }
 
@@ -194,7 +297,7 @@ export class RegisterComponent implements AfterViewInit, OnDestroy {
         return;
       }
       if (!this.city.trim()) {
-        this.error = 'La ville est obligatoire pour les citoyen·nes.';
+        this.error = 'La ville est obligatoire pour les participants.';
         return;
       }
       this.submitCitizen();
@@ -254,8 +357,7 @@ export class RegisterComponent implements AfterViewInit, OnDestroy {
         error: (err) => {
           this.submitting = false;
           this.error = httpErrorMessage(err, 'Impossible de créer le compte.');
-          this.turnstile.reset(this.turnstileWidgetId ?? undefined);
-          this.captchaToken = '';
+          this.resetCaptchaAfterError();
         },
       });
   }
@@ -297,9 +399,20 @@ export class RegisterComponent implements AfterViewInit, OnDestroy {
         error: (err) => {
           this.submitting = false;
           this.error = httpErrorMessage(err, 'Impossible de créer le compte.');
-          this.turnstile.reset(this.turnstileWidgetId ?? undefined);
-          this.captchaToken = '';
+          this.resetCaptchaAfterError();
         },
       });
+  }
+
+  private resetCaptchaAfterError(): void {
+    if (this.captchaState === 'ready') {
+      this.turnstile.reset(this.turnstileWidgetId ?? undefined);
+      this.captchaToken = '';
+      return;
+    }
+    if (this.captchaState === 'fallback') {
+      this.captchaDevBypass = false;
+      this.captchaToken = '';
+    }
   }
 }

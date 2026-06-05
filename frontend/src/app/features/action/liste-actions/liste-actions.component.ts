@@ -121,6 +121,9 @@ export class ListeActionsComponent implements OnInit {
   }
 
   setSource(source: ActionSourceFilter): void {
+    if (this.sourceFilter === source) {
+      return;
+    }
     this.sourceFilter = source;
     this.updateQueryParams();
     this.loadActions();
@@ -162,6 +165,54 @@ export class ListeActionsComponent implements OnInit {
       return action.photoUrls[0];
     }
     return getCategoryImageUrl(action.categoryName, action.categoryImageUrl);
+  }
+
+  get associationActions(): ActionSummary[] {
+    return this.actions.filter((a) => !a.isFixed);
+  }
+
+  get fixedActions(): ActionSummary[] {
+    return this.actions.filter((a) => a.isFixed);
+  }
+
+  showFixedSection(): boolean {
+    return this.sourceFilter !== 'association' && this.fixedActions.length > 0;
+  }
+
+  showAssociationSection(): boolean {
+    return this.sourceFilter !== 'fixed' && this.associationActions.length > 0;
+  }
+
+  showGlobalEmpty(): boolean {
+    return !this.showFixedSection() && !this.showAssociationSection();
+  }
+
+  resultsLabel(): string {
+    const n = this.actions.length;
+    if (n === 0) {
+      return 'Aucune action trouvée';
+    }
+    if (this.sourceFilter === 'fixed') {
+      return `${n} action${n > 1 ? 's' : ''} fixe${n > 1 ? 's' : ''}`;
+    }
+    if (this.sourceFilter === 'association') {
+      return `${n} action${n > 1 ? 's' : ''} association`;
+    }
+    const fixed = this.fixedActions.length;
+    const asso = this.associationActions.length;
+    if (fixed && asso) {
+      return `${n} actions — ${fixed} fixe${fixed > 1 ? 's' : ''}, ${asso} association${asso > 1 ? 's' : ''}`;
+    }
+    return `${n} action${n > 1 ? 's' : ''} trouvée${n > 1 ? 's' : ''}`;
+  }
+
+  categoryAccent(name: string): string {
+    return getCategoryMeta(name).color;
+  }
+
+  categoryInitial(name: string): string {
+    const trimmed = name?.trim();
+    return trimmed ? trimmed.charAt(0).toUpperCase() : 'E';
   }
 
   isFull = isActionFull;

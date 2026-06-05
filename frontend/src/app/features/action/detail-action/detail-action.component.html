@@ -14,41 +14,87 @@
   }
 
   @if (!loading && !error && action) {
-    <div class="detail-layout" [class.detail-layout--fixed]="action.isFixed">
-      <div class="detail-visual">
-        <img [src]="getHeroImage()" [alt]="action.title" class="hero-img" />
-        @if (action.isFixed) {
-          <span class="visual-badge">Action fixe</span>
-        }
-      </div>
+    @if (action.isFixed) {
+      <article class="fixed-detail">
+        <header class="fixed-detail__hero">
+          <div
+            class="fixed-detail__mark"
+            [style.background]="getCategoryColor()"
+            aria-hidden="true"
+          >
+            {{ categoryInitial() }}
+          </div>
+          <div class="fixed-detail__intro">
+            <p class="fixed-detail__eyebrow">Geste Ecopria · {{ action.categoryName | uppercase }}</p>
+            <h1>{{ action.title }}</h1>
+            <p class="fixed-detail__hint">Geste individuel · sans date ni lieu imposé</p>
+          </div>
+          <div class="fixed-detail__points">
+            <span class="fixed-detail__points-num">{{ action.points }}</span>
+            <span class="fixed-detail__points-label">points</span>
+          </div>
+        </header>
 
-      <div class="detail-main">
-        <p class="detail-tag">
-          @if (action.isFixed) {
-            Action fixe · {{ action.categoryName | uppercase }}
-          } @else {
-            {{ action.categoryName | uppercase }} · {{ action.city | uppercase }}
-          }
-        </p>
-        <h1>{{ action.title }}</h1>
-        <p class="detail-desc">{{ action.description }}</p>
+        <div class="fixed-detail__body">
+          <p class="fixed-detail__desc">{{ action.description }}</p>
 
-        @if (action.isFixed) {
           <p class="fixed-notice">
-            Action Ecopria à organiser librement avec votre groupe. Les créneaux, le lieu et
-            l'organisateur local sont à votre initiative.
+            Geste écolo individuel : réalisable quand vous le souhaitez, sans inscription à un créneau.
           </p>
-          <dl class="meta-list">
+
+          <dl class="meta-list meta-list--fixed">
             <div class="meta-row">
-              <dt>Format</dt>
-              <dd>Programmable — à définir avec votre groupe</dd>
+              <dt>Type</dt>
+              <dd>Action fixe Ecopria</dd>
+            </div>
+            <div class="meta-row">
+              <dt>Catégorie</dt>
+              <dd>{{ action.categoryName }}</dd>
             </div>
             <div class="meta-row">
               <dt>Points gagnables</dt>
               <dd class="meta-points">{{ action.points }}</dd>
             </div>
           </dl>
-        } @else {
+
+          <div class="detail-actions">
+            @if (participationBlocked) {
+              <p class="participation-blocked" role="status">
+                Seuls les comptes <strong>participants</strong> peuvent s'inscrire aux actions.
+              </p>
+            } @else {
+              <button type="button" class="btn-primary" (click)="participate()">
+                {{ participateLabel }}
+              </button>
+            }
+            <button type="button" class="btn-outline" (click)="share()">Partager</button>
+          </div>
+        </div>
+
+        @if (action.practicalInfos.length) {
+          <section class="fixed-detail__extras">
+            <h2><span class="col-line"></span> Bon à savoir</h2>
+            <ul>
+              @for (info of action.practicalInfos; track info) {
+                <li>{{ info }}</li>
+              }
+            </ul>
+          </section>
+        }
+      </article>
+    } @else {
+      <div class="detail-layout">
+        <div class="detail-visual">
+          <img [src]="getHeroImage()" [alt]="action.title" class="hero-img" />
+        </div>
+
+        <div class="detail-main">
+          <p class="detail-tag">
+            {{ action.categoryName | uppercase }} · {{ action.city | uppercase }}
+          </p>
+          <h1>{{ action.title }}</h1>
+          <p class="detail-desc">{{ action.description }}</p>
+
           <dl class="meta-list">
             <div class="meta-row">
               <dt>Date</dt>
@@ -105,22 +151,26 @@
               </div>
             </div>
           }
-        }
 
-        <div class="detail-actions">
-          <button
-            type="button"
-            class="btn-primary"
-            [class.btn-primary--waitlist]="isWaitlistOnly"
-            (click)="participate()">
-            {{ participateLabel }}
-          </button>
-          <button type="button" class="btn-outline" (click)="share()">Partager</button>
+          <div class="detail-actions">
+            @if (participationBlocked) {
+              <p class="participation-blocked" role="status">
+                Seuls les comptes <strong>participants</strong> peuvent s'inscrire aux actions.
+              </p>
+            } @else {
+              <button
+                type="button"
+                class="btn-primary"
+                [class.btn-primary--waitlist]="isWaitlistOnly"
+                (click)="participate()">
+                {{ participateLabel }}
+              </button>
+            }
+            <button type="button" class="btn-outline" (click)="share()">Partager</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    @if (!action.isFixed) {
       <section class="detail-bottom">
         @if (action.program.length) {
           <div class="bottom-col">
@@ -166,18 +216,6 @@
               <a [routerLink]="['/actions']" class="org-link">Voir le profil</a>
             }
           </div>
-        </div>
-
-      </section>
-    } @else if (action.practicalInfos.length) {
-      <section class="detail-bottom detail-bottom--fixed">
-        <div class="bottom-col">
-          <h2><span class="col-line"></span> Bon à savoir</h2>
-          <ul>
-            @for (info of action.practicalInfos; track info) {
-              <li>{{ info }}</li>
-            }
-          </ul>
         </div>
       </section>
     }

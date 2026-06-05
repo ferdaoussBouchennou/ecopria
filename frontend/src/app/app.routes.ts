@@ -46,7 +46,7 @@ import { RecompensesComponent } from './features/utilisateur/recompenses/recompe
 import { SettingsComponent } from './features/utilisateur/settings/settings.component';
 import { ScannerPresenceComponent } from './features/utilisateur/scanner-presence/scanner-presence.component';
 import { adminGuard } from './core/guards/admin.guard';
-import { authGuard, associationGuard, citizenGuard, partenaireGuard } from './core/guards/auth.guard';
+import { associationGuard, citizenGuard, partenaireGuard } from './core/guards/auth.guard';
 import { AdminShellComponent } from './features/admin/admin-shell/admin-shell.component';
 import { AdminDashboardComponent } from './features/admin/dashboard/admin-dashboard.component';
 import { AdminComptesComponent } from './features/admin/comptes/admin-comptes.component';
@@ -68,7 +68,7 @@ export const routes: Routes = [
       { path: 'actions', component: ListeActionsComponent },
       { path: 'carte', component: CarteActionsComponent },
       { path: 'action/:id', component: DetailActionComponent },
-      { path: 'inscription/:actionId', component: InscriptionFormComponent, canActivate: [authGuard] },
+      { path: 'inscription/:actionId', component: InscriptionFormComponent, canActivate: [citizenGuard] },
       { path: 'mes-inscriptions', redirectTo: '/espace/actions', pathMatch: 'full' },
       { path: 'creer-compte', component: RegisterComponent },
       { path: 'verifier-email', component: VerifyEmailComponent },

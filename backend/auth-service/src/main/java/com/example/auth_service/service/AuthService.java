@@ -5,6 +5,7 @@ import com.example.auth_service.entity.RegistrationProfile;
 import com.example.auth_service.entity.*;
 import com.example.auth_service.repository.*;
 import com.example.auth_service.security.JwtUtil;
+import com.example.auth_service.validation.PasswordPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +39,7 @@ public class AuthService {
     // ── REGISTER ──────────────────────────────────────────
     public RegistrationResponse register(RegisterRequest request) {
         turnstileService.verifyToken(request.getCaptchaToken());
+        PasswordPolicy.requireStrong(request.getPassword());
 
         String email = normalizeEmail(request.getEmail());
         if (userRepository.existsByEmail(email)) {

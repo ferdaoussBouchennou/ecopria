@@ -73,6 +73,11 @@ export class DetailActionComponent implements OnInit {
       : '#2D6A4F';
   }
 
+  categoryInitial(): string {
+    const name = this.action?.categoryName?.trim();
+    return name ? name.charAt(0).toUpperCase() : 'E';
+  }
+
   getHeroImage(): string {
     if (!this.action) return '';
     return (
@@ -91,6 +96,11 @@ export class DetailActionComponent implements OnInit {
     return !!this.action && !this.action.isFixed && this.isFull();
   }
 
+  /** Connecté avec un rôle autre que participant (admin, asso, partenaire). */
+  get participationBlocked(): boolean {
+    return this.authService.isLoggedIn() && !this.authService.isParticipant();
+  }
+
   get participateLabel(): string {
     if (!this.action) return 'Participer';
     if (this.action.isFixed) return 'Participer';
@@ -99,7 +109,7 @@ export class DetailActionComponent implements OnInit {
   }
 
   participate(): void {
-    if (!this.action) {
+    if (!this.action || this.participationBlocked) {
       return;
     }
 

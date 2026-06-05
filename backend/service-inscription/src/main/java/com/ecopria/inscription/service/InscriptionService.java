@@ -8,8 +8,10 @@ import com.ecopria.inscription.dto.InscriptionResponseDTO;
 import com.ecopria.inscription.kafka.InscriptionProducer;
 import com.ecopria.inscription.model.Inscription;
 import com.ecopria.inscription.repository.InscriptionRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,6 +40,12 @@ public class InscriptionService {
 
     @Transactional
     public InscriptionResponseDTO inscrire(InscriptionRequestDTO request) {
+        if (!utilisateurClient.isCitizen(request.getUserId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Seuls les participants peuvent s'inscrire à une action.");
+        }
+
         if (inscriptionRepository.existsByUserIdAndActionId(request.getUserId(), request.getActionId())) {
             throw new IllegalStateException(
                     "L'utilisateur " + request.getUserId() + " est déjà inscrit à l'action " + request.getActionId());

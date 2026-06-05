@@ -3,28 +3,54 @@
     <p class="eyebrow">— Toutes les actions</p>
     <h1>Trouvez le geste qui vous ressemble</h1>
     <p class="lead">
-      Filtrez par catégorie et par origine — proposées par les associations ou actions fixes Ecopria.
+      Gestes individuels Ecopria ou événements des associations — filtrez par type et par catégorie.
     </p>
   </header>
 
   <div class="filters-row">
-    <div class="category-pills" role="group" aria-label="Catégories">
-      <button
-        type="button"
-        class="pill"
-        [class.active]="selectedCategoryId === null"
-        (click)="selectCategory(null)">
-        Toutes
-      </button>
-      @for (category of categories; track category.id) {
+    <div class="filters-col">
+      <div class="source-pills" role="group" aria-label="Type d'action">
+        <button
+          type="button"
+          class="pill pill--source"
+          [class.active]="sourceFilter === 'all'"
+          (click)="setSource('all')">
+          Toutes
+        </button>
+        <button
+          type="button"
+          class="pill pill--source"
+          [class.active]="sourceFilter === 'association'"
+          (click)="setSource('association')">
+          Associations
+        </button>
+        <button
+          type="button"
+          class="pill pill--source"
+          [class.active]="sourceFilter === 'fixed'"
+          (click)="setSource('fixed')">
+          Actions fixes
+        </button>
+      </div>
+
+      <div class="category-pills" role="group" aria-label="Catégories">
         <button
           type="button"
           class="pill"
-          [class.active]="selectedCategoryId === category.id"
-          (click)="selectCategory(category.id)">
-          {{ category.name }}
+          [class.active]="selectedCategoryId === null"
+          (click)="selectCategory(null)">
+          Toutes
         </button>
-      }
+        @for (category of categories; track category.id) {
+          <button
+            type="button"
+            class="pill"
+            [class.active]="selectedCategoryId === category.id"
+            (click)="selectCategory(category.id)">
+            {{ category.name }}
+          </button>
+        }
+      </div>
     </div>
 
     <div class="sort-wrap">
@@ -37,7 +63,7 @@
     </div>
   </div>
 
-  <p class="results-count">{{ actions.length }} actions trouvées</p>
+  <p class="results-count">{{ resultsLabel() }}</p>
 
   @if (loading) {
     <div class="state-box">
@@ -54,52 +80,105 @@
   }
 
   @if (!loading && !error) {
-    <div class="actions-grid">
-      @for (action of actions; track action.id) {
-        <article class="action-card">
-          <a [routerLink]="['/action', action.id]" class="card-link">
-            <div class="card-image">
-              <img [src]="getActionImage(action)" [alt]="action.title" loading="lazy" />
-              @if (action.isFixed) {
-                <span class="badge badge-fixed">Action fixe</span>
-              } @else {
-                <span class="badge badge-cat">{{ action.categoryName | uppercase }}</span>
-                <span class="badge badge-places" [class.badge-complet]="isFull(action)">
-                  {{ formatPlaces(action.availablePlaces, action.maxParticipants) }}
-                </span>
-              }
-            </div>
-            <div class="card-body">
-              @if (!action.isFixed) {
-                <p class="card-city">{{ action.city }}</p>
-              }
-              <h3 class="card-title">{{ action.title }}</h3>
-              <div class="card-footer">
-                @if (!action.isFixed) {
-                  <div class="card-datetime">
-                    <span>{{ formatDate(action.dateStart) }}</span>
-                    <span class="time">{{ formatTime(action.dateStart, action.dateEnd) }}</span>
-                  </div>
-                } @else {
-                  <div class="card-datetime programmable">
-                    <span>Programmable</span>
-                    <span class="time">À définir</span>
-                  </div>
-                }
-                <div class="card-points">
-                  <span class="points-num">{{ action.points }}</span>
-                  <span class="points-label">points</span>
-                </div>
+    @if (showGlobalEmpty()) {
+      <div class="state-box state-empty">
+        <h3>Aucune action trouvée</h3>
+        <p>Essayez d'élargir vos filtres pour découvrir d'autres rendez-vous.</p>
+      </div>
+    } @else {
+      @if (showAssociationSection()) {
+        <section class="actions-section actions-section--asso">
+          @if (sourceFilter === 'all') {
+            <header class="section-head">
+              <div>
+                <p class="section-eyebrow">Collectif</p>
+                <h2 class="section-title">Actions des associations</h2>
+                <p class="section-desc">
+                  Rendez-vous planifiés avec date, lieu et places limitées.
+                </p>
               </div>
-            </div>
-          </a>
-        </article>
-      } @empty {
-        <div class="state-box state-empty">
-          <h3>Aucune action trouvée</h3>
-          <p>Essayez d'élargir vos filtres pour découvrir d'autres rendez-vous.</p>
+              <span class="section-count">{{ associationActions.length }}</span>
+            </header>
+          }
+
+          <div class="actions-grid">
+            @for (action of associationActions; track action.id) {
+              <article class="action-card">
+                <a [routerLink]="['/action', action.id]" class="card-link">
+                  <div class="card-image">
+                    <img [src]="getActionImage(action)" [alt]="action.title" loading="lazy" />
+                    <span class="badge badge-cat">{{ action.categoryName | uppercase }}</span>
+                    <span class="badge badge-places" [class.badge-complet]="isFull(action)">
+                      {{ formatPlaces(action.availablePlaces, action.maxParticipants) }}
+                    </span>
+                  </div>
+                  <div class="card-body">
+                    <p class="card-city">{{ action.city }}</p>
+                    <h3 class="card-title">{{ action.title }}</h3>
+                    <div class="card-footer">
+                      <div class="card-datetime">
+                        <span>{{ formatDate(action.dateStart) }}</span>
+                        <span class="time">{{ formatTime(action.dateStart, action.dateEnd) }}</span>
+                      </div>
+                      <div class="card-points">
+                        <span class="points-num">{{ action.points }}</span>
+                        <span class="points-label">points</span>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </article>
+            }
+          </div>
+        </section>
+      }
+
+      @if (showFixedSection() && showAssociationSection()) {
+        <div class="section-divider" role="separator">
+          <span>Gestes écolo individuels</span>
         </div>
       }
-    </div>
+
+      @if (showFixedSection()) {
+        <section class="actions-section actions-section--fixed">
+          <header class="section-head">
+            <div>
+              <p class="section-eyebrow">Gestes Ecopria</p>
+              <h2 class="section-title">Actions fixes</h2>
+              <p class="section-desc">
+                Gestes écolo individuels, sans date ni lieu — réalisez-les quand vous le souhaitez.
+              </p>
+            </div>
+            <span class="section-count">{{ fixedActions.length }}</span>
+          </header>
+
+          <div class="fixed-list">
+            @for (action of fixedActions; track action.id) {
+              <article class="fixed-card">
+                <a [routerLink]="['/action', action.id]" class="fixed-card__link">
+                  <div
+                    class="fixed-card__mark"
+                    [style.background]="categoryAccent(action.categoryName)"
+                    aria-hidden="true"
+                  >
+                    {{ categoryInitial(action.categoryName) }}
+                  </div>
+                  <div class="fixed-card__main">
+                    <span class="fixed-card__cat">{{ action.categoryName }}</span>
+                    <h3 class="fixed-card__title">{{ action.title }}</h3>
+                    <p class="fixed-card__hint">Geste individuel · sans horaire imposé</p>
+                  </div>
+                  <div class="fixed-card__aside">
+                    <span class="fixed-card__points">{{ action.points }}</span>
+                    <span class="fixed-card__points-label">points</span>
+                  </div>
+                  <span class="fixed-card__chevron" aria-hidden="true">›</span>
+                </a>
+              </article>
+            }
+          </div>
+        </section>
+      }
+    }
   }
 </div>

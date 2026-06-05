@@ -542,6 +542,10 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    public boolean isCitizen(Long authId) {
+        return authId != null && citizenRepository.findByAuthId(authId).isPresent();
+    }
+
     public Optional<Map<String, String>> getParticipantProfile(Long authId) {
         Optional<Citizen> citOpt = citizenRepository.findByAuthId(authId);
         if (citOpt.isPresent()) {

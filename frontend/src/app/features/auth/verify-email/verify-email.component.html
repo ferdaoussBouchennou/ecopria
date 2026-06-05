@@ -8,15 +8,6 @@
         <strong>{{ email || 'votre adresse' }}</strong>.
       </p>
 
-      @if (showDevHint) {
-        <div class="alert alert--success dev-code-hint" role="note">
-          <strong>En développement :</strong> si aucun e-mail n’arrive, le code est aussi affiché dans la
-          console du service <strong>auth</strong> (ligne
-          <code>[DEV] Code de vérification pour …</code>). Vérifiez aussi que Docker (Kafka) et
-          <strong>service-notification</strong> tournent pour l’envoi réel.
-        </div>
-      }
-
       <form (ngSubmit)="submit()" class="auth-form">
         <label class="field">
           <span>Code de vérification</span>

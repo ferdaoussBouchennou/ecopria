@@ -4,6 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { httpErrorMessage } from '../../../core/utils/http-error.util';
+import {
+  isPasswordStrong,
+  PASSWORD_POLICY_HINT,
+} from '../../../core/utils/password-policy.util';
 
 @Component({
   selector: 'app-reset-password',
@@ -16,9 +20,13 @@ export class ResetPasswordComponent implements OnInit {
   resetToken = '';
   password = '';
   confirmPassword = '';
+  showPassword = false;
+  showConfirmPassword = false;
   submitting = false;
   error = '';
   success = false;
+
+  readonly passwordPolicyHint = PASSWORD_POLICY_HINT;
 
   constructor(
     private auth: AuthService,
@@ -33,13 +41,21 @@ export class ResetPasswordComponent implements OnInit {
     }
   }
 
+  togglePasswordVisibility(field: 'password' | 'confirm'): void {
+    if (field === 'password') {
+      this.showPassword = !this.showPassword;
+      return;
+    }
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
   submit(): void {
     this.error = '';
     if (!this.resetToken) {
       return;
     }
-    if (this.password.length < 8) {
-      this.error = 'Le mot de passe doit contenir au moins 8 caractères.';
+    if (!isPasswordStrong(this.password)) {
+      this.error = PASSWORD_POLICY_HINT;
       return;
     }
     if (this.password !== this.confirmPassword) {
