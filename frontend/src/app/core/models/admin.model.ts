@@ -55,9 +55,53 @@ export interface AccountValidationItem {
   role: 'ASSOCIATION' | 'PARTNER';
   createdAt?: string;
   status: 'En attente' | 'Validé' | 'Rejeté';
+  isActive?: boolean;
   documentPath?: string;
   hasStoredDocument?: boolean;
   rejectionReason?: string;
+}
+
+export interface UtilisateurCitizenProfile {
+  id?: number;
+  authId?: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  photo?: string;
+  totalPoints?: number;
+  trustScore?: number;
+  level?: number;
+  createdAt?: string;
+}
+
+export interface UtilisateurAssociationProfile {
+  id?: number;
+  authId?: number;
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  description?: string;
+  logo?: string;
+  createdAt?: string;
+}
+
+export interface UtilisateurPartnerProfile {
+  id?: number;
+  authId?: number;
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  category?: string;
+  description?: string;
+  logo?: string;
+  createdAt?: string;
 }
 
 export interface AccountValidationsPage {
@@ -153,6 +197,10 @@ export interface ActionNonFixe {
   isFixed?: boolean;
   city?: string;
   associationName?: string;
+  dateStart?: string;
+  dateEnd?: string;
+  maxParticipants?: number;
+  availablePlaces?: number;
 }
 
 export interface AdminCategorie {

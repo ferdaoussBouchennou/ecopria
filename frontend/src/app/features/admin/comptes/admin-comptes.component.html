@@ -1,12 +1,13 @@
-<section class="admin-page">
-  <p class="admin-eyebrow"><span class="eyebrow-line"></span> Approbations</p>
+<section class="admin-page comptes-page">
+  <p class="admin-eyebrow"><span class="eyebrow-line"></span> Gestion des comptes</p>
   <h1 class="admin-page__title">Validation des comptes.</h1>
   <p class="admin-desc">
-    File d'attente des associations et partenaires. Verifiez les pieces d'identite, validez ou rejetez.
+    Validez les associations et partenaires à partir de leur document. Gérez l’activation des comptes
+    citoyens, associations et partenaires.
   </p>
 
   @if (actionMessage) {
-    <p class="admin-muted">{{ actionMessage }}</p>
+    <p class="admin-muted page-msg">{{ actionMessage }}</p>
   }
 
   @if (loading) {
@@ -14,128 +15,280 @@
   } @else if (error) {
     <div class="admin-alert admin-alert--error">{{ error }}</div>
   } @else {
-    <div class="chips">
+    <div class="list-tabs account-tabs">
       <button
         type="button"
-        class="chip"
-        [class.chip--active]="filter === 'pending'"
-        (click)="setFilter('pending')"
+        class="list-tab"
+        [class.list-tab--active]="activeTab === 'associations'"
+        (click)="switchTab('associations')"
       >
-        En attente ({{ pendingCount }})
+        Associations <span class="list-tab__count">{{ countOrg('associations', 'all') }}</span>
       </button>
       <button
         type="button"
-        class="chip"
-        [class.chip--active]="filter === 'approved'"
-        (click)="setFilter('approved')"
+        class="list-tab"
+        [class.list-tab--active]="activeTab === 'partenaires'"
+        (click)="switchTab('partenaires')"
       >
-        Valide ({{ approvedCount }})
+        Partenaires <span class="list-tab__count">{{ countOrg('partenaires', 'all') }}</span>
       </button>
       <button
         type="button"
-        class="chip"
-        [class.chip--active]="filter === 'rejected'"
-        (click)="setFilter('rejected')"
+        class="list-tab"
+        [class.list-tab--active]="activeTab === 'participants'"
+        (click)="switchTab('participants')"
       >
-        Rejete ({{ rejectedCount }})
-      </button>
-      <button
-        type="button"
-        class="chip"
-        [class.chip--active]="filter === 'all'"
-        (click)="setFilter('all')"
-      >
-        Tous ({{ totalCount }})
+        Participants <span class="list-tab__count">{{ countParticipants('all') }}</span>
       </button>
     </div>
 
-    @if (items.length === 0) {
-      <p class="admin-muted">Aucun compte pour ce filtre.</p>
+    <div class="section-toolbar">
+      <div class="chips">
+        <button type="button" class="chip" [class.chip--active]="currentState.filter === 'all'" (click)="setSectionFilter('all')">
+          @if (activeTab === 'participants') {
+            Tous ({{ countParticipants('all') }})
+          } @else if (activeTab === 'associations') {
+            Tous ({{ countOrg('associations', 'all') }})
+          } @else {
+            Tous ({{ countOrg('partenaires', 'all') }})
+          }
+        </button>
+        <button type="button" class="chip" [class.chip--active]="currentState.filter === 'pending'" (click)="setSectionFilter('pending')">
+          @if (activeTab === 'participants') {
+            En attente ({{ countParticipants('pending') }})
+          } @else if (activeTab === 'associations') {
+            En attente ({{ countOrg('associations', 'pending') }})
+          } @else {
+            En attente ({{ countOrg('partenaires', 'pending') }})
+          }
+        </button>
+        <button type="button" class="chip" [class.chip--active]="currentState.filter === 'active'" (click)="setSectionFilter('active')">
+          @if (activeTab === 'participants') {
+            Actifs ({{ countParticipants('active') }})
+          } @else if (activeTab === 'associations') {
+            Validées ({{ countOrg('associations', 'active') }})
+          } @else {
+            Validés ({{ countOrg('partenaires', 'active') }})
+          }
+        </button>
+        <button type="button" class="chip" [class.chip--active]="currentState.filter === 'inactive'" (click)="setSectionFilter('inactive')">
+          @if (activeTab === 'participants') {
+            Désactivés ({{ countParticipants('inactive') }})
+          } @else if (activeTab === 'associations') {
+            Refusés / désactivés ({{ countOrg('associations', 'inactive') }})
+          } @else {
+            Refusés / désactivés ({{ countOrg('partenaires', 'inactive') }})
+          }
+        </button>
+      </div>
+      <input
+        type="search"
+        class="search-input"
+        [(ngModel)]="currentState.search"
+        (ngModelChange)="onSectionSearch()"
+        placeholder="Rechercher nom, e-mail…"
+      />
+    </div>
+
+    @if (activeTab === 'participants') {
+      <article class="table-card">
+        <header class="table-head table-head--user">
+          <span>Nom</span>
+          <span>E-mail</span>
+          <span>Inscription</span>
+          <span>Statut</span>
+          <span>Actions</span>
+        </header>
+        @if (participants.length === 0) {
+          <p class="admin-muted table-empty">Aucun participant pour ce filtre.</p>
+        } @else {
+          @for (user of paginatedParticipants(); track user.userId) {
+            <div class="table-row table-row--user">
+              <span class="cell-title">{{ displayName(user) }}</span>
+              <span class="cell-email">{{ user.email }}</span>
+              <span>{{ formatDate(user.createdAt) }}</span>
+              <span>
+                <span class="status-pill" [ngClass]="participantStatusClass(user)">{{ participantStatusLabel(user) }}</span>
+              </span>
+              <span class="row-actions">
+                <button type="button" class="action-btn action-btn--view" (click)="viewParticipant(user)">Voir</button>
+                @if (canActivateParticipant(user)) {
+                  <button type="button" class="action-btn action-btn--activate" [disabled]="actionLoading" (click)="activateParticipant(user)">Activer</button>
+                }
+                @if (canDeactivateParticipant(user)) {
+                  <button type="button" class="action-btn action-btn--danger" [disabled]="actionLoading" (click)="viewParticipant(user, true)">Désactiver</button>
+                }
+              </span>
+            </div>
+          }
+          @if (totalPagesParticipants() > 1) {
+            <div class="pagination">
+              <button type="button" class="pagination__btn" [disabled]="participantsState.page === 1" (click)="changePage(participantsState.page - 1)">Précédent</button>
+              <span class="pagination__info">
+                Page <strong>{{ participantsState.page }}</strong> / {{ totalPagesParticipants() }}
+                <span class="pagination__sub">({{ paginationLabel(participants.length, participantsState.page) }})</span>
+              </span>
+              <button type="button" class="pagination__btn" [disabled]="participantsState.page === totalPagesParticipants()" (click)="changePage(participantsState.page + 1)">Suivant</button>
+            </div>
+          }
+        }
+      </article>
     } @else {
       <article class="table-card">
-        <header class="table-head">
+        <header class="table-head table-head--org">
           <span>Nom</span>
-          <span>Type</span>
-          <span>Soumis</span>
+          <span>E-mail</span>
+          <span>Inscription</span>
+          <span>Document</span>
           <span>Statut</span>
+          <span>Actions</span>
         </header>
-        @for (item of items; track item.userId) {
-          <button
-            type="button"
-            class="table-row"
-            [class.table-row--selected]="selectedItem?.userId === item.userId"
-            (click)="select(item)"
-          >
-            <span>{{ item.name }}</span>
-            <span>{{ item.role === 'ASSOCIATION' ? 'Association' : 'Partenaire' }}</span>
-            <span>{{ item.createdAt ? (item.createdAt | date:'MM-dd') : '—' }}</span>
-            <span class="status-pill">{{ item.status }}</span>
-          </button>
+        @if (currentOrgItems().length === 0) {
+          <p class="admin-muted table-empty">Aucun compte pour ce filtre.</p>
+        } @else {
+          @for (item of paginatedOrgItems(); track item.userId) {
+            <div class="table-row table-row--org">
+              <span class="cell-title">{{ item.name }}</span>
+              <span class="cell-email">{{ item.email }}</span>
+              <span>{{ formatDate(item.createdAt) }}</span>
+              <span>
+                <span class="doc-badge" [class.doc-badge--yes]="hasDocument(item)">{{ hasDocument(item) ? 'Oui' : 'Non' }}</span>
+              </span>
+              <span>
+                <span class="status-pill" [ngClass]="orgStatusClass(item)">{{ orgDisplayStatus(item) }}</span>
+              </span>
+              <span class="row-actions">
+                <button type="button" class="action-btn action-btn--view" (click)="viewItem(item)">Voir</button>
+                @if (isPending(item)) {
+                  <button type="button" class="action-btn action-btn--activate" [disabled]="actionLoading" (click)="approveItem(item)">Valider</button>
+                  <button type="button" class="action-btn action-btn--danger" [disabled]="actionLoading" (click)="viewItem(item, 'reject')">Refuser</button>
+                }
+                @if (canActivateOrg(item)) {
+                  <button type="button" class="action-btn action-btn--activate" [disabled]="actionLoading" (click)="activateOrg(item)">Activer</button>
+                }
+                @if (canDeactivateOrg(item)) {
+                  <button type="button" class="action-btn action-btn--danger" [disabled]="actionLoading" (click)="viewItem(item, 'deactivate')">Désactiver</button>
+                }
+              </span>
+            </div>
+          }
+          @if (totalPagesOrg() > 1) {
+            <div class="pagination">
+              <button type="button" class="pagination__btn" [disabled]="currentState.page === 1" (click)="changePage(currentState.page - 1)">Précédent</button>
+              <span class="pagination__info">
+                Page <strong>{{ currentState.page }}</strong> / {{ totalPagesOrg() }}
+                <span class="pagination__sub">({{ paginationLabel(currentOrgItems().length, currentState.page) }})</span>
+              </span>
+              <button type="button" class="pagination__btn" [disabled]="currentState.page === totalPagesOrg()" (click)="changePage(currentState.page + 1)">Suivant</button>
+            </div>
+          }
         }
       </article>
     }
 
-    @if (selectedItem) {
-      <article class="detail-card">
-        <div class="detail-top">
-          <div>
-            <p class="type-label">{{ selectedItem.role === 'ASSOCIATION' ? 'Association' : 'Partenaire' }}</p>
-            <h2>{{ selectedItem.name }}</h2>
-            <p class="email">{{ selectedItem.email || 'Aucun email' }}</p>
+    @if (detailVisible) {
+      <div class="action-modal-overlay" role="dialog" aria-modal="true" (click)="closeDetail()">
+        <div class="action-modal action-modal--wide" (click)="$event.stopPropagation()">
+          <div class="action-modal__header">
+            <h2>{{ detailTitle() }}</h2>
+            <button type="button" class="btn-close-form" (click)="closeDetail()" aria-label="Fermer">✕</button>
           </div>
-          <span class="status-pill">{{ selectedItem.status }}</span>
+          <div class="action-modal__body">
+            @if (detailLoading) {
+              <p class="admin-muted">Chargement du profil…</p>
+            } @else {
+              @if (detailProfileError) {
+                <div class="admin-alert admin-alert--error">{{ detailProfileError }}</div>
+              }
+
+              @if (selectedItem) {
+                <section class="doc-preview-section">
+                  <h3 class="doc-preview__title">Document de vérification</h3>
+                  @if (documentLoading) {
+                    <p class="admin-muted">Chargement du document…</p>
+                  } @else if (documentError) {
+                    <div class="admin-alert admin-alert--error">{{ documentError }}</div>
+                  } @else if (!hasDocument(selectedItem)) {
+                    <p class="admin-muted doc-missing">Aucun document joint à ce compte.</p>
+                  } @else if (documentPreviewUrl) {
+                    <div class="doc-preview__frame">
+                      @if (documentIsImage) {
+                        <img [src]="documentPreviewUrl" alt="Document de vérification" class="doc-preview__image" />
+                      } @else if (documentIsPdf) {
+                        <iframe [src]="documentSafeUrl" title="Document PDF" class="doc-preview__pdf"></iframe>
+                      } @else {
+                        <p class="admin-muted">Aperçu non disponible pour ce type de fichier.</p>
+                      }
+                    </div>
+                    <button type="button" class="doc-link doc-link--block" (click)="openDocumentInNewTab()">
+                      Ouvrir dans un nouvel onglet
+                    </button>
+                  }
+                </section>
+              }
+
+              <dl class="detail-grid">
+                @for (field of detailFields; track field.label) {
+                  <div>
+                    <dt>{{ field.label }}</dt>
+                    <dd>{{ field.value }}</dd>
+                  </div>
+                }
+              </dl>
+
+              @if (selectedItem && isPending(selectedItem) && !showDeactivateForm) {
+                <section class="validation-panel">
+                  <h3 class="validation-panel__title">Décision administrateur</h3>
+                  <label class="reject-field">
+                    <span>Motif de refus (obligatoire si vous refusez)</span>
+                    <textarea
+                      [(ngModel)]="rejectReason"
+                      rows="3"
+                      placeholder="Ex. document illisible, informations non conformes…"
+                    ></textarea>
+                  </label>
+                </section>
+              }
+
+              @if (showDeactivateForm) {
+                <label class="reject-field">
+                  <span>Motif de désactivation</span>
+                  <textarea [(ngModel)]="deactivateReason" rows="3" placeholder="Motif obligatoire…"></textarea>
+                </label>
+              }
+            }
+          </div>
+          <div class="action-modal__footer">
+            <button type="button" class="btn btn--ghost" [disabled]="actionLoading" (click)="closeDetail()">Fermer</button>
+
+            @if (selectedItem && isPending(selectedItem) && !showDeactivateForm) {
+              <button type="button" class="btn btn--approve" [disabled]="actionLoading" (click)="approveSelected()">
+                {{ actionLoading ? 'Traitement…' : 'Valider' }}
+              </button>
+              <button
+                type="button"
+                class="btn btn--reject"
+                [disabled]="actionLoading || !rejectReason.trim()"
+                (click)="rejectSelected()"
+              >
+                Refuser
+              </button>
+            }
+            @if (selectedItem && canDeactivateOrg(selectedItem) && showDeactivateForm) {
+              <button type="button" class="btn btn--reject" [disabled]="actionLoading || !deactivateReason.trim()" (click)="deactivateOrg(selectedItem)">Confirmer la désactivation</button>
+            }
+            @if (selectedItem && canActivateOrg(selectedItem)) {
+              <button type="button" class="btn btn--approve" [disabled]="actionLoading" (click)="activateOrg(selectedItem)">Activer</button>
+            }
+            @if (selectedParticipant && canActivateParticipant(selectedParticipant)) {
+              <button type="button" class="btn btn--approve" [disabled]="actionLoading" (click)="activateParticipant(selectedParticipant)">Activer</button>
+            }
+            @if (selectedParticipant && canDeactivateParticipant(selectedParticipant) && showDeactivateForm) {
+              <button type="button" class="btn btn--reject" [disabled]="actionLoading || !deactivateReason.trim()" (click)="deactivateParticipant(selectedParticipant)">Confirmer la désactivation</button>
+            }
+          </div>
         </div>
-
-        @if (hasDocument(selectedItem)) {
-          <div class="doc-box">
-            <span>Document de verification</span>
-            <button type="button" class="doc-link" (click)="openDocument()">Ouvrir</button>
-          </div>
-        }
-
-        @if (selectedItem.status === 'Rejeté' && selectedItem.rejectionReason) {
-          <div class="reject-box">
-            <span>Motif de rejet</span>
-            <p>{{ selectedItem.rejectionReason }}</p>
-          </div>
-        }
-
-        @if (isPending(selectedItem)) {
-          <textarea
-            [(ngModel)]="rejectReason"
-            rows="3"
-            placeholder="Motif de rejet (obligatoire si rejet)..."
-          ></textarea>
-
-          <div class="actions">
-            <button type="button" class="btn btn--approve" [disabled]="actionLoading" (click)="approveSelected()">
-              {{ actionLoading ? 'Traitement…' : 'Approuver' }}
-            </button>
-            <button
-              type="button"
-              class="btn btn--reject"
-              [disabled]="actionLoading || !rejectReason.trim()"
-              (click)="rejectSelected()"
-            >
-              Rejeter
-            </button>
-          </div>
-        }
-      </article>
+      </div>
     }
-
-    <article class="audit-card">
-      <h2>Historique d'audit</h2>
-      @if (auditLogs.length === 0) {
-        <p class="admin-muted">Aucun log pour le moment.</p>
-      } @else {
-        @for (log of auditLogs; track log.id) {
-          <div class="audit-row">
-            <span><strong>{{ log.action }}</strong> — {{ log.cibleType }} #{{ log.cibleId }}</span>
-            <span>{{ log.createdAt | date:'yyyy-MM-dd HH:mm' }}</span>
-          </div>
-        }
-      }
-    </article>
   }
 </section>

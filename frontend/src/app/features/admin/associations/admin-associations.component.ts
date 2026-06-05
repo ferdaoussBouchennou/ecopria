@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -9,6 +9,8 @@ import {
   AdminAssociationProfileRequest,
 } from '../../../core/models/admin.model';
 
+type FormMode = 'create' | 'edit' | 'view';
+
 @Component({
   selector: 'app-admin-associations',
   standalone: true,
@@ -16,7 +18,7 @@ import {
   templateUrl: './admin-associations.component.html',
   styleUrl: './admin-associations.component.scss',
 })
-export class AdminAssociationsComponent implements OnInit {
+export class AdminAssociationsComponent implements OnInit, OnDestroy {
   loading = true;
   saving = false;
   error = '';
@@ -25,6 +27,8 @@ export class AdminAssociationsComponent implements OnInit {
   search = '';
   items: AdminAssociationProfile[] = [];
   editingId: number | null = null;
+  formVisible = false;
+  formMode: FormMode = 'create';
 
   form: AdminAssociationProfileRequest = this.emptyForm();
   logoFile: File | null = null;
@@ -36,6 +40,32 @@ export class AdminAssociationsComponent implements OnInit {
 
   ngOnInit(): void {
     this.reload();
+  }
+
+  ngOnDestroy(): void {
+    this.clearLogoSelection();
+    document.body.style.overflow = '';
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.formVisible && !this.saving) {
+      this.closeForm();
+    }
+  }
+
+  get isFormReadonly(): boolean {
+    return this.formMode === 'view';
+  }
+
+  get formTitle(): string {
+    if (this.formMode === 'view') {
+      return 'Détail de l’association';
+    }
+    if (this.formMode === 'edit') {
+      return 'Modifier l’association';
+    }
+    return 'Nouvelle association';
   }
 
   get filteredItems(): AdminAssociationProfile[] {
@@ -67,20 +97,54 @@ export class AdminAssociationsComponent implements OnInit {
     });
   }
 
-  startCreate(): void {
+  openCreate(): void {
+    this.resetFormState();
+    this.formVisible = true;
+    this.formMode = 'create';
+    this.lockBodyScroll();
+  }
+
+  viewItem(item: AdminAssociationProfile): void {
+    this.resetFormState();
+    this.editingId = item.id;
+    this.formVisible = true;
+    this.formMode = 'view';
+    this.lockBodyScroll();
+    this.loadDetail(item.id);
+  }
+
+  editItem(item: AdminAssociationProfile): void {
+    this.resetFormState();
+    this.editingId = item.id;
+    this.formVisible = true;
+    this.formMode = 'edit';
+    this.lockBodyScroll();
+    this.loadDetail(item.id);
+  }
+
+  switchToEdit(): void {
+    if (this.formMode === 'view') {
+      this.formMode = 'edit';
+    }
+  }
+
+  closeForm(): void {
+    this.formVisible = false;
+    this.resetFormState();
+    this.formError = '';
+    document.body.style.overflow = '';
+  }
+
+  private resetFormState(): void {
     this.editingId = null;
     this.form = this.emptyForm();
     this.clearLogoSelection();
     this.existingLogoUrl = null;
-    this.message = '';
     this.formError = '';
   }
 
-  startEdit(item: AdminAssociationProfile): void {
-    this.editingId = item.id;
-    this.message = '';
-    this.clearLogoSelection();
-    this.admin.getAssociationProfile(item.id).subscribe({
+  private loadDetail(id: number): void {
+    this.admin.getAssociationProfile(id).subscribe({
       next: (detail) => {
         this.form = {
           name: detail.name ?? '',
@@ -96,6 +160,7 @@ export class AdminAssociationsComponent implements OnInit {
       },
       error: () => {
         this.message = 'Impossible de charger le détail de l’association.';
+        this.closeForm();
       },
     });
   }
@@ -134,18 +199,19 @@ export class AdminAssociationsComponent implements OnInit {
   }
 
   submit(): void {
+    if (this.isFormReadonly) {
+      return;
+    }
     this.formError = '';
     this.message = '';
     const name = this.form.name?.trim() ?? '';
     const email = this.form.email?.trim() ?? '';
     if (!name || !email) {
       this.formError = 'Nom et e-mail sont obligatoires.';
-      this.scrollToFormFeedback();
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       this.formError = 'E-mail invalide (ex. contact@association.ma).';
-      this.scrollToFormFeedback();
       return;
     }
 
@@ -160,13 +226,11 @@ export class AdminAssociationsComponent implements OnInit {
       validated: this.form.validated !== false,
     };
 
-    if (this.editingId == null) {
-      if (this.form.password?.trim()) {
-        body.password = this.form.password.trim();
-      }
+    if (this.formMode === 'create' && this.form.password?.trim()) {
+      body.password = this.form.password.trim();
     }
 
-    const isEdit = this.editingId != null;
+    const isEdit = this.formMode === 'edit' && this.editingId != null;
     this.saving = true;
 
     const save$ = isEdit
@@ -208,17 +272,12 @@ export class AdminAssociationsComponent implements OnInit {
           } else {
             this.message = isEdit ? 'Association mise à jour.' : 'Association créée.';
           }
-          this.editingId = null;
-          this.form = this.emptyForm();
-          this.clearLogoSelection();
-          this.existingLogoUrl = null;
+          this.closeForm();
           this.reload();
-          this.scrollToFormFeedback();
         },
         error: (err: HttpErrorResponse) => {
           this.saving = false;
           this.formError = this.extractError(err, 'Enregistrement impossible.');
-          this.scrollToFormFeedback();
         },
       });
   }
@@ -242,6 +301,10 @@ export class AdminAssociationsComponent implements OnInit {
       return this.logoSrc({ logoUrl: this.existingLogoUrl } as AdminAssociationProfile);
     }
     return null;
+  }
+
+  private lockBodyScroll(): void {
+    document.body.style.overflow = 'hidden';
   }
 
   private emptyForm(): AdminAssociationProfileRequest {
@@ -272,11 +335,5 @@ export class AdminAssociationsComponent implements OnInit {
       return body.detail;
     }
     return fallback;
-  }
-
-  private scrollToFormFeedback(): void {
-    setTimeout(() => {
-      document.getElementById('association-form-feedback')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 0);
   }
 }

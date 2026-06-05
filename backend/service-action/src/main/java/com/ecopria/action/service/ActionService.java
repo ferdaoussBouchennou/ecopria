@@ -428,6 +428,25 @@ public class ActionService {
     }
 
     @Transactional
+    public void activateFixedAction(Map<String, Object> event) {
+        Long actionFixeId = event.containsKey("actionFixeId") ? Long.valueOf(event.get("actionFixeId").toString())
+                : (event.containsKey("id") ? Long.valueOf(event.get("id").toString()) : null);
+
+        if (actionFixeId == null) {
+            log.warn("Impossible de réactiver l'action fixe, ID manquant: {}", event);
+            return;
+        }
+
+        actionRepository.findByActionFixeId(actionFixeId).ifPresent(action -> {
+            if (action.getStatus() == ActionStatus.CANCELLED) {
+                action.setStatus(ActionStatus.PUBLISHED);
+                actionRepository.save(action);
+                log.info("Action fixe réactivée: {}", action.getTitle());
+            }
+        });
+    }
+
+    @Transactional
     public void deactivateFixedAction(Map<String, Object> event) {
         Long actionFixeId = event.containsKey("actionFixeId") ? Long.valueOf(event.get("actionFixeId").toString())
                 : (event.containsKey("id") ? Long.valueOf(event.get("id").toString()) : null);

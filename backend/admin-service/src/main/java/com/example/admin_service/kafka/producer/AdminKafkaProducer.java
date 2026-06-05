@@ -29,6 +29,11 @@ public class AdminKafkaProducer {
                 String.valueOf(event.getActionFixeId()), event);
     }
 
+    public void publishActionFixeActivee(ActionFixeEvent event) {
+        kafkaTemplate.send("action.fixe.activee",
+                String.valueOf(event.getActionFixeId()), event);
+    }
+
     public void publishCategorieCreee(CategorieEvent event) {
         kafkaTemplate.send("categorie.creee", event.getNom(), event);
     }

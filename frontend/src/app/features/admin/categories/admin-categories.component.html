@@ -21,20 +21,17 @@
       <div class="admin-alert admin-alert--error">{{ actionDbError }}</div>
     }
 
+    <div class="page-actions">
+      <button type="button" class="btn-create" (click)="openCreate()">+ Catégorie</button>
+    </div>
+
     <h2 class="section-title">Catégories existantes</h2>
     <div class="cat-grid">
       @if (displayCategories.length === 0) {
         <p class="admin-muted grid-empty">Aucune catégorie pour le moment.</p>
       } @else {
         @for (card of displayCategories; track card.key) {
-          <article
-            class="cat-card"
-            [class.cat-card--selected]="isCardSelected(card)"
-            (click)="openCategory(card)"
-            role="button"
-            tabindex="0"
-            (keydown.enter)="openCategory(card)"
-          >
+          <article class="cat-card">
             <div
               class="cat-card__media"
               [class.cat-card__media--empty]="!hasCategoryImage(card.imageUrl)"
@@ -65,29 +62,28 @@
               @if (card.actionCount > 0) {
                 <p class="cat-card__meta">{{ card.actionCount }} action(s) liée(s)</p>
               }
-              <div class="cat-card__actions" (click)="$event.stopPropagation()">
+              <div class="cat-card__actions">
+                <button type="button" class="action-btn action-btn--view" (click)="openCategory(card)">
+                  Voir
+                </button>
+                <button type="button" class="action-btn action-btn--edit" (click)="openCategory(card)">
+                  Modifier
+                </button>
                 @if (card.adminItem) {
                   <button
                     type="button"
-                    class="btn-outline"
+                    class="action-btn"
+                    [class.action-btn--activate]="card.adminItem!.published === false"
                     (click)="togglePublish(card.adminItem!, $event)"
                   >
                     {{ card.adminItem!.published !== false ? 'Dépublier' : 'Publier' }}
                   </button>
                   <button
                     type="button"
-                    class="btn-text"
+                    class="action-btn action-btn--danger"
                     (click)="deleteItem(card.adminItem!, $event)"
                   >
                     Supprimer
-                  </button>
-                } @else {
-                  <button
-                    type="button"
-                    class="btn-outline"
-                    (click)="openCategory(card); $event.stopPropagation()"
-                  >
-                    Modifier
                   </button>
                 }
               </div>
@@ -97,89 +93,105 @@
       }
     </div>
 
-    <section class="create-panel">
-      <h2 class="section-title section-title--form">{{ formPanelTitle() }}</h2>
-      @if (editingActionDbOnly) {
-        <p class="form-panel-hint">
-          Enregistrez pour synchroniser cette catégorie et ajouter une image.
-        </p>
-      }
-      <form class="create-form" (ngSubmit)="submit()">
-        <label class="field">
-          <span class="field-label">Nom</span>
-          <input
-            type="text"
-            class="field-input"
-            [(ngModel)]="form.nom"
-            name="nom"
-            placeholder="Ex. Mobilité douce"
-            required
-          />
-        </label>
-        <label class="field">
-          <span class="field-label">Sous-titre / description</span>
-          <input
-            type="text"
-            class="field-input"
-            [(ngModel)]="form.description"
-            name="description"
-            placeholder="Vélo, marche &amp; covoiturage"
-          />
-        </label>
-        <label class="field field--inline">
-          <input type="checkbox" [(ngModel)]="form.published" name="published" />
-          <span class="field-label">Publiée (visible sur la plateforme)</span>
-        </label>
-        <div class="field">
-          <span class="field-label">Image</span>
-          <div class="image-upload">
-            @if (previewSrc()) {
-              <div class="image-upload__preview">
-                <img [src]="previewSrc()" alt="Aperçu" />
-                <button type="button" class="image-upload__remove" (click)="removeSelectedImage()">
-                  Retirer
-                </button>
-              </div>
-            } @else {
-              <label class="image-upload__picker">
+    @if (formVisible) {
+      <div
+        class="action-modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="category-form-title"
+        (click)="closeForm()"
+      >
+        <div class="action-modal" (click)="$event.stopPropagation()">
+          <div class="action-modal__header">
+            <h2 id="category-form-title">{{ formPanelTitle() }}</h2>
+            <button type="button" class="btn-close-form" (click)="closeForm()" aria-label="Fermer">✕</button>
+          </div>
+          <div class="action-modal__body">
+            @if (editingActionDbOnly) {
+              <p class="form-panel-hint">
+                Enregistrez pour synchroniser cette catégorie et ajouter une image.
+              </p>
+            }
+            <form class="create-form" (ngSubmit)="submit()">
+              <label class="field">
+                <span class="field-label">Nom</span>
                 <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/jpg,image/webp"
-                  (change)="onImageSelected($event)"
-                  [disabled]="uploadingImage"
+                  type="text"
+                  class="field-input"
+                  [(ngModel)]="form.nom"
+                  name="nom"
+                  placeholder="Ex. Mobilité douce"
+                  required
                 />
-                <span class="image-upload__icon" aria-hidden="true">+</span>
-                <span class="image-upload__text">Choisir une image sur votre ordinateur</span>
-                <span class="image-upload__hint">JPG, PNG ou WEBP — 5 Mo max.</span>
               </label>
-            }
-            @if (uploadingImage) {
-              <p class="image-upload__status">Envoi en cours…</p>
-            }
-            @if (imageFileName && !uploadingImage && form.imageUrl) {
-              <p class="image-upload__status image-upload__status--ok">{{ imageFileName }} — prête</p>
-            }
-            @if (imageUploadError) {
-              <p class="image-upload__error">{{ imageUploadError }}</p>
-            }
+              <label class="field">
+                <span class="field-label">Sous-titre / description</span>
+                <input
+                  type="text"
+                  class="field-input"
+                  [(ngModel)]="form.description"
+                  name="description"
+                  placeholder="Vélo, marche &amp; covoiturage"
+                />
+              </label>
+              <label class="field field--inline">
+                <input type="checkbox" [(ngModel)]="form.published" name="published" />
+                <span class="field-label">Publiée (visible sur la plateforme)</span>
+              </label>
+              <div class="field">
+                <span class="field-label">Image</span>
+                <div class="image-upload">
+                  @if (previewSrc()) {
+                    <div class="image-upload__preview">
+                      <img [src]="previewSrc()" alt="Aperçu" />
+                      <button type="button" class="image-upload__remove" (click)="removeSelectedImage()">
+                        Retirer
+                      </button>
+                    </div>
+                  } @else {
+                    <label class="image-upload__picker">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/jpg,image/webp"
+                        (change)="onImageSelected($event)"
+                        [disabled]="uploadingImage"
+                      />
+                      <span class="image-upload__icon" aria-hidden="true">+</span>
+                      <span class="image-upload__text">Choisir une image sur votre ordinateur</span>
+                      <span class="image-upload__hint">JPG, PNG ou WEBP — 5 Mo max.</span>
+                    </label>
+                  }
+                  @if (uploadingImage) {
+                    <p class="image-upload__status">Envoi en cours…</p>
+                  }
+                  @if (imageFileName && !uploadingImage && form.imageUrl) {
+                    <p class="image-upload__status image-upload__status--ok">{{ imageFileName }} — prête</p>
+                  }
+                  @if (imageUploadError) {
+                    <p class="image-upload__error">{{ imageUploadError }}</p>
+                  }
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="action-modal__footer">
+            <button type="button" class="btn-secondary" [disabled]="saving" (click)="closeForm()">Fermer</button>
+            <button
+              type="button"
+              class="btn-primary"
+              [disabled]="saving || uploadingImage"
+              (click)="submit()"
+            >
+              {{
+                saving
+                  ? 'Enregistrement…'
+                  : (editingId != null || editingActionDbOnly ? 'Enregistrer' : 'Créer la catégorie')
+              }}
+            </button>
           </div>
         </div>
-        <div class="form-actions">
-          @if (editingId != null || editingActionDbOnly) {
-            <button type="button" class="btn-secondary" [disabled]="saving" (click)="startCreate()">
-              Annuler
-            </button>
-          }
-          <button type="submit" class="btn-primary" [disabled]="saving || uploadingImage">
-            {{
-              saving
-                ? 'Enregistrement…'
-                : (editingId != null || editingActionDbOnly ? 'Enregistrer' : 'Créer la catégorie')
-            }}
-          </button>
-        </div>
-      </form>
-    </section>
+      </div>
+    }
   }
 </section>
 

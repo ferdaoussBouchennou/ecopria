@@ -72,7 +72,8 @@ public class OrganizationVerificationService {
 
     @Transactional
     public void markRejected(User user, String reason) {
-        user.setIsActive(false);
+        // Le compte reste connectable : seul le statut admin passe à REJECTED (motif affiché côté org).
+        user.setIsActive(true);
         user.setAdminVerificationStatus(AdminVerificationStatus.REJECTED);
         user.setRejectionReason(StringUtils.hasText(reason) ? reason.trim() : "Rejet administratif");
     }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -18,7 +18,7 @@ import {
   templateUrl: './admin-users.component.html',
   styleUrl: './admin-users.component.scss',
 })
-export class AdminUsersComponent implements OnInit {
+export class AdminUsersComponent implements OnInit, OnDestroy {
   loading = true;
   acting = false;
   error = '';
@@ -28,6 +28,7 @@ export class AdminUsersComponent implements OnInit {
   roleFilter: AdminUserRole | 'all' = 'all';
   allItems: AdminUser[] = [];
   selected: AdminUser | null = null;
+  detailVisible = false;
   banRaison = '';
   showBanForm = false;
 
@@ -35,6 +36,17 @@ export class AdminUsersComponent implements OnInit {
 
   ngOnInit(): void {
     this.reload();
+  }
+
+  ngOnDestroy(): void {
+    document.body.style.overflow = '';
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.detailVisible && !this.acting) {
+      this.closeDetail();
+    }
   }
 
   get items(): AdminUser[] {
@@ -76,15 +88,13 @@ export class AdminUsersComponent implements OnInit {
   }
 
   applyFilters(): void {
-    this.selected = null;
-    this.showBanForm = false;
+    this.closeDetail();
     this.reload();
   }
 
   setStatusFilter(filter: AdminUserStatusFilter): void {
     this.statusFilter = filter;
-    this.selected = null;
-    this.showBanForm = false;
+    this.closeDetail();
   }
 
   setRoleFilter(role: AdminUserRole | 'all'): void {
@@ -92,11 +102,21 @@ export class AdminUsersComponent implements OnInit {
     this.applyFilters();
   }
 
-  select(user: AdminUser): void {
+  viewUser(user: AdminUser, openBanForm = false): void {
     this.selected = user;
-    this.showBanForm = false;
+    this.showBanForm = openBanForm;
     this.banRaison = '';
     this.message = '';
+    this.detailVisible = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeDetail(): void {
+    this.detailVisible = false;
+    this.selected = null;
+    this.showBanForm = false;
+    this.banRaison = '';
+    document.body.style.overflow = '';
   }
 
   ban(user: AdminUser): void {
@@ -228,6 +248,7 @@ export class AdminUsersComponent implements OnInit {
         this.acting = false;
         this.patchUserLocally(userId, patch);
         onSuccess?.();
+        this.closeDetail();
         this.message = result?.message ?? 'Opération réussie.';
         if (result && !result.emailSent) {
           this.error =

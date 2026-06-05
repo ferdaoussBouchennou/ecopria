@@ -75,7 +75,7 @@
 .table-head--mod,
 .table-row--mod {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 0.75fr 0.7fr 0.85fr;
+  grid-template-columns: 1.5fr 1fr 0.75fr 0.7fr 0.85fr 1.35fr;
   gap: 0.65rem;
   align-items: center;
   padding: 0.78rem 1rem;
@@ -90,12 +90,7 @@
 }
 
 .table-row--mod {
-  width: 100%;
-  border: none;
   border-top: 1px solid var(--ec-border);
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
   font-size: 0.88rem;
   color: var(--ec-text);
   transition: background 0.15s;

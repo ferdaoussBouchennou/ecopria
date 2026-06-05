@@ -2,8 +2,8 @@
   <p class="admin-eyebrow"><span class="eyebrow-line"></span> Gouvernance</p>
   <h1 class="admin-page__title">Actions.</h1>
   <p class="admin-desc">
-    Templates d'actions disponibles dans toute la plateforme. Chaque opération publie un événement Kafka
-    (créée, modifiée, désactivée).
+    Gérez les templates d’actions fixes et les actions créées pour les associations.
+    Les actions fixes sont synchronisées via Kafka ; les actions association sont publiées directement.
   </p>
 
   @if (message) {
@@ -15,102 +15,234 @@
   } @else if (error) {
     <div class="admin-alert admin-alert--error">{{ error }}</div>
   } @else {
-    <div class="toolbar">
-      <div class="type-switch">
-        <button type="button" class="chip" [class.chip--active]="actionType === 'fixed'" (click)="setActionType('fixed')">
-          Fixe action
+    <div class="page-actions">
+      <button type="button" class="btn-create btn-create--fixed" (click)="openCreateFixed()">
+        + Action fixe
+      </button>
+      <button type="button" class="btn-create btn-create--asso" (click)="openCreateAssociation()">
+        + Action pour une association
+      </button>
+    </div>
+
+    <div class="list-toolbar">
+      <div class="list-tabs">
+        <button
+          type="button"
+          class="list-tab"
+          [class.list-tab--active]="listType === 'fixed'"
+          (click)="switchListType('fixed')"
+        >
+          Actions fixes <span class="list-tab__count">{{ items.length }}</span>
         </button>
         <button
           type="button"
-          class="chip"
-          [class.chip--active]="actionType === 'non-fixed'"
-          (click)="setActionType('non-fixed')"
+          class="list-tab"
+          [class.list-tab--active]="listType === 'non-fixed'"
+          (click)="switchListType('non-fixed')"
         >
-          Non fix
+          Actions association <span class="list-tab__count">{{ nonFixedItems.length }}</span>
         </button>
       </div>
       <input
         type="search"
         class="search-input"
         [(ngModel)]="search"
-        placeholder="Rechercher par titre ou catégorie…"
+        (ngModelChange)="onSearchChange()"
+        [placeholder]="listType === 'fixed' ? 'Rechercher titre, catégorie…' : 'Rechercher titre, association, ville…'"
       />
     </div>
 
+    @if (listType === 'fixed') {
+      <div class="status-filters">
+        <button type="button" class="filter-chip" [class.filter-chip--active]="fixedStatusFilter === 'all'" (click)="setFixedStatusFilter('all')">
+          Toutes ({{ items.length }})
+        </button>
+        <button type="button" class="filter-chip" [class.filter-chip--active]="fixedStatusFilter === 'active'" (click)="setFixedStatusFilter('active')">
+          Actives ({{ countFixedActive }})
+        </button>
+        <button type="button" class="filter-chip" [class.filter-chip--active]="fixedStatusFilter === 'inactive'" (click)="setFixedStatusFilter('inactive')">
+          Désactivées ({{ countFixedInactive }})
+        </button>
+      </div>
+    } @else {
+      <div class="status-filters">
+        <button type="button" class="filter-chip" [class.filter-chip--active]="assoStatusFilter === 'all'" (click)="setAssoStatusFilter('all')">
+          Toutes ({{ nonFixedItems.length }})
+        </button>
+        <button type="button" class="filter-chip" [class.filter-chip--active]="assoStatusFilter === 'PUBLISHED'" (click)="setAssoStatusFilter('PUBLISHED')">
+          Publiées
+        </button>
+        <button type="button" class="filter-chip" [class.filter-chip--active]="assoStatusFilter === 'DRAFT'" (click)="setAssoStatusFilter('DRAFT')">
+          Brouillons ({{ countAssoDraft }})
+        </button>
+        <button type="button" class="filter-chip" [class.filter-chip--active]="assoStatusFilter === 'CANCELLED'" (click)="setAssoStatusFilter('CANCELLED')">
+          Désactivées ({{ countAssoCancelled }})
+        </button>
+        <button type="button" class="filter-chip" [class.filter-chip--active]="assoStatusFilter === 'COMPLETED'" (click)="setAssoStatusFilter('COMPLETED')">
+          Terminées
+        </button>
+      </div>
+    }
+
     <article class="table-card">
-      <header class="table-head table-head--actions">
-        <span>Titre</span>
-        <span>Catégorie</span>
-        <span>Points</span>
-        <span>Statut</span>
-        <span>Actions</span>
-      </header>
-      @if (actionType === 'fixed') {
+      @if (listType === 'fixed') {
+        <header class="table-head table-head--fixed">
+          <span>Titre</span>
+          <span>Catégorie</span>
+          <span>Points</span>
+          <span>Statut</span>
+          <span>Mise à jour</span>
+          <span>Actions</span>
+        </header>
         @if (filteredItems.length === 0) {
           <p class="admin-muted table-empty">Aucune action fixe pour le moment.</p>
         } @else {
-          @for (item of filteredItems; track item.id) {
-            <div
-              class="table-row table-row--actions"
-              [class.table-row--selected]="editingId === item.id"
-              (click)="startEdit(item)"
-              role="button"
-              tabindex="0"
-              (keydown.enter)="startEdit(item)"
-            >
-              <span>{{ item.titre }}</span>
+          @for (item of paginatedFixedItems; track item.id) {
+            <div class="table-row table-row--fixed">
+              <span class="cell-title">{{ item.titre }}</span>
               <span>{{ item.categorie }}</span>
               <span>{{ item.points }} pts</span>
               <span>
                 <span class="status-pill" [ngClass]="statusClass(item)">{{ statusLabel(item) }}</span>
               </span>
-              <span class="row-actions" (click)="$event.stopPropagation()">
-                @if (item.active) {
-                  <button type="button" class="link-btn" (click)="deactivate(item, $event)">Désactiver</button>
-                } @else {
-                  <span class="admin-muted">—</span>
+              <span class="cell-muted">{{ formatUpdatedAt(item.updatedAt) }}</span>
+              <span class="row-actions">
+                <button type="button" class="action-btn action-btn--view" (click)="viewFixed(item)">Voir</button>
+                <button type="button" class="action-btn action-btn--edit" (click)="editFixed(item)">Modifier</button>
+                @if (canActivateFixed(item)) {
+                  <button type="button" class="action-btn action-btn--activate" (click)="activateFixed(item)">
+                    Activer
+                  </button>
+                }
+                @if (canDeactivateFixed(item)) {
+                  <button type="button" class="action-btn action-btn--danger" (click)="deactivateFixed(item)">
+                    Désactiver
+                  </button>
                 }
               </span>
             </div>
           }
+          @if (totalPagesFixed > 1) {
+            <div class="pagination">
+              <button
+                type="button"
+                class="pagination__btn"
+                [disabled]="currentPageFixed === 1"
+                (click)="changePageFixed(currentPageFixed - 1)"
+              >
+                Précédent
+              </button>
+              <span class="pagination__info">
+                Page <strong>{{ currentPageFixed }}</strong> / {{ totalPagesFixed }}
+                <span class="pagination__sub">({{ paginationLabelFixed }})</span>
+              </span>
+              <button
+                type="button"
+                class="pagination__btn"
+                [disabled]="currentPageFixed === totalPagesFixed"
+                (click)="changePageFixed(currentPageFixed + 1)"
+              >
+                Suivant
+              </button>
+            </div>
+          }
         }
       } @else {
+        <header class="table-head table-head--asso">
+          <span>Titre</span>
+          <span>Association</span>
+          <span>Ville</span>
+          <span>Date</span>
+          <span>Points</span>
+          <span>Places</span>
+          <span>Statut</span>
+          <span>Actions</span>
+        </header>
         @if (filteredNonFixedItems.length === 0) {
-          <p class="admin-muted table-empty">Aucune action non fixe pour le moment.</p>
+          <p class="admin-muted table-empty">Aucune action association pour le moment.</p>
         } @else {
-          @for (item of filteredNonFixedItems; track item.id) {
-            <div
-              class="table-row table-row--actions"
-              [class.table-row--selected]="editingNonFixedId === item.id"
-              (click)="startEditNonFixed(item)"
-              role="button"
-              tabindex="0"
-              (keydown.enter)="startEditNonFixed(item)"
-            >
-              <span>{{ item.title }}</span>
-              <span>{{ item.categoryName }}</span>
+          @for (item of paginatedNonFixedItems; track item.id) {
+            <div class="table-row table-row--asso">
+              <span class="cell-title">{{ item.title }}</span>
+              <span>{{ item.associationName || '—' }}</span>
+              <span>{{ item.city || '—' }}</span>
+              <span>{{ formatTableDate(item.dateStart) }}</span>
               <span>{{ item.points }} pts</span>
+              <span>{{ item.maxParticipants ?? '—' }}</span>
               <span>
-                <span class="status-pill" [ngClass]="item.status === 'PUBLISHED' ? 'status-pill--active' : 'status-pill--draft'">
-                  {{ item.status === 'PUBLISHED' ? 'Active' : 'Brouillon' }}
-                </span>
+                <span class="status-pill" [ngClass]="nonFixedStatusClass(item)">{{ nonFixedStatusLabel(item) }}</span>
               </span>
-              <span class="row-actions" (click)="$event.stopPropagation()">
-                @if (item.status !== 'CANCELLED') {
-                  <button type="button" class="link-btn" (click)="deactivateNonFixed(item, $event)">Désactiver</button>
-                } @else {
-                  <span class="admin-muted">—</span>
+              <span class="row-actions">
+                <button type="button" class="action-btn action-btn--view" (click)="viewNonFixed(item)">Voir</button>
+                <button type="button" class="action-btn action-btn--edit" (click)="editNonFixed(item)">Modifier</button>
+                @if (canActivateNonFixed(item)) {
+                  <button type="button" class="action-btn action-btn--activate" (click)="activateNonFixed(item)">
+                    Activer
+                  </button>
+                }
+                @if (canDeactivateNonFixed(item)) {
+                  <button type="button" class="action-btn action-btn--danger" (click)="deactivateNonFixed(item)">
+                    Désactiver
+                  </button>
                 }
               </span>
+            </div>
+          }
+          @if (totalPagesNonFixed > 1) {
+            <div class="pagination">
+              <button
+                type="button"
+                class="pagination__btn"
+                [disabled]="currentPageNonFixed === 1"
+                (click)="changePageNonFixed(currentPageNonFixed - 1)"
+              >
+                Précédent
+              </button>
+              <span class="pagination__info">
+                Page <strong>{{ currentPageNonFixed }}</strong> / {{ totalPagesNonFixed }}
+                <span class="pagination__sub">({{ paginationLabelNonFixed }})</span>
+              </span>
+              <button
+                type="button"
+                class="pagination__btn"
+                [disabled]="currentPageNonFixed === totalPagesNonFixed"
+                (click)="changePageNonFixed(currentPageNonFixed + 1)"
+              >
+                Suivant
+              </button>
             </div>
           }
         }
       }
     </article>
 
-    <article class="form-card">
-      <h2>{{ actionType === 'fixed' ? (editingId != null ? 'Modifier l’action fixe' : 'Nouvelle action fixe') : (editingNonFixedId != null ? 'Modifier l’action non fixe' : 'Nouvelle action non fixe') }}</h2>
-      @if (actionType === 'fixed') {
+    @if (formVisible) {
+    <div
+      class="action-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="admin-action-form-title"
+      (click)="closeForm()"
+    >
+      <div
+        class="action-modal"
+        [class.action-modal--wide]="formKind === 'non-fixed'"
+        id="admin-action-form"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="action-modal__header">
+          <h2 id="admin-action-form-title">{{ formTitle }}</h2>
+          <button type="button" class="btn-close-form" (click)="closeForm()" aria-label="Fermer">✕</button>
+        </div>
+        <div class="action-modal__body">
+      <fieldset class="form-fieldset" [disabled]="isFormReadonly">
+      @if (formKind === 'fixed') {
+        @if (formMode === 'view' && viewingFixedItem) {
+          <div class="view-meta">
+            <span>Statut : <strong>{{ statusLabel(viewingFixedItem) }}</strong></span>
+            <span>Dernière mise à jour : <strong>{{ formatUpdatedAt(viewingFixedItem.updatedAt) }}</strong></span>
+          </div>
+        }
         <div class="form-grid">
           <label>
             <span>Titre</span>
@@ -130,131 +262,243 @@
           </label>
         </div>
       } @else {
-        <div class="form-grid">
-          <label class="form-grid__full">
-            <span>Association</span>
-            <select
-              class="field-select"
-              [ngModel]="selectedAssociationId"
-              (ngModelChange)="onAssociationSelected($event)"
-            >
-              <option [ngValue]="null" disabled>Choisir une association…</option>
-              @for (asso of associationChoices; track asso.id) {
-                <option [ngValue]="asso.id">{{ asso.label }}</option>
-              }
-            </select>
-            @if (associationChoices.length === 0) {
-              <span class="field-hint">
-                Aucune association dans service-action (table <code>associations</code>).
-                Validez une association ou lancez service-action avec le profil <code>local</code>.
-              </span>
-            }
-          </label>
-          <label>
-            <span>Titre</span>
-            <input type="text" [(ngModel)]="nonFixedForm.titre" placeholder="Collecte locale" />
-          </label>
-          <label>
-            <span>Catégorie</span>
-            <select class="field-select" [(ngModel)]="nonFixedForm.categorie">
-              <option value="" disabled>Choisir une catégorie…</option>
-              @for (cat of categories; track cat.id) {
-                <option [value]="cat.nom">{{ cat.nom }}</option>
-              }
-            </select>
-          </label>
-          <label>
-            <span>Points</span>
-            <input type="number" min="0" [(ngModel)]="nonFixedForm.points" />
-          </label>
-          <label>
-            <span>Places max.</span>
-            <input type="number" min="1" [(ngModel)]="nonFixedForm.placesTotal" />
-          </label>
-          <label>
-            <span>Date de début</span>
-            <input type="datetime-local" [(ngModel)]="nonFixedForm.dateStart" />
-          </label>
-          <label>
-            <span>Date de fin</span>
-            <input type="datetime-local" [(ngModel)]="nonFixedForm.dateEnd" />
-          </label>
-          <label class="form-grid__full">
-            <span>Description</span>
-            <textarea rows="3" [(ngModel)]="nonFixedForm.description" placeholder="Description de l’action…"></textarea>
-          </label>
-          <label>
-            <span>Adresse</span>
-            <input type="text" [(ngModel)]="nonFixedForm.address" placeholder="12 rue Example" />
-          </label>
-          <label>
-            <span>Ville</span>
-            <input type="text" [(ngModel)]="nonFixedForm.city" placeholder="Casablanca" />
-          </label>
-          <label>
-            <span>Latitude</span>
-            <input type="number" step="0.000001" [(ngModel)]="nonFixedForm.latitude" />
-          </label>
-          <label>
-            <span>Longitude</span>
-            <input type="number" step="0.000001" [(ngModel)]="nonFixedForm.longitude" />
-          </label>
-          <label class="form-grid__full">
-            <span>Programme (une étape par ligne)</span>
-            <textarea
-              rows="4"
-              [(ngModel)]="programText"
-              placeholder="Accueil des participants&#10;Collecte des déchets&#10;Clôture"
-            ></textarea>
-          </label>
-          <label class="form-grid__full">
-            <span>Infos pratiques (une info par ligne)</span>
-            <textarea
-              rows="4"
-              [(ngModel)]="practicalInfosText"
-              placeholder="Apporter des gants&#10;Tenue confortable&#10;Point de rendez-vous : entrée principale"
-            ></textarea>
-          </label>
-          <div class="form-grid__full image-upload">
-            <span class="image-upload__label">Image de l’action</span>
-            @if (photoPreview || existingPhotoUrl) {
-              <div class="image-upload__preview">
-                <img [src]="photoPreview || existingPhotoUrl" alt="Aperçu de l’action" />
-                @if (photoPreview) {
-                  <button type="button" class="image-upload__remove" (click)="clearPhotoSelection()">
-                    Annuler la nouvelle image
-                  </button>
+        <div class="non-fixed-form">
+          <section class="form-section">
+            <h3 class="form-section__title">Informations de base</h3>
+            <div class="form-grid">
+              <label class="form-grid__full">
+                <span>Association <span class="required">*</span></span>
+                <select
+                  class="field-select"
+                  [ngModel]="selectedAssociationId"
+                  (ngModelChange)="onAssociationSelected($event)"
+                >
+                  <option [ngValue]="null" disabled>Choisir une association…</option>
+                  @for (asso of associationChoices; track asso.id) {
+                    <option [ngValue]="asso.id">{{ asso.label }}</option>
+                  }
+                </select>
+                @if (associationChoices.length === 0) {
+                  <span class="field-hint">
+                    Aucune association dans service-action. Créez-en une via l’espace association ou le script de seed.
+                  </span>
                 }
-              </div>
-            }
-            <label class="image-upload__picker">
-              <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onPhotoSelected($event)" />
-              <span class="image-upload__icon" aria-hidden="true">+</span>
-              <span class="image-upload__text">
-                {{ (photoPreview || existingPhotoUrl) ? 'Changer l’image' : 'Choisir une image sur votre ordinateur' }}
-              </span>
-              <span class="image-upload__hint">JPG, PNG ou WEBP — 5 Mo max. Envoyée à l’enregistrement.</span>
-            </label>
-            @if (photoError) {
-              <p class="image-upload__error">{{ photoError }}</p>
-            }
-          </div>
+              </label>
+              <label>
+                <span>Titre <span class="required">*</span></span>
+                <input type="text" [(ngModel)]="nonFixedForm.titre" placeholder="Ex : Nettoyage de la plage" />
+              </label>
+              <label>
+                <span>Catégorie <span class="required">*</span></span>
+                <select class="field-select" [(ngModel)]="nonFixedForm.categorie">
+                  <option value="" disabled>Choisir une catégorie…</option>
+                  @for (cat of categories; track cat.id) {
+                    <option [value]="cat.nom">{{ cat.nom }}</option>
+                  }
+                </select>
+              </label>
+              <label class="form-grid__full">
+                <span>Description <span class="required">*</span></span>
+                <textarea
+                  rows="4"
+                  [(ngModel)]="nonFixedForm.description"
+                  placeholder="Décrivez l’action en détail…"
+                ></textarea>
+              </label>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h3 class="form-section__title">Date et horaires</h3>
+            <div class="form-grid">
+              <label>
+                <span>Date et heure de début <span class="required">*</span></span>
+                <input type="datetime-local" [(ngModel)]="nonFixedForm.dateStart" [min]="minDateTime" />
+              </label>
+              <label>
+                <span>Date et heure de fin <span class="required">*</span></span>
+                <input type="datetime-local" [(ngModel)]="nonFixedForm.dateEnd" [min]="minDateTime" />
+              </label>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h3 class="form-section__title">Localisation</h3>
+            <div class="form-grid">
+              <label class="form-grid__full">
+                <span>Adresse <span class="required">*</span></span>
+                <input type="text" [(ngModel)]="nonFixedForm.address" placeholder="Ex : 123 Rue de la Plage" />
+              </label>
+              <label>
+                <span>Ville <span class="required">*</span></span>
+                <input type="text" [(ngModel)]="nonFixedForm.city" placeholder="Ex : Casablanca" />
+              </label>
+              <label>
+                <span>Code postal</span>
+                <input type="text" [(ngModel)]="postalCode" placeholder="Ex : 20000" />
+              </label>
+            </div>
+
+            <div class="form-grid__full geocode-row">
+              <button
+                type="button"
+                class="btn-geocode"
+                (click)="rechercherAdresse()"
+                [disabled]="!nonFixedForm.address || !nonFixedForm.city || isGeocoding"
+              >
+                @if (isGeocoding) {
+                  Recherche en cours…
+                } @else {
+                  Localiser l’adresse sur la carte
+                }
+              </button>
+              @if (geocodeError) {
+                <p class="field-error">{{ geocodeError }}</p>
+              }
+              @if (geocodeSuccess) {
+                <p class="field-success">Adresse trouvée. Cliquez sur la carte pour ajuster la position exacte.</p>
+              }
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Latitude</span>
+                <input
+                  type="number"
+                  step="0.000001"
+                  [(ngModel)]="nonFixedForm.latitude"
+                  readonly
+                  placeholder="Définie via la carte"
+                />
+              </label>
+              <label>
+                <span>Longitude</span>
+                <input
+                  type="number"
+                  step="0.000001"
+                  [(ngModel)]="nonFixedForm.longitude"
+                  readonly
+                  placeholder="Définie via la carte"
+                />
+              </label>
+            </div>
+
+            <div class="location-status" [class.ready]="isLocationReady">
+              @if (isLocationReady) {
+                <span>Position prête : latitude et longitude renseignées.</span>
+              } @else {
+                <span>La position GPS est obligatoire. Cliquez sur la carte ou utilisez la géolocalisation.</span>
+              }
+            </div>
+
+            <div class="map-container" id="adminLocationMap"></div>
+          </section>
+
+          <section class="form-section">
+            <h3 class="form-section__title">Participants et récompenses</h3>
+            <div class="form-grid">
+              <label>
+                <span>Nombre max. de participants <span class="required">*</span></span>
+                <input type="number" min="1" [(ngModel)]="nonFixedForm.placesTotal" />
+              </label>
+              <label>
+                <span>Points attribués <span class="required">*</span></span>
+                <input type="number" min="1" [(ngModel)]="nonFixedForm.points" />
+              </label>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h3 class="form-section__title">Programme (optionnel)</h3>
+            <div class="dynamic-list">
+              @for (item of programItems; track $index) {
+                <div class="dynamic-item">
+                  <input
+                    type="text"
+                    [(ngModel)]="programItems[$index]"
+                    placeholder="Ex : 9h00 — Accueil des participants"
+                  />
+                  <button type="button" class="btn-remove" (click)="removeProgramItem($index)" aria-label="Supprimer">
+                    ✕
+                  </button>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn-add" (click)="addProgramItem()">+ Ajouter une étape</button>
+          </section>
+
+          <section class="form-section">
+            <h3 class="form-section__title">Informations pratiques (optionnel)</h3>
+            <div class="dynamic-list">
+              @for (item of practicalInfoItems; track $index) {
+                <div class="dynamic-item">
+                  <input
+                    type="text"
+                    [(ngModel)]="practicalInfoItems[$index]"
+                    placeholder="Ex : Prévoir des gants et des sacs"
+                  />
+                  <button
+                    type="button"
+                    class="btn-remove"
+                    (click)="removePracticalInfoItem($index)"
+                    aria-label="Supprimer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn-add" (click)="addPracticalInfoItem()">+ Ajouter une information</button>
+          </section>
+
+          <section class="form-section">
+            <h3 class="form-section__title">Photo (optionnel)</h3>
+            <div class="image-upload">
+              @if (photoPreview || existingPhotoUrl) {
+                <div class="image-upload__preview">
+                  <img [src]="photoPreview || existingPhotoUrl" alt="Aperçu de l’action" />
+                  @if (photoPreview) {
+                    <button type="button" class="image-upload__remove" (click)="clearPhotoSelection()">
+                      Annuler la nouvelle image
+                    </button>
+                  }
+                </div>
+              }
+              <label class="image-upload__picker">
+                <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onPhotoSelected($event)" />
+                <span class="image-upload__icon" aria-hidden="true">+</span>
+                <span class="image-upload__text">
+                  {{ (photoPreview || existingPhotoUrl) ? 'Changer l’image' : 'Choisir une image sur votre ordinateur' }}
+                </span>
+                <span class="image-upload__hint">JPG, PNG ou WEBP — 5 Mo max.</span>
+              </label>
+              @if (photoError) {
+                <p class="image-upload__error">{{ photoError }}</p>
+              }
+            </div>
+          </section>
         </div>
       }
-      <div class="form-actions">
-        @if (editingId != null || editingNonFixedId != null) {
-          <button type="button" class="btn btn--ghost" [disabled]="saving" (click)="startCreate()">
-            Annuler
+      </fieldset>
+        </div>
+        <div class="action-modal__footer form-actions">
+          <button type="button" class="btn btn--ghost" [disabled]="saving" (click)="closeForm()">
+            Fermer
           </button>
-        }
-        <button type="button" class="btn btn--primary" [disabled]="saving" (click)="submit()">
-          {{
-            saving
-              ? 'Enregistrement…'
-              : ((editingId != null || editingNonFixedId != null) ? 'Enregistrer' : 'Créer')
-          }}
-        </button>
+          @if (isFormReadonly) {
+            <button type="button" class="btn btn--primary" (click)="switchToEdit()">Modifier</button>
+          } @else {
+            <button type="button" class="btn btn--primary" [disabled]="saving" (click)="submit()">
+              {{
+                saving
+                  ? 'Enregistrement…'
+                  : (formMode === 'edit' ? 'Enregistrer' : 'Créer')
+              }}
+            </button>
+          }
+        </div>
       </div>
-    </article>
+    </div>
+    }
   }
 </section>

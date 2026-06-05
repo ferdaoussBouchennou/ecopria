@@ -249,6 +249,7 @@ public class InternalUserService {
                 .rejectionReason(user.getRejectionReason())
                 .createdAt(user.getCreatedAt())
                 .status(statusLabel)
+                .isActive(user.getIsActive())
                 .build();
     }
 
