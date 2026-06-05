@@ -7,10 +7,12 @@ import com.example.auth_service.dto.OrganizationAccountsPageResponse;
 import com.example.auth_service.dto.PendingAccountResponse;
 import com.example.auth_service.dto.UserInternalResponse;
 import com.example.auth_service.dto.UserStatsResponse;
+import com.example.auth_service.entity.AdminVerificationStatus;
 import com.example.auth_service.entity.RegistrationProfile;
 import com.example.auth_service.entity.User;
 import com.example.auth_service.repository.RegistrationProfileRepository;
 import com.example.auth_service.repository.UserRepository;
+import com.example.auth_service.repository.VerificationDocumentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +32,8 @@ public class InternalUserService {
     private final UserRepository userRepository;
     private final RegistrationProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
+    private final OrganizationVerificationService organizationVerificationService;
+    private final VerificationDocumentRepository verificationDocumentRepository;
 
     public List<UserInternalResponse> getAll() {
         return userRepository.findAll()
@@ -54,7 +58,17 @@ public class InternalUserService {
     public void activate(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + id));
-        user.setIsActive(true);
+        organizationVerificationService.markApproved(user);
+        userRepository.save(user);
+    }
+
+    public void rejectOrganization(Long id, String reason) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found: " + id));
+        if (user.getRole() != User.Role.ASSOCIATION && user.getRole() != User.Role.PARTNER) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce compte n'est pas une organisation");
+        }
+        organizationVerificationService.markRejected(user, reason);
         userRepository.save(user);
     }
 
@@ -147,86 +161,105 @@ public class InternalUserService {
 
     public OrganizationAccountsPageResponse getOrganizationAccounts(String filter, List<Long> rejectedUserIds) {
         List<User.Role> orgRoles = List.of(User.Role.ASSOCIATION, User.Role.PARTNER);
-        List<OrganizationAccountResponse> items;
-        long pendingCount;
-        long approvedCount;
-        long rejectedCount;
+        List<User> allOrgUsers = userRepository.findAll().stream()
+                .filter(u -> orgRoles.contains(u.getRole()) && Boolean.TRUE.equals(u.getIsVerified()))
+                .toList();
 
+        List<User> pending = allOrgUsers.stream().filter(this::isPendingOrganization).toList();
+        List<User> approved = allOrgUsers.stream().filter(this::isApprovedOrganization).toList();
+        List<User> rejected = allOrgUsers.stream()
+                .filter(u -> isRejectedOrganization(u, rejectedUserIds))
+                .toList();
+
+        List<OrganizationAccountResponse> items;
         switch (filter == null ? "pending" : filter.toLowerCase()) {
-            case "approved", "valide", "validé", "validee" -> {
-                List<User> users = userRepository.findByRoleInAndIsVerifiedTrueAndIsActiveTrue(orgRoles);
-                items = users.stream().map(u -> toAccount(u, "Validé")).toList();
-                pendingCount = userRepository.findByRoleInAndIsVerifiedTrueAndIsActiveFalse(orgRoles).size();
-                approvedCount = users.size();
-                rejectedCount = rejectedUserIds != null ? rejectedUserIds.size() : 0;
-                break;
-            }
-            case "rejected", "rejete", "rejeté" -> {
-                if (rejectedUserIds == null || rejectedUserIds.isEmpty()) {
-                    items = List.of();
-                } else {
-                    items = userRepository.findAllById(rejectedUserIds).stream()
-                            .filter(u -> u.getRole() == User.Role.ASSOCIATION || u.getRole() == User.Role.PARTNER)
-                            .map(u -> toAccount(u, "Rejeté"))
-                            .toList();
-                }
-                pendingCount = userRepository.findByRoleInAndIsVerifiedTrueAndIsActiveFalse(orgRoles).size();
-                approvedCount = userRepository.findByRoleInAndIsVerifiedTrueAndIsActiveTrue(orgRoles).size();
-                rejectedCount = items.size();
-                break;
-            }
+            case "approved", "valide", "validé", "validee" ->
+                    items = approved.stream().map(u -> toAccount(u, "Validé")).toList();
+            case "rejected", "rejete", "rejeté" ->
+                    items = rejected.stream().map(u -> toAccount(u, "Rejeté")).toList();
             case "all", "tous" -> {
-                List<User> pending = userRepository.findByRoleInAndIsVerifiedTrueAndIsActiveFalse(orgRoles);
-                List<User> approved = userRepository.findByRoleInAndIsVerifiedTrueAndIsActiveTrue(orgRoles);
                 items = new java.util.ArrayList<>();
                 pending.forEach(u -> items.add(toAccount(u, "En attente")));
                 approved.forEach(u -> items.add(toAccount(u, "Validé")));
-                if (rejectedUserIds != null) {
-                    userRepository.findAllById(rejectedUserIds).forEach(u ->
-                            items.add(toAccount(u, "Rejeté")));
-                }
+                rejected.forEach(u -> items.add(toAccount(u, "Rejeté")));
                 items.sort((a, b) -> (b.getCreatedAt() != null ? b.getCreatedAt() : LocalDateTime.MIN)
                         .compareTo(a.getCreatedAt() != null ? a.getCreatedAt() : LocalDateTime.MIN));
-                pendingCount = pending.size();
-                approvedCount = approved.size();
-                rejectedCount = rejectedUserIds != null ? rejectedUserIds.size() : 0;
-                break;
             }
-            default -> {
-                List<User> users = userRepository.findByRoleInAndIsVerifiedTrueAndIsActiveFalse(orgRoles);
-                items = users.stream().map(u -> toAccount(u, "En attente")).toList();
-                pendingCount = users.size();
-                approvedCount = userRepository.findByRoleInAndIsVerifiedTrueAndIsActiveTrue(orgRoles).size();
-                rejectedCount = rejectedUserIds != null ? rejectedUserIds.size() : 0;
-            }
+            default -> items = pending.stream().map(u -> toAccount(u, "En attente")).toList();
         }
 
         return OrganizationAccountsPageResponse.builder()
-                .pendingCount(pendingCount)
-                .approvedCount(approvedCount)
-                .rejectedCount(rejectedCount)
-                .totalCount(pendingCount + approvedCount + rejectedCount)
+                .pendingCount(pending.size())
+                .approvedCount(approved.size())
+                .rejectedCount(rejected.size())
+                .totalCount(pending.size() + approved.size() + rejected.size())
                 .items(items)
                 .build();
     }
 
+    private boolean isPendingOrganization(User user) {
+        if (user.getAdminVerificationStatus() == AdminVerificationStatus.PENDING) {
+            return true;
+        }
+        if (user.getAdminVerificationStatus() == AdminVerificationStatus.REJECTED) {
+            return false;
+        }
+        if (user.getAdminVerificationStatus() == AdminVerificationStatus.APPROVED) {
+            return false;
+        }
+        return Boolean.TRUE.equals(user.getIsVerified()) && !Boolean.TRUE.equals(user.getIsActive());
+    }
+
+    private boolean isApprovedOrganization(User user) {
+        if (user.getAdminVerificationStatus() == AdminVerificationStatus.APPROVED) {
+            return true;
+        }
+        if (user.getAdminVerificationStatus() == AdminVerificationStatus.REJECTED) {
+            return false;
+        }
+        return Boolean.TRUE.equals(user.getIsVerified()) && Boolean.TRUE.equals(user.getIsActive());
+    }
+
+    private boolean isRejectedOrganization(User user, List<Long> legacyRejectedIds) {
+        if (user.getAdminVerificationStatus() == AdminVerificationStatus.REJECTED) {
+            return true;
+        }
+        return legacyRejectedIds != null && legacyRejectedIds.contains(user.getUserId());
+    }
+
     private OrganizationAccountResponse toAccount(User user, String statusLabel) {
-        String name = profileRepository.findById(user.getUserId())
-                .map(RegistrationProfile::getNom)
-                .filter(n -> n != null && !n.isBlank())
-                .orElse(user.getEmail());
+        String orgName = resolveOrganizationName(user);
         String prefix = user.getRole() == User.Role.ASSOCIATION ? "Asso" : "Partenaire";
+        String documentPath = user.getVerificationDocument();
+        if (!StringUtils.hasText(documentPath)) {
+            documentPath = profileRepository.findById(user.getUserId())
+                    .map(RegistrationProfile::getDocument)
+                    .orElse(null);
+        }
+        boolean hasStoredDocument = verificationDocumentRepository.existsById(user.getUserId())
+                || StringUtils.hasText(documentPath);
+
         return OrganizationAccountResponse.builder()
                 .userId(user.getUserId())
                 .email(user.getEmail())
                 .role(user.getRole().name())
-                .name(prefix + " \"" + name + "\"")
-                .documentPath(profileRepository.findById(user.getUserId())
-                        .map(RegistrationProfile::getDocument)
-                        .orElse(null))
+                .name(prefix + " \"" + orgName + "\"")
+                .documentPath(documentPath)
+                .hasStoredDocument(hasStoredDocument)
+                .rejectionReason(user.getRejectionReason())
                 .createdAt(user.getCreatedAt())
                 .status(statusLabel)
                 .build();
+    }
+
+    private String resolveOrganizationName(User user) {
+        if (StringUtils.hasText(user.getOrganizationName())) {
+            return user.getOrganizationName().trim();
+        }
+        return profileRepository.findById(user.getUserId())
+                .map(RegistrationProfile::getNom)
+                .filter(n -> n != null && !n.isBlank())
+                .orElse(user.getEmail());
     }
 
     private PendingAccountResponse toPendingAccount(User user) {

@@ -56,6 +56,8 @@ export interface AccountValidationItem {
   createdAt?: string;
   status: 'En attente' | 'Validé' | 'Rejeté';
   documentPath?: string;
+  hasStoredDocument?: boolean;
+  rejectionReason?: string;
 }
 
 export interface AccountValidationsPage {

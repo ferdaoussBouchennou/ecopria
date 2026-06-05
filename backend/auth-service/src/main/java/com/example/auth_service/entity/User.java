@@ -36,6 +36,19 @@ public class User {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "organization_name", length = 200)
+    private String organizationName;
+
+    @Column(name = "verification_document", length = 500)
+    private String verificationDocument;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "admin_verification_status", length = 20)
+    private AdminVerificationStatus adminVerificationStatus;
+
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
     public enum Role {
         USER,
         ASSOCIATION,

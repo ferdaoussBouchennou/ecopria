@@ -17,6 +17,8 @@ public class OrganizationAccountResponse {
     private String role;
     private String name;
     private String documentPath;
+    private Boolean hasStoredDocument;
+    private String rejectionReason;
     private LocalDateTime createdAt;
     private String status;
 }
