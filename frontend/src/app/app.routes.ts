@@ -37,6 +37,8 @@ import { VisibiliteComponent } from './features/recompense/visibilite/visibilite
 import { CommissionsComponent } from './features/recompense/commissions/commissions.component';
 import { ProfilPartenairePublicComponent } from './features/recompense/profil-partenaire-public/profil-partenaire-public.component';
 import { ListePartenairesComponent } from './features/recompense/liste-partenaires/liste-partenaires.component';
+import { ListeAssociationsComponent } from './features/association/liste-associations/liste-associations.component';
+import { ProfilAssociationPublicComponent } from './features/association/profil-association-public/profil-association-public.component';
 import { RecompensesPubliqueComponent } from './features/recompense/recompenses-publique/recompenses-publique.component';
 import { CommentCaMarcheComponent } from './features/action/comment-ca-marche/comment-ca-marche.component';
 import { DashboardComponent } from './features/utilisateur/dashboard/dashboard.component';
@@ -86,6 +88,8 @@ export const routes: Routes = [
       { path: 'comment-ca-marche', component: CommentCaMarcheComponent },
       { path: 'partenaires', component: ListePartenairesComponent },
       { path: 'partenaires/:userId', component: ProfilPartenairePublicComponent },
+      { path: 'associations', component: ListeAssociationsComponent },
+      { path: 'associations/:authId', component: ProfilAssociationPublicComponent },
       {
         path: 'espace',
         canActivate: [citizenGuard],

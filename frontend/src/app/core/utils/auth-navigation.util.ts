@@ -38,6 +38,8 @@ const USER_PUBLIC_PREFIXES = [
   '/compte-en-attente',
   '/valider-presence/',
   '/partenaires/',
+  '/associations',
+  '/associations/',
 ];
 
 /** Vérifie qu'un returnUrl correspond à l'espace du rôle connecté. */

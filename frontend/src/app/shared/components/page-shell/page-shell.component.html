@@ -8,6 +8,7 @@
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Accueil</a>
       <a routerLink="/carte" routerLinkActive="active">Carte</a>
       <a routerLink="/actions" routerLinkActive="active">Actions</a>
+      <a routerLink="/associations" routerLinkActive="active">Associations</a>
       <a routerLink="/partenaires" routerLinkActive="active">Partenaires</a>
       <a [routerLink]="recompensesLink" routerLinkActive="active">Récompenses</a>
       <a routerLink="/comment-ca-marche" routerLinkActive="active">Comment ça marche</a>
@@ -142,6 +143,7 @@
         <ul>
           <li><a routerLink="/carte">Carte interactive</a></li>
           <li><a routerLink="/actions">Actions</a></li>
+          <li><a routerLink="/associations">Associations</a></li>
           <li><a [routerLink]="recompensesLink">Récompenses</a></li>
           <li><a routerLink="/comment-ca-marche">Comment ça marche</a></li>
           @if (isCitizen) {
@@ -158,7 +160,7 @@
           } @else {
             <li><a [routerLink]="isLoggedIn ? monEspaceLink : ['/connexion']">Mon espace</a></li>
           }
-          <li><a routerLink="/creer-compte">Associations</a></li>
+          <li><a routerLink="/associations">Associations</a></li>
           <li><a routerLink="/partenaires">Partenaires</a></li>
         </ul>
       </div>

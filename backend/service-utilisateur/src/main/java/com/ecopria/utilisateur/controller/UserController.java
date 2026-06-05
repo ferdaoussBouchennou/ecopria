@@ -72,6 +72,26 @@ public class UserController {
         }
     }
 
+    /** Catalogue public des associations (sans authentification). */
+    @GetMapping("/public/associations")
+    public ResponseEntity<List<AssociationPublicProfilDTO>> getAssociationsPublics() {
+        return ResponseEntity.ok(userService.getAssociationsPublics());
+    }
+
+    /** Profil public d'une association par authId. */
+    @GetMapping("/public/association/{authId}")
+    public ResponseEntity<?> getAssociationPublic(@PathVariable Long authId) {
+        try {
+            return ResponseEntity.ok(userService.getAssociationPublic(authId));
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("Association non trouvée")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", e.getMessage(), "authId", authId));
+            }
+            throw e;
+        }
+    }
+
     @GetMapping("/partner/{authId}")
     public ResponseEntity<Partner> getPartner(@PathVariable Long authId) {
         return ResponseEntity.ok(userService.getPartner(authId));
