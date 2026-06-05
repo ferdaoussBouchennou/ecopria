@@ -45,6 +45,7 @@ export class AccueilComponent implements OnInit {
   loadingPartenaires = true;
   previewOffres: RecompenseItemDto[] = [];
   loadingOffres = true;
+  private offreImageErrors: Record<number, boolean> = {};
 
   constructor(
     public auth: AuthService,
@@ -181,6 +182,21 @@ export class AccueilComponent implements OnInit {
     if (img.dataset['fallbackApplied'] === '1') return;
     img.dataset['fallbackApplied'] = '1';
     img.src = CATEGORY_IMAGE_PLACEHOLDER;
+  }
+
+  hasOffreImage(o: RecompenseItemDto): boolean {
+    return !!o.imageUrl?.trim() && !this.offreImageErrors[o.id];
+  }
+
+  offreInitial(o: RecompenseItemDto): string {
+    const t = o.title?.trim();
+    if (t) return t.charAt(0).toUpperCase();
+    const p = o.partenaireName?.trim();
+    return p ? p.charAt(0).toUpperCase() : 'E';
+  }
+
+  onOffreImageError(o: RecompenseItemDto): void {
+    this.offreImageErrors[o.id] = true;
   }
 
   featuredActionLink(action: ActionSummary): string[] {

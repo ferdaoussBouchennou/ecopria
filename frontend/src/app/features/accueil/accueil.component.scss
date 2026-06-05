@@ -555,80 +555,157 @@
   font-size: 0.95rem;
   color: var(--ec-text-soft);
   max-width: 48ch;
+  line-height: 1.55;
 }
 
 .accueil-recompenses__grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
-.accueil-offre-card {
-  position: relative;
-  display: block;
+.accueil-offre {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   border-radius: 16px;
   overflow: hidden;
   text-decoration: none;
   color: inherit;
   border: 1px solid var(--ec-border);
   background: var(--ec-card);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(45, 70, 53, 0.1);
+    transform: translateY(-3px);
+    border-color: var(--ec-brand-sand, #c7af94);
+    box-shadow: 0 14px 36px rgba(28, 25, 23, 0.08);
+
+    .accueil-offre__cta {
+      color: var(--ec-sage);
+    }
+
+    .accueil-offre__media img {
+      transform: scale(1.03);
+    }
   }
 
   &--mystere {
-    border-color: rgba(149, 113, 79, 0.35);
-    background: linear-gradient(180deg, var(--ec-brand-almond) 0%, #fff 35%);
+    border-color: rgba(199, 175, 148, 0.55);
+
+    .accueil-offre__body {
+      background: linear-gradient(180deg, #fff 0%, var(--ec-brand-almond, #eaded0) 120%);
+    }
   }
+}
+
+.accueil-offre__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--ec-cream-deep);
+  flex-shrink: 0;
 
   img {
     width: 100%;
-    aspect-ratio: 4/3;
+    height: 100%;
     object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
   }
 }
 
-.accueil-offre-card__ph {
-  aspect-ratio: 4/3;
-  background: linear-gradient(135deg, var(--ec-mint), var(--ec-cream-deep));
-}
+.accueil-offre__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    145deg,
+    var(--ec-brand-almond, #eaded0) 0%,
+    var(--ec-mint, #e8f3ef) 55%,
+    var(--ec-cream-deep, #f5f1eb) 100%
+  );
 
-.accueil-offre-mystere {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
-  background: linear-gradient(135deg, var(--ec-brand-earth), var(--ec-brand-moss));
-  color: #fff;
-}
-
-.accueil-offre-card__body {
-  padding: 0.85rem 1rem 1rem;
-
-  h3 {
+  span {
     font-family: var(--ec-font-serif);
-    font-size: 1rem;
-    margin: 0.25rem 0 0.15rem;
-    line-height: 1.2;
-  }
-
-  p {
-    margin: 0;
-    font-size: 0.78rem;
-    color: var(--ec-text-muted);
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--ec-sage);
+    opacity: 0.45;
   }
 }
 
-.accueil-offre-pts {
-  font-size: 0.72rem;
+.accueil-offre__badge {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.65rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+
+  &--mystere {
+    background: rgba(255, 255, 255, 0.94);
+    color: var(--ec-brand-earth-dark, #7a5d42);
+    border-color: var(--ec-brand-sand, #c7af94);
+  }
+}
+
+.accueil-offre__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1rem 1.1rem 1.1rem;
+  gap: 0.35rem;
+}
+
+.accueil-offre__meta {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ec-text-muted);
+  line-height: 1.35;
+}
+
+.accueil-offre__body h3 {
+  font-family: var(--ec-font-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.25;
+  color: var(--ec-text);
+  flex: 1;
+}
+
+.accueil-offre__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--ec-border);
+}
+
+.accueil-offre__pts {
+  font-family: var(--ec-font-serif);
+  font-size: 1rem;
   font-weight: 700;
   color: var(--ec-sage);
+}
+
+.accueil-offre__cta {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ec-text-muted);
+  transition: color 0.15s;
 }
 
 .partenaires-grid {

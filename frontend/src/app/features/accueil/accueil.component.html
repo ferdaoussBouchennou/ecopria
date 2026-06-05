@@ -237,19 +237,37 @@
     } @else {
       <div class="accueil-recompenses__grid">
         @for (o of previewOffres; track o.id) {
-          <a class="accueil-offre-card" [class.accueil-offre-card--mystere]="o.hasMystereBox" routerLink="/recompenses">
-            @if (o.imageUrl) {
-              <img [src]="o.imageUrl" [alt]="o.title" loading="lazy" />
-            } @else {
-              <div class="accueil-offre-card__ph"></div>
-            }
-            @if (o.hasMystereBox) {
-              <span class="accueil-offre-mystere">🎁 Mystère</span>
-            }
-            <div class="accueil-offre-card__body">
-              <span class="accueil-offre-pts">{{ o.pointsNecessaires }} pts</span>
+          <a
+            class="accueil-offre"
+            [class.accueil-offre--mystere]="o.hasMystereBox"
+            routerLink="/recompenses"
+          >
+            <div class="accueil-offre__media">
+              @if (hasOffreImage(o)) {
+                <img
+                  [src]="o.imageUrl"
+                  [alt]="o.title"
+                  loading="lazy"
+                  (error)="onOffreImageError(o)"
+                />
+              } @else {
+                <div class="accueil-offre__placeholder" aria-hidden="true">
+                  <span>{{ offreInitial(o) }}</span>
+                </div>
+              }
+              @if (o.hasMystereBox) {
+                <span class="accueil-offre__badge accueil-offre__badge--mystere">Boîte mystère</span>
+              }
+            </div>
+            <div class="accueil-offre__body">
+              <p class="accueil-offre__meta">
+                {{ o.partenaireName }}@if (o.partenaireCategory) { · {{ o.partenaireCategory }} }
+              </p>
               <h3>{{ o.title }}</h3>
-              <p>{{ o.partenaireName }}</p>
+              <div class="accueil-offre__footer">
+                <span class="accueil-offre__pts">{{ o.pointsNecessaires }} pts</span>
+                <span class="accueil-offre__cta">Voir l'offre</span>
+              </div>
             </div>
           </a>
         }
