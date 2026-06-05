@@ -1,7 +1,7 @@
 .carte-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: calc(100vh - 120px);
   background: var(--ec-cream);
 }
 
@@ -255,7 +255,8 @@
   padding: 0.25rem 0.75rem;
   font-size: 0.75rem;
   color: var(--ec-text-soft);
-  z-index: 1000;
+  z-index: 5;
+  pointer-events: none;
 }
 
 .map-loading {
@@ -264,11 +265,12 @@
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  z-index: 2000;
+  z-index: 10;
   background: rgba(255, 255, 255, 0.95);
   padding: 2rem 3rem;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
 
   p {
     margin: 1rem 0 0 0;
@@ -408,49 +410,13 @@
 // ═══════════════════════════════════════════════════════════
 
 :host ::ng-deep {
-  // Fix pour l'affichage des tuiles Leaflet
   .leaflet-container {
     background: #e8e4dc !important;
-  }
-
-  .leaflet-tile-container {
-    opacity: 1 !important;
-    z-index: 200 !important;
-  }
-
-  .leaflet-tile {
-    opacity: 1 !important;
-    visibility: visible !important;
-    display: block !important;
+    z-index: 0;
   }
 
   .leaflet-pane {
     z-index: auto;
-  }
-
-  .leaflet-tile-pane {
-    z-index: 200 !important;
-    opacity: 1 !important;
-  }
-
-  .leaflet-overlay-pane {
-    z-index: 400;
-  }
-
-  .leaflet-shadow-pane {
-    z-index: 500;
-  }
-
-  .leaflet-marker-pane {
-    z-index: 600;
-  }
-
-  .leaflet-tooltip-pane {
-    z-index: 650;
-  }
-
-  .leaflet-popup-pane {
-    z-index: 700;
   }
 
   .custom-marker {
@@ -538,18 +504,13 @@
   }
 
   .search-marker-pin {
-    font-size: 30px;
-    text-align: center;
-    animation: bounce 1s ease-in-out 3;
-  }
-
-  @keyframes bounce {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--ec-sage);
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    margin: 0 auto;
   }
 
   .custom-cluster {

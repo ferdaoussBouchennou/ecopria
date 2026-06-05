@@ -1,7 +1,15 @@
-import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  AfterViewInit,
+  ElementRef,
+  ViewChild
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import * as L from 'leaflet';
 import 'leaflet.markercluster';
 import { ActionService } from '../services/action.service';
@@ -17,10 +25,16 @@ import { formatNaiveTime, parseNaiveDateTime } from '../../../core/utils/datetim
   styleUrls: ['./carte-actions.component.scss']
 })
 export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
-  private map!: L.Map;
-  private markerClusterGroup!: L.MarkerClusterGroup;
+  @ViewChild('mapContainer', { static: true }) mapContainerRef!: ElementRef<HTMLDivElement>;
+
+  private map?: L.Map;
+  private markerClusterGroup?: L.MarkerClusterGroup;
   private userMarker?: L.Marker;
   private tileLayer?: L.TileLayer;
+  private destroyed = false;
+  private mapReady = false;
+  private readonly timers: ReturnType<typeof setTimeout>[] = [];
+  private readonly subs: Subscription[] = [];
 
   actions: ActionSummary[] = [];
   filteredActions: ActionSummary[] = [];
@@ -35,22 +49,17 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private actionService: ActionService,
     private router: Router
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.loadCategories();
-    // Ne pas charger les actions ici, attendre que la carte soit initialisée
   }
 
   ngAfterViewInit(): void {
-    // Configurer les icônes par défaut de Leaflet
-    const iconRetinaUrl = 'leaflet/marker-icon-2x.png';
-    const iconUrl = 'leaflet/marker-icon.png';
-    const shadowUrl = 'leaflet/marker-shadow.png';
     const iconDefault = L.icon({
-      iconRetinaUrl,
-      iconUrl,
-      shadowUrl,
+      iconRetinaUrl: 'leaflet/marker-icon-2x.png',
+      iconUrl: 'leaflet/marker-icon.png',
+      shadowUrl: 'leaflet/marker-shadow.png',
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       popupAnchor: [1, -34],
@@ -59,107 +68,88 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     L.Marker.prototype.options.icon = iconDefault;
 
-    // Attendre que le DOM soit complètement rendu
-    setTimeout(() => {
-      this.initMap();
-
-      // Vérifier que les tuiles sont visibles après initialisation
-      setTimeout(() => {
-        if (this.map) {
-          this.map.invalidateSize();
-
-          // Vérifier les tuiles dans le DOM
-          const tiles = document.querySelectorAll('.leaflet-tile');
-          console.log(`📊 Nombre de tuiles dans le DOM: ${tiles.length}`);
-
-          if (tiles.length > 0) {
-            const firstTile = tiles[0] as HTMLImageElement;
-            console.log('🖼️ Première tuile:', {
-              src: firstTile.src,
-              opacity: window.getComputedStyle(firstTile).opacity,
-              visibility: window.getComputedStyle(firstTile).visibility,
-              display: window.getComputedStyle(firstTile).display
-            });
-          }
-        }
-      }, 500);
-    }, 100);
+    this.schedule(() => this.initMap(), 50);
   }
 
   ngOnDestroy(): void {
-    if (this.tileLayer) {
-      this.tileLayer.remove();
-    }
-    if (this.markerClusterGroup) {
-      this.markerClusterGroup.clearLayers();
-    }
+    this.destroyed = true;
+    this.timers.forEach((t) => clearTimeout(t));
+    this.timers.length = 0;
+    this.subs.forEach((s) => s.unsubscribe());
+    this.subs.length = 0;
+    this.destroyMap();
+  }
+
+  private schedule(fn: () => void, ms: number): void {
+    const id = setTimeout(() => {
+      if (!this.destroyed) fn();
+    }, ms);
+    this.timers.push(id);
+  }
+
+  private destroyMap(): void {
     if (this.map) {
+      this.map.closePopup();
+      this.map.stop();
+
+      if (this.userMarker) {
+        this.map.removeLayer(this.userMarker);
+        this.userMarker = undefined;
+      }
+
+      if (this.markerClusterGroup) {
+        this.markerClusterGroup.clearLayers();
+        this.map.removeLayer(this.markerClusterGroup);
+        this.markerClusterGroup = undefined;
+      }
+
+      if (this.tileLayer) {
+        this.map.removeLayer(this.tileLayer);
+        this.tileLayer = undefined;
+      }
+
+      this.map.off();
       this.map.remove();
+      this.map = undefined;
+    }
+
+    this.mapReady = false;
+
+    const el = this.mapContainerRef?.nativeElement;
+    if (el) {
+      el.innerHTML = '';
+      delete (el as HTMLElement & { _leaflet_id?: number })._leaflet_id;
     }
   }
 
   private initMap(): void {
-    try {
-      // S'assurer que le conteneur existe
-      const mapContainer = document.getElementById('map');
-      if (!mapContainer) {
-        console.error('❌ Conteneur de carte non trouvé');
-        return;
-      }
+    if (this.destroyed || this.map) return;
 
-      // Centrer sur Tétouan par défaut
-      this.map = L.map('map', {
+    const container = this.mapContainerRef?.nativeElement;
+    if (!container) return;
+
+    try {
+      this.map = L.map(container, {
         center: [35.5889, -5.3626],
         zoom: 13,
         zoomControl: true,
-        preferCanvas: false,
-        attributionControl: false,
-        fadeAnimation: true,
-        zoomAnimation: true,
-        markerZoomAnimation: true
+        preferCanvas: true,
+        attributionControl: false
       });
 
-      // Utiliser les tuiles OpenStreetMap avec options optimisées
       this.tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 18,
         minZoom: 3,
-        tileSize: 256,
-        zoomOffset: 0,
-        detectRetina: false,
-        crossOrigin: true,
-        keepBuffer: 4,
         updateWhenIdle: true,
-        updateWhenZooming: false,
-        updateInterval: 200
+        updateWhenZooming: false
       });
 
       this.tileLayer.addTo(this.map);
-
-      // Événements de débogage
-      this.tileLayer.on('load', () => {
-        console.log('✅ Toutes les tuiles chargées avec succès');
-        this.mapLoaded = true;
+      this.tileLayer.once('load', () => {
+        if (!this.destroyed) this.mapLoaded = true;
       });
 
-      this.tileLayer.on('tileerror', (error: any) => {
-        console.error('❌ Erreur de chargement de tuile:', error);
-      });
-
-      this.tileLayer.on('loading', () => {
-        console.log('⏳ Chargement des tuiles en cours...');
-      });
-
-      // Forcer le rafraîchissement de la carte
-      setTimeout(() => {
-        if (this.map) {
-          this.map.invalidateSize();
-          this.map.setView([35.5889, -5.3626], 13);
-          console.log('🗺️ Carte initialisée et redimensionnée');
-        }
-      }, 300);
-
-      // Initialiser le cluster group
       this.markerClusterGroup = L.markerClusterGroup({
         maxClusterRadius: 50,
         spiderfyOnMaxZoom: true,
@@ -180,32 +170,42 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
       this.map.addLayer(this.markerClusterGroup);
+      this.mapReady = true;
 
-      // Charger les actions maintenant que la carte est prête
+      this.schedule(() => {
+        if (this.map && !this.destroyed) {
+          this.map.invalidateSize();
+        }
+      }, 200);
+
       this.loadActions();
     } catch (error) {
-      console.error('❌ Erreur lors de l\'initialisation de la carte:', error);
+      console.error('Erreur initialisation carte:', error);
     }
   }
 
   private loadCategories(): void {
-    this.actionService.getCategories().subscribe({
+    const sub = this.actionService.getCategories().subscribe({
       next: (categories) => {
+        if (this.destroyed) return;
         this.categories = categories;
       },
       error: (err) => console.error('Erreur chargement catégories:', err)
     });
+    this.subs.push(sub);
   }
 
   private loadActions(categoryId?: number): void {
-    this.actionService.getActionsForMap(categoryId).subscribe({
+    const sub = this.actionService.getActionsForMap(categoryId).subscribe({
       next: (actions) => {
-        this.actions = actions.filter(a => a.latitude && a.longitude);
+        if (this.destroyed) return;
+        this.actions = actions.filter((a) => a.latitude && a.longitude);
         this.filteredActions = [...this.actions];
         this.updateMarkers();
       },
       error: (err) => console.error('Erreur chargement actions:', err)
     });
+    this.subs.push(sub);
   }
 
   selectCategory(categoryId: number | null): void {
@@ -214,32 +214,24 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private updateMarkers(): void {
-    // Vérifier que le cluster group existe
-    if (!this.markerClusterGroup) {
-      console.warn('⚠️ Cluster group non initialisé, attente...');
-      return;
-    }
+    if (this.destroyed || !this.mapReady || !this.markerClusterGroup || !this.map) return;
 
-    // Vider le cluster
     this.markerClusterGroup.clearLayers();
 
-    // Ajouter les nouveaux marqueurs
-    this.filteredActions.forEach(action => {
+    this.filteredActions.forEach((action) => {
       if (action.latitude && action.longitude) {
-        const marker = this.createMarker(action);
-        this.markerClusterGroup.addLayer(marker);
+        this.markerClusterGroup!.addLayer(this.createMarker(action));
       }
     });
 
-    // Ajuster la vue pour afficher tous les marqueurs SEULEMENT si on n'a pas de position utilisateur
-    // et qu'il y a des actions à afficher
     if (!this.userLocation && this.filteredActions.length > 0) {
-      setTimeout(() => {
+      this.schedule(() => {
+        if (this.destroyed || !this.markerClusterGroup || !this.map) return;
         const bounds = this.markerClusterGroup.getBounds();
         if (bounds.isValid()) {
-          this.map.fitBounds(bounds.pad(0.1));
+          this.map!.fitBounds(bounds.pad(0.1), { animate: false });
         }
-      }, 200);
+      }, 150);
     }
   }
 
@@ -248,7 +240,12 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
     const marker = L.marker([action.latitude!, action.longitude!], { icon });
 
     const distance = this.userLocation
-      ? this.calculateDistance(this.userLocation.lat, this.userLocation.lng, action.latitude!, action.longitude!)
+      ? this.calculateDistance(
+          this.userLocation.lat,
+          this.userLocation.lng,
+          action.latitude!,
+          action.longitude!
+        )
       : null;
 
     const popupContent = `
@@ -261,7 +258,7 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
           <div class="popup-points">${action.points} pts</div>
           ${distance ? `<div class="popup-distance">${distance.toFixed(1)} km</div>` : ''}
         </div>
-        <button class="popup-btn" onclick="window.location.href='/action/${action.id}'">
+        <button type="button" class="popup-btn" data-action-id="${action.id}">
           Voir l'action
         </button>
       </div>
@@ -270,6 +267,15 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
     marker.bindPopup(popupContent, {
       maxWidth: 300,
       className: 'custom-popup'
+    });
+
+    marker.on('popupopen', () => {
+      const btn = document.querySelector(
+        `.custom-popup button[data-action-id="${action.id}"]`
+      ) as HTMLButtonElement | null;
+      if (btn) {
+        btn.onclick = () => this.navigateToAction(action.id);
+      }
     });
 
     return marker;
@@ -301,24 +307,21 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   locateUser(): void {
-    if (!navigator.geolocation) {
-      alert('La géolocalisation n\'est pas supportée par votre navigateur');
-      return;
-    }
+    if (this.destroyed || !navigator.geolocation || !this.map) return;
 
     this.isLoadingLocation = true;
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        if (this.destroyed || !this.map) return;
+
         this.userLocation = {
           lat: position.coords.latitude,
           lng: position.coords.longitude
         };
 
-        console.log(' Position utilisateur:', this.userLocation);
-
         if (this.userMarker) {
-          this.userMarker.remove();
+          this.map.removeLayer(this.userMarker);
         }
 
         const userIcon = L.divIcon({
@@ -339,52 +342,42 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
         }).addTo(this.map);
 
         this.userMarker.bindPopup('Vous êtes ici');
+        this.map.flyTo([this.userLocation.lat, this.userLocation.lng], 13, { duration: 1 });
 
-        // Centrer la carte sur la position de l'utilisateur avec animation douce
-        this.map.flyTo([this.userLocation.lat, this.userLocation.lng], 13, {
-          duration: 1.5
-        });
-
-        // Mettre à jour seulement les distances dans la liste, sans refaire fitBounds
         this.filteredActions = [...this.filteredActions];
-
         this.isLoadingLocation = false;
       },
-      (error) => {
-        console.error('Erreur de géolocalisation:', error);
+      () => {
+        if (this.destroyed) return;
         alert('Impossible d\'obtenir votre position');
         this.isLoadingLocation = false;
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60_000 }
     );
   }
 
   searchByAddress(): void {
-    if (!this.searchAddress.trim()) return;
+    if (this.destroyed || !this.searchAddress.trim() || !this.map) return;
 
     this.isSearching = true;
 
-    // Utiliser l'API Nominatim d'OpenStreetMap pour la géocodage
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.searchAddress)}&limit=1`)
-      .then(response => response.json())
-      .then(data => {
-        if (data && data.length > 0) {
+    fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.searchAddress)}&limit=1`
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        if (this.destroyed || !this.map) return;
+
+        if (data?.length > 0) {
           const lat = parseFloat(data[0].lat);
           const lon = parseFloat(data[0].lon);
 
-          console.log('🔍 Adresse trouvée:', { lat, lon, name: data[0].display_name });
-
           this.map.setView([lat, lon], 14);
 
-          // Ajouter un marqueur temporaire
           const searchMarker = L.marker([lat, lon], {
             icon: L.divIcon({
               className: 'search-marker',
-              html: '<div class="search-marker-pin">📍</div>',
+              html: '<div class="search-marker-pin"></div>',
               iconSize: [30, 30],
               iconAnchor: [15, 30]
             })
@@ -392,23 +385,23 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
 
           searchMarker.bindPopup(`<b>${data[0].display_name}</b>`).openPopup();
 
-          setTimeout(() => {
-            searchMarker.remove();
+          this.schedule(() => {
+            if (this.map) this.map.removeLayer(searchMarker);
           }, 5000);
         } else {
           alert('Adresse non trouvée');
         }
         this.isSearching = false;
       })
-      .catch(error => {
-        console.error('Erreur de recherche:', error);
+      .catch(() => {
+        if (this.destroyed) return;
         alert('Erreur lors de la recherche');
         this.isSearching = false;
       });
   }
 
   private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Rayon de la Terre en km
+    const R = 6371;
     const dLat = this.deg2rad(lat2 - lat1);
     const dLon = this.deg2rad(lon2 - lon1);
     const a =
@@ -440,7 +433,6 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
     const date = parseNaiveDateTime(dateStr);
     const days = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
     const months = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
-
     return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   }
 
@@ -460,6 +452,8 @@ export class CarteActionsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   navigateToAction(actionId: number): void {
-    this.router.navigate(['/action', actionId]);
+    if (this.destroyed) return;
+    this.destroyMap();
+    void this.router.navigate(['/action', actionId]);
   }
 }
