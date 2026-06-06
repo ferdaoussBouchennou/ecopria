@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { switchMap } from 'rxjs/operators';
+import { NotificationPreferences, UpdateProfileRequest } from '../../../core/models/user.model';
 import { resolveUploadUrl } from '../../../core/utils/upload-url.util';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
