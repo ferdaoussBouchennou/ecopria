@@ -38,4 +38,17 @@ public interface CommissionRepository extends JpaRepository<Commission, Long> {
 
     @Query("SELECT SUM(c.montantCommission) FROM Commission c")
     Double sumAllCommissions();
+
+    @Query("SELECT c FROM Commission c JOIN FETCH c.partenaire JOIN FETCH c.coupon co JOIN FETCH co.recompense ORDER BY c.createdAt DESC")
+    List<Commission> findAllWithDetailsOrderByCreatedAtDesc();
+
+    @Query("SELECT c.moisFacturation, COUNT(c), SUM(c.valeurDh), SUM(c.montantCommission) " +
+            "FROM Commission c GROUP BY c.moisFacturation ORDER BY c.moisFacturation DESC")
+    List<Object[]> findGlobalMonthlyHistory();
+
+    @Query("SELECT COALESCE(SUM(c.montantCommission), 0) FROM Commission c WHERE c.moisFacturation = :mois")
+    Double sumCommissionsByMois(@Param("mois") String mois);
+
+    @Query("SELECT COUNT(c) FROM Commission c")
+    Long countAll();
 }

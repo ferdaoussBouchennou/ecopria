@@ -206,7 +206,7 @@ public class RecompenseService {
                 .stream().map(this::toCouponDTO).collect(Collectors.toList());
 
         Double noteMoyenne = avisPartenaireRepository.averageRatingByPartenaire(partenaire.getId());
-        Long nombreAvis = avisPartenaireRepository.countByPartenaireId(partenaire.getId());
+        Long nombreAvis = avisPartenaireRepository.countVisibleByPartenaireId(partenaire.getId());
 
         return DashboardPartenaireDTO.builder()
                 .partenaireName(partenaire.getName())
@@ -339,7 +339,7 @@ public class RecompenseService {
                 p.getId(), Coupon.CouponStatus.UTILISE));
         double tauxConv = distribuesCount > 0 ? (double) utilisesCount / distribuesCount * 100 : 0;
         Double note = avisPartenaireRepository.averageRatingByPartenaire(p.getId());
-        Long nbAvis = avisPartenaireRepository.countByPartenaireId(p.getId());
+        Long nbAvis = avisPartenaireRepository.countVisibleByPartenaireId(p.getId());
 
         return VisibiliteDTO.builder()
                 .vuesProfil(vuesProfil)

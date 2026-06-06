@@ -33,6 +33,10 @@ public class AvisPartenaire {
     @Column(columnDefinition = "TEXT")
     private String reponse;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean visible = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

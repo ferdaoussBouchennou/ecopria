@@ -352,4 +352,71 @@ export type AdminNavId =
   | 'actions-fixes'
   | 'support'
   | 'moderation'
-  | 'categories';
+  | 'categories'
+  | 'recompenses';
+
+export type AdminRecompenseTab = 'offres' | 'commissions' | 'avis';
+
+export type AdminOffreFilter = 'all' | 'active' | 'inactive';
+
+export type AdminAvisFilter = 'all' | 'visible' | 'hidden';
+
+export interface AdminRecompenseOffre {
+  id: number;
+  partenaireId?: number;
+  partenaireName?: string;
+  partenaireCategory?: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  pointsNecessaires?: number;
+  type?: string;
+  stock?: number;
+  discountPercentage?: number;
+  valeurDh?: number;
+  dateExpiration?: string;
+  isActive?: boolean;
+  isAvailable?: boolean;
+  couponsDistribues?: number;
+  couponsUtilises?: number;
+  createdAt?: string;
+}
+
+export interface AdminRecompenseCommission {
+  id: number;
+  partenaireId?: number;
+  partenaireName?: string;
+  couponCode?: string;
+  offreTitle?: string;
+  valeurDh?: number;
+  montantCommission?: number;
+  tauxCommission?: number;
+  moisFacturation?: string;
+  createdAt?: string;
+}
+
+export interface AdminRecompenseCommissionMois {
+  mois: string;
+  couponsUtilises?: number;
+  caGenere?: number;
+  commission?: number;
+}
+
+export interface AdminRecompenseCommissionSummary {
+  totalCommission?: number;
+  currentMonthCommission?: number;
+  totalCoupons?: number;
+  monthlyHistory?: AdminRecompenseCommissionMois[];
+}
+
+export interface AdminRecompenseAvis {
+  id: number;
+  partenaireId?: number;
+  partenaireName?: string;
+  authorName?: string;
+  rating?: number;
+  comment?: string;
+  reponse?: string;
+  visible?: boolean;
+  createdAt?: string;
+}

@@ -24,6 +24,10 @@ import {
   AdminAssociationProfile,
   AdminAssociationProfileRequest,
   ModerationAction,
+  AdminRecompenseOffre,
+  AdminRecompenseCommission,
+  AdminRecompenseCommissionSummary,
+  AdminRecompenseAvis,
   AdminUser,
   AdminUserActionResult,
   AdminUsersQuery,
@@ -340,6 +344,61 @@ export class AdminService {
       raison ? { raison } : null,
       { headers: this.writeHeaders() }
     );
+  }
+
+  getRecompenseOffres(): Observable<AdminRecompenseOffre[]> {
+    return this.http.get<AdminRecompenseOffre[]>(`${this.base}/recompenses/offres`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  activateRecompenseOffre(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/recompenses/offres/${id}/activate`, null, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  suspendRecompenseOffre(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/recompenses/offres/${id}/suspend`, null, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  getRecompenseCommissions(): Observable<AdminRecompenseCommission[]> {
+    return this.http.get<AdminRecompenseCommission[]>(`${this.base}/recompenses/commissions`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  getRecompenseCommissionSummary(): Observable<AdminRecompenseCommissionSummary> {
+    return this.http.get<AdminRecompenseCommissionSummary>(
+      `${this.base}/recompenses/commissions/summary`,
+      { headers: this.authHeaders() }
+    );
+  }
+
+  getRecompenseAvis(): Observable<AdminRecompenseAvis[]> {
+    return this.http.get<AdminRecompenseAvis[]>(`${this.base}/recompenses/avis`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  hideRecompenseAvis(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/recompenses/avis/${id}/hide`, null, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  showRecompenseAvis(id: number): Observable<void> {
+    return this.http.put<void>(`${this.base}/recompenses/avis/${id}/show`, null, {
+      headers: this.writeHeaders(),
+    });
+  }
+
+  deleteRecompenseAvis(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/recompenses/avis/${id}`, {
+      headers: this.writeHeaders(),
+    });
   }
 
   uploadCategoryImage(file: File): Observable<{ imageUrl: string }> {

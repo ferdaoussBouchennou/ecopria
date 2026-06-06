@@ -56,6 +56,7 @@ import { AdminActionsFixesComponent } from './features/admin/actions-fixes/admin
 import { AdminModerationComponent } from './features/admin/moderation/admin-moderation.component';
 import { AdminCategoriesComponent } from './features/admin/categories/admin-categories.component';
 import { AdminAssociationsComponent } from './features/admin/associations/admin-associations.component';
+import { AdminRecompensesComponent } from './features/admin/recompenses/admin-recompenses.component';
 
 export const routes: Routes = [
   // Routes publiques avec navbar/footer
@@ -159,6 +160,7 @@ export const routes: Routes = [
       { path: 'moderation', component: AdminModerationComponent },
       { path: 'categories', component: AdminCategoriesComponent },
       { path: 'associations', component: AdminAssociationsComponent },
+      { path: 'recompenses', component: AdminRecompensesComponent },
     ],
   },
 

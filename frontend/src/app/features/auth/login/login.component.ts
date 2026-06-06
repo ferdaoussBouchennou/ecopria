@@ -18,6 +18,7 @@ const REMEMBER_EMAIL_KEY = 'ecopria_remember_email';
 export class LoginComponent implements OnInit {
   email = '';
   password = '';
+  showPassword = false;
   rememberMe = false;
   submitting = false;
   error = '';
@@ -45,6 +46,10 @@ export class LoginComponent implements OnInit {
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
       void this.router.navigateByUrl(resolvePostLoginUrl(returnUrl, role));
     }
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
   }
 
   submit(): void {

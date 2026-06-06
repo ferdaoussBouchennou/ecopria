@@ -25,4 +25,7 @@ public interface RecompenseRepository extends JpaRepository<Recompense, Long> {
 
     // compter les offres actives d'un partenaire
     Long countByPartenaireIdAndIsActiveTrue(Long partenaireId);
+
+    @Query("SELECT r FROM Recompense r JOIN FETCH r.partenaire ORDER BY r.createdAt DESC")
+    List<Recompense> findAllWithPartenaireOrderByCreatedAtDesc();
 }

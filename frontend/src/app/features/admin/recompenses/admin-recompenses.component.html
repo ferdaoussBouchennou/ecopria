@@ -1,0 +1,340 @@
+<section class="admin-page recompenses-page">
+  <p class="admin-eyebrow"><span class="eyebrow-line"></span> Récompenses & partenaires</p>
+  <h1 class="admin-page__title">Offres, commissions et avis.</h1>
+  <p class="admin-desc">
+    Supervisez le catalogue des offres partenaires, consultez les commissions générées par les
+    coupons validés et modérez les avis clients.
+  </p>
+
+  @if (message) {
+    <p class="admin-muted page-msg">{{ message }}</p>
+  }
+
+  <div class="list-tabs">
+    <button
+      type="button"
+      class="list-tab"
+      [class.list-tab--active]="activeTab === 'offres'"
+      (click)="switchTab('offres'); reload()"
+    >
+      Offres <span class="list-tab__count">{{ offres.length }}</span>
+    </button>
+    <button
+      type="button"
+      class="list-tab"
+      [class.list-tab--active]="activeTab === 'commissions'"
+      (click)="switchTab('commissions'); reload()"
+    >
+      Commissions <span class="list-tab__count">{{ commissions.length }}</span>
+    </button>
+    <button
+      type="button"
+      class="list-tab"
+      [class.list-tab--active]="activeTab === 'avis'"
+      (click)="switchTab('avis'); reload()"
+    >
+      Avis <span class="list-tab__count">{{ avis.length }}</span>
+    </button>
+  </div>
+
+  @if (loading) {
+    <p class="admin-muted">Chargement…</p>
+  } @else if (error && activeTab === 'offres' && offres.length === 0) {
+    <div class="admin-alert admin-alert--error">{{ error }}</div>
+  } @else if (error && activeTab === 'commissions' && commissions.length === 0) {
+    <div class="admin-alert admin-alert--error">{{ error }}</div>
+  } @else if (error && activeTab === 'avis' && avis.length === 0) {
+    <div class="admin-alert admin-alert--error">{{ error }}</div>
+  } @else {
+    @if (error) {
+      <div class="admin-alert admin-alert--error">{{ error }}</div>
+    }
+
+    @if (activeTab === 'offres') {
+      <div class="section-toolbar">
+        <div class="chips">
+          <button type="button" class="chip" [class.chip--active]="offreFilter === 'all'" (click)="offreFilter = 'all'">
+            Toutes ({{ offres.length }})
+          </button>
+          <button type="button" class="chip" [class.chip--active]="offreFilter === 'active'" (click)="offreFilter = 'active'">
+            Actives ({{ countOffresActive }})
+          </button>
+          <button type="button" class="chip" [class.chip--active]="offreFilter === 'inactive'" (click)="offreFilter = 'inactive'">
+            Suspendues ({{ countOffresInactive }})
+          </button>
+        </div>
+        <input
+          type="search"
+          class="search-input"
+          [(ngModel)]="search"
+          placeholder="Rechercher titre, partenaire, type…"
+        />
+      </div>
+
+      @if (filteredOffres.length === 0) {
+        <p class="admin-muted">Aucune offre pour ce filtre.</p>
+      } @else {
+        <article class="table-card">
+          <header class="table-head table-head--offres">
+            <span>Offre</span>
+            <span>Partenaire</span>
+            <span>Type</span>
+            <span>Points</span>
+            <span>Coupons</span>
+            <span>Statut</span>
+            <span>Actions</span>
+          </header>
+          @for (item of filteredOffres; track item.id) {
+            <div class="table-row table-row--offres">
+              <span class="row-title">{{ item.title }}</span>
+              <span>{{ item.partenaireName || '—' }}</span>
+              <span>{{ typeLabel(item.type) }}</span>
+              <span>{{ item.pointsNecessaires ?? '—' }}</span>
+              <span>{{ item.couponsUtilises ?? 0 }} / {{ item.couponsDistribues ?? 0 }}</span>
+              <span>
+                <span class="status-pill" [ngClass]="item.isActive ? 'status-pill--ok' : 'status-pill--warn'">
+                  {{ item.isActive ? 'Active' : 'Suspendue' }}
+                </span>
+              </span>
+              <span class="row-actions">
+                <button type="button" class="action-btn action-btn--view" (click)="viewOffre(item)">Voir</button>
+                @if (item.isActive) {
+                  <button type="button" class="action-btn action-btn--danger" [disabled]="acting" (click)="suspendOffre(item)">
+                    Suspendre
+                  </button>
+                } @else {
+                  <button type="button" class="action-btn action-btn--activate" [disabled]="acting" (click)="activateOffre(item)">
+                    Réactiver
+                  </button>
+                }
+              </span>
+            </div>
+          }
+        </article>
+      }
+    }
+
+    @if (activeTab === 'commissions') {
+      @if (commissionSummary) {
+        <div class="kpi-row">
+          <article class="kpi-card">
+            <p class="kpi-label">Total commissions</p>
+            <p class="kpi-value">{{ commissionSummary.totalCommission ?? 0 | number:'1.2-2' }} DH</p>
+          </article>
+          <article class="kpi-card">
+            <p class="kpi-label">Mois en cours</p>
+            <p class="kpi-value">{{ commissionSummary.currentMonthCommission ?? 0 | number:'1.2-2' }} DH</p>
+          </article>
+          <article class="kpi-card">
+            <p class="kpi-label">Coupons facturés</p>
+            <p class="kpi-value">{{ commissionSummary.totalCoupons ?? 0 }}</p>
+          </article>
+        </div>
+
+        @if (commissionSummary.monthlyHistory?.length) {
+          <article class="table-card table-card--compact">
+            <header class="table-head table-head--monthly">
+              <span>Mois</span>
+              <span>Coupons</span>
+              <span>CA généré</span>
+              <span>Commission</span>
+            </header>
+            @for (m of commissionSummary.monthlyHistory; track m.mois) {
+              <div class="table-row table-row--monthly">
+                <span>{{ formatMois(m.mois) }}</span>
+                <span>{{ m.couponsUtilises ?? 0 }}</span>
+                <span>{{ m.caGenere ?? 0 | number:'1.2-2' }} DH</span>
+                <span>{{ m.commission ?? 0 | number:'1.2-2' }} DH</span>
+              </div>
+            }
+          </article>
+        }
+      }
+
+      <div class="section-toolbar">
+        <input
+          type="search"
+          class="search-input"
+          [(ngModel)]="search"
+          placeholder="Rechercher partenaire, offre, coupon…"
+        />
+      </div>
+
+      @if (filteredCommissions.length === 0) {
+        <p class="admin-muted">Aucune commission enregistrée.</p>
+      } @else {
+        <article class="table-card">
+          <header class="table-head table-head--comm">
+            <span>Partenaire</span>
+            <span>Offre</span>
+            <span>Coupon</span>
+            <span>Base</span>
+            <span>Commission</span>
+            <span>Mois</span>
+          </header>
+          @for (item of filteredCommissions; track item.id) {
+            <div class="table-row table-row--comm">
+              <span>{{ item.partenaireName || '—' }}</span>
+              <span class="row-title">{{ item.offreTitle || '—' }}</span>
+              <span class="mono">{{ item.couponCode || '—' }}</span>
+              <span>{{ item.valeurDh ?? 0 | number:'1.2-2' }} DH</span>
+              <span>{{ item.montantCommission ?? 0 | number:'1.2-2' }} DH</span>
+              <span>{{ item.moisFacturation ? formatMois(item.moisFacturation) : '—' }}</span>
+            </div>
+          }
+        </article>
+      }
+    }
+
+    @if (activeTab === 'avis') {
+      <div class="section-toolbar">
+        <div class="chips">
+          <button type="button" class="chip" [class.chip--active]="avisFilter === 'all'" (click)="avisFilter = 'all'">
+            Tous ({{ avis.length }})
+          </button>
+          <button type="button" class="chip" [class.chip--active]="avisFilter === 'visible'" (click)="avisFilter = 'visible'">
+            Visibles ({{ countAvisVisible }})
+          </button>
+          <button type="button" class="chip" [class.chip--active]="avisFilter === 'hidden'" (click)="avisFilter = 'hidden'">
+            Masqués ({{ countAvisHidden }})
+          </button>
+        </div>
+        <input
+          type="search"
+          class="search-input"
+          [(ngModel)]="search"
+          placeholder="Rechercher auteur, partenaire, commentaire…"
+        />
+      </div>
+
+      @if (filteredAvis.length === 0) {
+        <p class="admin-muted">Aucun avis pour ce filtre.</p>
+      } @else {
+        <article class="table-card">
+          <header class="table-head table-head--avis">
+            <span>Auteur</span>
+            <span>Partenaire</span>
+            <span>Note</span>
+            <span>Commentaire</span>
+            <span>Statut</span>
+            <span>Actions</span>
+          </header>
+          @for (item of filteredAvis; track item.id) {
+            <div class="table-row table-row--avis">
+              <span>{{ item.authorName || '—' }}</span>
+              <span>{{ item.partenaireName || '—' }}</span>
+              <span class="stars" [attr.aria-label]="item.rating + ' sur 5'">{{ stars(item.rating) }}</span>
+              <span class="comment-preview">{{ item.comment || '—' }}</span>
+              <span>
+                <span class="status-pill" [ngClass]="item.visible !== false ? 'status-pill--ok' : 'status-pill--warn'">
+                  {{ item.visible !== false ? 'Visible' : 'Masqué' }}
+                </span>
+              </span>
+              <span class="row-actions">
+                <button type="button" class="action-btn action-btn--view" (click)="viewAvis(item)">Voir</button>
+                @if (item.visible !== false) {
+                  <button type="button" class="action-btn action-btn--danger" [disabled]="acting" (click)="hideAvis(item)">
+                    Masquer
+                  </button>
+                } @else {
+                  <button type="button" class="action-btn action-btn--activate" [disabled]="acting" (click)="showAvis(item)">
+                    Réafficher
+                  </button>
+                }
+              </span>
+            </div>
+          }
+        </article>
+      }
+    }
+
+    @if (detailVisible && selectedOffre) {
+      <div class="action-modal-overlay" role="dialog" aria-modal="true" (click)="closeDetail()">
+        <div class="action-modal action-modal--wide" (click)="$event.stopPropagation()">
+          <div class="action-modal__header">
+            <h2>{{ selectedOffre.title }}</h2>
+            <button type="button" class="btn-close-form" (click)="closeDetail()" aria-label="Fermer">✕</button>
+          </div>
+          <div class="action-modal__body">
+            <p class="detail-meta">
+              {{ selectedOffre.partenaireName || 'Partenaire inconnu' }}
+              · {{ selectedOffre.partenaireCategory || 'Sans catégorie' }}
+              · {{ typeLabel(selectedOffre.type) }}
+            </p>
+            @if (selectedOffre.description) {
+              <p class="detail-text">{{ selectedOffre.description }}</p>
+            }
+            <dl class="detail-grid">
+              <div>
+                <dt>Statut</dt>
+                <dd>
+                  <span class="status-pill" [ngClass]="selectedOffre.isActive ? 'status-pill--ok' : 'status-pill--warn'">
+                    {{ selectedOffre.isActive ? 'Active' : 'Suspendue' }}
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt>Points</dt>
+                <dd>{{ selectedOffre.pointsNecessaires ?? '—' }}</dd>
+              </div>
+              <div>
+                <dt>Coupons utilisés</dt>
+                <dd>{{ selectedOffre.couponsUtilises ?? 0 }} / {{ selectedOffre.couponsDistribues ?? 0 }}</dd>
+              </div>
+              <div>
+                <dt>Créée le</dt>
+                <dd>{{ selectedOffre.createdAt ? (selectedOffre.createdAt | date:'dd/MM/yyyy') : '—' }}</dd>
+              </div>
+            </dl>
+          </div>
+          <div class="action-modal__footer detail-actions">
+            <button type="button" class="btn-outline" [disabled]="acting" (click)="closeDetail()">Fermer</button>
+            @if (selectedOffre.isActive) {
+              <button type="button" class="btn-warn" [disabled]="acting" (click)="suspendOffre(selectedOffre)">Suspendre</button>
+            } @else {
+              <button type="button" class="btn-primary" [disabled]="acting" (click)="activateOffre(selectedOffre)">Réactiver</button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (detailVisible && selectedAvis) {
+      <div class="action-modal-overlay" role="dialog" aria-modal="true" (click)="closeDetail()">
+        <div class="action-modal" (click)="$event.stopPropagation()">
+          <div class="action-modal__header">
+            <h2>Avis de {{ selectedAvis.authorName }}</h2>
+            <button type="button" class="btn-close-form" (click)="closeDetail()" aria-label="Fermer">✕</button>
+          </div>
+          <div class="action-modal__body">
+            <p class="detail-meta">
+              {{ selectedAvis.partenaireName || 'Partenaire inconnu' }}
+              · {{ selectedAvis.createdAt ? (selectedAvis.createdAt | date:'dd/MM/yyyy') : '—' }}
+            </p>
+            <p class="stars stars--large">{{ stars(selectedAvis.rating) }}</p>
+            @if (selectedAvis.comment) {
+              <p class="detail-text">{{ selectedAvis.comment }}</p>
+            }
+            @if (selectedAvis.reponse) {
+              <div class="reponse-box">
+                <p class="reponse-label">Réponse du partenaire</p>
+                <p>{{ selectedAvis.reponse }}</p>
+              </div>
+            }
+          </div>
+          <div class="action-modal__footer detail-actions">
+            <button type="button" class="btn-outline" [disabled]="acting" (click)="closeDetail()">Fermer</button>
+            @if (selectedAvis.visible !== false) {
+              <button type="button" class="btn-warn" [disabled]="acting" (click)="hideAvis(selectedAvis)">Masquer</button>
+            } @else {
+              <button type="button" class="btn-primary" [disabled]="acting" (click)="showAvis(selectedAvis)">Réafficher</button>
+            }
+            <button type="button" class="btn-outline btn-outline--danger" [disabled]="acting" (click)="deleteAvis(selectedAvis)">
+              Supprimer
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</section>

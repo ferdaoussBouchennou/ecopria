@@ -28,6 +28,7 @@ export class AdminShellComponent implements OnInit {
     { path: '/admin/categories', label: 'Catégories' },
     { path: '/admin/associations', label: 'Associations' },
     { path: '/admin/moderation', label: 'Modération' },
+    { path: '/admin/recompenses', label: 'Récompenses' },
   ];
 
   constructor(
