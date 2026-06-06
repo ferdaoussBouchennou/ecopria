@@ -22,8 +22,6 @@ export class ListeAssociationsComponent implements OnInit {
   selectedCity = '';
   cities: string[] = [];
 
-  private readonly fallbackImage = '/assets/images/event-affiche-2.jpg';
-
   constructor(private associationPublicService: AssociationPublicService) {}
 
   ngOnInit(): void {
@@ -89,11 +87,24 @@ export class ListeAssociationsComponent implements OnInit {
   }
 
   logoUrl(association: AssociationPublicProfil): string {
-    return association.logo?.trim() || this.fallbackImage;
+    return association.logo?.trim() || '';
+  }
+
+  hasLogo(association: AssociationPublicProfil): boolean {
+    return !!association.logo?.trim();
+  }
+
+  associationInitial(association: AssociationPublicProfil): string {
+    const name = association.name?.trim();
+    return name ? name.charAt(0).toUpperCase() : 'A';
   }
 
   onImgError(event: Event): void {
     const img = event.target as HTMLImageElement;
-    img.src = this.fallbackImage;
+    img.style.display = 'none';
+    const fallback = img.nextElementSibling;
+    if (fallback instanceof HTMLElement) {
+      fallback.classList.add('is-visible');
+    }
   }
 }

@@ -59,7 +59,7 @@ export class ProfilAssociationPublicComponent implements OnInit {
       next: (profil) => {
         this.profil = profil;
         this.loading = false;
-        this.loadActions(profil.id);
+        this.loadActions(authId);
       },
       error: (e: Error) => {
         this.erreur = e.message;
@@ -68,9 +68,9 @@ export class ProfilAssociationPublicComponent implements OnInit {
     });
   }
 
-  loadActions(associationId: number): void {
+  loadActions(authId: number): void {
     this.loadingActions = true;
-    this.actionService.getAssociationPublishedActions(associationId).subscribe({
+    this.actionService.getAssociationPublishedActionsByAuthId(authId).subscribe({
       next: (actions) => {
         this.actions = actions;
         this.loadingActions = false;

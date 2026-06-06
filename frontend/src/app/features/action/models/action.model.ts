@@ -35,6 +35,7 @@ export interface ActionRowViewModel {
   title: string;
   categoryName: string;
   categoryImageUrl?: string;
+  imageUrl: string;
   city: string;
   dateStart: string;
   dateEnd: string;
@@ -55,6 +56,8 @@ export interface ActionDetail extends ActionSummary {
   practicalInfos: string[];
   photoUrls: string[];
   associationId: number;
+  /** authId du compte association (pour profil public /associations/:authId). */
+  associationUserId?: number;
   associationName: string;
   associationDescription?: string;
   associationLogoUrl?: string;

@@ -6,6 +6,10 @@ import { AssociationUiService } from '../services/association-ui.service';
 import { ActionService } from '../../action/services/action.service';
 import { ActionDetail } from '../../action/models/action.model';
 import { QRCodeModule } from 'angularx-qrcode';
+import {
+  downloadPresenceQrPdf,
+  printPresenceQr,
+} from '../utils/presence-qr-pdf.util';
 
 @Component({
   selector: 'app-afficher-qr',
@@ -83,87 +87,31 @@ export class AfficherQRComponent implements OnInit {
   telechargerQR(): void {
     if (!this.qrCodeDataUrl || !this.action) return;
 
-    const link = document.createElement('a');
-    link.href = this.qrCodeDataUrl;
-    link.download = `qr-code-${this.action.title.replace(/\s+/g, '-').toLowerCase()}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    void downloadPresenceQrPdf({
+      qrToken: this.qrCodeDataUrl,
+      pinCode: this.pinCode,
+      actionTitle: this.action.title,
+    }).catch((err) => {
+      console.error('Erreur téléchargement QR PDF:', err);
+      this.ui.toast('Impossible de générer le PDF du QR code.', 'error');
+    });
   }
 
   imprimerQR(): void {
-    if (!this.qrCodeDataUrl) return;
+    if (!this.qrCodeDataUrl || !this.action) return;
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      this.ui.toast('Autorisez les fenêtres pop-up pour imprimer le QR code.', 'error');
-      return;
-    }
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>QR Code - ${this.action?.title || 'Action'}</title>
-          <style>
-            body {
-              margin: 0;
-              padding: 2rem;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              min-height: 100vh;
-            }
-            h1 {
-              font-size: 1.5rem;
-              margin-bottom: 0.5rem;
-              text-align: center;
-            }
-            p {
-              color: #666;
-              margin-bottom: 2rem;
-              text-align: center;
-            }
-            .qr-container {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-            }
-            .footer {
-              margin-top: 2rem;
-              font-size: 0.875rem;
-              color: #999;
-            }
-            @media print {
-              body {
-                padding: 1rem;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <h1>${this.action?.title || 'Action'}</h1>
-          <p>Scannez ce QR code pour valider votre présence</p>
-          <div class="qr-container">
-             <!-- Pour l'impression on peut utiliser une librairie JS ou afficher juste le token, mais on va simplement afficher le pin -->
-             <h2>Code PIN : ${this.pinCode}</h2>
-          </div>
-          <div class="footer">
-            <p>Ecopria - ${new Date().toLocaleDateString('fr-FR')}</p>
-          </div>
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-              }, 250);
-            };
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+    void printPresenceQr({
+      qrToken: this.qrCodeDataUrl,
+      pinCode: this.pinCode,
+      actionTitle: this.action.title,
+    }).catch((err) => {
+      if (err instanceof Error && err.message === 'POPUP_BLOCKED') {
+        this.ui.toast('Autorisez les fenêtres pop-up pour imprimer le QR code.', 'error');
+        return;
+      }
+      console.error('Erreur impression QR:', err);
+      this.ui.toast('Impossible d\'imprimer le QR code.', 'error');
+    });
   }
 
   retour(): void {

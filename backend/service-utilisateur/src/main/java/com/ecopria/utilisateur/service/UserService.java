@@ -191,9 +191,13 @@ public class UserService {
             citizen.setAddress(dto.getAddress());
         if (dto.getCity() != null)
             citizen.setCity(dto.getCity());
-        if (dto.getPhoto() != null)
-            citizen.setPhoto(dto.getPhoto());
-            
+        if (dto.getPhoto() != null) {
+            String photo = dto.getPhoto().trim();
+            if (!photo.isBlank() && !photo.startsWith("data:") && photo.length() <= 512) {
+                citizen.setPhoto(photo);
+            }
+        }
+
         return citizenRepository.save(citizen);
     }
 
@@ -425,6 +429,18 @@ public class UserService {
 
     public List<LeaderboardEntryDTO> getLeaderboard(Long currentAuthId) {
         List<Citizen> top10 = citizenRepository.findTop10ByOrderByTotalPointsDesc();
+        if (top10.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> citizenIds = top10.stream().map(Citizen::getId).toList();
+        Map<Long, List<LeaderboardBadgeDTO>> badgesByCitizen = userBadgeRepository
+                .findByProfileIdInWithBadge(citizenIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        ub -> ub.getProfile().getId(),
+                        Collectors.mapping(this::toLeaderboardBadgeDTO, Collectors.toList())));
+
         List<LeaderboardEntryDTO> result = new ArrayList<>();
         for (int i = 0; i < top10.size(); i++) {
             Citizen c = top10.get(i);
@@ -435,9 +451,20 @@ public class UserService {
             dto.setCity(c.getCity() != null ? c.getCity() : "-");
             dto.setTotalPoints(c.getTotalPoints());
             dto.setMe(c.getAuthId().equals(currentAuthId));
+            dto.setBadges(badgesByCitizen.getOrDefault(c.getId(), List.of()));
             result.add(dto);
         }
         return result;
+    }
+
+    private LeaderboardBadgeDTO toLeaderboardBadgeDTO(UserBadge userBadge) {
+        Badge badge = userBadge.getBadge();
+        LeaderboardBadgeDTO dto = new LeaderboardBadgeDTO();
+        dto.setId(badge.getId());
+        dto.setName(badge.getName());
+        dto.setIcon(badge.getIcon());
+        dto.setDescription(badge.getDescription());
+        return dto;
     }
 
     public List<PointHistory> getHistory(Long authId) {
@@ -613,6 +640,49 @@ public class UserService {
             return Optional.of(map);
         }
         return Optional.empty();
+    }
+
+    @Transactional
+    public String uploadCitizenPhoto(Long authId, org.springframework.web.multipart.MultipartFile photo) {
+        Citizen citizen = getCitizen(authId);
+
+        if (photo.isEmpty()) {
+            throw new RuntimeException("Le fichier photo est vide");
+        }
+
+        String contentType = photo.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new RuntimeException("Le fichier doit être une image");
+        }
+
+        if (photo.getSize() > 5 * 1024 * 1024) {
+            throw new RuntimeException("La photo ne peut pas dépasser 5 Mo");
+        }
+
+        try {
+            Path uploadPath = Paths.get(uploadDir, "citizens");
+            Files.createDirectories(uploadPath);
+
+            String originalFilename = photo.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : ".jpg";
+            String filename = "citizen_" + authId + "_" + UUID.randomUUID().toString() + extension;
+
+            Path filePath = uploadPath.resolve(filename);
+            Files.copy(photo.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            String photoUrl = "/api/users/uploads/citizens/" + filename;
+            citizen.setPhoto(photoUrl);
+            citizenRepository.save(citizen);
+
+            log.info("Photo uploadée pour le citoyen authId={}: {}", authId, filename);
+            return photoUrl;
+
+        } catch (Exception e) {
+            log.error("Erreur lors de l'upload de la photo pour le citoyen authId={}", authId, e);
+            throw new RuntimeException("Erreur lors de l'upload de la photo: " + e.getMessage());
+        }
     }
 
     @Transactional

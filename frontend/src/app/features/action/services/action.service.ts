@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, of, throwError, forkJoin } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { httpErrorMessage } from '../../../core/utils/http-error.util';
@@ -54,6 +54,28 @@ export class ActionService {
       .pipe(catchError(this.handleError('Action introuvable')));
   }
 
+  /** Résumés en lot — évite N appels GET /actions/{id} dans l'espace citoyen. */
+  getActionSummariesByIds(ids: number[]): Observable<ActionSummary[]> {
+    const unique = [...new Set(ids.filter((id) => id > 0))];
+    if (!unique.length) {
+      return of([]);
+    }
+    let params = new HttpParams();
+    unique.forEach((id) => {
+      params = params.append('ids', String(id));
+    });
+    return this.http
+      .get<ActionSummary[]>(`${this.apiUrl}/actions/summaries`, { params })
+      .pipe(
+        catchError(() =>
+          forkJoin(unique.map((id) => this.getActionById(id))).pipe(
+            map((details) => details as ActionSummary[])
+          )
+        ),
+        catchError(this.handleError('Impossible de charger les actions'))
+      );
+  }
+
   getCategories(): Observable<Category[]> {
     return this.http
       .get<Category[]>(`${this.apiUrl}/categories`)
@@ -64,6 +86,12 @@ export class ActionService {
     return this.http
       .get<PublicStats>(`${this.apiUrl}/public/stats`)
       .pipe(catchError(this.handleError('Impossible de charger les statistiques')));
+  }
+
+  getAssociationPublishedActionsByAuthId(authId: number): Observable<ActionSummary[]> {
+    return this.http
+      .get<ActionSummary[]>(`${this.apiUrl}/associations/user/${authId}/actions`)
+      .pipe(catchError(this.handleError('Impossible de charger les actions de l\'association')));
   }
 
   getAssociationPublishedActions(associationId: number): Observable<ActionSummary[]> {
@@ -82,7 +110,7 @@ export class ActionService {
     actions: ActionSummary[],
     filters?: ActionListFilters
   ): ActionSummary[] {
-    let result = [...actions];
+    let result = actions.filter((a) => a.status !== 'CANCELLED' && a.status !== 'DRAFT');
 
     if (filters?.categoryName) {
       result = result.filter((a) => a.categoryName === filters.categoryName);

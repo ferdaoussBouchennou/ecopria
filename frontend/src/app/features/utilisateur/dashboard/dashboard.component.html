@@ -27,7 +27,7 @@
 
       <div class="action-list action-list--dashboard">
         <article class="action-card action-card--dashboard" *ngFor="let action of upcomingActions">
-          <img [src]="action.imageUrl" class="action-img action-img--dashboard" [alt]="action.title">
+          <img [src]="action.imageUrl" class="action-img action-img--dashboard" [alt]="action.title" (error)="onActionImageError($event)">
           <div class="action-info action-info--dashboard">
             <p class="action-meta action-meta--dashboard">{{ getLocationLabel(action) }}</p>
             <h4>{{ action.title }}</h4>

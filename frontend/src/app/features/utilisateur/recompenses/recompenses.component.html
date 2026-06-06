@@ -4,7 +4,7 @@
       <span class="eyebrow-pill">Mes avantages</span>
       <h2>Vos coupons et récompenses disponibles.</h2>
       <p>
-        Consultez vos coupons, suivez leur expiration et échangez vos points contre des offres utiles.
+        Consultez vos coupons et suivez leur expiration.
       </p>
 
       <div class="hero-stats hero-stats--rewards">
@@ -26,7 +26,7 @@
     <div class="hero-focus hero-focus--rewards">
       <p class="hero-focus__label">Statut du compte</p>
       <h3>{{ profile?.firstName || '—' }} {{ profile?.lastName || '' }}</h3>
-      <p>Votre espace récompenses centralise le catalogue public et vos coupons obtenus.</p>
+      <p>Votre espace récompenses centralise vos coupons obtenus.</p>
       <div class="hero-focus__meta">
         <span>Engagé depuis toujours</span>
         <span>{{ profile?.city || '—' }}</span>
@@ -130,70 +130,6 @@
       Aucun coupon obtenu pour le moment.
     </div>
   </section>
-
-  <aside class="panel-card panel-card--soft">
-    <div class="section-head">
-      <div>
-        <span class="eyebrow-mini">Catalogue</span>
-        <h3>Récompenses échangeables</h3>
-      </div>
-      <div class="section-filters" *ngIf="!loading">
-        <input
-          [ngModel]="catalogueSearch"
-          (ngModelChange)="catalogueSearch = $event; onCatalogueFiltersChanged()"
-          placeholder="Rechercher (titre, partenaire...)"
-        />
-        <select
-          [ngModel]="catalogueType"
-          (ngModelChange)="catalogueType = $event; onCatalogueFiltersChanged()"
-        >
-          <option value="ALL">Tous</option>
-          <option value="STOCK">Stock</option>
-          <option value="REDUCTION">Réduction</option>
-          <option value="SERVICE">Service</option>
-          <option value="EXPERIENCE">Expérience</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="catalog-grid" *ngIf="!loading; else loadingState">
-      <article class="reward-card" *ngFor="let reward of catalogue">
-        <img class="reward-card__image" [src]="reward.imageUrl || 'assets/logo.png'" [alt]="reward.title">
-        <div class="reward-card__body">
-          <div class="reward-card__topline">
-            <span class="tag">{{ reward.type }}</span>
-            <span class="cost-badge">{{ reward.pointsNecessaires }} pts</span>
-          </div>
-          <h4>{{ reward.title }}</h4>
-          <p>{{ reward.description }}</p>
-          <div class="reward-card__footer">
-            <span>{{ reward.partenaireName }}</span>
-            <button
-              class="exchange-btn"
-              [disabled]="!reward.isAvailable || availablePoints < reward.pointsNecessaires || exchangingId === reward.id"
-              (click)="exchange(reward)"
-            >
-              {{ exchangingId === reward.id ? 'Échange...' : 'Échanger' }}
-            </button>
-          </div>
-        </div>
-      </article>
-    </div>
-
-    <div class="pagination" *ngIf="!loading && totalPagesCatalogue > 1">
-      <button class="pagination__btn" [disabled]="currentPageCatalogue === 1" (click)="changePageCatalogue(currentPageCatalogue - 1)">
-        Précédent
-      </button>
-      <span class="pagination__info">Page <strong>{{ currentPageCatalogue }}</strong> / {{ totalPagesCatalogue }}</span>
-      <button class="pagination__btn" [disabled]="currentPageCatalogue === totalPagesCatalogue" (click)="changePageCatalogue(currentPageCatalogue + 1)">
-        Suivant
-      </button>
-    </div>
-
-    <div class="empty-state" *ngIf="!loading && filteredCatalogue.length === 0">
-      Aucun élément disponible dans le catalogue pour le moment.
-    </div>
-  </aside>
 </section>
 
 <ng-template #loadingState>

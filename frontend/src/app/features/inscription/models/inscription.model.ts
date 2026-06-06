@@ -31,7 +31,10 @@ export interface MonInscriptionDto {
   inscriptionId: number;
   actionId: number;
   userId: number;
+  /** Statut affiché dans l'espace participant. */
   statut: 'INSCRIT' | 'VALIDE' | 'ABSENT';
+  /** Statut brut renvoyé par service-inscription. */
+  inscriptionStatut: 'CONFIRMEE' | 'EN_ATTENTE' | 'ANNULEE';
   dateAction: string;
   qrCodeUrl?: string;
 }

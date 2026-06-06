@@ -61,6 +61,17 @@ public class ActionService {
         return actions.stream().map(this::toSummaryDTO).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<ActionSummaryDTO> getSummariesByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return actionRepository.findAllById(ids).stream()
+                .filter(a -> a.getStatus() != ActionStatus.CANCELLED && a.getStatus() != ActionStatus.DRAFT)
+                .map(this::toSummaryDTO)
+                .collect(Collectors.toList());
+    }
+
     // ─── DÉTAIL ───────────────────────────────────────────────
 
     @Transactional(readOnly = true)
@@ -68,10 +79,11 @@ public class ActionService {
         Action action = actionRepository.findById(actionId)
                 .orElseThrow(() -> new RuntimeException("Action non trouvée"));
 
-        // Sécurité : Un brouillon ne peut être vu que par l'association qui l'a créé
-        if (action.getStatus() == Action.ActionStatus.DRAFT) {
+        // Sécurité : brouillon / action désactivée visibles seulement par l'association propriétaire
+        if (action.getStatus() == Action.ActionStatus.DRAFT
+                || action.getStatus() == Action.ActionStatus.CANCELLED) {
             if (userId == null || action.getAssociation() == null || !action.getAssociation().getUserId().equals(userId)) {
-                throw new RuntimeException("Accès interdit : Cette action n'est pas encore publiée.");
+                throw new RuntimeException("Cette action n'est plus disponible.");
             }
         }
 
@@ -321,6 +333,16 @@ public class ActionService {
             throw new RuntimeException("Association non trouvée : id=" + associationId);
         }
         return actionRepository.findByAssociationIdAndStatus(associationId, ActionStatus.PUBLISHED)
+                .stream().map(this::toSummaryDTO).collect(Collectors.toList());
+    }
+
+    /** Actions publiées par authId du compte association (/api/associations/user/{userId}/actions). */
+    @Transactional(readOnly = true)
+    public List<ActionSummaryDTO> getPublishedActionsByAssociationUserId(Long userId) {
+        Association association = associationRepository.findByUserId(userId)
+                .filter(a -> Boolean.TRUE.equals(a.getIsValidated()))
+                .orElseThrow(() -> new RuntimeException("Association non trouvée : userId=" + userId));
+        return actionRepository.findByAssociationIdAndStatus(association.getId(), ActionStatus.PUBLISHED)
                 .stream().map(this::toSummaryDTO).collect(Collectors.toList());
     }
 

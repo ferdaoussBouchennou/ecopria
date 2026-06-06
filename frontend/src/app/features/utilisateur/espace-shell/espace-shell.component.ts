@@ -6,6 +6,7 @@ import { UserProfileService } from '../../../core/services/user-profile.service'
 import { NotificationService } from '../../../core/services/notification.service';
 import { UiService } from '../../../core/services/ui.user.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { resolveUploadUrl } from '../../../core/utils/upload-url.util';
 import { Profile } from '../../../core/models/user.model';
 import { AppNotification } from '../../../core/models/notification.model';
 
@@ -81,6 +82,10 @@ export class EspaceShellComponent implements OnInit {
       return this.notifications.filter((n) => !n.isRead);
     }
     return this.notifications.filter((n) => n.isRead);
+  }
+
+  profilePhoto(): string | undefined {
+    return resolveUploadUrl(this.profile?.photo);
   }
 
   logout(): void {

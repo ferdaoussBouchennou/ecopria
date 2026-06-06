@@ -212,8 +212,8 @@
                 }
               </div>
             </div>
-            @if (action.associationId) {
-              <a [routerLink]="['/actions']" class="org-link">Voir le profil</a>
+            @if (action.associationUserId) {
+              <a [routerLink]="['/associations', action.associationUserId]" class="org-link">Voir le profil</a>
             }
           </div>
         </div>

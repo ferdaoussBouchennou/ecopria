@@ -1,31 +1,17 @@
 -- =============================================================
--- Ecopria — Jeu de données de démo MASSIF (toutes bases sauf notif)
+-- Ecopria — Jeu de données de démo (TOUS les services, 1 fichier)
 -- =============================================================
 -- Prérequis : docker compose -f docker-compose.infra.yml up -d
--- phpMyAdmin : http://localhost:8888  |  user ecopria / ecopria_pass_2026
+-- Exécution : .\scripts\reset-and-seed-all.ps1
 --
 -- Comptes démo (mot de passe pour tous : Admin123!)
 --   Citoyen principal : tafraouti.sanae1@gmail.com  (auth_id = 1)
 --   Association       : asso@ecopria.demo         (auth_id = 20)
---   Admin             : admin@ecopria.local         (voir scripts/seed-admin.sql)
+--   Admin             : admin@ecopria.local
+--   Partenaire        : partenaire101@ecopria.demo
 --
--- Exécution CLI (exemple) :
---   Get-Content scripts/seed-demo-complet.sql | docker exec -i mysql-auth mysql -uecopria -pecopria_pass_2026
---   (répéter pour mysql-utilisateur, mysql-action, etc. — ou coller tout le fichier dans phpMyAdmin)
---
--- db_notification : volontairement EXCLU (rempli via Kafka).
---
--- IMPORTANT : chaque base a son propre conteneur MySQL (pas de db_action.* depuis
--- mysql-inscription). Exécuter les sections dans l'ordre 0 → 6, sur le bon serveur.
--- action_id 1–26 fixes (section 2) pour inscription / présence.
---
--- Cartographie espace utilisateur (/espace, auth_id = 1) :
---   dashboard      → db_utilisateur (profile, point_history, badges) + db_inscription (INSCRIT)
---   actions        → pagination 3/ligne : ≥10 CONFIRMEE/EN_ATTENTE + ≥10 ANNULEE (historique)
---   scanner-presence → action_id 11 = AUJOURD'HUI + qrcodes_actions
---   recompenses    → catalogue ≥20 offres, coupons ≥12 (pagination 4/ligne)
---   classement     → ≥22 citoyens avec total_points variés (pagination 10/ligne)
---   parametres     → notification_preferences auth_id = 1
+-- Catégories (5) : Compostage, Nettoyage, Reboisement, Recyclage, Sensibilisation
+-- Sections 0 → 7 — une section par conteneur MySQL Docker.
 -- =============================================================
 
 SET @pwd := '$2a$10$uPXNpUOU2bjTTnbVz0KA1eSrj9X8oS4gh.ubvs37jA0Nr4PtA5pH.'; -- Admin123!
@@ -129,13 +115,16 @@ ON DUPLICATE KEY UPDATE
 -- Points pour la page Mes récompenses (échanges catalogue)
 UPDATE citizens SET total_points = 1500 WHERE auth_id = 1;
 
-INSERT INTO associations (auth_id, name, email, phone, address, description, city, created_at) VALUES
+INSERT INTO associations (auth_id, name, email, phone, address, description, logo, city, created_at) VALUES
 (20, 'Méditerranée Propre', 'asso@ecopria.demo', '0520011223',
- '12 quai du Port', 'Collecte, sensibilisation et protection du littoral.', 'Martil', DATE_SUB(NOW(), INTERVAL 300 DAY)),
+ '12 quai du Port', 'Collecte, sensibilisation et protection du littoral.',
+ 'https://images.unsplash.com/photo-1532996122724-e3c354a0b150?w=800&h=600&fit=crop', 'Martil', DATE_SUB(NOW(), INTERVAL 300 DAY)),
 (21, 'Terre Bleue Maroc', 'terrebleue@ecopria.demo', '0537766554',
- '45 av. Mohammed V', 'Reboisement urbain et ateliers éco-citoyens.', 'Rabat', DATE_SUB(NOW(), INTERVAL 250 DAY))
+ '45 av. Mohammed V', 'Reboisement urbain et ateliers éco-citoyens.',
+ 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&h=600&fit=crop', 'Rabat', DATE_SUB(NOW(), INTERVAL 250 DAY))
 ON DUPLICATE KEY UPDATE
-  name = VALUES(name), email = VALUES(email), city = VALUES(city), description = VALUES(description);
+  name = VALUES(name), email = VALUES(email), city = VALUES(city),
+  description = VALUES(description), logo = VALUES(logo);
 
 INSERT INTO partners (auth_id, name, email, phone, address, description, category, city, created_at) VALUES
 (101, 'Café Botanique',       'partenaire101@ecopria.demo', '0522111111', '12 Rue des Fleurs',        'Restaurant bio',           'Restauration',       'Casablanca', NOW()),
@@ -161,7 +150,7 @@ SELECT c.id, v.amount, v.typ, v.src, v.descr, v.dt
 FROM citizens c
 JOIN (
   SELECT 120 AS amount, 'CREDIT' AS typ, 'action-plage-martil' AS src, 'Nettoyage plage Martil — présence validée' AS descr, DATE_SUB(NOW(), INTERVAL 45 DAY) AS dt UNION ALL
-  SELECT 80,  'CREDIT', 'action-plantation-rabat', 'Plantation arbres Rabat', DATE_SUB(NOW(), INTERVAL 38 DAY) UNION ALL
+  SELECT 80,  'CREDIT', 'action-reboisement-rabat', 'Reboisement arbres Rabat', DATE_SUB(NOW(), INTERVAL 38 DAY) UNION ALL
   SELECT 50,  'CREDIT', 'action-sensibilisation-casa', 'Atelier sensibilisation Casablanca', DATE_SUB(NOW(), INTERVAL 25 DAY) UNION ALL
   SELECT 100, 'CREDIT', 'action-recyclage-tanger', 'Collecte sélective Tanger', DATE_SUB(NOW(), INTERVAL 18 DAY) UNION ALL
   SELECT 60,  'CREDIT', 'action-jardin-martil', 'Jardin partagé Martil', DATE_SUB(NOW(), INTERVAL 10 DAY) UNION ALL
@@ -206,17 +195,24 @@ SELECT c.id, 1, DATE_SUB(NOW(), INTERVAL 60 DAY) FROM citizens c WHERE c.auth_id
 USE db_action;
 
 INSERT INTO associations (user_id, name, description, logo_url, city, is_validated, created_at, updated_at) VALUES
-(20, 'Méditerranée Propre', 'Protection du littoral et sensibilisation.', NULL, 'Martil', 1, NOW(), NOW()),
-(21, 'Terre Bleue Maroc', 'Reboisement et jardins urbains.', NULL, 'Rabat', 1, NOW(), NOW())
-ON DUPLICATE KEY UPDATE name = VALUES(name), city = VALUES(city), is_validated = 1;
+(20, 'Méditerranée Propre', 'Protection du littoral et sensibilisation.',
+ 'https://images.unsplash.com/photo-1532996122724-e3c354a0b150?w=800&h=600&fit=crop', 'Martil', 1, NOW(), NOW()),
+(21, 'Terre Bleue Maroc', 'Reboisement et jardins urbains.',
+ 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&h=600&fit=crop', 'Rabat', 1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE name = VALUES(name), city = VALUES(city), logo_url = VALUES(logo_url), is_validated = 1;
 
-INSERT INTO categories (name, description)
+INSERT INTO categories (name, description, image_url, published)
 SELECT * FROM (
-  SELECT 'Nettoyage' AS n, 'Collecte de déchets et plages propres' AS d UNION ALL
-  SELECT 'Plantation', 'Arbres et espaces verts' UNION ALL
-  SELECT 'Sensibilisation', 'Ateliers et conférences' UNION ALL
-  SELECT 'Recyclage', 'Tri et économie circulaire' UNION ALL
-  SELECT 'Biodiversité', 'Protection faune et flore'
+  SELECT 'Compostage' AS n, 'Reboisement et espaces verts' AS d,
+    'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&h=600&fit=crop' AS img, 1 AS pub UNION ALL
+  SELECT 'Nettoyage', 'Actions de collecte',
+    'https://images.unsplash.com/photo-1532996122724-e3c354a0b150?w=800&h=600&fit=crop', 1 UNION ALL
+  SELECT 'Reboisement', 'Protection faune et flore',
+    'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&h=600&fit=crop', 1 UNION ALL
+  SELECT 'Recyclage', 'Tri et économie circulaire',
+    'https://images.unsplash.com/photo-1611288588316-0d9c9c4d2c5e?w=800&h=600&fit=crop', 1 UNION ALL
+  SELECT 'Sensibilisation', 'Ateliers et conférences',
+    'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&h=600&fit=crop', 1
 ) t WHERE NOT EXISTS (SELECT 1 FROM categories c WHERE c.name = t.n);
 
 -- Actions publiées / passées / brouillons (ids fixes 1–26 pour db_inscription / db_presence)
@@ -231,7 +227,7 @@ FROM (
     35.2700 AS lat, -5.3100 AS lng, 'Plage de Martil' AS addr, 'Martil' AS city,
     DATE_ADD(NOW(), INTERVAL 7 DAY) AS ds, DATE_ADD(DATE_ADD(NOW(), INTERVAL 7 DAY), INTERVAL 4 HOUR) AS de,
     50 AS pts, 40 AS maxp, 32 AS avail, 20 AS asso_uid, 'PUBLISHED' AS st
-  UNION ALL SELECT 2, 'Plantation d''arbres — forêt urbaine Rabat', 'Plantation de 200 arbustes natifs.', 'Plantation',
+  UNION ALL SELECT 2, 'Plantation d''arbres — forêt urbaine Rabat', 'Plantation de 200 arbustes natifs.', 'Reboisement',
     34.0209, -6.8416, 'Forêt urbaine Agdal', 'Rabat', DATE_ADD(NOW(), INTERVAL 14 DAY), DATE_ADD(DATE_ADD(NOW(), INTERVAL 14 DAY), INTERVAL 5 HOUR),
     80, 25, 18, 21, 'PUBLISHED'
   UNION ALL SELECT 3, 'Atelier recyclage & zéro déchet — Casablanca', 'Initiation au tri et DIY réemploi.', 'Recyclage',
@@ -240,7 +236,7 @@ FROM (
   UNION ALL SELECT 4, 'Nettoyage littoral — Tanger Med', 'Action coordonnée avec pêcheurs locaux.', 'Nettoyage',
     35.7595, -5.8340, 'Port de pêche', 'Tanger', DATE_ADD(NOW(), INTERVAL 21 DAY), DATE_ADD(DATE_ADD(NOW(), INTERVAL 21 DAY), INTERVAL 4 HOUR),
     60, 30, 30, 20, 'PUBLISHED'
-  UNION ALL SELECT 5, 'Jardin partagé — Martil centre', 'Entretien parcelles et compost.', 'Biodiversité',
+  UNION ALL SELECT 5, 'Jardin partagé — Martil centre', 'Entretien parcelles et compost.', 'Compostage',
     35.2650, -5.3050, 'Jardin municipal', 'Martil', DATE_ADD(NOW(), INTERVAL 10 DAY), DATE_ADD(DATE_ADD(NOW(), INTERVAL 10 DAY), INTERVAL 2 HOUR),
     35, 20, 12, 20, 'PUBLISHED'
   UNION ALL SELECT 6, 'Conférence climat — lycées Rabat', 'Interventions et stands partenaires.', 'Sensibilisation',
@@ -249,7 +245,7 @@ FROM (
   UNION ALL SELECT 7, 'Collecte déchets électroniques — Casa', 'DEEE et sensibilisation numérique responsable.', 'Recyclage',
     33.5800, -7.6000, 'Technopark', 'Casablanca', DATE_SUB(NOW(), INTERVAL 20 DAY), DATE_ADD(DATE_SUB(NOW(), INTERVAL 20 DAY), INTERVAL 4 HOUR),
     70, 35, 0, 20, 'COMPLETED'
-  UNION ALL SELECT 8, 'Reboisement colline — Fès', 'Plantation de pins et oliviers.', 'Plantation',
+  UNION ALL SELECT 8, 'Reboisement colline — Fès', 'Plantation de pins et oliviers.', 'Reboisement',
     34.0330, -5.0000, 'Colline Saiss', 'Fès', DATE_SUB(NOW(), INTERVAL 35 DAY), DATE_ADD(DATE_SUB(NOW(), INTERVAL 35 DAY), INTERVAL 6 HOUR),
     90, 20, 0, 21, 'COMPLETED'
   UNION ALL SELECT 9, 'Nettoyage wadi — Marrakech', 'Action annulée (intempéries).', 'Nettoyage',
@@ -271,10 +267,10 @@ FROM (
   UNION ALL SELECT 14, 'Nettoyage forêt littorale — Martil', 'Ramassage sentiers côtiers.', 'Nettoyage',
     35.2720, -5.3120, 'Forêt littorale', 'Martil', DATE_ADD(NOW(), INTERVAL 12 DAY), DATE_ADD(DATE_ADD(NOW(), INTERVAL 12 DAY), INTERVAL 4 HOUR),
     65, 25, 20, 20, 'PUBLISHED'
-  UNION ALL SELECT 15, 'Plantation oliviers — Tétouan', '100 plants en zone agricole.', 'Plantation',
+  UNION ALL SELECT 15, 'Plantation oliviers — Tétouan', '100 plants en zone agricole.', 'Reboisement',
     35.5700, -5.3700, 'Campagne Tétouan', 'Tétouan', DATE_ADD(NOW(), INTERVAL 18 DAY), DATE_ADD(DATE_ADD(NOW(), INTERVAL 18 DAY), INTERVAL 5 HOUR),
     85, 35, 30, 21, 'PUBLISHED'
-  UNION ALL SELECT 16, 'Biodiversité mangrove — Larache', 'Protection zones humides.', 'Biodiversité',
+  UNION ALL SELECT 16, 'Biodiversité mangrove — Larache', 'Protection zones humides.', 'Reboisement',
     35.1900, -6.1500, 'Mangrove Larache', 'Larache', DATE_ADD(NOW(), INTERVAL 25 DAY), DATE_ADD(DATE_ADD(NOW(), INTERVAL 25 DAY), INTERVAL 4 HOUR),
     75, 20, 18, 20, 'PUBLISHED'
   UNION ALL SELECT 17, 'Recyclage créatif — Marrakech', 'DIY et atelier réemploi.', 'Recyclage',
@@ -283,7 +279,7 @@ FROM (
   UNION ALL SELECT 18, 'Nettoyage plage 2024 — Martil (archivée)', 'Action passée archivée.', 'Nettoyage',
     35.2700, -5.3100, 'Plage Martil', 'Martil', DATE_SUB(NOW(), INTERVAL 90 DAY), DATE_ADD(DATE_SUB(NOW(), INTERVAL 90 DAY), INTERVAL 4 HOUR),
     50, 30, 0, 20, 'COMPLETED'
-  UNION ALL SELECT 19, 'Plantation 2024 — Rabat (archivée)', 'Action passée archivée.', 'Plantation',
+  UNION ALL SELECT 19, 'Plantation 2024 — Rabat (archivée)', 'Action passée archivée.', 'Reboisement',
     34.0200, -6.8400, 'Agdal', 'Rabat', DATE_SUB(NOW(), INTERVAL 85 DAY), DATE_ADD(DATE_SUB(NOW(), INTERVAL 85 DAY), INTERVAL 5 HOUR),
     80, 25, 0, 21, 'COMPLETED'
   UNION ALL SELECT 20, 'Atelier recyclage 2024 — Casa (archivée)', 'Action passée archivée.', 'Recyclage',
@@ -292,13 +288,13 @@ FROM (
   UNION ALL SELECT 21, 'Sensibilisation 2024 — Tanger (archivée)', 'Action passée archivée.', 'Sensibilisation',
     35.7600, -5.8300, 'Tanger', 'Tanger', DATE_SUB(NOW(), INTERVAL 75 DAY), DATE_ADD(DATE_SUB(NOW(), INTERVAL 75 DAY), INTERVAL 2 HOUR),
     25, 100, 0, 20, 'COMPLETED'
-  UNION ALL SELECT 22, 'Jardin 2024 — Martil (archivée)', 'Action passée archivée.', 'Biodiversité',
+  UNION ALL SELECT 22, 'Jardin 2024 — Martil (archivée)', 'Action passée archivée.', 'Compostage',
     35.2650, -5.3050, 'Martil', 'Martil', DATE_SUB(NOW(), INTERVAL 70 DAY), DATE_ADD(DATE_SUB(NOW(), INTERVAL 70 DAY), INTERVAL 2 HOUR),
     35, 20, 0, 20, 'COMPLETED'
   UNION ALL SELECT 23, 'Collecte DEEE 2024 — Casa (archivée)', 'Action passée archivée.', 'Recyclage',
     33.5800, -7.6000, 'Technopark', 'Casablanca', DATE_SUB(NOW(), INTERVAL 65 DAY), DATE_ADD(DATE_SUB(NOW(), INTERVAL 65 DAY), INTERVAL 4 HOUR),
     70, 35, 0, 20, 'COMPLETED'
-  UNION ALL SELECT 24, 'Reboisement 2024 — Fès (archivée)', 'Action passée archivée.', 'Plantation',
+  UNION ALL SELECT 24, 'Reboisement 2024 — Fès (archivée)', 'Action passée archivée.', 'Reboisement',
     34.0330, -5.0000, 'Fès', 'Fès', DATE_SUB(NOW(), INTERVAL 60 DAY), DATE_ADD(DATE_SUB(NOW(), INTERVAL 60 DAY), INTERVAL 6 HOUR),
     90, 20, 0, 21, 'COMPLETED'
   UNION ALL SELECT 25, 'Nettoyage wadi 2024 — Marrakech (archivée)', 'Action passée archivée.', 'Nettoyage',
@@ -309,9 +305,25 @@ FROM (
     25, 100, 0, 21, 'COMPLETED'
 ) t
 WHERE NOT EXISTS (SELECT 1 FROM actions a WHERE a.id = t.id)
-ON DUPLICATE KEY UPDATE
+  ON DUPLICATE KEY UPDATE
   title = VALUES(title), status = VALUES(status), points = VALUES(points),
   available_places = VALUES(available_places), updated_at = NOW();
+
+-- Actions fixes (modèles admin) — visibles dans le catalogue (filtre source « fixed »)
+INSERT INTO actions (id, title, description, category_id, latitude, longitude, address, city,
+  date_start, date_end, points, max_participants, available_places, association_id, status, is_fixed, action_fixe_id, created_at, updated_at)
+SELECT t.id, t.title, t.descr, (SELECT id FROM categories WHERE name = t.cat LIMIT 1),
+  33.5731, -7.5898, 'Template Ecopria', 'Plateforme',
+  DATE_ADD(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL 365 DAY),
+  t.pts, 999, 999, (SELECT id FROM associations WHERE user_id = 20 LIMIT 1), 'PUBLISHED', 1, t.fixe_id, NOW(), NOW()
+FROM (
+  SELECT 27 AS id, 'Nettoyage de plage type' AS title, 'Modèle national plage — action fixe Ecopria' AS descr, 'Nettoyage' AS cat, 50 AS pts, 1 AS fixe_id
+  UNION ALL SELECT 28, 'Reboisement urbain type', 'Modèle reboisement ville — action fixe Ecopria', 'Reboisement', 80, 2
+  UNION ALL SELECT 29, 'Atelier zéro déchet type', 'Modèle atelier — action fixe Ecopria', 'Sensibilisation', 30, 3
+) t
+WHERE NOT EXISTS (SELECT 1 FROM actions a WHERE a.id = t.id)
+ON DUPLICATE KEY UPDATE
+  title = VALUES(title), status = 'PUBLISHED', is_fixed = 1, action_fixe_id = VALUES(action_fixe_id), updated_at = NOW();
 
 -- Programme & infos pratiques (première action Martil si présente)
 INSERT INTO action_program (action_id, step, step_order)
@@ -347,74 +359,74 @@ FROM actions a WHERE a.title LIKE '%Martil%' AND a.status = 'PUBLISHED'
 -- ─────────────────────────────────────────────────────────────
 USE db_inscription;
 
-INSERT INTO inscriptions (user_id, action_id, date_inscription, statut, points_action, accompagnants,
+INSERT INTO inscriptions (user_id, action_id, date_inscription, statut, points_action,
   motivation, image_rights, newsletter, penalise,
   participant_first_name, participant_last_name, participant_email, participant_city)
-SELECT v.uid, v.action_id, v.dt, v.statut, v.pts, v.acc, v.mot, 1, v.nl, v.pen,
+SELECT v.uid, v.action_id, v.dt, v.statut, v.pts, v.mot, 1, v.nl, v.pen,
   v.fn, v.ln, v.em, v.city
 FROM (
-  SELECT 1 AS uid, 1 AS action_id, 50 AS pts, 'CONFIRMEE' AS statut, NOW() AS dt, 0 AS acc,
+  SELECT 1 AS uid, 1 AS action_id, 50 AS pts, 'CONFIRMEE' AS statut, NOW() AS dt,
     'Motivée par la protection du littoral' AS mot, 0 AS nl, 0 AS pen,
     'Sanae' AS fn, 'Tafraouti' AS ln, 'tafraouti.sanae1@gmail.com' AS em, 'Martil' AS city
-  UNION ALL SELECT 1, 5, 35, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 2 DAY), 1, 'Venir avec mes enfants', 1, 0,
+  UNION ALL SELECT 1, 5, 35, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 2 DAY), 'Venir avec mes enfants', 1, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 2, 80, 'EN_ATTENTE', DATE_SUB(NOW(), INTERVAL 1 DAY), 0, 'Places limitées', 0, 0,
+  UNION ALL SELECT 1, 2, 80, 'EN_ATTENTE', DATE_SUB(NOW(), INTERVAL 1 DAY), 'Places limitées', 0, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 3, 3, 40, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 3 DAY), 0, NULL, 1, 0,
+  UNION ALL SELECT 3, 3, 40, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 3 DAY), NULL, 1, 0,
     'Amine', 'Bennani', 'amine.bennani@ecopria.demo', 'Casablanca'
-  UNION ALL SELECT 4, 4, 60, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 4 DAY), 0, NULL, 0, 0,
+  UNION ALL SELECT 4, 4, 60, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 4 DAY), NULL, 0, 0,
     'Lina', 'Alaoui', 'lina.alaoui@ecopria.demo', 'Rabat'
-  UNION ALL SELECT 8, 1, 50, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 5 DAY), 0, NULL, 1, 0,
+  UNION ALL SELECT 8, 1, 50, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 5 DAY), NULL, 1, 0,
     'Nadia', 'Raji', 'nadia.raji@ecopria.demo', 'Casablanca'
-  UNION ALL SELECT 5, 9, 45, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 10 DAY), 0, 'Empêchement', 0, 0,
+  UNION ALL SELECT 5, 9, 45, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 10 DAY), 'Empêchement', 0, 0,
     'Youssef', 'Idrissi', 'youssef.idrissi@ecopria.demo', 'Tanger'
-  UNION ALL SELECT 1, 3, 40, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 6 DAY), 0, 'Atelier recyclage', 1, 0,
+  UNION ALL SELECT 1, 3, 40, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 6 DAY), 'Atelier recyclage', 1, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 4, 60, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 5 DAY), 0, NULL, 0, 0,
+  UNION ALL SELECT 1, 4, 60, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 5 DAY), NULL, 0, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 6, 25, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 4 DAY), 0, NULL, 1, 0,
+  UNION ALL SELECT 1, 6, 25, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 4 DAY), NULL, 1, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 11, 45, 'CONFIRMEE', NOW(), 0, 'Test scanner QR du jour', 1, 0,
+  UNION ALL SELECT 1, 11, 45, 'CONFIRMEE', NOW(), 'Test scanner QR du jour', 1, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 12, 55, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 1 DAY), 0, NULL, 0, 0,
+  UNION ALL SELECT 1, 12, 55, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, 0, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 13, 30, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 2 DAY), 0, NULL, 0, 0,
+  UNION ALL SELECT 1, 13, 30, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 2 DAY), NULL, 0, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 14, 65, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 3 DAY), 0, NULL, 1, 0,
+  UNION ALL SELECT 1, 14, 65, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 3 DAY), NULL, 1, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 15, 85, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 4 DAY), 0, NULL, 0, 0,
+  UNION ALL SELECT 1, 15, 85, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 4 DAY), NULL, 0, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 16, 75, 'EN_ATTENTE', DATE_SUB(NOW(), INTERVAL 1 DAY), 0, 'Liste d''attente mangrove', 0, 0,
+  UNION ALL SELECT 1, 16, 75, 'EN_ATTENTE', DATE_SUB(NOW(), INTERVAL 1 DAY), 'Liste d''attente mangrove', 0, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 17, 50, 'EN_ATTENTE', NOW(), 0, 'Liste d''attente Marrakech', 0, 0,
+  UNION ALL SELECT 1, 17, 50, 'EN_ATTENTE', NOW(), 'Liste d''attente Marrakech', 0, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 8, 90, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 40 DAY), 0, 'Empêchement personnel', 0, 0,
+  UNION ALL SELECT 1, 8, 90, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 40 DAY), 'Empêchement personnel', 0, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 7, 70, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 25 DAY), 0, 'Doublon annulé (présence via scan)', 0, 0,
+  UNION ALL SELECT 1, 7, 70, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 25 DAY), 'Doublon annulé (présence via scan)', 0, 0,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 2, 1, 50, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 2 DAY), 0, NULL, 1, 0,
+  UNION ALL SELECT 2, 1, 50, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 2 DAY), NULL, 1, 0,
     'Marie', 'Martin', 'marie.martin@ecopria.demo', 'Marseille'
-  UNION ALL SELECT 11, 11, 45, 'CONFIRMEE', NOW(), 0, NULL, 1, 0,
+  UNION ALL SELECT 11, 11, 45, 'CONFIRMEE', NOW(), NULL, 1, 0,
     'Leïla', 'Benjelloun', 'leila.benjelloun@ecopria.demo', 'Casablanca'
-  UNION ALL SELECT 22, 2, 80, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 1 DAY), 0, NULL, 0, 0,
+  UNION ALL SELECT 22, 2, 80, 'CONFIRMEE', DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, 0, 0,
     'Paul', 'Dupont', 'paul.dupont@ecopria.demo', 'Casablanca'
-  UNION ALL SELECT 1, 18, 50, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 88 DAY), 0, 'Absent — historique pagination', 0, 1,
+  UNION ALL SELECT 1, 18, 50, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 88 DAY), 'Absent — historique pagination', 0, 1,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 19, 80, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 83 DAY), 0, 'Absent — historique pagination', 0, 1,
+  UNION ALL SELECT 1, 19, 80, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 83 DAY), 'Absent — historique pagination', 0, 1,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 20, 40, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 78 DAY), 0, 'Absent — historique pagination', 0, 1,
+  UNION ALL SELECT 1, 20, 40, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 78 DAY), 'Absent — historique pagination', 0, 1,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 21, 25, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 73 DAY), 0, 'Absent — historique pagination', 0, 1,
+  UNION ALL SELECT 1, 21, 25, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 73 DAY), 'Absent — historique pagination', 0, 1,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 22, 35, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 68 DAY), 0, 'Absent — historique pagination', 0, 1,
+  UNION ALL SELECT 1, 22, 35, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 68 DAY), 'Absent — historique pagination', 0, 1,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 23, 70, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 63 DAY), 0, 'Absent — historique pagination', 0, 1,
+  UNION ALL SELECT 1, 23, 70, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 63 DAY), 'Absent — historique pagination', 0, 1,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 24, 90, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 58 DAY), 0, 'Absent — historique pagination', 0, 1,
+  UNION ALL SELECT 1, 24, 90, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 58 DAY), 'Absent — historique pagination', 0, 1,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 25, 45, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 53 DAY), 0, 'Absent — historique pagination', 0, 1,
+  UNION ALL SELECT 1, 25, 45, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 53 DAY), 'Absent — historique pagination', 0, 1,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
-  UNION ALL SELECT 1, 26, 25, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 48 DAY), 0, 'Absent — historique pagination', 0, 1,
+  UNION ALL SELECT 1, 26, 25, 'ANNULEE', DATE_SUB(NOW(), INTERVAL 48 DAY), 'Absent — historique pagination', 0, 1,
     'Sanae', 'Tafraouti', 'tafraouti.sanae1@gmail.com', 'Martil'
 ) v
 WHERE NOT EXISTS (SELECT 1 FROM inscriptions i WHERE i.user_id = v.uid AND i.action_id = v.action_id);
@@ -486,7 +498,7 @@ SELECT p.id, t.title, t.descr, t.img, t.pts, t.typ, t.disc, t.stk, t.val, 1, t.e
 FROM partenaires p
 JOIN (
   SELECT 101 AS uid, 'Menu Déjeuner Bio Complet' AS title, 'Menu 3 plats bio.' AS descr, 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop' AS img, 120 AS pts, 'STOCK' AS typ, NULL AS disc, 30 AS stk, 85.0 AS val, DATE_ADD(NOW(), INTERVAL 90 DAY) AS exp, 0 AS mbox, NULL AS mpts
-  UNION ALL SELECT 101, '15% sur toute la carte', 'Réduction 15%.', 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop', 80, 'REDUCTION', 15, NULL, 0, NULL, 1, 60, NULL
+  UNION ALL SELECT 101, '15% sur toute la carte', 'Réduction 15%.', 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop', 80, 'REDUCTION', 15, NULL, 0, NULL, 1, 60
   UNION ALL SELECT 101, 'Café & Pâtisserie Maison', 'Café + pâtisserie.', 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&h=400&fit=crop', 50, 'STOCK', NULL, 50, 35.0, NULL, 0, NULL
   UNION ALL SELECT 101, 'Smoothie Detox Gratuit', 'Smoothie offert.', 'https://images.unsplash.com/photo-1610970881329-b4693fffe1a3?w=600&h=400&fit=crop', 35, 'STOCK', NULL, 100, 25.0, NULL, 0, NULL
   UNION ALL SELECT 102, '20% sur Collection Join Life', 'Réduction Zara Join Life.', 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=600&h=400&fit=crop', 150, 'REDUCTION', 20, NULL, 0, DATE_ADD(NOW(), INTERVAL 60 DAY), 0, NULL
@@ -571,25 +583,55 @@ SELECT p.id, c.id, 120.00, 8.40, 7.0, DATE_FORMAT(NOW(), '%Y-%m'), NOW()
 FROM coupons c JOIN recompenses r ON c.recompense_id = r.id JOIN partenaires p ON r.partenaire_id = p.id
 WHERE c.code = 'ECO-SANAE-007' AND NOT EXISTS (SELECT 1 FROM commissions x WHERE x.coupon_id = c.id);
 
+INSERT INTO avis_partenaire (partenaire_id, author_name, rating, comment, created_at)
+SELECT p.id, 'Sarah M.', 5, 'Excellente expérience au Café Botanique ! Cuisine délicieuse et cadre apaisant.', NOW()
+FROM partenaires p WHERE p.user_id = 101
+  AND NOT EXISTS (SELECT 1 FROM avis_partenaire a WHERE a.partenaire_id = p.id AND a.author_name = 'Sarah M.');
+
+INSERT INTO avis_partenaire (partenaire_id, author_name, rating, comment, created_at)
+SELECT p.id, 'Ahmed K.', 4, 'Très bon rapport qualité-prix. Menu bio et savoureux. Je recommande !', NOW()
+FROM partenaires p WHERE p.user_id = 101
+  AND NOT EXISTS (SELECT 1 FROM avis_partenaire a WHERE a.partenaire_id = p.id AND a.author_name = 'Ahmed K.');
+
+INSERT INTO avis_partenaire (partenaire_id, author_name, rating, comment, created_at)
+SELECT p.id, 'Leïla B.', 5, 'Collection Join Life de Zara : vêtements éco-responsables et tendance.', NOW()
+FROM partenaires p WHERE p.user_id = 102
+  AND NOT EXISTS (SELECT 1 FROM avis_partenaire a WHERE a.partenaire_id = p.id AND a.author_name = 'Leïla B.');
+
+INSERT INTO avis_partenaire (partenaire_id, author_name, rating, comment, created_at)
+SELECT p.id, 'Youssef T.', 5, 'Dîner exceptionnel au Jardin Secret. Service impeccable à Rabat.', NOW()
+FROM partenaires p WHERE p.user_id = 103
+  AND NOT EXISTS (SELECT 1 FROM avis_partenaire a WHERE a.partenaire_id = p.id AND a.author_name = 'Youssef T.');
+
+INSERT INTO avis_partenaire (partenaire_id, author_name, rating, comment, created_at)
+SELECT p.id, 'Fatima Z.', 4, 'Super concept de vélo électrique ! Location facile à Marrakech.', NOW()
+FROM partenaires p WHERE p.user_id = 105
+  AND NOT EXISTS (SELECT 1 FROM avis_partenaire a WHERE a.partenaire_id = p.id AND a.author_name = 'Fatima Z.');
+
+INSERT INTO avis_partenaire (partenaire_id, author_name, rating, comment, created_at)
+SELECT p.id, 'Nadia R.', 5, 'Massage incroyable ! Produits naturels et ambiance zen.', NOW()
+FROM partenaires p WHERE p.user_id = 106
+  AND NOT EXISTS (SELECT 1 FROM avis_partenaire a WHERE a.partenaire_id = p.id AND a.author_name = 'Nadia R.');
+
 
 -- ─────────────────────────────────────────────────────────────
 -- 6) db_admin  (mysql-admin, port 3312)
 -- ─────────────────────────────────────────────────────────────
 USE db_admin;
 
-INSERT INTO categories (nom, description, image_url, created_at, updated_at) VALUES
-('Nettoyage', 'Actions de collecte', 'https://images.unsplash.com/photo-1532996122724-e3c354a0b150?w=400', NOW(), NOW()),
-('Plantation', 'Reboisement et espaces verts', 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=400', NOW(), NOW()),
-('Sensibilisation', 'Éducation et ateliers', 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=400', NOW(), NOW()),
-('Recyclage', 'Tri et économie circulaire', 'https://images.unsplash.com/photo-1611288588316-0d9c9c4d2c5e?w=400', NOW(), NOW()),
-('Biodiversité', 'Protection du vivant', 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400', NOW(), NOW())
-ON DUPLICATE KEY UPDATE description = VALUES(description), updated_at = NOW();
+INSERT INTO categories (nom, description, image_url, published, created_at, updated_at) VALUES
+('Compostage', 'Reboisement et espaces verts', 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&h=600&fit=crop', 1, NOW(), NOW()),
+('Nettoyage', 'Actions de collecte', 'https://images.unsplash.com/photo-1532996122724-e3c354a0b150?w=800&h=600&fit=crop', 1, NOW(), NOW()),
+('Reboisement', 'Protection faune et flore', 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&h=600&fit=crop', 1, NOW(), NOW()),
+('Recyclage', 'Tri et économie circulaire', 'https://images.unsplash.com/photo-1611288588316-0d9c9c4d2c5e?w=800&h=600&fit=crop', 1, NOW(), NOW()),
+('Sensibilisation', 'Ateliers et conférences', 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&h=600&fit=crop', 1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE description = VALUES(description), image_url = VALUES(image_url), published = VALUES(published), updated_at = NOW();
 
 INSERT INTO actions_fixes (titre, description, categorie, est_fixe, association_id, association_name, points, active, created_at, updated_at)
 SELECT * FROM (
   SELECT 'Nettoyage de plage type' AS titre, 'Modèle national plage' AS descr, 'Nettoyage' AS cat, 1 AS fixe,
     1 AS asso_id, 'Méditerranée Propre' AS asso_name, 50 AS pts, 1 AS act, NOW() AS ca, NOW() AS ua
-  UNION ALL SELECT 'Plantation urbaine type', 'Modèle plantation ville', 'Plantation', 1, 1, 'Terre Bleue Maroc', 80, 1, NOW(), NOW()
+  UNION ALL SELECT 'Reboisement urbain type', 'Modèle reboisement ville', 'Reboisement', 1, 1, 'Terre Bleue Maroc', 80, 1, NOW(), NOW()
   UNION ALL SELECT 'Atelier zéro déchet type', 'Modèle atelier', 'Sensibilisation', 1, NULL, NULL, 30, 1, NOW(), NOW()
 ) t
 WHERE NOT EXISTS (SELECT 1 FROM actions_fixes f WHERE f.titre = t.titre);
@@ -616,7 +658,21 @@ FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM logs_admin l WHERE l.action = 'MODIFIC
 
 
 -- ─────────────────────────────────────────────────────────────
--- FIN — Page récompenses : sections 1 (points) + 5 (catalogue/coupons) obligatoires.
+-- 7) db_notification  (mysql-notification, port 3313)
+-- ─────────────────────────────────────────────────────────────
+USE db_notification;
+
+INSERT INTO notifications (user_id, title, message, type, is_read, created_at) VALUES
+(1, 'Bienvenue sur Ecopria', 'Votre compte citoyen est actif. Explorez les actions près de chez vous.', 'SUCCESS', 1, DATE_SUB(NOW(), INTERVAL 10 DAY)),
+(1, 'Inscription confirmée', 'Vous êtes inscrite à l''action Nettoyage plage Martil. Présentez votre QR le jour J.', 'SUCCESS', 1, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+(1, 'Points gagnés', 'Bravo ! +70 points pour votre participation à une action écologique.', 'SUCCESS', 0, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(1, 'Nouvelle offre partenaire', 'Café Botanique propose -20 % sur le menu du jour (150 pts).', 'INFO', 0, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(1, 'Coupon généré', 'Votre coupon ECO-SANAE-001 est prêt. Valable 30 jours.', 'SUCCESS', 0, NOW()),
+(20, 'Compte association validé', 'Votre association est visible sur la plateforme.', 'SUCCESS', 1, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+(101, 'Compte partenaire validé', 'Publiez vos premières offres dans votre espace partenaire.', 'SUCCESS', 1, DATE_SUB(NOW(), INTERVAL 4 DAY));
+
+
+-- ─────────────────────────────────────────────────────────────
+-- FIN — Fichier unique : sections 0 → 7 (tous les services).
 -- Coupons : user_id = auth_id du compte connecté (adapter si != 1).
--- db_notification : non inclus (Kafka).
 -- =============================================================

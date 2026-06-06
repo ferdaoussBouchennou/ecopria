@@ -82,11 +82,17 @@
       <a [routerLink]="['/associations', association.authId]" class="card-link">
         <div class="card-image">
           <img
+            *ngIf="hasLogo(association)"
             [src]="logoUrl(association)"
             [alt]="association.name"
             loading="lazy"
             (error)="onImgError($event)"
           />
+          <span
+            class="card-image__initial"
+            [class.is-visible]="!hasLogo(association)"
+            aria-hidden="true"
+          >{{ associationInitial(association) }}</span>
           <span class="badge badge-cat" *ngIf="association.city">{{ association.city }}</span>
         </div>
         <div class="card-body">

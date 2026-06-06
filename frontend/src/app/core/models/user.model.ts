@@ -46,6 +46,13 @@ export interface BadgeStatus {
   obtained: boolean;
 }
 
+export interface LeaderboardBadge {
+  id: number;
+  name: string;
+  icon: string;
+  description?: string;
+}
+
 export interface LeaderboardEntry {
   rank: number;
   lastName: string;
@@ -53,6 +60,7 @@ export interface LeaderboardEntry {
   city?: string;
   totalPoints: number;
   isMe: boolean;
+  badges?: LeaderboardBadge[];
 }
 
 export interface UpcomingAction {

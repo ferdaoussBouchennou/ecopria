@@ -53,6 +53,11 @@ spring:
           predicates:
             - Path=/api/users/**,/api/utilisateurs/**
 
+        - id: service-utilisateur-uploads
+          uri: ${GATEWAY_UTILISATEUR_URI:http://localhost:8082}
+          predicates:
+            - Path=/uploads/associations/**,/uploads/citizens/**
+
         - id: service-notification
           uri: ${GATEWAY_NOTIFICATION_URI:http://localhost:8086}
           predicates:

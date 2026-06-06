@@ -78,8 +78,8 @@
 
                 <a routerLink="/espace/parametres" class="user-pill" style="text-decoration: none; color: inherit;">
                     <span>{{ profile.firstName }} {{ profile.lastName }}</span>
-                    <img *ngIf="profile.photo" [src]="profile.photo" class="avatar" alt="Avatar">
-                    <div *ngIf="!profile.photo" class="avatar">{{ profile.firstName.charAt(0) }}{{
+                    <img *ngIf="profilePhoto()" [src]="profilePhoto()" class="avatar" alt="Avatar">
+                    <div *ngIf="!profilePhoto()" class="avatar">{{ profile.firstName.charAt(0) }}{{
                         profile.lastName.charAt(0) }}</div>
                 </a>
             </div>

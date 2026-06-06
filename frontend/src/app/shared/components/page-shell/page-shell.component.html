@@ -77,8 +77,8 @@
 
         <div class="account-menu">
           <button type="button" class="account-menu__trigger" (click)="toggleAccountMenu()" [attr.aria-expanded]="showAccountMenu">
-            @if (profile?.photo) {
-              <img [src]="profile!.photo" class="account-menu__avatar" alt="" />
+            @if (profilePhoto) {
+              <img [src]="profilePhoto" class="account-menu__avatar" alt="" />
             } @else {
               <span class="account-menu__avatar account-menu__avatar--initials">{{ profileInitials }}</span>
             }

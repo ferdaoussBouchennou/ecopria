@@ -56,7 +56,7 @@
 
     <div class="action-stack" *ngIf="!loading; else loadingState">
       <article class="action-row" *ngFor="let action of upcomingActions">
-        <img class="action-row__image" [src]="action.categoryImageUrl || 'assets/logo.png'" [alt]="action.title">
+        <img class="action-row__image" [src]="action.imageUrl" [alt]="action.title" (error)="onActionImageError($event)">
         <div class="action-row__body">
           <div class="action-row__topline">
             <span class="tag">{{ action.city }}</span>

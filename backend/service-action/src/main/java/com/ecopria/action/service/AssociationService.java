@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.ecopria.action.dto.AssociationOptionDTO;
+import com.ecopria.action.dto.AssociationPublicDTO;
 import com.ecopria.action.dto.AssociationDetailDTO;
 import com.ecopria.action.dto.AdminAssociationManageRequest;
 
@@ -99,6 +100,34 @@ public class AssociationService {
                 .orElseThrow(() -> new RuntimeException("Association introuvable: " + id));
         association.setLogoUrl(trimOrNull(logoUrl));
         return toDetailDTO(associationRepository.save(association));
+    }
+
+    @Transactional(readOnly = true)
+    public List<AssociationPublicDTO> listPublic() {
+        return associationRepository.findAll().stream()
+                .filter(a -> Boolean.TRUE.equals(a.getIsValidated()))
+                .sorted(Comparator.comparing(Association::getName, String.CASE_INSENSITIVE_ORDER))
+                .map(this::toPublicDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public AssociationPublicDTO getPublicByUserId(Long userId) {
+        Association association = associationRepository.findByUserId(userId)
+                .filter(a -> Boolean.TRUE.equals(a.getIsValidated()))
+                .orElseThrow(() -> new RuntimeException("Association non trouvée"));
+        return toPublicDTO(association);
+    }
+
+    private AssociationPublicDTO toPublicDTO(Association association) {
+        return AssociationPublicDTO.builder()
+                .id(association.getId())
+                .userId(association.getUserId())
+                .name(association.getName())
+                .description(association.getDescription())
+                .logoUrl(association.getLogoUrl())
+                .city(association.getCity())
+                .build();
     }
 
     private AssociationDetailDTO toDetailDTO(Association association) {

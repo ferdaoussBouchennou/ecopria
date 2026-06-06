@@ -52,6 +52,11 @@ public class InscriptionService {
         }
 
         ActionDTO action = actionClient.getAction(request.getActionId());
+        if (!"PUBLISHED".equals(action.getStatut())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Cette action n'est plus ouverte aux inscriptions.");
+        }
         utilisateurClient.syncParticipantProfile(request);
         Map<String, Object> profile = utilisateurClient.getParticipantProfile(request.getUserId());
         String participantEmail = firstNonBlank(request.getEmail(), stringValue(profile.get("email")));
