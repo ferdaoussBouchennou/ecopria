@@ -36,7 +36,11 @@ export class InscriptionService {
     return this.http
       .get<InscriptionResponse[]>(`${API_INSCRIPTION}/user/${userId}`)
       .pipe(
-        map((responses) => responses.map((r) => this.mapToMonInscriptionDto(r))),
+        map((responses) =>
+          responses
+            .filter((r) => r.statut !== 'ANNULEE')
+            .map((r) => this.mapToMonInscriptionDto(r))
+        ),
         catchError(this.handleError)
       );
   }
@@ -104,23 +108,12 @@ export class InscriptionService {
   }
 
   private mapToMonInscriptionDto(response: InscriptionResponse): MonInscriptionDto {
-    let statut: 'INSCRIT' | 'VALIDE' | 'ABSENT';
-    switch (response.statut) {
-      case 'CONFIRMEE':
-        statut = 'INSCRIT';
-        break;
-      case 'EN_ATTENTE':
-        statut = 'INSCRIT';
-        break;
-      default:
-        statut = 'ABSENT';
-    }
-
     return {
       inscriptionId: response.id,
       actionId: response.actionId,
       userId: response.userId,
-      statut: statut,
+      statut: response.statut === 'EN_ATTENTE' || response.statut === 'CONFIRMEE' ? 'INSCRIT' : 'ABSENT',
+      inscriptionStatut: response.statut,
       dateAction: response.dateInscription,
       qrCodeUrl: response.qrCode,
     };

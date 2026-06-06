@@ -14,6 +14,7 @@ import { UserProfileService } from '../../../core/services/user-profile.service'
 import { NotificationService } from '../../../core/services/notification.service';
 import { UiService } from '../../../core/services/ui.user.service';
 import { defaultHomeForRole } from '../../../core/utils/auth-navigation.util';
+import { resolveUploadUrl } from '../../../core/utils/upload-url.util';
 import { Profile } from '../../../core/models/user.model';
 import { AppNotification } from '../../../core/models/notification.model';
 
@@ -132,6 +133,10 @@ export class PageShellComponent implements OnInit, OnDestroy {
   get profileInitials(): string {
     if (!this.profile) return '?';
     return `${this.profile.firstName?.charAt(0) ?? ''}${this.profile.lastName?.charAt(0) ?? ''}`.toUpperCase();
+  }
+
+  get profilePhoto(): string | undefined {
+    return resolveUploadUrl(this.profile?.photo);
   }
 
   toggleNotifs(): void {

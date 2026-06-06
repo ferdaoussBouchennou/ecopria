@@ -5,7 +5,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { resolvePostLoginUrl } from '../../../core/utils/auth-navigation.util';
 import { httpErrorMessage } from '../../../core/utils/http-error.util';
-import { environment } from '../../../../environments/environment';
 
 const PENDING_PROFILE_KEY = 'ecopria_pending_citizen_profile';
 
@@ -27,8 +26,6 @@ export interface PendingCitizenProfile {
   styleUrl: './verify-email.component.scss',
 })
 export class VerifyEmailComponent implements OnInit {
-  readonly showDevHint = !environment.production;
-
   email = '';
   code = '';
   submitting = false;

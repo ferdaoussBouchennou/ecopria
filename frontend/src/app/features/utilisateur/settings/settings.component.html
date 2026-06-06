@@ -3,8 +3,8 @@
     <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 2.5rem;">
       <div class="avatar-edit-wrapper">
         <div class="avatar-large">
-          <img *ngIf="photo" [src]="photo" alt="Profile">
-          <span *ngIf="!photo">{{ firstName.charAt(0) }}{{ lastName.charAt(0) }}</span>
+          <img *ngIf="photoUrl()" [src]="photoUrl()" alt="Profile">
+          <span *ngIf="!photoUrl()">{{ firstName.charAt(0) }}{{ lastName.charAt(0) }}</span>
         </div>
         <!-- Input file caché -->
         <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
@@ -45,7 +45,9 @@
       <input type="text" [(ngModel)]="city" placeholder="Lyon">
     </div>
 
-    <button class="btn-save" (click)="saveProfile()" [disabled]="loading">Enregistrer les modifications</button>
+    <button class="btn-save" (click)="saveProfile()" [disabled]="loading || saving">
+      {{ saving ? 'Enregistrement…' : 'Enregistrer les modifications' }}
+    </button>
     <p *ngIf="message" style="margin-top: 1rem; color: var(--primary); font-weight: 600;">{{ message }}</p>
     <p *ngIf="errorMessage" style="margin-top: 1rem; color: #b42318; font-weight: 600;">{{ errorMessage }}</p>
   </section>

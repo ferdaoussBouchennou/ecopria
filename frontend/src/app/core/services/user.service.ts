@@ -4,6 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { httpErrorMessage } from '../utils/http-error.util';
+import { resolveUploadUrl } from '../utils/upload-url.util';
 import {
   Profile,
   PointHistory,
@@ -82,6 +83,14 @@ export class UserService {
       );
   }
 
+  uploadPhoto(id: number, file: File): Observable<{ photoUrl: string }> {
+    const formData = new FormData();
+    formData.append('photo', file);
+    return this.http
+      .post<{ photoUrl: string }>(`${this.apiUrl}/${id}/photo`, formData)
+      .pipe(catchError(this.handleError('Photo non enregistrée')));
+  }
+
   updatePreferences(id: number, preferences: UpdatePreferencesRequest): Observable<void> {
     return this.http
       .put<void>(`${this.apiUrl}/${id}/preferences`, preferences)
@@ -100,7 +109,7 @@ export class UserService {
       city: this.optionalString(raw['city']),
       totalPoints: Number(raw['totalPoints'] ?? raw['total_points'] ?? 0),
       trustScore: Number(raw['trustScore'] ?? raw['trust_score'] ?? 100),
-      photo: this.optionalString(raw['photo']),
+      photo: resolveUploadUrl(this.optionalString(raw['photo'])),
       createdAt: String(raw['createdAt'] ?? raw['created_at'] ?? '')
     };
   }

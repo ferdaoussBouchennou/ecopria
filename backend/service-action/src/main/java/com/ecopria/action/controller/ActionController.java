@@ -38,6 +38,14 @@ public class ActionController {
         return ResponseEntity.ok(actionService.getForMap(categoryId));
     }
 
+    // ── RÉSUMÉS PAR IDS (espace citoyen — 1 requête au lieu de N) ──
+    // GET /api/actions/summaries?ids=1,2,3
+    @GetMapping("/summaries")
+    public ResponseEntity<List<ActionSummaryDTO>> getSummariesByIds(
+            @RequestParam("ids") List<Long> ids) {
+        return ResponseEntity.ok(actionService.getSummariesByIds(ids));
+    }
+
     // ── DÉTAIL ──────────────────────────────────────────────
     // GET /api/actions/{id}
     @GetMapping("/{id}")

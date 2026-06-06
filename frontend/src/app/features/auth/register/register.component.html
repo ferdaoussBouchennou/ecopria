@@ -12,7 +12,8 @@
           [class.profile-card--active]="profileType === 'citoyen'"
           (click)="selectProfile('citoyen')"
         >
-          <span class="profile-card__title">Citoyen·ne</span>
+          <span class="profile-card__badge">P</span>
+          <span class="profile-card__title">Participant</span>
           <span class="profile-card__desc">Participer à des actions et gagner des points.</span>
         </button>
         <button
@@ -21,6 +22,7 @@
           [class.profile-card--active]="profileType === 'association'"
           (click)="selectProfile('association')"
         >
+          <span class="profile-card__badge">A</span>
           <span class="profile-card__title">Association</span>
           <span class="profile-card__desc">Organiser des actions écologiques.</span>
         </button>
@@ -30,6 +32,7 @@
           [class.profile-card--active]="profileType === 'partenaire'"
           (click)="selectProfile('partenaire')"
         >
+          <span class="profile-card__badge">R</span>
           <span class="profile-card__title">Partenaire</span>
           <span class="profile-card__desc">Proposer des récompenses à la communauté.</span>
         </button>
@@ -47,6 +50,11 @@
           @if (error) {
             <div class="alert alert--error" role="alert">{{ error }}</div>
           }
+
+          <div class="form-section-head">
+            <h2>Inscription {{ profileLabel }}</h2>
+            <p>Renseignez les informations ci-dessous pour créer votre compte.</p>
+          </div>
 
           @if (profileType === 'citoyen') {
             <div class="field-row">
@@ -79,11 +87,6 @@
               <span>Ville</span>
               <input id="ville" name="ville" type="text" [(ngModel)]="city" required placeholder="Tétouan" autocomplete="address-level2" />
             </label>
-
-            <label class="field">
-              <span>Mot de passe</span>
-              <input id="password" name="password" type="password" [(ngModel)]="password" required minlength="8" placeholder="Minimum 8 caractères" autocomplete="new-password" />
-            </label>
           } @else {
             <label class="field">
               <span>{{ profileType === 'partenaire' ? 'Nom du partenaire' : "Nom de l'association" }}</span>
@@ -110,11 +113,6 @@
               <input id="ville-org" name="ville" type="text" [(ngModel)]="city" required placeholder="Tétouan" autocomplete="address-level2" />
             </label>
 
-            <label class="field">
-              <span>Mot de passe</span>
-              <input id="password-org" name="password" type="password" [(ngModel)]="password" required minlength="8" placeholder="Minimum 8 caractères" autocomplete="new-password" />
-            </label>
-
             <div class="file-upload">
               <label for="verification-doc">Document de vérification</label>
               <div class="file-upload__zone">
@@ -128,7 +126,7 @@
                 <button type="button" class="file-upload__btn" (click)="triggerFilePicker()">Parcourir…</button>
                 <span class="file-upload__name">{{ documentFileName }}</span>
               </div>
-              <p class="file-upload__hint">Statuts, récépissé ou attestation officielle (PDF, JPG)</p>
+              <p class="file-upload__hint">Statuts, récépissé ou attestation officielle (PDF, JPG, max 5 Mo)</p>
             </div>
 
             <div class="info-box">
@@ -136,19 +134,134 @@
             </div>
           }
 
-          <div class="captcha-box">
-            @if (!captchaUseDevFallback) {
-              <div #turnstileContainer class="turnstile-widget" aria-label="Vérification anti-robot"></div>
-            } @else {
-              <label class="captcha-box captcha-box--dev">
+          <div class="password-block">
+            <p class="password-block__title">Sécurité du compte</p>
+
+            <label class="field field--password">
+              <span>Mot de passe</span>
+              <div class="password-input-wrap">
                 <input
-                  type="checkbox"
-                  [checked]="captchaDevBypass"
-                  (change)="onDevCaptchaToggle($any($event.target).checked)"
+                  id="password"
+                  name="password"
+                  [type]="showPassword ? 'text' : 'password'"
+                  [(ngModel)]="password"
+                  required
+                  [placeholder]="passwordPolicyHint"
+                  autocomplete="new-password"
                 />
-                <span>Je confirme que je ne suis pas un robot</span>
-              </label>
+                <button
+                  type="button"
+                  class="password-toggle"
+                  (click)="togglePasswordVisibility('password')"
+                  [attr.aria-label]="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+                >
+                  @if (showPassword) {
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 6a9.77 9.77 0 0 1 8.82 5.5 9.647 9.647 0 0 1-2.41 3.12l1.41 1.41A11.94 11.94 0 0 0 24 11.5 12 12 0 0 0 0 11.5a12 12 0 0 0 3.27 8.41l1.42-1.42A9.77 9.77 0 0 1 12 6Zm0 4a3 3 0 0 0-2.83 4h5.66A3 3 0 0 0 12 10Zm-7.53 1.47-1.41 1.41A12 12 0 0 0 0 11.5 12 12 0 0 0 12 24a11.8 11.8 0 0 0 7.53-2.73l-1.41-1.41A9.77 9.77 0 0 1 12 20a9.77 9.77 0 0 1-7.53-8.53Z"/></svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5Zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>
+                  }
+                </button>
+              </div>
+            </label>
+
+            @if (password) {
+              <div class="password-strength" aria-live="polite">
+                <div class="password-strength__bar">
+                  <span
+                    class="password-strength__fill"
+                    [class.password-strength__fill--weak]="passwordStrengthLabel === 'Faible'"
+                    [class.password-strength__fill--medium]="passwordStrengthLabel === 'Moyen'"
+                    [class.password-strength__fill--strong]="passwordStrengthLabel === 'Fort'"
+                    [style.width.%]="passwordStrengthPercent"
+                  ></span>
+                </div>
+                <span class="password-strength__label">Force : {{ passwordStrengthLabel }}</span>
+              </div>
+
+              <ul class="password-rules">
+                @for (rule of passwordRules; track rule.id) {
+                  <li [class.password-rules__item--ok]="ruleMet(rule.id)">
+                    <span class="password-rules__mark" aria-hidden="true">{{ ruleMet(rule.id) ? '✓' : '○' }}</span>
+                    {{ rule.label }}
+                  </li>
+                }
+              </ul>
             }
+
+            <label class="field field--password">
+              <span>Confirmer le mot de passe</span>
+              <div class="password-input-wrap">
+                <input
+                  id="confirm-password"
+                  name="confirmPassword"
+                  [type]="showConfirmPassword ? 'text' : 'password'"
+                  [(ngModel)]="confirmPassword"
+                  required
+                  placeholder="Répétez le mot de passe"
+                  autocomplete="new-password"
+                  [class.input--invalid]="confirmPassword && !passwordsMatch"
+                />
+                <button
+                  type="button"
+                  class="password-toggle"
+                  (click)="togglePasswordVisibility('confirm')"
+                  [attr.aria-label]="showConfirmPassword ? 'Masquer la confirmation' : 'Afficher la confirmation'"
+                >
+                  @if (showConfirmPassword) {
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 6a9.77 9.77 0 0 1 8.82 5.5 9.647 9.647 0 0 1-2.41 3.12l1.41 1.41A11.94 11.94 0 0 0 24 11.5 12 12 0 0 0 0 11.5a12 12 0 0 0 3.27 8.41l1.42-1.42A9.77 9.77 0 0 1 12 6Zm0 4a3 3 0 0 0-2.83 4h5.66A3 3 0 0 0 12 10Zm-7.53 1.47-1.41 1.41A12 12 0 0 0 0 11.5 12 12 0 0 0 12 24a11.8 11.8 0 0 0 7.53-2.73l-1.41-1.41A9.77 9.77 0 0 1 12 20a9.77 9.77 0 0 1-7.53-8.53Z"/></svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5Zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>
+                  }
+                </button>
+              </div>
+              @if (confirmPassword && !passwordsMatch) {
+                <p class="field-error">Les mots de passe ne correspondent pas.</p>
+              }
+            </label>
+          </div>
+
+          <div class="captcha-section">
+            <div class="captcha-section__head">
+              <span class="captcha-section__label">Vérification de sécurité</span>
+              <p class="captcha-section__hint">Protège la création de compte contre les robots.</p>
+            </div>
+
+            <div class="captcha-panel">
+              @if (captchaState === 'loading') {
+                <div class="captcha-loading" role="status">
+                  <span class="captcha-loading__spinner" aria-hidden="true"></span>
+                  Chargement du captcha…
+                </div>
+              }
+
+              <div
+                #turnstileContainer
+                class="turnstile-widget"
+                [class.turnstile-widget--hidden]="captchaState === 'fallback' || captchaState === 'error'"
+                aria-label="Vérification anti-robot Cloudflare Turnstile"
+              ></div>
+
+              @if (captchaState === 'fallback') {
+                <div class="captcha-fallback">
+                  <p class="captcha-fallback__note">Mode développement — widget indisponible.</p>
+                  <label class="captcha-box captcha-box--dev">
+                    <input
+                      type="checkbox"
+                      [checked]="captchaDevBypass"
+                      (change)="onDevCaptchaToggle($any($event.target).checked)"
+                    />
+                    <span>Je confirme que je ne suis pas un robot</span>
+                  </label>
+                </div>
+              }
+
+              @if (captchaState === 'error') {
+                <div class="captcha-error">
+                  <p>Le captcha n'a pas pu se charger.</p>
+                  <button type="button" class="link-btn" (click)="retryCaptcha()">Réessayer</button>
+                </div>
+              }
+            </div>
           </div>
 
           <button type="submit" class="btn-submit" [disabled]="submitting">

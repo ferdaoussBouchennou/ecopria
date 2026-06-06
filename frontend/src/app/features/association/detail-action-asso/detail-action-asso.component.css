@@ -518,13 +518,15 @@
 
 .btn-qr {
   flex: 1;
-  padding: 0.65rem 1rem;
+  padding: 0.65rem 0.75rem;
   background: var(--ec-sage-dark);
   color: white;
   border: none;
   border-radius: 6px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
 }

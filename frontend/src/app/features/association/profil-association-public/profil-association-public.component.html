@@ -1,0 +1,107 @@
+<div class="asso-page">
+  <div *ngIf="loading" class="state-box">
+    <div class="spinner"></div>
+    <p>Chargement de l'association…</p>
+  </div>
+
+  <div *ngIf="!loading && erreur" class="state-box state-error">
+    <h1>Association introuvable</h1>
+    <p>{{ erreur }}</p>
+    <a routerLink="/associations" class="btn btn--outline">Retour au catalogue</a>
+  </div>
+
+  <ng-container *ngIf="!loading && profil">
+    <nav class="breadcrumb" aria-label="Fil d'Ariane">
+      <a routerLink="/associations">Associations</a>
+      <span aria-hidden="true">/</span>
+      <span>{{ profil.name }}</span>
+    </nav>
+
+    <header class="spotlight">
+      <div class="spotlight__identity">
+        <div class="avatar" [class.avatar--photo]="profil.logo">
+          <img
+            *ngIf="profil.logo"
+            [src]="logoSrc"
+            [alt]="profil.name"
+            (error)="onLogoError($event)"
+          />
+          <span *ngIf="!profil.logo" class="avatar__letter">{{ associationInitial }}</span>
+        </div>
+
+        <div class="spotlight__copy">
+          <p class="eyebrow"><span class="eyebrow__line"></span> Association engagée</p>
+          <h1>{{ profil.name }}</h1>
+          <p class="tagline" *ngIf="profil.description">{{ profil.description }}</p>
+          <p class="tagline tagline--muted" *ngIf="!profil.description">
+            Association du réseau Ecopria.
+          </p>
+        </div>
+      </div>
+
+      <div class="spotlight__stats">
+        <div class="stat-pill" *ngIf="profil.city">
+          <span class="stat-pill__label">Ville</span>
+          <span class="stat-pill__value">{{ profil.city }}</span>
+        </div>
+        <div class="stat-pill" *ngIf="!loadingActions">
+          <span class="stat-pill__label">Actions</span>
+          <span class="stat-pill__value">{{ actions.length }}</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="info-panel" *ngIf="hasContactInfo">
+      <h2>Informations</h2>
+      <ul class="info-list">
+        <li *ngIf="profil.address">
+          <span class="info-label">Adresse</span>
+          <span>{{ profil.address }}</span>
+        </li>
+        <li *ngIf="profil.city">
+          <span class="info-label">Ville</span>
+          <span>{{ profil.city }}</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="actions-section">
+      <div class="section-head">
+        <h2>Actions à venir</h2>
+        <a routerLink="/actions" class="section-link">Toutes les actions →</a>
+      </div>
+
+      <div *ngIf="loadingActions" class="state-box state-box--compact">
+        <div class="spinner"></div>
+        <p>Chargement des actions…</p>
+      </div>
+
+      <div *ngIf="!loadingActions && erreurActions" class="state-box state-box--compact state-error">
+        <p>{{ erreurActions }}</p>
+      </div>
+
+      <div *ngIf="!loadingActions && !erreurActions && actions.length === 0" class="state-box state-box--compact state-empty">
+        <p>Aucune action publiée pour le moment.</p>
+      </div>
+
+      <div class="actions-grid" *ngIf="!loadingActions && actions.length > 0">
+        <article class="action-card" *ngFor="let action of actions">
+          <a [routerLink]="['/action', action.id]" class="action-card__link">
+            <div class="action-card__image" *ngIf="action.photoUrls?.length">
+              <img [src]="action.photoUrls![0]" [alt]="action.title" loading="lazy" />
+            </div>
+            <div class="action-card__body">
+              <p class="action-card__meta">{{ action.categoryName }} · {{ action.city }}</p>
+              <h3>{{ action.title }}</h3>
+              <p class="action-card__date">{{ formatDate(action.dateStart) }}</p>
+              <div class="action-card__footer">
+                <span class="action-card__points">{{ action.points }} pts</span>
+                <span class="action-card__places">{{ action.availablePlaces }} place(s)</span>
+              </div>
+            </div>
+          </a>
+        </article>
+      </div>
+    </section>
+  </ng-container>
+</div>

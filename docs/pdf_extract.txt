@@ -1,0 +1,1033 @@
+﻿FOUND Ferdaouss at char 4889
+tilisateurs
+ 
+de
+ 
+la
+ 
+plateforme
+ 
+:
+ 
+Cit
+ 
+ 3.1.2  Service-Administration    3.2.  Sanae   3.2.1  Service-Utilisateur   3.2.2  Service-Notification  
+ 
+===PAGE 8===
+  
+ 3.2.3  Api-Gateway   3.3.  Ferdaouss   
+Dans  lÔÇÖarchitecture  microservice  dÔÇÖEcopria,  jÔÇÖai  d├®velopp├®  deux  services  backend  :  
+Microservice  R├┤le  principal  Port  (Docker)  
+service-action  Gestion  des  actions  ├®cologiques(cr├®ation,  publication,  carte,  places,  cat├®gories,  associations)   
+9090  
+service-recompense  Gestion  du  catalogue  de  r├®compenses,  ├®change  de  points,  coupons  et  espace  partenaire  
+9093  
+3.3.1  Service-Action  
+ÔùÅ  Role  et  responsabilite  
+Le  microservice   Action  est  le  c ┼ô ur  des  actions  citoyennes  (nettoyage,  plantation,  sensibilisation,  
+etc.).
+ 
+Il
+ 
+permet
+ 
+aux
+ 
+associations
+ 
+de
+ 
+cr├®er
+ 
+et
+ 
+g├®rer
+ 
+leurs
+ 
+├®v├®nements.
+ 
+Les
+ 
+citoyens
+ 
+peuvent
+ 
+les
+ 
+consulter
+ 
+(liste,
+ 
+carte,
+ 
+d├®tail),
+ 
+Les
+ 
+autres
+ 
+services
+ 
+peuvent
+ 
+v├®rifier
+ 
+la
+ 
+disponibilit├®
+ 
+des
+ 
+places
+ 
+lors
+ 
+des
+ 
+inscriptions.
+ 
+ÔùÅ  Fonctionnalit├®s  d├®velopp├®es  A.  Consultation  publique  (citoyens)  
+-   Liste  des  actions  publi├®es,  avec  filtre  par  cat├®gorie  et  type  dÔÇÖactions  (GET  /api/actions)  .  
+-  Affichage  sur  carte  interactive  avec  filtre  par  cat├®gorie  (GET  /api/actions/carte).  
+-  Detail  dÔÇÖune  action  avec  les  places  disponibles  (via  service  presence)  (GET  /api/actions/{id}).  
+-  Actions  publiees  dÔÇÖune  association  (GET  /api/associations/{id}/actions).  
+-  Statistiques  publiques  de  la  plateforme  :   actions  realisees,  participants  inscrits,  actions  en  cours  
+(GET
+ 
+/api/public/stats).
+ 
+B.  Gestion  pa
+---
+FOUND Sanae at char 4776
+ÔÇÖauthentification
+ 
+(connexion,
+ 
+deconnexion
+ 
+et
+ 
+gestion
+ 
+des
+ 
+sessions)
+ 
+pour
+ 
+les
+ 
+trois
+ 
+types
+ 
+dÔÇÖutilisateurs
+ 
+de
+ 
+la
+ 
+plateforme
+ 
+:
+ 
+Cit
+ 
+ 3.1.2  Service-Administration    3.2.  Sanae   3.2.1  Service-Utilisateur   3.2.2  Service-Notification  
+ 
+===PAGE 8===
+  
+ 3.2.3  Api-Gateway   3.3.  Ferdaouss   
+Dans  lÔÇÖarchitecture  microservice  dÔÇÖEcopria,  jÔÇÖai  d├®velopp├®  deux  services  backend  :  
+Microservice  R├┤le  principal  Port  (Docker)  
+service-action  Gestion  des  actions  ├®cologiques(cr├®ation,  publication,  carte,  places,  cat├®gories,  associations)   
+9090  
+service-recompense  Gestion  du  catalogue  de  r├®compenses,  ├®change  de  points,  coupons  et  espace  partenaire  
+9093  
+3.3.1  Service-Action  
+ÔùÅ  Role  et  responsabilite  
+Le  microservice   Action  est  le  c ┼ô ur  des  actions  citoyennes  (nettoyage,  plantation,  sensibilisation,  
+etc.).
+ 
+Il
+ 
+permet
+ 
+aux
+ 
+associations
+ 
+de
+ 
+cr├®er
+ 
+et
+ 
+g├®rer
+ 
+leurs
+ 
+├®v├®nements.
+ 
+Les
+ 
+citoyens
+ 
+peuvent
+ 
+les
+ 
+consulter
+ 
+(liste,
+ 
+carte,
+ 
+d├®tail),
+ 
+Les
+ 
+autres
+ 
+services
+ 
+peuvent
+ 
+v├®rifier
+ 
+la
+ 
+disponibilit├®
+ 
+des
+ 
+places
+ 
+lors
+ 
+des
+ 
+inscriptions.
+ 
+ÔùÅ  Fonctionnalit├®s  d├®velopp├®es  A.  Consultation  publique  (citoyens)  
+-   Liste  des  actions  publi├®es,  avec  filtre  par  cat├®gorie  et  type  dÔÇÖactions  (GET  /api/actions)  .  
+-  Affichage  sur  carte  interactive  avec  filtre  par  cat├®gorie  (GET  /api/actions/carte).  
+-  Detail  dÔÇÖune  action  avec  les  places  disponibles  (via  service  presence)  (GET  /api/actions/{id}).  
+-  Actions  publiees  dÔÇÖune  association  (GET  /api/associations/{id}/actions).  
+-  Statistiques  publiques  de  la  plateforme  : 
+---
+FOUND Hafsa at char 3833
+inscription/  Ôöé                ÔööÔöÇÔöÇ  presence/  Ôöé  Ôö£ÔöÇÔöÇ  scripts/  Ôö£ÔöÇÔöÇ  docker-compose.yml  Ôö£ÔöÇÔöÇ  .env  ÔööÔöÇÔöÇ  .gitignore   
+2.4  Architecture  globale  
+ 
+
+===PAGE 7===
+ 
+3.  R├®partition  backend   
+3.1  Hafsa   
+Dans  lÔÇÖarchitecture  microservice  dÔÇÖEcopria,  jÔÇÖai  d├®velopp├®  deux  services  backend:  
+Microservice  Role  principal  Port    (Docker)  
+service-auth  Authentification,inscription,jwt,v├®rification  de  lÔÇÖemail,  r├®initialisation  de  mot  de  passe,  gestion  du  compte,  documents  de  v├®rification  
+8081  
+service-admin  Administrateur  back-office:tableau  de  bord,  gestion  des  comptes,  mod├®ration,  cat├®gories,  actions  fixes,profils  dÔÇÖassociation,  param├¿tres  de  la  plateforme  
+8087  
+ 
+3.1.1  Service-Authentification  
+ÔùÅ  
+Role  et  responsabilite  
+Le  microservice  dÔÇÖAuthentification  est  le  principal  service  dÔÇÖidentite  de  la  plateforme  Ecopria.  Il  gere  
+le
+ 
+processus
+ 
+dÔÇÖinscription
+ 
+et
+ 
+dÔÇÖauthentification
+ 
+(connexion,
+ 
+deconnexion
+ 
+et
+ 
+gestion
+ 
+des
+ 
+sessions)
+ 
+pour
+ 
+les
+ 
+trois
+ 
+types
+ 
+dÔÇÖutilisateurs
+ 
+de
+ 
+la
+ 
+plateforme
+ 
+:
+ 
+Cit
+ 
+ 3.1.2  Service-Administration    3.2.  Sanae   3.2.1  Service-Utilisateur   3.2.2  Service-Notification  
+ 
+===PAGE 8===
+  
+ 3.2.3  Api-Gateway   3.3.  Ferdaouss   
+Dans  lÔÇÖarchitecture  microservice  dÔÇÖEcopria,  jÔÇÖai  d├®velopp├®  deux  services  backend  :  
+Microservice  R├┤le  principal  Port  (Docker)  
+service-action  Gestion  des  actions  ├®cologiques(cr├®ation,  publication,  carte,  places,  cat├®gories,  associations)   
+9090  
+service-recompense  Gestion  du  catalogue  de  r├®compenses,  ├®change  de  points,  coupons  et  espace  partenaire  
+9093  
+3.3.1  Service-Action  
+ÔùÅ  Role  e
+---
+FOUND Hajar at char 12376
+re  pour  la  commission   
+SERVICE   Prestation  gratuite   Toujours  disponible  si  active   
+EXPERIENCE   Atelier,  visite,  ├®v├®nement   Stock  optionnel   
+ 
+ 
+ 
+ 
+ 
+ 
+===PAGE 12===
+  
+ 
+  3.4.  Hajar   3.4.1  Service-Inscription   3.4.2  Service-Presence             
+ 
+===PAGE 13===
+ 
+4.  R├®partition  frontend   4.1  Hafsa   4.2  Sanae   4.3  Ferdaouss  4.3.1  Espace  association  (interface  
+compl├¿te)
+      4.4  Hajar  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+===PAGE 14===
+  
+5.  Flux  m├®tier  et  communication  
+inter-services
+ 
+ 
+5.1  Parcours  citoyen  complet  
+Ce  diagramme  d├®crit  le  cycle  complet  du  participant  sur  Ecopria,  de  lÔÇÖinscription  ├á  lÔÇÖ├®change  de  points.   1.  Inscription   :  Le  citoyen  cr├®e  son  compte  (/creer-compte).  Le  auth-service enregistre  lÔÇÖutilisateur  et  publie  sur  
+Kafka
+ 
+(citoyen.inscrit,  email.verification).  Le  service-utilisateur cr├®e  automatiquement  son  profil,  et  
+le
+ service-notification envoie  lÔÇÖemail  de  bienvenue  et  de  v├®rification.   
+2.  D├®couverte  et  inscription  ├á  une  action  :  Le  citoyen  consulte  les  actions  (/actions)  via  le  service-action,  puis  
+sÔÇÖinscrit
+ 
+(POST  /inscriptions).  Le  service-inscription confirme  lÔÇÖinscription  et  publie  inscription.confirmee :  le  service-presence g├®n├¿re  un  QR  code,  et  le  service-action d├®cr├®mente  les  
+places
+ 
+disponibles.
+ 
+ 
+3.  Validation  de  pr├®sence  :  Sur  le  terrain,  le  citoyen  scanne  le  QR  (/espace/scanner-presence).  Le  service-presence valide  la  pr├®sence  et  publie  presence.validee :  le  service-utilisateur cr├®dite  les  points  
+et
+ 
+les
+ 
+badges,
+ 
+et
+ 
+le
+ service-notification informe  le  citoyen.   
+4.  ├ëchange  de  r├®
+---
+FOUND service-action at char 2474
+rkflows/  Ôöé        ÔööÔöÇÔöÇ  ci.yml  Ôöé  Ôö£ÔöÇÔöÇ  backend/  Ôöé    Ôö£ÔöÇÔöÇ  api-gateway/  Ôöé    Ôö£ÔöÇÔöÇ  auth-service/  Ôöé    Ôö£ÔöÇÔöÇ  admin-service/  Ôöé    Ôö£ÔöÇÔöÇ  service-utilisateur/  Ôöé    Ôö£ÔöÇÔöÇ  service-notification/  Ôöé    Ôö£ÔöÇÔöÇ  service-action/  Ôöé    Ôö£ÔöÇÔöÇ  service-recompense/  Ôöé    Ôö£ÔöÇÔöÇ  service-inscription/  Ôöé    ÔööÔöÇÔöÇ  service-presence/  Ôöé  Ôö£ÔöÇÔöÇ  frontend/  Ôöé    Ôö£ÔöÇÔöÇ  angular.json  Ôöé    Ôö£ÔöÇÔöÇ  package.json  Ôöé    ÔööÔöÇÔöÇ  src/  Ôöé        Ôö£ÔöÇÔöÇ  index.html  
+ 
+Couche   Technologies   
+              
+===PAGE 6===
+  
+Ôöé        Ôö£ÔöÇÔöÇ  main.ts  Ôöé        Ôö£ÔöÇÔöÇ  styles.scss  Ôöé        Ôö£ÔöÇÔöÇ  environments/  Ôöé        Ôö£ÔöÇÔöÇ  assets/  Ôöé        ÔööÔöÇÔöÇ  app/  Ôöé            Ôö£ÔöÇÔöÇ  app.component.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.config.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.routes.ts  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  core/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  constants/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  guards/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  interceptors/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  models/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  services/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  utils/  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  shared/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  components/  Ôöé            Ôöé        ÔööÔöÇÔöÇ  page-shell/  Ôöé            Ôöé  Ôöé            ÔööÔöÇÔöÇ  features/  Ôöé                Ôö£ÔöÇÔöÇ  accueil/  Ôöé                Ôö£ÔöÇÔöÇ  action/  Ôöé                Ôö£ÔöÇÔöÇ  auth/  Ôöé                Ôö£ÔöÇÔöÇ  admin/  Ôöé                Ôö£ÔöÇÔöÇ  utilisateur/  Ôöé                Ôö£ÔöÇÔöÇ  association/  Ôöé                Ôö£ÔöÇÔöÇ  recompense/  Ôöé                Ôö£ÔöÇÔöÇ  inscription/  Ôöé                ÔööÔöÇÔöÇ  presence/  Ôöé  Ôö£ÔöÇÔöÇ  scripts/  Ôö£ÔöÇÔöÇ  docker-compose.yml  Ôö£ÔöÇÔöÇ  .env  ÔööÔöÇÔöÇ  .gitignore   
+2.4  Architecture  globale  
+ 
+
+===PAGE 7===
+ 
+3.  R├®partition  backend   
+3.1  Hafsa   
+Dans  lÔÇÖarchitecture  microservice  dÔÇÖEcopria,  jÔÇÖai  d├®velopp├®  deux  services  backend:  
+Microservice  Role  principal  Port    (
+---
+FOUND service-recompense at char 2501
+yml  Ôöé  Ôö£ÔöÇÔöÇ  backend/  Ôöé    Ôö£ÔöÇÔöÇ  api-gateway/  Ôöé    Ôö£ÔöÇÔöÇ  auth-service/  Ôöé    Ôö£ÔöÇÔöÇ  admin-service/  Ôöé    Ôö£ÔöÇÔöÇ  service-utilisateur/  Ôöé    Ôö£ÔöÇÔöÇ  service-notification/  Ôöé    Ôö£ÔöÇÔöÇ  service-action/  Ôöé    Ôö£ÔöÇÔöÇ  service-recompense/  Ôöé    Ôö£ÔöÇÔöÇ  service-inscription/  Ôöé    ÔööÔöÇÔöÇ  service-presence/  Ôöé  Ôö£ÔöÇÔöÇ  frontend/  Ôöé    Ôö£ÔöÇÔöÇ  angular.json  Ôöé    Ôö£ÔöÇÔöÇ  package.json  Ôöé    ÔööÔöÇÔöÇ  src/  Ôöé        Ôö£ÔöÇÔöÇ  index.html  
+ 
+Couche   Technologies   
+              
+===PAGE 6===
+  
+Ôöé        Ôö£ÔöÇÔöÇ  main.ts  Ôöé        Ôö£ÔöÇÔöÇ  styles.scss  Ôöé        Ôö£ÔöÇÔöÇ  environments/  Ôöé        Ôö£ÔöÇÔöÇ  assets/  Ôöé        ÔööÔöÇÔöÇ  app/  Ôöé            Ôö£ÔöÇÔöÇ  app.component.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.config.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.routes.ts  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  core/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  constants/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  guards/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  interceptors/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  models/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  services/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  utils/  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  shared/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  components/  Ôöé            Ôöé        ÔööÔöÇÔöÇ  page-shell/  Ôöé            Ôöé  Ôöé            ÔööÔöÇÔöÇ  features/  Ôöé                Ôö£ÔöÇÔöÇ  accueil/  Ôöé                Ôö£ÔöÇÔöÇ  action/  Ôöé                Ôö£ÔöÇÔöÇ  auth/  Ôöé                Ôö£ÔöÇÔöÇ  admin/  Ôöé                Ôö£ÔöÇÔöÇ  utilisateur/  Ôöé                Ôö£ÔöÇÔöÇ  association/  Ôöé                Ôö£ÔöÇÔöÇ  recompense/  Ôöé                Ôö£ÔöÇÔöÇ  inscription/  Ôöé                ÔööÔöÇÔöÇ  presence/  Ôöé  Ôö£ÔöÇÔöÇ  scripts/  Ôö£ÔöÇÔöÇ  docker-compose.yml  Ôö£ÔöÇÔöÇ  .env  ÔööÔöÇÔöÇ  .gitignore   
+2.4  Architecture  globale  
+ 
+
+===PAGE 7===
+ 
+3.  R├®partition  backend   
+3.1  Hafsa   
+Dans  lÔÇÖarchitecture  microservice  dÔÇÖEcopria,  jÔÇÖai  d├®velopp├®  deux  services  backend:  
+Microservice  Role  principal  Port    (Docker)  
+service-auth  Aut
+---
+FOUND service-utilisateur at char 2409
+Structure  du  projet   
+ECOPRIA/  Ôöé  Ôö£ÔöÇÔöÇ  .github/  Ôöé    ÔööÔöÇÔöÇ  workflows/  Ôöé        ÔööÔöÇÔöÇ  ci.yml  Ôöé  Ôö£ÔöÇÔöÇ  backend/  Ôöé    Ôö£ÔöÇÔöÇ  api-gateway/  Ôöé    Ôö£ÔöÇÔöÇ  auth-service/  Ôöé    Ôö£ÔöÇÔöÇ  admin-service/  Ôöé    Ôö£ÔöÇÔöÇ  service-utilisateur/  Ôöé    Ôö£ÔöÇÔöÇ  service-notification/  Ôöé    Ôö£ÔöÇÔöÇ  service-action/  Ôöé    Ôö£ÔöÇÔöÇ  service-recompense/  Ôöé    Ôö£ÔöÇÔöÇ  service-inscription/  Ôöé    ÔööÔöÇÔöÇ  service-presence/  Ôöé  Ôö£ÔöÇÔöÇ  frontend/  Ôöé    Ôö£ÔöÇÔöÇ  angular.json  Ôöé    Ôö£ÔöÇÔöÇ  package.json  Ôöé    ÔööÔöÇÔöÇ  src/  Ôöé        Ôö£ÔöÇÔöÇ  index.html  
+ 
+Couche   Technologies   
+              
+===PAGE 6===
+  
+Ôöé        Ôö£ÔöÇÔöÇ  main.ts  Ôöé        Ôö£ÔöÇÔöÇ  styles.scss  Ôöé        Ôö£ÔöÇÔöÇ  environments/  Ôöé        Ôö£ÔöÇÔöÇ  assets/  Ôöé        ÔööÔöÇÔöÇ  app/  Ôöé            Ôö£ÔöÇÔöÇ  app.component.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.config.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.routes.ts  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  core/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  constants/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  guards/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  interceptors/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  models/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  services/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  utils/  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  shared/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  components/  Ôöé            Ôöé        ÔööÔöÇÔöÇ  page-shell/  Ôöé            Ôöé  Ôöé            ÔööÔöÇÔöÇ  features/  Ôöé                Ôö£ÔöÇÔöÇ  accueil/  Ôöé                Ôö£ÔöÇÔöÇ  action/  Ôöé                Ôö£ÔöÇÔöÇ  auth/  Ôöé                Ôö£ÔöÇÔöÇ  admin/  Ôöé                Ôö£ÔöÇÔöÇ  utilisateur/  Ôöé                Ôö£ÔöÇÔöÇ  association/  Ôöé                Ôö£ÔöÇÔöÇ  recompense/  Ôöé                Ôö£ÔöÇÔöÇ  inscription/  Ôöé                ÔööÔöÇÔöÇ  presence/  Ôöé  Ôö£ÔöÇÔöÇ  scripts/  Ôö£ÔöÇÔöÇ  docker-compose.yml  Ôö£ÔöÇÔöÇ  .env  ÔööÔöÇÔöÇ  .gitignore   
+2.4  Architecture  globale  
+ 
+
+===PAGE 7===
+ 
+3.  R├®partition  backend   
+3.1  Hafsa   
+Dans  lÔÇÖarchitecture  microservice  dÔÇÖEcopria,  jÔÇÖai  d├®velopp├®  de
+---
+FOUND service-notification at char 2441
+/  Ôöé  Ôö£ÔöÇÔöÇ  .github/  Ôöé    ÔööÔöÇÔöÇ  workflows/  Ôöé        ÔööÔöÇÔöÇ  ci.yml  Ôöé  Ôö£ÔöÇÔöÇ  backend/  Ôöé    Ôö£ÔöÇÔöÇ  api-gateway/  Ôöé    Ôö£ÔöÇÔöÇ  auth-service/  Ôöé    Ôö£ÔöÇÔöÇ  admin-service/  Ôöé    Ôö£ÔöÇÔöÇ  service-utilisateur/  Ôöé    Ôö£ÔöÇÔöÇ  service-notification/  Ôöé    Ôö£ÔöÇÔöÇ  service-action/  Ôöé    Ôö£ÔöÇÔöÇ  service-recompense/  Ôöé    Ôö£ÔöÇÔöÇ  service-inscription/  Ôöé    ÔööÔöÇÔöÇ  service-presence/  Ôöé  Ôö£ÔöÇÔöÇ  frontend/  Ôöé    Ôö£ÔöÇÔöÇ  angular.json  Ôöé    Ôö£ÔöÇÔöÇ  package.json  Ôöé    ÔööÔöÇÔöÇ  src/  Ôöé        Ôö£ÔöÇÔöÇ  index.html  
+ 
+Couche   Technologies   
+              
+===PAGE 6===
+  
+Ôöé        Ôö£ÔöÇÔöÇ  main.ts  Ôöé        Ôö£ÔöÇÔöÇ  styles.scss  Ôöé        Ôö£ÔöÇÔöÇ  environments/  Ôöé        Ôö£ÔöÇÔöÇ  assets/  Ôöé        ÔööÔöÇÔöÇ  app/  Ôöé            Ôö£ÔöÇÔöÇ  app.component.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.config.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.routes.ts  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  core/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  constants/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  guards/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  interceptors/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  models/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  services/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  utils/  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  shared/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  components/  Ôöé            Ôöé        ÔööÔöÇÔöÇ  page-shell/  Ôöé            Ôöé  Ôöé            ÔööÔöÇÔöÇ  features/  Ôöé                Ôö£ÔöÇÔöÇ  accueil/  Ôöé                Ôö£ÔöÇÔöÇ  action/  Ôöé                Ôö£ÔöÇÔöÇ  auth/  Ôöé                Ôö£ÔöÇÔöÇ  admin/  Ôöé                Ôö£ÔöÇÔöÇ  utilisateur/  Ôöé                Ôö£ÔöÇÔöÇ  association/  Ôöé                Ôö£ÔöÇÔöÇ  recompense/  Ôöé                Ôö£ÔöÇÔöÇ  inscription/  Ôöé                ÔööÔöÇÔöÇ  presence/  Ôöé  Ôö£ÔöÇÔöÇ  scripts/  Ôö£ÔöÇÔöÇ  docker-compose.yml  Ôö£ÔöÇÔöÇ  .env  ÔööÔöÇÔöÇ  .gitignore   
+2.4  Architecture  globale  
+ 
+
+===PAGE 7===
+ 
+3.  R├®partition  backend   
+3.1  Hafsa   
+Dans  lÔÇÖarchitecture  microservice  dÔÇÖEcopria,  jÔÇÖai  d├®velopp├®  deux  services  backend:  
+Microse
+---
+FOUND api-gateway at char 2334
+nsemble  technique   2.2.  Stack  technologique   
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+2.3.  Structure  du  projet   
+ECOPRIA/  Ôöé  Ôö£ÔöÇÔöÇ  .github/  Ôöé    ÔööÔöÇÔöÇ  workflows/  Ôöé        ÔööÔöÇÔöÇ  ci.yml  Ôöé  Ôö£ÔöÇÔöÇ  backend/  Ôöé    Ôö£ÔöÇÔöÇ  api-gateway/  Ôöé    Ôö£ÔöÇÔöÇ  auth-service/  Ôöé    Ôö£ÔöÇÔöÇ  admin-service/  Ôöé    Ôö£ÔöÇÔöÇ  service-utilisateur/  Ôöé    Ôö£ÔöÇÔöÇ  service-notification/  Ôöé    Ôö£ÔöÇÔöÇ  service-action/  Ôöé    Ôö£ÔöÇÔöÇ  service-recompense/  Ôöé    Ôö£ÔöÇÔöÇ  service-inscription/  Ôöé    ÔööÔöÇÔöÇ  service-presence/  Ôöé  Ôö£ÔöÇÔöÇ  frontend/  Ôöé    Ôö£ÔöÇÔöÇ  angular.json  Ôöé    Ôö£ÔöÇÔöÇ  package.json  Ôöé    ÔööÔöÇÔöÇ  src/  Ôöé        Ôö£ÔöÇÔöÇ  index.html  
+ 
+Couche   Technologies   
+              
+===PAGE 6===
+  
+Ôöé        Ôö£ÔöÇÔöÇ  main.ts  Ôöé        Ôö£ÔöÇÔöÇ  styles.scss  Ôöé        Ôö£ÔöÇÔöÇ  environments/  Ôöé        Ôö£ÔöÇÔöÇ  assets/  Ôöé        ÔööÔöÇÔöÇ  app/  Ôöé            Ôö£ÔöÇÔöÇ  app.component.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.config.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.routes.ts  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  core/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  constants/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  guards/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  interceptors/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  models/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  services/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  utils/  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  shared/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  components/  Ôöé            Ôöé        ÔööÔöÇÔöÇ  page-shell/  Ôöé            Ôöé  Ôöé            ÔööÔöÇÔöÇ  features/  Ôöé                Ôö£ÔöÇÔöÇ  accueil/  Ôöé                Ôö£ÔöÇÔöÇ  action/  Ôöé                Ôö£ÔöÇÔöÇ  auth/  Ôöé                Ôö£ÔöÇÔöÇ  admin/  Ôöé                Ôö£ÔöÇÔöÇ  utilisateur/  Ôöé                Ôö£ÔöÇÔöÇ  association/  Ôöé                Ôö£ÔöÇÔöÇ  recompense/  Ôöé                Ôö£ÔöÇÔöÇ  inscription/  Ôöé                ÔööÔöÇÔöÇ  presence/  Ôöé  Ôö£ÔöÇÔöÇ  scripts/  Ôö£ÔöÇÔöÇ  docker-compose.yml  Ôö£ÔöÇÔöÇ  .env  ÔööÔöÇÔöÇ  .gitignore   
+2.4  Architecture  globale  
+ 
+
+===PAGE 7===
+ 
+3.  R├®partition  backend   
+3.1  H
+---
+FOUND Backend at char 2314
+ 5===
+ 
+2.  Vue  d'ensemble  technique   2.2.  Stack  technologique   
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+2.3.  Structure  du  projet   
+ECOPRIA/  Ôöé  Ôö£ÔöÇÔöÇ  .github/  Ôöé    ÔööÔöÇÔöÇ  workflows/  Ôöé        ÔööÔöÇÔöÇ  ci.yml  Ôöé  Ôö£ÔöÇÔöÇ  backend/  Ôöé    Ôö£ÔöÇÔöÇ  api-gateway/  Ôöé    Ôö£ÔöÇÔöÇ  auth-service/  Ôöé    Ôö£ÔöÇÔöÇ  admin-service/  Ôöé    Ôö£ÔöÇÔöÇ  service-utilisateur/  Ôöé    Ôö£ÔöÇÔöÇ  service-notification/  Ôöé    Ôö£ÔöÇÔöÇ  service-action/  Ôöé    Ôö£ÔöÇÔöÇ  service-recompense/  Ôöé    Ôö£ÔöÇÔöÇ  service-inscription/  Ôöé    ÔööÔöÇÔöÇ  service-presence/  Ôöé  Ôö£ÔöÇÔöÇ  frontend/  Ôöé    Ôö£ÔöÇÔöÇ  angular.json  Ôöé    Ôö£ÔöÇÔöÇ  package.json  Ôöé    ÔööÔöÇÔöÇ  src/  Ôöé        Ôö£ÔöÇÔöÇ  index.html  
+ 
+Couche   Technologies   
+              
+===PAGE 6===
+  
+Ôöé        Ôö£ÔöÇÔöÇ  main.ts  Ôöé        Ôö£ÔöÇÔöÇ  styles.scss  Ôöé        Ôö£ÔöÇÔöÇ  environments/  Ôöé        Ôö£ÔöÇÔöÇ  assets/  Ôöé        ÔööÔöÇÔöÇ  app/  Ôöé            Ôö£ÔöÇÔöÇ  app.component.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.config.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.routes.ts  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  core/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  constants/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  guards/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  interceptors/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  models/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  services/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  utils/  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  shared/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  components/  Ôöé            Ôöé        ÔööÔöÇÔöÇ  page-shell/  Ôöé            Ôöé  Ôöé            ÔööÔöÇÔöÇ  features/  Ôöé                Ôö£ÔöÇÔöÇ  accueil/  Ôöé                Ôö£ÔöÇÔöÇ  action/  Ôöé                Ôö£ÔöÇÔöÇ  auth/  Ôöé                Ôö£ÔöÇÔöÇ  admin/  Ôöé                Ôö£ÔöÇÔöÇ  utilisateur/  Ôöé                Ôö£ÔöÇÔöÇ  association/  Ôöé                Ôö£ÔöÇÔöÇ  recompense/  Ôöé                Ôö£ÔöÇÔöÇ  inscription/  Ôöé                ÔööÔöÇÔöÇ  presence/  Ôöé  Ôö£ÔöÇÔöÇ  scripts/  Ôö£ÔöÇÔöÇ  docker-compose.yml  Ôö£ÔöÇÔöÇ  .env  ÔööÔöÇÔöÇ  .gitignore   
+2.4  Architecture  globale  
+ 
+
+===PAGE 7===
+ 
+3.  R├®partitio
+---
+FOUND backend at char 2314
+ 5===
+ 
+2.  Vue  d'ensemble  technique   2.2.  Stack  technologique   
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+2.3.  Structure  du  projet   
+ECOPRIA/  Ôöé  Ôö£ÔöÇÔöÇ  .github/  Ôöé    ÔööÔöÇÔöÇ  workflows/  Ôöé        ÔööÔöÇÔöÇ  ci.yml  Ôöé  Ôö£ÔöÇÔöÇ  backend/  Ôöé    Ôö£ÔöÇÔöÇ  api-gateway/  Ôöé    Ôö£ÔöÇÔöÇ  auth-service/  Ôöé    Ôö£ÔöÇÔöÇ  admin-service/  Ôöé    Ôö£ÔöÇÔöÇ  service-utilisateur/  Ôöé    Ôö£ÔöÇÔöÇ  service-notification/  Ôöé    Ôö£ÔöÇÔöÇ  service-action/  Ôöé    Ôö£ÔöÇÔöÇ  service-recompense/  Ôöé    Ôö£ÔöÇÔöÇ  service-inscription/  Ôöé    ÔööÔöÇÔöÇ  service-presence/  Ôöé  Ôö£ÔöÇÔöÇ  frontend/  Ôöé    Ôö£ÔöÇÔöÇ  angular.json  Ôöé    Ôö£ÔöÇÔöÇ  package.json  Ôöé    ÔööÔöÇÔöÇ  src/  Ôöé        Ôö£ÔöÇÔöÇ  index.html  
+ 
+Couche   Technologies   
+              
+===PAGE 6===
+  
+Ôöé        Ôö£ÔöÇÔöÇ  main.ts  Ôöé        Ôö£ÔöÇÔöÇ  styles.scss  Ôöé        Ôö£ÔöÇÔöÇ  environments/  Ôöé        Ôö£ÔöÇÔöÇ  assets/  Ôöé        ÔööÔöÇÔöÇ  app/  Ôöé            Ôö£ÔöÇÔöÇ  app.component.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.config.ts  Ôöé            Ôö£ÔöÇÔöÇ  app.routes.ts  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  core/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  constants/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  guards/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  interceptors/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  models/  Ôöé            Ôöé    Ôö£ÔöÇÔöÇ  services/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  utils/  Ôöé            Ôöé  Ôöé            Ôö£ÔöÇÔöÇ  shared/  Ôöé            Ôöé    ÔööÔöÇÔöÇ  components/  Ôöé            Ôöé        ÔööÔöÇÔöÇ  page-shell/  Ôöé            Ôöé  Ôöé            ÔööÔöÇÔöÇ  features/  Ôöé                Ôö£ÔöÇÔöÇ  accueil/  Ôöé                Ôö£ÔöÇÔöÇ  action/  Ôöé                Ôö£ÔöÇÔöÇ  auth/  Ôöé                Ôö£ÔöÇÔöÇ  admin/  Ôöé                Ôö£ÔöÇÔöÇ  utilisateur/  Ôöé                Ôö£ÔöÇÔöÇ  association/  Ôöé                Ôö£ÔöÇÔöÇ  recompense/  Ôöé                Ôö£ÔöÇÔöÇ  inscription/  Ôöé                ÔööÔöÇÔöÇ  presence/  Ôöé  Ôö£ÔöÇÔöÇ  scripts/  Ôö£ÔöÇÔöÇ  docker-compose.yml  Ôö£ÔöÇÔöÇ  .env  ÔööÔöÇÔöÇ  .gitignore   
+2.4  Architecture  globale  
+ 
+
+===PAGE 7===
+ 
+3.  R├®partitio
+---
+FOUND R├®partition at char 3804
+ense/  Ôöé                Ôö£ÔöÇÔöÇ  inscription/  Ôöé                ÔööÔöÇÔöÇ  presence/  Ôöé  Ôö£ÔöÇÔöÇ  scripts/  Ôö£ÔöÇÔöÇ  docker-compose.yml  Ôö£ÔöÇÔöÇ  .env  ÔööÔöÇÔöÇ  .gitignore   
+2.4  Architecture  globale  
+ 
+
+===PAGE 7===
+ 
+3.  R├®partition  backend   
+3.1  Hafsa   
+Dans  lÔÇÖarchitecture  microservice  dÔÇÖEcopria,  jÔÇÖai  d├®velopp├®  deux  services  backend:  
+Microservice  Role  principal  Port    (Docker)  
+service-auth  Authentification,inscription,jwt,v├®rification  de  lÔÇÖemail,  r├®initialisation  de  mot  de  passe,  gestion  du  compte,  documents  de  v├®rification  
+8081  
+service-admin  Administrateur  back-office:tableau  de  bord,  gestion  des  comptes,  mod├®ration,  cat├®gories,  actions  fixes,profils  dÔÇÖassociation,  param├¿tres  de  la  plateforme  
+8087  
+ 
+3.1.1  Service-Authentification  
+ÔùÅ  
+Role  et  responsabilite  
+Le  microservice  dÔÇÖAuthentification  est  le  principal  service  dÔÇÖidentite  de  la  plateforme  Ecopria.  Il  gere  
+le
+ 
+processus
+ 
+dÔÇÖinscription
+ 
+et
+ 
+dÔÇÖauthentification
+ 
+(connexion,
+ 
+deconnexion
+ 
+et
+ 
+gestion
+ 
+des
+ 
+sessions)
+ 
+pour
+ 
+les
+ 
+trois
+ 
+types
+ 
+dÔÇÖutilisateurs
+ 
+de
+ 
+la
+ 
+plateforme
+ 
+:
+ 
+Cit
+ 
+ 3.1.2  Service-Administration    3.2.  Sanae   3.2.1  Service-Utilisateur   3.2.2  Service-Notification  
+ 
+===PAGE 8===
+  
+ 3.2.3  Api-Gateway   3.3.  Ferdaouss   
+Dans  lÔÇÖarchitecture  microservice  dÔÇÖEcopria,  jÔÇÖai  d├®velopp├®  deux  services  backend  :  
+Microservice  R├┤le  principal  Port  (Docker)  
+service-action  Gestion  des  actions  ├®cologiques(cr├®ation,  publication,  carte,  places,  cat├®gories,  associations)   
+9090  
+service-recompense  Gestion  du  catalogue  de  r├®compenses,  ├®change  de  points,  coupons  et  espace  partenaire  
+9093  
+3.3.1
+---
+===PAGE 5===
+ 
+2.  Vue  d'ensemble  technique   2.2.  Stack  technologique   
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+2.3.  Structure  du  projet   
+ECOPRIA/  Ôöé  Ôö£ÔöÇÔöÇ  .github/  Ôöé    ÔööÔöÇÔöÇ  workflows/  Ôöé        ÔööÔöÇÔöÇ  ci.yml  Ôöé  Ôö£ÔöÇÔöÇ  backend/  Ôöé    Ôö£ÔöÇÔöÇ  api-gateway/  Ôöé    Ôö£ÔöÇÔöÇ  auth-service/  Ôöé    Ôö£ÔöÇÔöÇ  admin-service/  Ôöé    Ôö£ÔöÇÔöÇ  service-utilisateur/  Ôöé    Ôö£ÔöÇÔöÇ  service-notification/  Ôöé    Ôö£ÔöÇÔöÇ  service-action/  Ôöé    Ôö£ÔöÇÔöÇ  service-recompense/  Ôöé    Ôö£ÔöÇÔöÇ  service-inscription/  Ôöé    ÔööÔöÇÔöÇ  service-presence/  Ôöé  Ôö£ÔöÇÔöÇ  frontend/  Ôöé    Ôö£ÔöÇÔöÇ  angular.json  Ôöé    Ôö£ÔöÇÔöÇ  package.json  Ôöé    ÔööÔöÇÔöÇ  src/  Ôöé        Ôö£ÔöÇÔöÇ  index.html  
+ 
+Couche   Technologies   
+              
+=====
+===PAGE 7===
+ 
+3.  R├®partition  backend   
+3.1  Hafsa   
+Dans  lÔÇÖarchitecture  microservice  dÔÇÖEcopria,  jÔÇÖai  d├®velopp├®  deux  services  backend:  
+Microservice  Role  principal  Port    (Docker)  
+service-auth  Authentification,inscription,jwt,v├®rification  de  lÔÇÖemail,  r├®initialisation  de  mot  de  passe,  gestion  du  compte,  documents  de  v├®rification  
+8081  
+service-admin  Administrateur  back-office:tableau  de  bord,  gestion  des  comptes,  mod├®ration,  cat├®gories,  actions  fixes,profils  dÔÇÖassociation,  param├¿tres  de  la  plateforme  
+8087  
+ 
+3.1.1  Service-Authentification  
+ÔùÅ  
+Role  et  responsabilite  
+Le  microservice  dÔÇÖAuthentification  est  le  principal  service  dÔÇÖidentite  de  la  plateforme  Ecopria.  Il  gere  
+le
+ 
+processus
+ 
+dÔÇÖinscription
+ 
+et
+ 
+dÔÇÖauthentification
+ 
+(connexion,
+ 
+deconnexion
+ 
+et
+ 
+gestion
+ 
+des
+ 
+sessions)
+ 
+pour
+ 
+les
+ 
+trois
+ 
+types
+ 
+dÔÇÖutilisateurs
+ 
+de
+ 
+la
+ 
+plateforme
+ 
+:
+ 
+Cit
+ 
+ 3.1.2  Service-Administration    3.2.  Sanae   3.2.1  Service-Utilisateur   3.2.2  Service-Notification  
+ 
+=====
+===PAGE 8===
+  
+ 3.2.3  Api-Gateway   3.3.  Ferdaouss   
+Dans  lÔÇÖarchitecture  microservice  dÔÇÖEcopria,  jÔÇÖai  d├®velopp├®  deux  services  backend  :  
+Microservice  R├┤le  principal  Port  (Docker)  
+service-action  Gestion  des  actions  ├®cologiques(cr├®ation,  publication,  carte,  places,  cat├®gories,  associations)   
+9090  
+service-recompense  Gestion  du  catalogue  de  r├®compenses,  ├®change  de  points,  coupons  et  espace  partenaire  
+9093  
+3.3.1  Service-Action  
+ÔùÅ  Role  et  responsabilite  
+Le  microservice   Action  est  le  c ┼ô ur  des  actions  citoyennes  (nettoyage,  plantation,  sensibilisation,  
+etc.).
+ 
+Il
+ 
+permet
+ 
+aux
+ 
+associations
+ 
+de
+ 
+cr├®er
+ 
+et
+ 
+g├®rer
+ 
+leurs
+ 
+├®v├®nements.
+ 
+Les
+ 
+citoyens
+ 
+peuvent
+ 
+les
+ 
+consulter
+ 
+(liste,
+ 
+carte,
+ 
+d├®tail),
+ 
+Les
+ 
+autres
+ 
+services
+ 
+peuvent
+ 
+v├®rifier
+ 
+la
+ 
+disponibilit├®
+ 
+des
+ 
+places
+ 
+lors
+ 
+des
+ 
+inscriptions.
+ 
+ÔùÅ  Fonctionnalit├®s  d├®velopp├®es  A.  Consultation  publique  (citoyens)  
+-   Liste  des  actions  publi├®es,  avec  filtre  par  cat├®gorie  et  type  dÔÇÖactions  (GET  /api/actions)  .  
+-  Affichage  sur  carte  interactive  avec  filtre  par  cat├®gorie  (GET  /api/actions/carte).  
+-  Detail  dÔÇÖune  action  avec  les  places  disponibles  (via  service  presence)  (GET  /api/actions/{id}).  
+-  Actions  publiees  dÔÇÖune  association  (GET  /api/associations/{id}/actions).  
+-  Statistiques  publiques  de  la  plateforme  :   actions  realisees,  participants  inscrits,  actions  en  cours  
+(GET
+ 
+/api/public/stats).
+ 
+B.  Gestion  par  lÔÇÖassociation 
+-   creation  dÔÇÖune  action  en  brouillon  (POST  /api/actions).   
+=====
+===PAGE 10===
+  
+ 
+G.  Administration  des  actions  non  fixes   
+-  Liste,  creation,  modification,  activation/d├®sactivation  par  lÔÇÖadmin  -  Upload  photo  admin.  
+H.  T├óches  planifi├®es   
+-  Cron  quotidien  (2h  du  matin)  :  passage  automatique  en  statut  COMPLETED  des  actions  publi├®es  
+dont
+ 
+la
+ 
+date
+ 
+de
+ 
+fin
+ 
+est
+ 
+d├®pass├®e.
+ 
+I.  Statistiques  internes   
+-  Endpoint  /internal/stats  pour  le  tableau  de  bord  admin  (nombre  total  d'actions,  actions  actives).
+ 3.3.2  Service-Recompence  
+ÔùÅ  Role  et  responsabilite  
+Le  microservice  Recompense  gere  lÔÇÖeconomie  de  points  dÔÇÖEcopria.   Les  citoyens  ├®changent  leurs  
+points
+ 
+contre
+ 
+des
+ 
+offres
+ 
+propos├®es
+ 
+par
+ 
+des
+ 
+partenaires
+ 
+(commerces,
+ 
+restaurants,
+ 
+etc.).
+ 
+Il
+ 
+couvre
+ 
+le
+ 
+catalogue
+ 
+public,
+ 
+la
+ 
+g├®n├®ration
+ 
+de
+ 
+coupons,
+ 
+la
+ 
+validation
+ 
+en
+ 
+magasin,
+ 
+les
+ 
+commissions
+ 
+partenaires
+ 
+et
+ 
+la
+ 
+bo├«te
+ 
+myst├¿re.
+ 
+ÔùÅ  Fonctionnalit├®s  d├®velopp├®es  
+A.  Catalogue  public  (citoyens) 
+-  Liste  des  r├®compenses  actives,  filtrable  par  type  (GET  
+/api/recompenses?type=STOCK|REDUCTION|SERVICE|EXPERIENCE).
+ -  D├®tail  d'une  offre  ( GET  /api/recompenses/{id} ).  -  Liste  des  partenaires  et  profils  publics  ( GET  /api/recompenses/public/partenaires ,  
+/public/partenaire/{userId}
+).
+ -  Offres  actives  d'un  partenaire  ( GET  /api/recompenses/public/partenaire/{userId}/offres ).  -  Compteur  de  clics  sur  une  offre  ( POST  /api/recompenses/{id}/clic ).  
+B.  ├ëchange  de  points  et  coupons  (citoyens)  
+-  ├ëchange  d'une  r├®compense  contre  un  coupon  :  a.  V├®rification  du  solde  de  points  (service-utilisateur)  b.  D├®duction  imm├®diate  des  points  c.  G├®n├®ration  d'un  code  coupon  unique  d.  D├®cr├®mentation  du  stock  si  applicable  e.  Notification  par  e-mail  via  Kafka  (recompense.echangee)  (POST  
+/api/recompenses/echanger)
+ -  Consultation  de  mes  coupons  ( GET  /api/recompenses/mes-coupons ).  -  Renvoi  du  coupon  par  e-mail  ( POST  /api/recompenses/coupons/{id}/renvoyer-email ).  
+ 
+=====
+===PAGE 12===
+  
+ 
+  3.4.  Hajar   3.4.1  Service-Inscription   3.4.2  Service-Presence             
+ 
+=====
+===PAGE 13===
+ 
+4.  R├®partition  frontend   4.1  Hafsa   4.2  Sanae   4.3  Ferdaouss  4.3.1  Espace  association  (interface  
+compl├¿te)
+      4.4  Hajar  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+=====
+===PAGE 14===
+  
+5.  Flux  m├®tier  et  communication  
+inter-services
+ 
+ 
+5.1  Parcours  citoyen  complet  
+Ce  diagramme  d├®crit  le  cycle  complet  du  participant  sur  Ecopria,  de  lÔÇÖinscription  ├á  lÔÇÖ├®change  de  points.   1.  Inscription   :  Le  citoyen  cr├®e  son  compte  (/creer-compte).  Le  auth-service enregistre  lÔÇÖutilisateur  et  publie  sur  
+Kafka
+ 
+(citoyen.inscrit,  email.verification).  Le  service-utilisateur cr├®e  automatiquement  son  profil,  et  
+le
+ service-notification envoie  lÔÇÖemail  de  bienvenue  et  de  v├®rification.   
+2.  D├®couverte  et  inscription  ├á  une  action  :  Le  citoyen  consulte  les  actions  (/actions)  via  le  service-action,  puis  
+sÔÇÖinscrit
+ 
+(POST  /inscriptions).  Le  service-inscription confirme  lÔÇÖinscription  et  publie  inscription.confirmee :  le  service-presence g├®n├¿re  un  QR  code,  et  le  service-action d├®cr├®mente  les  
+places
+ 
+disponibles.
+ 
+ 
+3.  Validation  de  pr├®sence  :  Sur  le  terrain,  le  citoyen  scanne  le  QR  (/espace/scanner-presence).  Le  service-presence valide  la  pr├®sence  et  publie  presence.validee :  le  service-utilisateur cr├®dite  les  points  
+et
+ 
+les
+ 
+badges,
+ 
+et
+ 
+le
+ service-notification informe  le  citoyen.   
+4.  ├ëchange  de  r├®compenses   :  Le  citoyen  ├®change  ses  points  (/espace/recompenses).  Le  service-recompense 
+d├®duit
+ 
+les
+ 
+points
+ 
+(appel
+ 
+direct
+ 
+au
+ service-utilisateur),  g├®n├¿re  un  coupon  et  publie  recompense.echangee 
+pour
+ 
+la
+ 
+notification.
+ 
+ 
+ 
+ 
+ 
+
+=====
+===PAGE 15===
+ 
+5.2  Inscription  et  validation  du  compte  
+(Association
+ 
++
+ 
+Partenaire)
+ 
+ 
+Ce  diagramme  d├®crit  le  parcours  commun  aux  associations  et  partenaires  avant  lÔÇÖacc├¿s  ├á  leur  espace.  LÔÇÖorganisation  sÔÇÖinscrit,  
+re├ºoit
+ 
+un
+ 
+code
+ 
+par
+ 
+email,
+ 
+puis
+ 
+son
+ 
+profil
+ 
+est
+ 
+cr├®├®
+ 
+en
+ 
+statut
+ 
+┬½
+ 
+en
+ 
+attente
+ 
+┬╗.
+ 
+LÔÇÖadministrateur
+ 
+valide
+ 
+le
+ 
+compte
+ 
+depuis
+ 
+lÔÇÖespace
+ 
+admin
+ 
+;
+ 
+selon
+ 
+le
+ 
+r├┤le,
+ 
+Kafka
+ 
+active
+ 
+le
+ 
+profil
+ 
+c├┤t├®
+ service-utilisateur (asso.validee ou  partenaire.validee).  Une  fois  le  
+compte
+ 
+activ├®,
+ 
+lÔÇÖorganisation
+ 
+peut
+ 
+se
+ 
+connecter
+ 
+et
+ 
+est
+ 
+redirig├®e
+ 
+vers
+ /association ou  /partenaire
+.   
+5.3  Parcours  association  complet  
+5.3.1  Cr├®ation  et  publication  d'une  action  
+ 
+
+=====

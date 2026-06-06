@@ -5,6 +5,7 @@ import com.example.auth_service.entity.ResetToken;
 import com.example.auth_service.entity.User;
 import com.example.auth_service.repository.ResetTokenRepository;
 import com.example.auth_service.repository.UserRepository;
+import com.example.auth_service.validation.PasswordPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -117,6 +118,7 @@ public class PasswordResetService {
         User user = userRepository.findById(resetToken.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Compte introuvable"));
 
+        PasswordPolicy.requireStrong(newPassword);
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 

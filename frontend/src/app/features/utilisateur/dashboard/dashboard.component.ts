@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
+import { of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { UserService } from '../../../core/services/user.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -9,6 +9,9 @@ import { UiService } from '../../../core/services/ui.user.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Profile, PointHistory, BadgeStatus, UpcomingAction } from '../../../core/models/user.model';
 import { ActionService } from '../../action/services/action.service';
+import { getActionCardImage } from '../../action/utils/action-image.util';
+import { shouldHideParticipantEntry, resolveParticipationStatut } from '../../action/utils/action-participant.util';
+import { ActionSummary } from '../../action/models/action.model';
 import { InscriptionService } from '../../inscription/inscription.service';
 
 @Component({
@@ -73,45 +76,29 @@ export class DashboardComponent implements OnInit {
   private loadUpcomingActions(userId: number): void {
     this.inscriptionSvc.getMesActions(userId).pipe(
       switchMap((inscriptions) => {
-        const upcoming = inscriptions.filter((i) => i.statut === 'INSCRIT');
-        this.totalUpcomingActions = upcoming.length;
-        if (!upcoming.length) {
+        if (!inscriptions.length) {
+          this.totalUpcomingActions = 0;
           return of([] as UpcomingAction[]);
         }
 
-        return forkJoin(
-          upcoming.map((inscription) =>
-            this.actionSvc.getActionById(inscription.actionId).pipe(
-              map((action) => ({ action, sortKey: action.dateStart }))
-            )
-          )
-        ).pipe(
-          map((rows) =>
-            rows
-              .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
-              .map(({ action }) => ({
-                id: action.id,
-                title: action.title,
-                location: action.city,
-                category: action.categoryName,
-                date: new Intl.DateTimeFormat('fr-FR', {
-                  weekday: 'short',
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric'
-                }).format(new Date(action.dateStart)),
-                startTime: new Intl.DateTimeFormat('fr-FR', {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }).format(new Date(action.dateStart)),
-                endTime: new Intl.DateTimeFormat('fr-FR', {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }).format(new Date(action.dateEnd)),
-                points: action.points,
-                imageUrl: action.categoryImageUrl || 'assets/logo.png'
-              } as UpcomingAction))
-          )
+        const actionIds = [...new Set(inscriptions.map((i) => i.actionId))];
+        return this.actionSvc.getActionSummariesByIds(actionIds).pipe(
+          map((actions) => {
+            const byId = new Map(actions.map((a) => [a.id, a]));
+            const upcoming = inscriptions.filter((inscription) => {
+              const action = byId.get(inscription.actionId);
+              if (!action || shouldHideParticipantEntry(inscription.inscriptionStatut, action)) {
+                return false;
+              }
+              return resolveParticipationStatut(inscription.inscriptionStatut, action) === 'INSCRIT';
+            });
+            this.totalUpcomingActions = upcoming.length;
+
+            return upcoming
+              .map((inscription) => byId.get(inscription.actionId)!)
+              .sort((a, b) => a.dateStart.localeCompare(b.dateStart))
+              .map((action) => this.toUpcomingAction(action));
+          })
         );
       })
     ).subscribe({
@@ -147,5 +134,35 @@ export class DashboardComponent implements OnInit {
     }
 
     return value.charAt(0).toUpperCase() + value.slice(1);
+  }
+
+  onActionImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = '/assets/logo.png';
+  }
+
+  private toUpcomingAction(action: ActionSummary): UpcomingAction {
+    return {
+      id: action.id,
+      title: action.title,
+      location: action.city,
+      category: action.categoryName,
+      date: new Intl.DateTimeFormat('fr-FR', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      }).format(new Date(action.dateStart)),
+      startTime: new Intl.DateTimeFormat('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(new Date(action.dateStart)),
+      endTime: new Intl.DateTimeFormat('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(new Date(action.dateEnd)),
+      points: action.points,
+      imageUrl: getActionCardImage(action)
+    };
   }
 }

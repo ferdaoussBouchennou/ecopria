@@ -10,6 +10,7 @@ import { UiService } from '../../../core/services/ui.user.service';
 import { PresenceService } from '../../presence/presence.service';
 import { InscriptionService } from '../../inscription/inscription.service';
 import { ActionService } from '../../action/services/action.service';
+import { shouldHideParticipantEntry } from '../../action/utils/action-participant.util';
 
 interface TodayAction {
   actionId: number;
@@ -74,28 +75,28 @@ export class ScannerPresenceComponent implements OnInit {
           if (!upcoming.length) {
             return of([] as TodayAction[]);
           }
-          return forkJoin(
-            upcoming.map((insc) =>
-              this.actionService.getActionById(insc.actionId).pipe(
-                map((action) => ({
-                  actionId: insc.actionId,
-                  title: action.title,
-                  city: action.city,
-                  dateStart: action.dateStart,
-                }))
-              )
-            )
-          ).pipe(
-            map((actions) =>
-              actions
-                .filter((a) => this.isToday(a.dateStart))
-                .map((a) => ({
-                  actionId: a.actionId,
-                  title: a.title,
-                  city: a.city,
-                  dateLabel: this.formatDate(a.dateStart),
-                }))
-            )
+          const actionIds = [...new Set(upcoming.map((i) => i.actionId))];
+          return this.actionService.getActionSummariesByIds(actionIds).pipe(
+            map((actions) => {
+              const byId = new Map(actions.map((a) => [a.id, a]));
+              return upcoming
+                .map((insc) => {
+                  const action = byId.get(insc.actionId);
+                  if (!action || shouldHideParticipantEntry(insc.inscriptionStatut, action)) {
+                    return null;
+                  }
+                  if (!this.isToday(action.dateStart)) {
+                    return null;
+                  }
+                  return {
+                    actionId: insc.actionId,
+                    title: action.title,
+                    city: action.city,
+                    dateLabel: this.formatDate(action.dateStart),
+                  } as TodayAction;
+                })
+                .filter((a): a is TodayAction => a != null);
+            })
           );
         })
       )

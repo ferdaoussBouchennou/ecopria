@@ -82,6 +82,27 @@ public class UtilisateurClient {
     }
 
     @SuppressWarnings("unchecked")
+    public boolean isCitizen(Long userId) {
+        if (userId == null) {
+            return false;
+        }
+        String base = utilisateurServiceUrl.endsWith("/")
+                ? utilisateurServiceUrl.substring(0, utilisateurServiceUrl.length() - 1)
+                : utilisateurServiceUrl;
+        String url = base + "/api/users/" + userId + "/is-citizen";
+        try {
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            if (response == null) {
+                return false;
+            }
+            Object citizen = response.get("citizen");
+            return citizen instanceof Boolean && (Boolean) citizen;
+        } catch (RestClientException e) {
+            return false;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     public Map<String, Object> getParticipantProfile(Long userId) {
         String base = utilisateurServiceUrl.endsWith("/")
                 ? utilisateurServiceUrl.substring(0, utilisateurServiceUrl.length() - 1)

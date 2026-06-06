@@ -1,24 +1,36 @@
 package com.ecopria.utilisateur.controller;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import com.ecopria.utilisateur.dto.CitizenContactDTO;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.ecopria.utilisateur.dto.*;
 import com.ecopria.utilisateur.model.*;
 import com.ecopria.utilisateur.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping({ "/api/users", "/api/utilisateurs" })
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+@Slf4j
 public class UserController {
 
     private final UserService userService;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     @PostMapping
     public ResponseEntity<?> createCitizen(@Valid @RequestBody CitizenDTO citizenDTO) {
@@ -72,6 +84,26 @@ public class UserController {
         }
     }
 
+    /** Catalogue public des associations (sans authentification). */
+    @GetMapping("/public/associations")
+    public ResponseEntity<List<AssociationPublicProfilDTO>> getAssociationsPublics() {
+        return ResponseEntity.ok(userService.getAssociationsPublics());
+    }
+
+    /** Profil public d'une association par authId. */
+    @GetMapping("/public/association/{authId}")
+    public ResponseEntity<?> getAssociationPublic(@PathVariable Long authId) {
+        try {
+            return ResponseEntity.ok(userService.getAssociationPublic(authId));
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("Association non trouvée")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", e.getMessage(), "authId", authId));
+            }
+            throw e;
+        }
+    }
+
     @GetMapping("/partner/{authId}")
     public ResponseEntity<Partner> getPartner(@PathVariable Long authId) {
         return ResponseEntity.ok(userService.getPartner(authId));
@@ -90,6 +122,45 @@ public class UserController {
             @PathVariable Long id,
             @RequestBody CitizenDTO dto) {
         return ResponseEntity.ok(userService.updateProfile(id, dto));
+    }
+
+    @PostMapping("/{id}/photo")
+    public ResponseEntity<Map<String, String>> uploadCitizenPhoto(
+            @PathVariable Long id,
+            @RequestParam("photo") org.springframework.web.multipart.MultipartFile photo) {
+        String photoUrl = userService.uploadCitizenPhoto(id, photo);
+        return ResponseEntity.ok(Map.of("photoUrl", photoUrl));
+    }
+
+    @GetMapping("/uploads/citizens/{filename}")
+    public ResponseEntity<Resource> getCitizenPhoto(@PathVariable String filename) {
+        try {
+            Path filePath = Paths.get(uploadDir, "citizens", filename);
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                log.warn("Photo citoyen introuvable: {}", filename);
+                return ResponseEntity.notFound().build();
+            }
+
+            String contentType = "image/jpeg";
+            String lower = filename.toLowerCase();
+            if (lower.endsWith(".png")) {
+                contentType = "image/png";
+            } else if (lower.endsWith(".webp")) {
+                contentType = "image/webp";
+            } else if (lower.endsWith(".gif")) {
+                contentType = "image/gif";
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CACHE_CONTROL, "max-age=3600")
+                    .body(resource);
+        } catch (Exception e) {
+            log.error("Erreur lecture photo citoyen: {}", filename, e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @PutMapping("/association/{authId}/profile")
@@ -194,5 +265,10 @@ public class UserController {
         return userService.getParticipantProfile(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/is-citizen")
+    public ResponseEntity<Map<String, Boolean>> isCitizen(@PathVariable Long id) {
+        return ResponseEntity.ok(Map.of("citizen", userService.isCitizen(id)));
     }
 }

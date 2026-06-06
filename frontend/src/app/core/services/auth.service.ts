@@ -227,6 +227,11 @@ export class AuthService {
     return localStorage.getItem(ROLE_KEY) as RegisterRole | null;
   }
 
+  /** Compte citoyen / participant (inscriptions aux actions). */
+  isParticipant(): boolean {
+    return this.getRole() === 'USER';
+  }
+
   isLoggedIn(): boolean {
     const token = this.getAccessToken();
     if (!token) {

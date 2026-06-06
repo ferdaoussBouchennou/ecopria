@@ -23,7 +23,7 @@ public class Citizen {
     @Column(unique = true, length = 150)
     private String email;
 
-    @Column(length = 255)
+    @Column(length = 512)
     private String photo;
 
     @Column(length = 10)

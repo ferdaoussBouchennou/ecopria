@@ -2,9 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, map, of, switchMap } from 'rxjs';
+import { map, of, switchMap } from 'rxjs';
 import { ActionRowViewModel, ActionSummary } from '../../action/models/action.model';
 import { ActionService } from '../../action/services/action.service';
+import { getActionCardImage } from '../../action/utils/action-image.util';
+import {
+  resolveParticipationStatut,
+  shouldHideParticipantEntry,
+} from '../../action/utils/action-participant.util';
 import { InscriptionService } from '../../inscription/inscription.service';
 import { UiService } from '../../../core/services/ui.user.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -84,18 +89,28 @@ export class ActionsComponent implements OnInit {
           return of([] as ActionRowViewModel[]);
         }
 
-        return forkJoin(inscriptions.map((inscription) =>
-          this.actionService.getActionById(inscription.actionId).pipe(
-            map((action) => this.toRow(action, inscription))
-          )
-        ));
+        const actionIds = [...new Set(inscriptions.map((i) => i.actionId))];
+        return this.actionService.getActionSummariesByIds(actionIds).pipe(
+          map((actions) => {
+            const byId = new Map(actions.map((a) => [a.id, a]));
+            return inscriptions
+              .map((inscription) => {
+                const action = byId.get(inscription.actionId);
+                if (!action || shouldHideParticipantEntry(inscription.inscriptionStatut, action)) {
+                  return null;
+                }
+                return this.toRow(action, inscription);
+              })
+              .filter((row): row is ActionRowViewModel => row != null);
+          })
+        );
       })
     ).subscribe({
       next: (rows) => {
         this.allUpcoming = rows
           .filter((row) => row.statut === 'INSCRIT')
           .sort((a, b) => a.dateStart.localeCompare(b.dateStart));
-        
+
         this.allHistory = rows
           .filter((row) => row.statut !== 'INSCRIT')
           .sort((a, b) => b.dateStart.localeCompare(a.dateStart));
@@ -158,11 +173,12 @@ export class ActionsComponent implements OnInit {
     return {
       inscriptionId: inscription.inscriptionId,
       actionId: inscription.actionId,
-      statut: inscription.statut,
+      statut: resolveParticipationStatut(inscription.inscriptionStatut, action),
       dateAction: inscription.dateAction,
       title: action.title,
       categoryName: action.categoryName,
       categoryImageUrl: action.categoryImageUrl,
+      imageUrl: getActionCardImage(action),
       city: action.city,
       dateStart: action.dateStart,
       dateEnd: action.dateEnd,
@@ -233,5 +249,10 @@ export class ActionsComponent implements OnInit {
     }
 
     return `${dateText} · ${new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(startDate)} - ${new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(endDate)}`;
+  }
+
+  onActionImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = '/assets/logo.png';
   }
 }
