@@ -1,9 +1,0 @@
-{
-  "title": "Nouvelle offre test",
-  "description": "Test de creation",
-  "pointsNecessaires": 100,
-  "type": "STOCK",
-  "stock": 15,
-  "valeurDh": 30.0,
-  "hasMystereBox": false
-}

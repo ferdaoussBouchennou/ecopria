@@ -1,9 +1,0 @@
-{
-  "title": "Offre test creation",
-  "description": "Test de creation depuis API",
-  "pointsNecessaires": 100,
-  "type": "STOCK",
-  "stock": 20,
-  "valeurDh": 50.0,
-  "hasMystereBox": false
-}
